@@ -1,0 +1,4278 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-22T10:13:41.127Z",
+  "runId": "900f47a2-d26e-4488-afcd-3744430a899f",
+  "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+  "eventCount": 75,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
+  "events": [
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "run_started",
+      "at": "2026-11-22T10:11:11.774Z",
+      "elapsedMs": 1,
+      "wave": "carousel",
+      "dryRun": false,
+      "municipalities": [
+        "Landquart"
+      ],
+      "minRooms": 3,
+      "discoveryEnabled": true,
+      "privateQueryTemplates": 4,
+      "portalQueryTemplates": 13,
+      "maxCandidatesPerQuery": 8,
+      "pageLimit": 420,
+      "runMaxDurationMs": 2700000,
+      "llmEnabled": true,
+      "searchEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_plan",
+      "at": "2026-11-22T10:11:11.775Z",
+      "elapsedMs": 2,
+      "wave": "carousel",
+      "finishAll": true,
+      "coverAllCommunes": false,
+      "cycle": 189,
+      "selectedCommunes": [
+        "Landquart"
+      ],
+      "queryCountTotal": 17,
+      "queryOffset": 0,
+      "queryCountThisWave": 17,
+      "maxCandidatesPerQuery": 6,
+      "pageLimit": 420,
+      "resultsPerQuery": 10,
+      "serperMinIntervalMs": 1500,
+      "serperMaxPerMinute": 40,
+      "queryFamilies": [
+        "private",
+        "portals"
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:14.200Z",
+      "elapsedMs": 2427,
+      "source": "search",
+      "queryIndex": 1,
+      "queryTotal": 17,
+      "query": "\"Landquart\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003107396",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "rentola.ch",
+          "url": "rentola.ch/listings/rent-a-3-rooms-attic-flat-in-igis-landquart-flatfox-p63555c",
+          "title": "Wohnung mieten in Igis: 3 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:development_project",
+          "host": "landquart.ch",
+          "url": "www.landquart.ch/zaehlung-der-leer-stehenden-wohnungen/",
+          "title": "Zählung der leer stehenden Wohnungen"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "187 Inserate in Immobilien - Mieten - Wohnungen"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche Nachmieter für 2.5 ZW ab 1.Mai 2026"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Wohnungen zum Mieten: Bezirk Viamala (ab CHF 700.–)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Igis - Homematch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Jahre Wohnbau- und Eigentumsförderungsgesetz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung 1 – Zimmer A"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Im Park A, Landquart, GR"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003107396",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Wohnung mieten in Landquart. Bei homegate.ch findest Du 2 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "rentola.ch",
+          "url": "rentola.ch/listings/rent-a-3-rooms-attic-flat-in-igis-landquart-flatfox-p63555c",
+          "title": "Wohnung mieten in Igis: 3 Inserate",
+          "snippet": "5 Schlafzimmer Wohnung von 95.0 m² - Gemütlicher Wohnraum. vor 16 Tagen. 5 Zimmer Wohnung von 95m². Stationsstrasse 12, 7206 Landquart, Switzerland. CHF1'730 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "landquart.ch",
+          "url": "www.landquart.ch/zaehlung-der-leer-stehenden-wohnungen/",
+          "title": "Zählung der leer stehenden Wohnungen",
+          "snippet": "Offene Stellen Mehr Infos. Landquart logo. Portrait. Willkommen in Landquart. Landquart – das Tor zu GraubündenLeitbild.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "187 Inserate in Immobilien - Mieten - Wohnungen",
+          "snippet": "... Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1. Dezember 2… 590.- pro Monat. Möblierte Wohnung zur Untermiete Savognin. 5. St. Moritz, 7500, [phone] ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche Nachmieter für 2.5 ZW ab 1.Mai 2026",
+          "snippet": "Wir suchen einen Nachmieter für unsere moderne und lichtdurchflutete 3.5-Zimmer-Wohnung in ruhiger und dennoch zentraler Lage in Landquart. Die ...",
+          "date": "vor 7 Monaten",
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Wohnungen zum Mieten: Bezirk Viamala (ab CHF 700.–)",
+          "snippet": "Bezirk Imboden · Bezirk Landquart · Bezirk Maloja · Bezirk Moesa · Bezirk Plessur · Bezirk Prättigau / Davos · Bezirk Surselva. ImmoScout24. Inserat erstellen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Igis - Homematch",
+          "snippet": "Wohnungen mieten · Kanton Graubünden · Bezirk Landquart; Igis. Ratgeber. Gut zu wissen beim Mieten. BewerbungsdossierWas ins Dossier gehört – ...",
+          "date": "20.10.2026",
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Jahre Wohnbau- und Eigentumsförderungsgesetz",
+          "snippet": "Schneider Wohnbau, Landquart. [phone]-Zimmer-Einfamilienhaus. Eigentum ... Wie Eigentümer ihre Mietwohnungen erneuern. Roland Haari. 112 Seiten. Fr ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung 1 – Zimmer A",
+          "snippet": "Wohnung 1. Zimmer A. Landquart. 850.00 CHF / Woche. Über den Standort. Landquart – der perfekte Ausgangspunkt für Erlebnisse in den Bündner Alpen! Nur einen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Im Park A, Landquart, GR",
+          "snippet": "Die Wohnungen bieten eine wunderbare Aussicht auf die umliegenden Berge in Landquart. Sie sind in einer ruhigen Wohnlage mitten im Grünen und dennoch gut ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:14.200Z",
+      "elapsedMs": 2427,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:18.391Z",
+      "elapsedMs": 6618,
+      "source": "portal-homegate",
+      "queryIndex": 2,
+      "queryTotal": 17,
+      "query": "site:homegate.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/region-landquart/trefferliste",
+          "title": "20 Wohnung mieten in Bezirk Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-landquart/trefferliste",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/region-landquart/trefferliste",
+          "title": "Wohnung mieten mit 2 Zimmern in Bezirk Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 4 Zimmern in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 1 Zimmern in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 3 Zimmern in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 2 Zimmern in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 1 Zimmern in Bezirk Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 5 Zimmern in Landquart"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/region-landquart/trefferliste",
+          "title": "20 Wohnung mieten in Bezirk Landquart",
+          "snippet": "20 Treffer - Wohnung mieten in Bezirk Landquart ; 1 / 9. CHF 2'020.– · 82m² Wohnfläche. Bahnhofstrasse 56, 7302 Landquart ; 1 / 7. CHF 2'260.– · 104m² Wohnfläche.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-landquart/trefferliste",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "1 Treffer - Wohnung mieten in Landquart ; 1 / 9. CHF 2'050.–. 3.5 · 70m² Wohnfläche. Bildgasse 2, 7205 Zizers ; 1 / 7. CHF 2'260.–. 4.5 · 104m² Wohnfläche.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/region-landquart/trefferliste",
+          "title": "Wohnung mieten mit 2 Zimmern in Bezirk Landquart",
+          "snippet": "Wohnung mieten mit 2 Zimmern in Bezirk Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 4 Zimmern in Landquart",
+          "snippet": "Wohnung mieten mit 4 Zimmern in Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 1 Zimmern in Landquart",
+          "snippet": "Wohnung mieten mit 1 Zimmern in Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 3 Zimmern in Landquart",
+          "snippet": "Wohnung mieten mit 3 Zimmern in Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Wohnung mieten in Landquart. Bei homegate.ch findest Du 2 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 2 Zimmern in Landquart",
+          "snippet": "Wohnung mieten mit 2 Zimmern in Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 1 Zimmern in Bezirk Landquart",
+          "snippet": "1 Treffer - Wohnung mieten mit 1 Zimmern in Bezirk Landquart ; 1 / 7 · CHF 1'060.– · 22m² Wohnfläche. Pulvermühlestr. 13, 7000 Chur ; 1 / 5 · CHF 920.– · 20m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 5 Zimmern in Landquart",
+          "snippet": "Wohnung mieten mit 5 Zimmern in Landquart: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:18.393Z",
+      "elapsedMs": 6620,
+      "source": "portal-homegate",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:21.960Z",
+      "elapsedMs": 10187,
+      "source": "search",
+      "queryIndex": 3,
+      "queryTotal": 17,
+      "query": "\"Landquart\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:wanted_ad",
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3521901467974944/",
+          "title": "Ich suche Nachmieter für eine Wohnung in Rheinstrasse ..."
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "home.ch",
+          "url": "www.home.ch/de/mieten/wohnung/in-landquart",
+          "title": "Wohnung mieten: Landquart - www.home.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Anzeigen in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Nachmieter gesucht – stilvolle 3.5-Zimmer-Wohnung mit ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Vermieter Einzugsanzeige"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "120 immobilien mieten in Region Landquart - Trovit"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3-Zimmer-Wohnungen & Häuser mieten in Landquart"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)",
+          "snippet": "Aktuell werden auf newhome 68 Wohnungen in Landquart angeboten, davon 32 zur Miete. Wie hoch ist der durchschnittliche Mietpreis für Wohnungen in Landquart?",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3521901467974944/",
+          "title": "Ich suche Nachmieter für eine Wohnung in Rheinstrasse ...",
+          "snippet": "Ich suche Nachmieter für eine Wohnung in Rheinstrasse,28 7302 Landquart Es hat ein Schlafzimmer und ein Wohnzimmer mit kleine Balkon und ...",
+          "date": "vor 6 Monaten",
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "home.ch",
+          "url": "www.home.ch/de/mieten/wohnung/in-landquart",
+          "title": "Wohnung mieten: Landquart - www.home.ch",
+          "snippet": "Schöne 2.5 Zimmerwohnung zu Vermieten im EG ... Frisch renovierete 2.5 Wohnung zu Vermieten per [phone]Aussenparkplatz vorhanden kann man dazu... CHF 1,400 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Wohnung mieten in Landquart. Bei homegate.ch findest Du 2 passende ... Helle 3.5-Zimmer-Dachwohnung in Zizers – ab August 2026 zu vermieten. Willkommen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'020, für eine 4.5 Zimmer Wohnung CHF 2'485.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Anzeigen in Landquart",
+          "snippet": "Entdecke aktuelle Wohnangebote in Graubünden. Finde WG-Zimmer und günstige Wohnungen in Landquart und der Umgebung – jetzt auf WG-Gesucht!",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Nachmieter gesucht – stilvolle 3.5-Zimmer-Wohnung mit ...",
+          "snippet": "Wir suchen einen Nachmieter für unsere moderne und lichtdurchflutete 3.5-Zimmer-Wohnung in ruhiger und dennoch zentraler Lage in Landquart. Die ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Vermieter Einzugsanzeige",
+          "snippet": "Home > Landquart Online > Online Schalter > Vermieter Einzugsanzeige. Online Schalter. Anerkennungsurkunde bestellen · Ausweis über den registrierten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "120 immobilien mieten in Region Landquart - Trovit",
+          "snippet": "Finde immobilien mieten in Region Landquart zum besten Preis. Wir haben 120 immobilien mieten in Region Landquart fra CHF 350 / Monat.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3-Zimmer-Wohnungen & Häuser mieten in Landquart",
+          "snippet": "Wohnen in den Rebbergen von Malans - Herrschaftliches Einfamilienhaus zu vermieten ... Aktuell ist 1 Wohnung oder Haus in Landquart auf Homematch zum Mieten ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:21.961Z",
+      "elapsedMs": 10188,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:24.764Z",
+      "elapsedMs": 12991,
+      "source": "portal-immoscout24",
+      "queryIndex": 4,
+      "queryTotal": 17,
+      "query": "site:immoscout24.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-landquart",
+          "title": "Wohnungen zum Mieten: Landquart (ab CHF 1'325.–)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 23 Treffer"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 3 Treffer"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2 bis 2.5 Zimmer | Wohnungen zum Mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien zum Mieten: Landquart (ab CHF 600.–)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen mit Balkon mieten in 7302 (Landquart)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attikawohnung Mieten: Bezirk Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien zum Mieten: Seewis Dorf"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Haustierfreundliche Wohnungen mieten in Bezirk Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 1 Treffer"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-landquart",
+          "title": "Wohnungen zum Mieten: Landquart (ab CHF 1'325.–)",
+          "snippet": "Insgesamt 4404 Wohnungen sind in Landquart vorhanden. Insgesamt gibt es 138 Wohnungen mit 1 Zimmer, 561 2-Zimmer-Wohnungen, 881 3-Zimmer-Wohnungen und 1579 4- ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 23 Treffer",
+          "snippet": "Wohnungen zum Mieten in Bezirk Landquart: 23 Treffer ; 1 / 7. 4.5 Zimmer · 95m² ; 1 / 11. 5.5 Zimmer · 121m² ; 1 / 7. 4.5 Zimmer · 95m² ; 1 / 19. 3.5 Zimmer · 80m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 3 Treffer",
+          "snippet": "Wohnung mieten in Bezirk Landquart: Finden Sie jetzt Ihre Traumimmobilie auf ImmoScout24 - Die Plattform für Immobilien in der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2 bis 2.5 Zimmer | Wohnungen zum Mieten in Landquart",
+          "snippet": "Wohnung mieten in Landquart: Finden Sie jetzt Ihre Traumimmobilie auf ImmoScout24 - Die Plattform für Immobilien in der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien zum Mieten: Landquart (ab CHF 600.–)",
+          "snippet": "Immobilien zum Mieten in Landquart: 3 Treffer ; 1 / 9. 3.5 Zimmer · 82m² ; 1 / 7. 1.5 Zimmer · 37m² ; 1 / 4. 1.5 Zimmer · 24m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen mit Balkon mieten in 7302 (Landquart)",
+          "snippet": "Finde Wohnungen mit Balkon zum Mieten in 7302 (Landquart). Entdecke zahlreiche Angebote und finde dein neues Zuhause mit ImmoScout24.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attikawohnung Mieten: Bezirk Landquart",
+          "snippet": "Attikawohnung Mieten in Bezirk Landquart: Finden Sie jetzt Ihre Traumimmobilie auf ImmoScout24 - Die Plattform für Immobilien in der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien zum Mieten: Seewis Dorf",
+          "snippet": "Wir vermieten eine charmante 4.5-Zimmerwohnung, welche sich in einer kinderfreundlichen Überbauung befindet. ... Die Autobahnanbindung bei Landquart ist in ca. 5 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Haustierfreundliche Wohnungen mieten in Bezirk Landquart",
+          "snippet": "Finde haustierfreundliche Wohnungen zum Mieten in Bezirk Landquart auf ImmoScout24. Entdecke dein perfektes Zuhause, in dem Haustiere willkommen sind.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten in Bezirk Landquart: 1 Treffer",
+          "snippet": "Wohnung mieten in Bezirk Landquart: Finden Sie jetzt Ihre Traumimmobilie auf ImmoScout24 - Die Plattform für Immobilien in der Schweiz.",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:24.764Z",
+      "elapsedMs": 12991,
+      "source": "portal-immoscout24",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:28.506Z",
+      "elapsedMs": 16733,
+      "source": "search",
+      "queryIndex": 5,
+      "queryTotal": 17,
+      "query": "\"Landquart\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "comparis.ch",
+          "url": "www.comparis.ch/immobilien/marktplatz/landquart/wohnung/4-zimmer/mieten",
+          "title": "1 Wohnung 4-4.5 Zimmer mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/wohnung/ort-landquart/3.5-zimmer",
+          "title": "3.5-Zimmer-Wohnungen mieten in Landquart - Homematch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten mit Lift in Bezirk Landquart: 9 Treffer"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart - www.home.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Igis: 3 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2.5-Zimmer-Wohnungen mieten in Landquart - Homematch"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'094, für eine 4.5 Zimmer Wohnung CHF 2'603, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "comparis.ch",
+          "url": "www.comparis.ch/immobilien/marktplatz/landquart/wohnung/4-zimmer/mieten",
+          "title": "1 Wohnung 4-4.5 Zimmer mieten in Landquart",
+          "snippet": "Alle Miet-Angebote für 4- bis 4.5-Zimmer-Wohnung in Landquart von verschiedenen Immobilienportalen der Schweiz auf einen Blick mit Angaben zum ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/wohnung/ort-landquart/3.5-zimmer",
+          "title": "3.5-Zimmer-Wohnungen mieten in Landquart - Homematch",
+          "snippet": "3.5-Zimmer-Wohnungen mieten in Landquart. In der ganzen SchweizAlle ... 4.5 Zimmer Wohnung. Stationsstrasse 12, 7206 Igis. CHF 2'030.–/Monat95 m².",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'020, für eine 4.5 Zimmer Wohnung CHF 2'485.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Attraktive 4-Zimmer-Wohnung in Landquart ... Helle 3.5-Zimmer-Dachwohnung in Zizers – ab August 2026 zu vermieten ... Willkommen in dieser modernen und gepflegten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen zum Mieten mit Lift in Bezirk Landquart: 9 Treffer",
+          "snippet": "Gadenzweg 18, 7206 Igis-Landquart. Moderne 3.5 Zimmer-Wohnung in Igis ... Erstbezug - 4.5 Zimmer-Wohnung - Überbauung Bawangs ... Die neu sanierte 3,5 Zimmer- ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart - www.home.ch",
+          "snippet": "... 3.5 Zimmer-Wohnung an äusserst ... 3 Zimmer - Wohnung mieten: Landquart · 4 Zimmer - Wohnung mieten: Landquart · 5 zimmer und mehr - Wohnung mieten: Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+          "snippet": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab 01.06 Region Landquart und umgebung. Bis 2000fr. Danke. ... 4.5 Zimmer EFH in Jenaz ab 1.10.",
+          "date": "vor 6 Monaten",
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Igis: 3 Inserate",
+          "snippet": "vor 16 Tagen. 5 Zimmer Wohnung von 95m². Stationsstrasse 12, 7206 Landquart ... vor 59 Tagen. 4 Zimmer Wohnung von 82m². Tierarztpraxis Handke+Frei ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2.5-Zimmer-Wohnungen mieten in Landquart - Homematch",
+          "snippet": "3 ½ Zimmer-Wohnung, 7205 Zizers 2.5 km. 3.5 Zimmer Wohnung. Bildgasse 2, 7205 Zizers. CHF 2'050.–/Monat70 m². 3,5-Zimmer-Attikawohnung mit grosser Terrasse ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:28.506Z",
+      "elapsedMs": 16733,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:33.874Z",
+      "elapsedMs": 22101,
+      "source": "portal-flatfox",
+      "queryIndex": 6,
+      "queryTotal": 17,
+      "query": "site:flatfox.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 6,
+      "pickedCount": 3,
+      "selectedCount": 3,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+          "title": "2 Zimmer-Wohnung in Landquart mieten"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+          "title": "Rent a 4 ½ rooms apartment in Igis-Landquart"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+          "title": "Appartement 3 pièces à louer à Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "WG Zimmer in Zizers mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstvermietung Schiabach in Davos Platz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Affittare appartamento 5 ½ locali a Zizers"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+          "title": "2 Zimmer-Wohnung in Landquart mieten",
+          "snippet": "2 Zimmer-Wohnung in Landquart mieten: Frisch renovierete 2.5 Wohnung zu Vermieten per [phone] Aussenparkplatz vorhanden kann man dazu mieten sehr zen…",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+          "title": "Rent a 4 ½ rooms apartment in Igis-Landquart",
+          "snippet": "Rent a 4 ½ rooms apartment in Igis-Landquart: Wir vermieten per 1. Oktober 2026 eine moderne, im Eigentümerstandard ausgebaute 4.5 Zimmer-Wohnung im ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+          "title": "Appartement 3 pièces à louer à Landquart",
+          "snippet": "1 Zimmer-Wohnung. Location. 745 CHF · 1 Zimmer-Wohnung7205 Zizers · 2 Zimmer-Wohnung. Location. 1'400 CHF · 2 Zimmer-WohnungLandquart Kantonsstrasse 237302 ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "WG Zimmer in Zizers mieten",
+          "snippet": "Die Wohnung verfügt zudem über WLAN, TV mit Replayfunktion sowie eine ... WG ZimmerSchulstrasse 347302 Landquart · WG Zimmer. Mieten. 700 CHF / m².",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstvermietung Schiabach in Davos Platz",
+          "snippet": "Landquart. 1h 10min. 44min. Chur. 1h 17min. 1h 2min. Sargans. 1h 24min. 56min. Zürich ... Im Erdgeschoss ist pro. Hauseingang eine Waschküche vorhanden, welche ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Affittare appartamento 5 ½ locali a Zizers",
+          "snippet": "Appartamento 3 ½ localiBildgasse 27205 Zizers · Appartamento 2 locali. Affitto. 1'400 CHF · Appartamento 2 localiLandquart Kantonsstrasse 237302 Landquart.",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+          "title": "2 Zimmer-Wohnung in Landquart mieten",
+          "snippetOnly": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+          "title": "Rent a 4 ½ rooms apartment in Igis-Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+          "title": "Appartement 3 pièces à louer à Landquart",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:33.875Z",
+      "elapsedMs": 22102,
+      "source": "portal-flatfox",
+      "rawHits": 6,
+      "pickedBeforeCrossQueryDedupe": 3,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 3,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": [
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+          "title": "2 Zimmer-Wohnung in Landquart mieten",
+          "snippetOnly": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+          "title": "Rent a 4 ½ rooms apartment in Igis-Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+          "title": "Appartement 3 pièces à louer à Landquart",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:11:33.877Z",
+      "elapsedMs": 22104,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+      "host": "flatfox.ch",
+      "title": "2 Zimmer-Wohnung in Landquart mieten",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:11:34.597Z",
+      "elapsedMs": 22824,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 717,
+      "bodyChars": 23629,
+      "textChars": 599,
+      "finalUrl": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:11:40.416Z",
+      "elapsedMs": 28643,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+      "title": "2 Zimmer-Wohnung in Landquart mieten | Flatfox",
+      "textChars": 599,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 5817,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 2,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:11:40.417Z",
+      "elapsedMs": 28644,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+      "host": "flatfox.ch",
+      "title": "Rent a 4 ½ rooms apartment in Igis-Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:11:40.804Z",
+      "elapsedMs": 29031,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 383,
+      "bodyChars": 23680,
+      "textChars": 593,
+      "finalUrl": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:11:44.855Z",
+      "elapsedMs": 33082,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+      "title": "Rent a 4 ½ rooms apartment in Igis-Landquart | Flatfox",
+      "textChars": 593,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 4050,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:11:44.855Z",
+      "elapsedMs": 33082,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+      "host": "flatfox.ch",
+      "title": "Appartement 3 pièces à louer à Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:11:45.213Z",
+      "elapsedMs": 33440,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 355,
+      "bodyChars": 23395,
+      "textChars": 663,
+      "finalUrl": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:11:53.835Z",
+      "elapsedMs": 42062,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+      "title": "Appartement 3 pièces à louer à Landquart | Flatfox",
+      "textChars": 663,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 8621,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:11:53.837Z",
+      "elapsedMs": 42064,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+      "host": "flatfox.ch",
+      "title": "2 Zimmer-Wohnung in Landquart mieten | Flatfox",
+      "reason": "rooms_below_min",
+      "detail": "2",
+      "municipality": "Landquart",
+      "rooms": 2,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:11:53.856Z",
+      "elapsedMs": 42083,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+      "host": "flatfox.ch",
+      "title": "Rent a 4 ½ rooms apartment in Igis-Landquart | Flatfox",
+      "reason": "listing_unavailable",
+      "detail": "page_states_unavailable",
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:11:53.859Z",
+      "elapsedMs": 42086,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+      "host": "flatfox.ch",
+      "title": "Appartement 3 pièces à louer à Landquart | Flatfox",
+      "reason": "rooms_unknown",
+      "detail": "",
+      "municipality": "Landquart",
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:11:57.912Z",
+      "elapsedMs": 46139,
+      "source": "search",
+      "queryIndex": 7,
+      "queryTotal": 17,
+      "query": "\"Landquart\" (Wohnung OR Haus) (Mietzins OR Miete OR CHF) (privat OR direkt OR vermieten) -kaufen -verkaufen",
+      "resultCount": 10,
+      "pickedCount": 1,
+      "selectedCount": 1,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/region-landquart",
+          "title": "Wohnungen zum Mieten mit Lift in Bezirk Landquart: 9 Treffer"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_snippet_only",
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/immobilien/ort-landquart/3-zimmer",
+          "title": "3-Zimmer-Wohnungen & Häuser mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 Zimmer Wohnung von 82m² in Igis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zi. Wohnung in Landquart - Graubünden"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkünfte für längere Aufenthalte in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Moderne 3.5 Zimmer Wohnung in Jenins ab August 2024"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "SM-Wohnung «EdelSchmerz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive Wohnung an zentraler Lage"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "5 WG-Zimmer in Bezirk Landquart"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/region-landquart",
+          "title": "Wohnungen zum Mieten mit Lift in Bezirk Landquart: 9 Treffer",
+          "snippet": "Wohnungen zum Mieten mit Lift in Bezirk Landquart: 9 Treffer · 3.5 Zimmer · 4.5 Zimmer · 2.5 Zimmer · 4.5 Zimmer · 3.5 Zimmer · 3.5 Zimmer · 4.5 Zimmer · 4.5 Zimmer ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+          "snippet": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab 01.06 Region Landquart und umgebung. Bis 2000fr. Danke.",
+          "date": "vor 6 Monaten",
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/immobilien/ort-landquart/3-zimmer",
+          "title": "3-Zimmer-Wohnungen & Häuser mieten in Landquart",
+          "snippet": "Wie hoch sind die Angebotsmieten in Landquart?+. Wohnungen und Häuser werden in der Gemeinde Landquart im Median für CHF 19.4 netto (ohne Nebenkosten) pro m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 Zimmer Wohnung von 82m² in Igis",
+          "snippet": "Jetzt verfügbar: 82.0 m² Wohnung zur Langzeitmiete in Bahnhofstrasse 56, 7302 Landquart, Switzerland. Mietpreis: CHF2020. Kontaktiere den Vermieter noch ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zi. Wohnung in Landquart - Graubünden",
+          "snippet": "An attraktiver Lage an der Rätikonstrasse 9 in Landquart vermieten wir eine hochwertige 3.5-Zimmer-Wohnung. Der offene Wohn- und Essbereich mit grosszügigen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkünfte für längere Aufenthalte in Landquart",
+          "snippet": "Vollständig möblierte Unterkünfte mit Küche und WLAN, damit du dich einleben und einen Monat oder länger in Landquart, Schweiz komfortabel wohnen kannst.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Moderne 3.5 Zimmer Wohnung in Jenins ab August 2024",
+          "snippet": "3.5 Zimmer Wohnung in Jenins, Landquart Optimal gelegen, mit Parkplatz inklusive. Diese geräumige Wohnung steht für nur 1660 CHF monatlich zur Verfügung, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "SM-Wohnung «EdelSchmerz",
+          "snippet": "SM-Wohnung «EdelSchmerz». Landquart. 1'150.00 CHF / Woche. Über den Standort. Landquart – der perfekte Ausgangspunkt für Erlebnisse in den Bündner Alpen! Nur ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive Wohnung an zentraler Lage",
+          "snippet": "Kosten. Nettomiete. CHF 1'820.–. Nebenkosten. CHF 200.–. Bruttomiete. CHF 2'020.–. Standort. Adresse. Bahnhofstrasse 56 7302 Landquart. ÖV-Anbindung. ca. 150 m.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "5 WG-Zimmer in Bezirk Landquart",
+          "snippet": "5 WG-Zimmer in Bezirk Landquart · 1100CHF. Winkelgasse 7, 7304 Maienfeld. 1 Woche online · 750CHF / 13m². 7205 Zizers. Ab Januar · 7306 fläsch. Ab Dezember. 7 Tage ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+          "snippetOnly": true
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:11:57.912Z",
+      "elapsedMs": 46139,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 1,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 3,
+      "pageLimit": 420,
+      "remainingPageBudget": 417,
+      "candidateUrls": [
+        {
+          "host": "facebook.com",
+          "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+          "snippetOnly": true
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:11:57.912Z",
+      "elapsedMs": 46139,
+      "source": "search",
+      "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+      "host": "facebook.com",
+      "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+      "snippetOnly": true,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_snippet_used",
+      "at": "2026-11-22T10:11:57.916Z",
+      "elapsedMs": 46143,
+      "source": "search",
+      "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+      "host": "facebook.com",
+      "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+      "snippet": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab 01.06 Region Landquart und umgebung. Bis 2000fr. Danke.",
+      "municipalityHint": "Landquart",
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:11:57.918Z",
+      "elapsedMs": 46145,
+      "source": "search",
+      "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+      "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+      "textChars": 163,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:11:57.919Z",
+      "elapsedMs": 46146,
+      "source": "search",
+      "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+      "host": "facebook.com",
+      "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+      "reason": "seeker_post",
+      "detail": "snippet",
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:01.469Z",
+      "elapsedMs": 49696,
+      "source": "portal-tutti",
+      "queryIndex": 8,
+      "queryTotal": 17,
+      "query": "site:tutti.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+          "title": "146 Inserate in Immobilien - Gewerbeobjekte"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:development_project",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "187 Inserate in Immobilien - Mieten - Wohnungen"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/84219671",
+          "title": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "695 Inserate in Immobilien - Wohnungen - Graubünden"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Tiefgaragenparkplatz in Landquart im Kanton Graubünden mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2'616 Inserate in Immobilien - Wohnungen - Glarus"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "19'259 Inserate in Immobilien - Mieten - Wohnungen ... - Tutti"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "732 Inserate in Immobilien - Wohnungen - Graubünden - tutti"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "1'232 Inserate in Immobilien - Häuser, Ferienobjekte, ..."
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+          "title": "146 Inserate in Immobilien - Gewerbeobjekte",
+          "snippet": "146 Inserate in Immobilien - Gewerbeobjekte - Graubünden, Landquart ; Handwerkerlokale zur Miete, Neubau 2027 · 3'000.- pro Monat ; Reithalle und 3 Boxen zu ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "187 Inserate in Immobilien - Mieten - Wohnungen",
+          "snippet": "... Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1. Dezember 2… 590.- pro Monat. Möblierte Wohnung zur Untermiete Savognin. 5. St. Moritz, 7500, [phone] ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/84219671",
+          "title": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart)",
+          "snippet": "590.- pro Monat ... Schönes möbliertes Zimmer zu vermieten in Malans (in der Nähe von Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1.",
+          "date": "vor 6 Tagen",
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "695 Inserate in Immobilien - Wohnungen - Graubünden",
+          "snippet": "Schönes möbliertes Zimmer zu vermieten in Malans (in der Nähe von Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1. Dezember 2… 590.- pro Monat.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Tiefgaragenparkplatz in Landquart im Kanton Graubünden mieten",
+          "snippet": "Suchen Sie einen Parkplatz an einer guten Lage? Der Innenparkplatz befindet sich in der Tiefgarage an der Schulstrasse 1, in Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart",
+          "snippet": "Willkommen in diesem modernen und vielseitig nutzbaren Ladenlokal oder Atelier an der Zollstrasse 21 in Landquart.",
+          "date": "30.10.2026",
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "2'616 Inserate in Immobilien - Wohnungen - Glarus",
+          "snippet": "... Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1. Dezember 2… 590.- pro Monat. 5.5 Zimmer Wohnung. 5. Siebnen, 8854, [phone] ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "19'259 Inserate in Immobilien - Mieten - Wohnungen ... - Tutti",
+          "snippet": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart). Schönes möbliertes Zimmer zu vermieten in Malans (in der Nähe von Landquart, Chur, Grüsch und ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "732 Inserate in Immobilien - Wohnungen - Graubünden - tutti",
+          "snippet": "Schönes möbliertes Zimmer zu vermieten in Malans (in der Nähe von Landquart, Chur, Grüsch und Schiers). Verfügbar ab 1. Dezember 2… 590.- pro Monat.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "1'232 Inserate in Immobilien - Häuser, Ferienobjekte, ...",
+          "snippet": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart). Schönes möbliertes Zimmer zu vermieten in Malans (in der Nähe von Landquart, Chur, Grüsch und ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+          "title": "146 Inserate in Immobilien - Gewerbeobjekte",
+          "snippetOnly": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/84219671",
+          "title": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart)",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:12:01.470Z",
+      "elapsedMs": 49697,
+      "source": "portal-tutti",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 4,
+      "pageLimit": 420,
+      "remainingPageBudget": 416,
+      "candidateUrls": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+          "title": "146 Inserate in Immobilien - Gewerbeobjekte",
+          "snippetOnly": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/84219671",
+          "title": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart)",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:01.470Z",
+      "elapsedMs": 49697,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+      "host": "tutti.ch",
+      "title": "146 Inserate in Immobilien - Gewerbeobjekte",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:07.526Z",
+      "elapsedMs": 55754,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 6052,
+      "bodyChars": 2289,
+      "textChars": 2164,
+      "finalUrl": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:07.534Z",
+      "elapsedMs": 55761,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/84219671",
+      "host": "tutti.ch",
+      "title": "Möbliertes Zimmer in Malans (nah: Chur, Schiers, Landquart)",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:15.396Z",
+      "elapsedMs": 63623,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/84219671",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 7859,
+      "bodyChars": 2289,
+      "textChars": 2164,
+      "finalUrl": "www.tutti.ch/de/vi/84219671"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:16.988Z",
+      "elapsedMs": 65215,
+      "source": "portal-newhome",
+      "queryIndex": 9,
+      "queryTotal": 17,
+      "query": "site:newhome.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten in Landquart (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Studio/Zimmer mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 1/2 Zimmer Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attikawohnung mieten in Landquart (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 1/2 Zimmer Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3 1/2 Zimmer Wohnung mieten in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "ENUM.PROPERTYTYPE.All mieten in Landquart (Bezirk)"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-landquart/liste",
+          "title": "Wohnung mieten in Landquart (Bezirk)",
+          "snippet": "Aktuell werden auf newhome 68 Wohnungen in Landquart angeboten, davon 32 zur Miete. Wie hoch ist der durchschnittliche Mietpreis für Wohnungen in Landquart?",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'020, für eine 4.5 Zimmer Wohnung CHF 2'485.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten in Landquart (Bezirk)",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'094, für eine 4.5 Zimmer Wohnung CHF 2'625, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Studio/Zimmer mieten in Landquart",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'020, für eine 4.5 Zimmer Wohnung CHF 2'485.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Landquart",
+          "snippet": "Aktuell werden auf newhome 11 Wohnungen in Landquart angeboten, davon 8 zur Miete. Wie hoch ist der durchschnittliche Mietpreis für Wohnungen in Landquart?",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 1/2 Zimmer Wohnung mieten in Landquart",
+          "snippet": "4 1/2 Zimmer Wohnung zu mieten in 7302 Landquart - 91 m² Wohnfläche, Eigenschaften: Aussicht, Balkon/Terrasse/Sitzplatz, Haustiere gestattet, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attikawohnung mieten in Landquart (Bezirk)",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Landquart monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'097, für eine 4.5 Zimmer Wohnung CHF 2'530, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 1/2 Zimmer Wohnung mieten in Landquart",
+          "snippet": "4 1/2 Zimmer Wohnung zu mieten in 7302 Landquart - 115 m² Wohnfläche, Eigenschaften: Balkon/Terrasse/Sitzplatz, Garage, Keller, Parkplatz | Jetzt bei ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3 1/2 Zimmer Wohnung mieten in Landquart",
+          "snippet": "3 1/2 Zimmer Wohnung zu mieten in 7302 Landquart - 80 m² Wohnfläche, Baujahr 1980, Eigenschaften: Aussicht, Balkon/Terrasse/Sitzplatz, Garage, Keller, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "ENUM.PROPERTYTYPE.All mieten in Landquart (Bezirk)",
+          "snippet": "Aktuell werden auf newhome 112 ENUM.PROPERTYTYPE_PLURAL.All in Landquart angeboten, davon 67 zur Miete. Wie hoch ist der durchschnittliche Mietpreis für ENUM.",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:12:16.988Z",
+      "elapsedMs": 65215,
+      "source": "portal-newhome",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 6,
+      "pageLimit": 420,
+      "remainingPageBudget": 414,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:23.764Z",
+      "elapsedMs": 71991,
+      "source": "portal-anibis",
+      "queryIndex": 10,
+      "queryTotal": 17,
+      "query": "site:anibis.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/graubuenden/immobilien/parkplaetze/parkplatz-in-tiefgarage-nahe-bahnhof-landquart/10007139236",
+          "title": "Parkplatz in Tiefgarage nahe Bahnhof Landquart"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10010900601",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10011106627",
+          "title": "moderne 3.5-Zi. Wohnung im malerischen Seewis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3 ½ Zimmer-Wohnung, 7205 Zizers im Kanton Graubünden mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "praktische 2.5-Zi. Wohnung im Dorfkern von Seewis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstbezug - 4.5 Zimmer-Wohnung - Überbauung Bawangs"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive Wohnung an zentraler Lage"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "moderne 3.5-Zi. Wohnung im idyllischen Seewis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "attraktive Attikawohnung mit Loggia und Terrasse"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Viel Raum für Ihre Ideen 200 m² helle Gewerbefläche an"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/graubuenden/immobilien/parkplaetze/parkplatz-in-tiefgarage-nahe-bahnhof-landquart/10007139236",
+          "title": "Parkplatz in Tiefgarage nahe Bahnhof Landquart",
+          "snippet": "Parkplatz in Tiefgarage nahe Bahnhof Landquart · 120.- pro Monat · Mieten.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10010900601",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart",
+          "snippet": "Willkommen in diesem modernen und vielseitig nutzbaren Ladenlokal oder Atelier an der Zollstrasse 21 in Landquart. Das im Jahr 2016 erbaute Objekt befindet ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10011106627",
+          "title": "moderne 3.5-Zi. Wohnung im malerischen Seewis",
+          "snippet": "... Landquart-Davos Platz liegt. Zwei Postautolinien führen vom Bahnhof ... 3.5-Zimmer-Wohnung mit 33.6 m² Balkon in Boniswil mieten. 2'440 ...",
+          "date": "09.11.2026",
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3 ½ Zimmer-Wohnung, 7205 Zizers im Kanton Graubünden mieten",
+          "snippet": "In wenigen Minuten erreichen Sie das Naherholungsgebiet von Landquart/Zizers. Wunderbare Felder und der Rhein laden zum Verweilen ein. Nebenräume ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "praktische 2.5-Zi. Wohnung im Dorfkern von Seewis",
+          "snippet": "... Landquart-Davos Platz liegt. Zwei Postautolinien führen vom Bahnhof Grüsch regelmässig nach Seewis Dorf. Die charmante 2.5-Zi. Wohnung im EG ...",
+          "date": "09.11.2026",
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstbezug - 4.5 Zimmer-Wohnung - Überbauung Bawangs",
+          "snippet": "Die vorteilhafte Lage zwischen Landquart und Chur, der gute Anschluss an den öffentlichen und privaten Verkehr sowie die vielseitige Infrastruktur machen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive Wohnung an zentraler Lage",
+          "snippet": "Die Liegenschaft befindet sich an zentraler Lage in Landquart. Diverse Einkaufsmöglichkeiten und Restaurants sind in wenigen Gehminuten erreichbar. Haben wir ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "moderne 3.5-Zi. Wohnung im idyllischen Seewis",
+          "snippet": "... Landquart-Davos Platz liegt. Zwei Postautolinien führen vom Bahnhof Grüsch regelmässig nach Seewis Dorf. Die grosszügige und moderne 3.5-Zi. Wohnung im ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "attraktive Attikawohnung mit Loggia und Terrasse",
+          "snippet": "Die Gemeinde Igis liegt verkehrstechnisch günstig zwischen dem Rheintal und dem Prättigau und der Bahnhof Landquart ist in wenigen Minuten erreichbar. Bitte ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Viel Raum für Ihre Ideen 200 m² helle Gewerbefläche an",
+          "snippet": "An der Vilanstrasse 1 in Landquart wartet eine lichte und grosszügige Gewerbefläche auf Sie. Die Gesamtfläche umfasst 200.5 m² und ist in 2 Räume umgeteilt.",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10010900601",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10011106627",
+          "title": "moderne 3.5-Zi. Wohnung im malerischen Seewis",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:12:23.764Z",
+      "elapsedMs": 71991,
+      "source": "portal-anibis",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 6,
+      "pageLimit": 420,
+      "remainingPageBudget": 414,
+      "candidateUrls": [
+        {
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10010900601",
+          "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "anibis.ch",
+          "url": "www.anibis.ch/de/vi/10011106627",
+          "title": "moderne 3.5-Zi. Wohnung im malerischen Seewis",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:23.765Z",
+      "elapsedMs": 71992,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10010900601",
+      "host": "anibis.ch",
+      "title": "Helles Ladenlokal / Atelier an zentraler Lage in Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:29.178Z",
+      "elapsedMs": 77405,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10010900601",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 5410,
+      "bodyChars": 2216,
+      "textChars": 2097,
+      "finalUrl": "www.anibis.ch/de/vi/10010900601"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:29.181Z",
+      "elapsedMs": 77408,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10011106627",
+      "host": "anibis.ch",
+      "title": "moderne 3.5-Zi. Wohnung im malerischen Seewis",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:38.732Z",
+      "elapsedMs": 86959,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10011106627",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 9545,
+      "bodyChars": 2216,
+      "textChars": 2097,
+      "finalUrl": "www.anibis.ch/de/vi/10011106627"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:40.546Z",
+      "elapsedMs": 88773,
+      "source": "portal-urbanhome",
+      "queryIndex": 11,
+      "queryTotal": 17,
+      "query": "site:urbanhome.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+          "title": "3.5 Zimmer Wohnung in Landquart"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung in Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:for_sale",
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/stadt/landquart",
+          "title": "kaufen in 7302 Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung und Haus mieten in Graubünden (Kanton)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung in Klosters"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Igis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Grüsch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Sedrun"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+          "title": "3.5 Zimmer Wohnung in Landquart",
+          "snippet": "3.5 Zimmer Wohnung in 7302 Landquart – CHF 2'020 monatlich. Bilder, Ausstattung, Beschreibung und Kontakt auf UrbanHome.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung in Landquart",
+          "snippet": "Im Mehrfamilienhaus Lux 2 in Landquart / Igis mit Total 8 Wohneinheiten, verkaufe ich nach Vereinbarung eine geräumige und helle 4.5-Zimmer Wohnung mit Balkon ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/stadt/landquart",
+          "title": "kaufen in 7302 Landquart",
+          "snippet": "Aktuelle Angebote auf UrbanHome 46'450 Immobilien verfügbar · 0 neu in 24 h. Treffer ansehen. kaufen in 7302 Landquart – 46'450 aktuelle Angebote.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung und Haus mieten in Graubünden (Kanton)",
+          "snippet": "Attraktive Wohnung an zentraler Lage. Wohnung · Mieten GR. 3.5 Zimmer Wohnung. Bahnhofstrasse 56 7302 Landquart. CHF 2'020 monatlich. 3.5 Zimmer.",
+          "date": "vor 7 Tagen",
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis",
+          "snippet": "Tauschimmobilie Moderne 4.5-Zimmer Wohnung in idyllischer Lage von Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung in Klosters",
+          "snippet": "Erstvermietung teilmöblierte 3.5-Zimmer-Wohnung Parterre mit Terrasse. Disentis-Mustér GR. CHF 1'990 ; Attraktive Wohnung an zentraler Lage. Landquart GR. CHF 2' ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Igis",
+          "snippet": "Diese im Jahr 2022 fertiggestellte 4.5-Zimmer-Wohnung in Landquart repräsentiert modernes Wohnen in einer ruhigen, doch zentral gelegenen Umgebung. Auf 125 m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis",
+          "snippet": "Tauschimmobilie Moderne 4.5-Zimmer Wohnung in idyllischer Lage von Landquart. Landquart GR. CHF 977'000 ; Letzte Chance auf Hausgefühl. Maladers ...",
+          "date": "vor 5 Tagen",
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Grüsch",
+          "snippet": "4.5 Zimmer Wohnung. Landquart GR. CHF 510'000 · Grono – 4,5 Zimmer mit Garten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Sedrun",
+          "snippet": "4.5 Zimmer Wohnung. Landquart GR. CHF 510'000 ; Investieren Sie in die Zukunft Restaurant mit Wohnraum-Potenzial. Grüsch GR. CHF 599'000 ; SOFORT BEZUGSBEREIT ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+          "title": "3.5 Zimmer Wohnung in Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung in Landquart",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:12:40.547Z",
+      "elapsedMs": 88774,
+      "source": "portal-urbanhome",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 8,
+      "pageLimit": 420,
+      "remainingPageBudget": 412,
+      "candidateUrls": [
+        {
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+          "title": "3.5 Zimmer Wohnung in Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung in Landquart",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:40.547Z",
+      "elapsedMs": 88774,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+      "host": "urbanhome.ch",
+      "title": "3.5 Zimmer Wohnung in Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:41.414Z",
+      "elapsedMs": 89641,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 863,
+      "bodyChars": 95751,
+      "textChars": 4751,
+      "finalUrl": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:12:45.383Z",
+      "elapsedMs": 93610,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+      "title": "3.5 Zimmer Wohnung in Landquart | UrbanHome",
+      "textChars": 4751,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 3966,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": true,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:45.383Z",
+      "elapsedMs": 93610,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+      "host": "urbanhome.ch",
+      "title": "4.5 Zimmer Wohnung in Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:12:45.660Z",
+      "elapsedMs": 93887,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 273,
+      "bodyChars": 99268,
+      "textChars": 5973,
+      "finalUrl": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:12:49.164Z",
+      "elapsedMs": 97391,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+      "title": "4.5 Zimmer Wohnung in Landquart | UrbanHome",
+      "textChars": 5973,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 3502,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:12:49.165Z",
+      "elapsedMs": 97392,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+      "host": "urbanhome.ch",
+      "title": "3.5 Zimmer Wohnung in Landquart | UrbanHome",
+      "reason": "agency",
+      "detail": "agency_language",
+      "municipality": "Landquart",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:12:49.205Z",
+      "elapsedMs": 97432,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+      "host": "urbanhome.ch",
+      "title": "4.5 Zimmer Wohnung in Landquart | UrbanHome",
+      "reason": "for_sale",
+      "detail": "page_text",
+      "municipality": "Landquart",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:50.491Z",
+      "elapsedMs": 98718,
+      "source": "portal-petitesannonces",
+      "queryIndex": 12,
+      "queryTotal": 17,
+      "query": "site:petitesannonces.ch \"Landquart\" (Wohnung OR Haus) mieten",
+      "resultCount": 0,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [],
+      "results": [],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:12:54.197Z",
+      "elapsedMs": 102424,
+      "source": "portal-immobilier",
+      "queryIndex": 13,
+      "queryTotal": 17,
+      "query": "site:immobilier.ch \"Landquart\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "resultCount": 6,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+          "title": "Appartement 3.5 pces 82 m2 à louer à Landquart"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+          "title": "Aucun appartement ou maison à louer à Landquart (GR)"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/de/mieten/wohnung-haus/graubunden/seite-1",
+          "title": "in Kanton Graubünden Mieten - wohnung haus"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "24 appartements à louer dans le canton des Grisons"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "33 apartments to rent in Grisons canton"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Louer dans le canton des Grisons"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+          "title": "Appartement 3.5 pces 82 m2 à louer à Landquart",
+          "snippet": "Appartement 3.5 pièces. CHF 1'820.-/mois (+200.- charges). 7302 Landquart Bahnhofstrasse 56. 82 m² • 3.5 pièces. Votre garantie de loyer. Traduction automatique ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+          "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+          "snippet": "La ville de Landquart se situe dans le canton des Grisons. immobilier.ch vous propose 0 appartement ou maison à louer à Landquart. Tous les biens à louer ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/de/mieten/wohnung-haus/graubunden/seite-1",
+          "title": "in Kanton Graubünden Mieten - wohnung haus",
+          "snippet": "Wohnungen oder häuser zu mieten in der Stadt Ilanz · Wohnungen oder häuser zu mieten in der Stadt Landquart · Wohnungen oder häuser zu ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "24 appartements à louer dans le canton des Grisons",
+          "snippet": "Appartements à louer dans la ville de Landquart · Appartements à louer dans la ville de St. Peter · Appartements à louer dans la ville de Ilanz · Appartements à ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "33 apartments to rent in Grisons canton",
+          "snippet": "Apartments to rent in the city of Landquart · Apartments to rent in the city of Chur · Apartments to rent in the city of Ilanz · Apartments to rent in the city ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Louer dans le canton des Grisons",
+          "snippet": "... à louer dans le canton des Grisons. Tous les biens à ... Commerciaux ou bureaux ou industriels ou hôtellerie ou autres à louer dans la ville de Landquart ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+          "title": "Appartement 3.5 pces 82 m2 à louer à Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+          "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:12:54.198Z",
+      "elapsedMs": 102425,
+      "source": "portal-immobilier",
+      "rawHits": 6,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 10,
+      "pageLimit": 420,
+      "remainingPageBudget": 410,
+      "candidateUrls": [
+        {
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+          "title": "Appartement 3.5 pces 82 m2 à louer à Landquart",
+          "snippetOnly": false
+        },
+        {
+          "host": "immobilier.ch",
+          "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+          "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+          "snippetOnly": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:12:54.198Z",
+      "elapsedMs": 102425,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+      "host": "immobilier.ch",
+      "title": "Appartement 3.5 pces 82 m2 à louer à Landquart",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T10:13:01.479Z",
+      "elapsedMs": 109706,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 7276,
+      "bodyChars": 53254,
+      "textChars": 52218,
+      "finalUrl": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:13:11.064Z",
+      "elapsedMs": 119291,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+      "title": "Attraktive Wohnung an zentraler Lage",
+      "textChars": 52218,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 9578,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_received",
+      "at": "2026-11-22T10:13:11.064Z",
+      "elapsedMs": 119291,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+      "host": "immobilier.ch",
+      "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-22T10:13:21.069Z",
+      "elapsedMs": 129296,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+      "status": 0,
+      "fetchMode": null,
+      "durationMs": 10001,
+      "error": "step_timeout:fetch",
+      "finalUrl": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-22T10:13:21.072Z",
+      "elapsedMs": 129299,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+      "host": "immobilier.ch",
+      "originalFetchStatus": 0,
+      "snippetChars": 210,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T10:13:21.073Z",
+      "elapsedMs": 129300,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+      "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+      "textChars": 210,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Landquart",
+      "rooms": 0,
+      "roomsBasis": "not_stated_in_search_snippet",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T10:13:21.076Z",
+      "elapsedMs": 129303,
+      "source": "portal-immobilier",
+      "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+      "host": "immobilier.ch",
+      "title": "Attraktive Wohnung an zentraler Lage",
+      "reason": "rooms_unknown",
+      "detail": "",
+      "municipality": "Landquart",
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:13:26.569Z",
+      "elapsedMs": 134796,
+      "source": "portal-acheter-louer",
+      "queryIndex": 14,
+      "queryTotal": 17,
+      "query": "site:acheter-louer.ch \"Landquart\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "resultCount": 0,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [],
+      "results": [],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:13:31.736Z",
+      "elapsedMs": 139963,
+      "source": "portal-immostreet",
+      "queryIndex": 15,
+      "queryTotal": 17,
+      "query": "site:immostreet.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 6,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/wohnung/bezirk-landquart",
+          "title": "Wohnung mieten: Landquart bezirk"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/bezirk-landquart",
+          "title": "Page 3 - Immobilien zur mieten: Landquart bezirk"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/wohnung/fenin",
+          "title": "Page 30 - Wohnung mieten: Schweiz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 12 - Wohnung mieten: Graubünden kanton"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 19 - Immobilien zur mieten: Graubünden kanton"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Büro mieten: Graubünden kanton"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/wohnung/bezirk-landquart",
+          "title": "Wohnung mieten: Landquart bezirk",
+          "snippet": "Wohnung mieten: Landquart bezirk | ImmoStreet.ch: ImmoStreet.ch hat 22 Angebote und hilft Ihnen das beste Angebot in und Umgebung zu finden.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/bezirk-landquart",
+          "title": "Page 3 - Immobilien zur mieten: Landquart bezirk",
+          "snippet": "Page 3 - Immobilien zur mieten: Landquart bezirk | ImmoStreet.ch: ImmoStreet.ch hat 42 Angebote und hilft Ihnen das beste Angebot in und Umgebung zu finden.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "immostreet.ch",
+          "url": "www.immostreet.ch/de/mieten/wohnung/fenin",
+          "title": "Page 30 - Wohnung mieten: Schweiz",
+          "snippet": "Helle 4.5-Zimmer Wohnung in Igis ab Okt… Castaletweg 16, 7206 Landquart. Apartment, Flat; 4.5 Zimmer; 93 m2. Objekttyp Wohnung, Flach; Zimmer 4.5; Wohnfläche 93 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 12 - Wohnung mieten: Graubünden kanton",
+          "snippet": "Wohnung Bezirk Albula · Wohnung Bezirk Bernina · Wohnung Bezirk Engiadina Bassa / Val Müstair · Wohnung Bezirk Imboden · Wohnung Bezirk Landquart · Wohnung ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 19 - Immobilien zur mieten: Graubünden kanton",
+          "snippet": "Mieten. Immobilien mieten im Kanton Graubünden. Bezirk Albula · Bezirk Bernina · Bezirk Engiadina Bassa / Val Müstair · Bezirk Imboden · Bezirk Landquart ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Büro mieten: Graubünden kanton",
+          "snippet": "Immobilien Schweiz – Wohnung mieten, Haus kaufen - ImmoStreet.ch. de en fr it. Favoriten 0. Inserieren. Mieten · Wohnung Haus Wohnung ... Buero Bezirk Landquart ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:13:31.736Z",
+      "elapsedMs": 139963,
+      "source": "portal-immostreet",
+      "rawHits": 6,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 12,
+      "pageLimit": 420,
+      "remainingPageBudget": 408,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:13:34.675Z",
+      "elapsedMs": 142902,
+      "source": "portal-home",
+      "queryIndex": 16,
+      "queryTotal": 17,
+      "query": "site:home.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "home.ch",
+          "url": "www.home.ch/de/mieten/wohnung/bezirk-landquart",
+          "title": "Wohnung mieten: Landquart - www.home.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Apartments & houses mieten: Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart mit Garage, Parkplatz und Neubau"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten: Landquart - www.home.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Landquart - www.home.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten: Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Landquart"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Imboden"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "home.ch",
+          "url": "www.home.ch/de/mieten/wohnung/bezirk-landquart",
+          "title": "Wohnung mieten: Landquart - www.home.ch",
+          "snippet": "Wohnung mieten: Landquart ; Charmante, kinderfreundliche Wohnung · 2,030 · 4.5 rooms 95 m² ; 3½ ZIMMER-LOFT IN ZIZERS (GR), MÖBLIERT, TEMPORÄR · 2,625 · 3.5 rooms 121 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Apartments & houses mieten: Landquart",
+          "snippet": "Apartments & houses mieten: Landquart ; 3 ½ Zimmer-Wohnung, 7205 Zizers · 2,050 Month. 3.5 rooms 70 m² ; Moderne 4.5-Zimmerwohnung an ruhiger Wohnlage · 2,260 Month.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart",
+          "snippet": "Loft mieten: Region Landquart · Maisonette / Duplex mieten: Region Landquart · Terrassenwohnung mieten: Region Landquart · Wohnung mieten: Region Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart",
+          "snippet": "Wohnung mieten: Landquart ; Ausssichtsreiche, ruhige 4- 1/2 - Zimmer-Maisonette-Wohnung in Jenins - Bündner Herrschaft · 2,280 · 4.5 rooms 130 m² ; Dachwohnung in ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Landquart mit Garage, Parkplatz und Neubau",
+          "snippet": "Loft mieten: Region Landquart · Maisonette / Duplex mieten: Region Landquart · Terrassenwohnung mieten: Region Landquart · Wohnung mieten: Region Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten: Landquart - www.home.ch",
+          "snippet": "Dachwohnung mieten: Landquart ; Moderne Attikawohnungen mit grosser Terrasse · 3,550 · 4.5 rooms ; Schöne, grosszügige 5.5-Zimmer-Dachwohnung mit Terrasse 295 m2.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Landquart - www.home.ch",
+          "snippet": "Maisonette / Duplex mieten: Landquart · Rustico mieten: Landquart · Terrassenwohnung mieten: Landquart · Villa mieten: Landquart · Wohnung mieten: Landquart.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung mieten: Landquart",
+          "snippet": "Wohnung mieten: Landquart. Anzahl Zimmer. 1 Zimmer - Dachwohnung mieten: Landquart · 2 Zimmer - Dachwohnung mieten: Landquart · 3 Zimmer - Dachwohnung mieten: ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Landquart",
+          "snippet": "Properties for mieten: Landquart ; 4,5 Zimmerwohnung · 1,840 Month. 4.5 rooms ; Schöne 4.5 Zimmerwohnung zu Vermieten im Hochpartere · 1,650 Month. 4.5 rooms 90 m² ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten: Imboden",
+          "snippet": "Landquart · Maloja · Moesa · Plessur · Prättigau / Davos · Surselva · Viamala. Schliessen. Die neusten Angebote per Suchabo in Ihre Mailbox. Ihre E-Mail Adresse.",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:13:34.675Z",
+      "elapsedMs": 142902,
+      "source": "portal-home",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 12,
+      "pageLimit": 420,
+      "remainingPageBudget": 408,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-22T10:13:37.288Z",
+      "elapsedMs": 145515,
+      "source": "portal-icasa",
+      "queryIndex": 17,
+      "queryTotal": 17,
+      "query": "site:icasa.ch \"Landquart\" Wohnung mieten",
+      "resultCount": 3,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung zum Mieten in Klosters"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Etagenwohnung zum Mieten in Seewis Dorf"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Klosters"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung zum Mieten in Klosters",
+          "snippet": "4.5 Zimmer Wohnung zum Mieten in Klosters 4.5-Zimmer-Wohnung. Eckdaten ... Es liegt im bezaubernden Prättigau, das von der Landquart durchflossen wird.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Etagenwohnung zum Mieten in Seewis Dorf",
+          "snippet": "3.5 Zimmer Etagenwohnung zum Mieten in Seewis Dorf moderne 3.5-Zi. ... Landquart-Davos Platz liegt. Zwei Postautolinien führen vom Bahnhof Grüsch ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Klosters",
+          "snippet": "Es liegt im bezaubernden Prättigau, das von der Landquart durchflossen wird. Bekannt für seine atemberaubende Alpenkulisse, ist Klosters eine beliebte ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-22T10:13:37.289Z",
+      "elapsedMs": 145516,
+      "source": "portal-icasa",
+      "rawHits": 3,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 12,
+      "pageLimit": 420,
+      "remainingPageBudget": 408,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "14bc9a0c-5ef8-4c5b-b555-fece08f0845e",
+      "event": "run_completed",
+      "at": "2026-11-22T10:13:40.817Z",
+      "elapsedMs": 149044,
+      "durationMs": 149044,
+      "counts": {
+        "sources": 6,
+        "index_pages": 0,
+        "candidates": 12,
+        "fetched": 10,
+        "snippet_only": 2,
+        "skipped_known": 0,
+        "skipped_seen": 0,
+        "skipped_geo": 0,
+        "search_queries": 17,
+        "serper_calls": 17,
+        "serper_fallback": 0,
+        "llm_skipped_no_rooms": 0,
+        "kept": 1,
+        "new": 1,
+        "updated": 0,
+        "llm_calls": 6,
+        "enriched": 0,
+        "evidence_page_text": 2,
+        "evidence_snippet": 2,
+        "credible_kept": 1
+      },
+      "filtered": {
+        "rooms_below_min": 1,
+        "listing_unavailable": 1,
+        "rooms_unknown": 2,
+        "seeker_post": 1,
+        "list_or_search_page": 4,
+        "agency": 1,
+        "for_sale": 1
+      },
+      "errors": [
+        {
+          "source": "portal-immobilier",
+          "code": "step_timeout",
+          "detail": "fetch >10000ms https://www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart"
+        }
+      ],
+      "sourceStats": [
+        {
+          "id": "portal-immobilier",
+          "queries": 1,
+          "hits": 6,
+          "candidates": 2,
+          "fetched": 1,
+          "llm": 1,
+          "kept": 1,
+          "new": 1,
+          "agencies": 0,
+          "junk": 1,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-flatfox",
+          "queries": 1,
+          "hits": 6,
+          "candidates": 3,
+          "fetched": 3,
+          "llm": 3,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 3,
+          "geo": 0,
+          "consecutiveBad": 3
+        },
+        {
+          "id": "portal-tutti",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 2,
+          "fetched": 2,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 2,
+          "geo": 0,
+          "consecutiveBad": 2
+        },
+        {
+          "id": "portal-anibis",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 2,
+          "fetched": 2,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 2,
+          "geo": 0,
+          "consecutiveBad": 2
+        },
+        {
+          "id": "portal-urbanhome",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 2,
+          "fetched": 2,
+          "llm": 2,
+          "kept": 0,
+          "new": 0,
+          "agencies": 1,
+          "junk": 1,
+          "geo": 0,
+          "consecutiveBad": 2
+        },
+        {
+          "id": "search",
+          "queries": 4,
+          "hits": 40,
+          "candidates": 1,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 1,
+          "geo": 0,
+          "consecutiveBad": 1
+        },
+        {
+          "id": "portal-homegate",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-immoscout24",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-newhome",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-petitesannonces",
+          "queries": 1,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-acheter-louer",
+          "queries": 1,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-immostreet",
+          "queries": 1,
+          "hits": 6,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-home",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-icasa",
+          "queries": 1,
+          "hits": 3,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        }
+      ],
+      "wavesRun": [
+        "carousel"
+      ],
+      "previewCount": 12,
+      "preview": [
+        {
+          "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+          "source": "portal-flatfox",
+          "title": "2 Zimmer-Wohnung in Landquart mieten | Flatfox",
+          "kept": false,
+          "reason": "rooms_below_min",
+          "detail": "2",
+          "municipality": "Landquart",
+          "rooms": 2
+        },
+        {
+          "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+          "source": "portal-flatfox",
+          "title": "Rent a 4 ½ rooms apartment in Igis-Landquart | Flatfox",
+          "kept": false,
+          "reason": "listing_unavailable",
+          "detail": "page_states_unavailable",
+          "municipality": "Landquart",
+          "rooms": 4.5
+        },
+        {
+          "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+          "source": "portal-flatfox",
+          "title": "Appartement 3 pièces à louer à Landquart | Flatfox",
+          "kept": false,
+          "reason": "rooms_unknown",
+          "detail": "",
+          "municipality": "Landquart",
+          "rooms": null
+        },
+        {
+          "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+          "source": "search",
+          "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+          "kept": false,
+          "reason": "seeker_post",
+          "detail": "snippet",
+          "municipality": "Landquart",
+          "rooms": 4.5
+        },
+        {
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+          "source": "portal-tutti",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "list_or_search_page",
+          "detail": "prefilter_after_fetch",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.tutti.ch/de/vi/84219671",
+          "source": "portal-tutti",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "list_or_search_page",
+          "detail": "prefilter_after_fetch",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.anibis.ch/de/vi/10010900601",
+          "source": "portal-anibis",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "list_or_search_page",
+          "detail": "prefilter_after_fetch",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.anibis.ch/de/vi/10011106627",
+          "source": "portal-anibis",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "list_or_search_page",
+          "detail": "prefilter_after_fetch",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+          "source": "portal-urbanhome",
+          "title": "3.5 Zimmer Wohnung in Landquart | UrbanHome",
+          "kept": false,
+          "reason": "agency",
+          "detail": "agency_language",
+          "municipality": "Landquart",
+          "rooms": 3.5
+        },
+        {
+          "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+          "source": "portal-urbanhome",
+          "title": "4.5 Zimmer Wohnung in Landquart | UrbanHome",
+          "kept": false,
+          "reason": "for_sale",
+          "detail": "page_text",
+          "municipality": "Landquart",
+          "rooms": 4.5
+        },
+        {
+          "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+          "source": "portal-immobilier",
+          "title": "Attraktive Wohnung an zentraler Lage",
+          "kept": false,
+          "reason": "rooms_unknown",
+          "detail": "",
+          "municipality": "Landquart",
+          "rooms": null
+        },
+        {
+          "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+          "source": "portal-immobilier",
+          "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+          "kept": true,
+          "reason": null,
+          "detail": "rooms_unverified, provisional_search_snippet",
+          "municipality": "Landquart",
+          "rooms": 0
+        }
+      ],
+      "estimatedCostUsd": 0.032
+    }
+  ],
+  "result": {
+    "counts": {
+      "sources": 6,
+      "index_pages": 0,
+      "candidates": 12,
+      "fetched": 10,
+      "snippet_only": 2,
+      "skipped_known": 0,
+      "skipped_seen": 0,
+      "skipped_geo": 0,
+      "search_queries": 17,
+      "serper_calls": 17,
+      "serper_fallback": 0,
+      "llm_skipped_no_rooms": 0,
+      "kept": 1,
+      "new": 1,
+      "updated": 0,
+      "llm_calls": 6,
+      "enriched": 0,
+      "evidence_page_text": 2,
+      "evidence_snippet": 2,
+      "credible_kept": 1
+    },
+    "filtered": {
+      "rooms_below_min": 1,
+      "listing_unavailable": 1,
+      "rooms_unknown": 2,
+      "seeker_post": 1,
+      "list_or_search_page": 4,
+      "agency": 1,
+      "for_sale": 1
+    },
+    "errors": [
+      {
+        "source": "portal-immobilier",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart"
+      }
+    ],
+    "sourceStats": [
+      {
+        "id": "portal-immobilier",
+        "queries": 1,
+        "hits": 6,
+        "candidates": 2,
+        "fetched": 1,
+        "llm": 1,
+        "kept": 1,
+        "new": 1,
+        "agencies": 0,
+        "junk": 1,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-flatfox",
+        "queries": 1,
+        "hits": 6,
+        "candidates": 3,
+        "fetched": 3,
+        "llm": 3,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 3,
+        "geo": 0,
+        "consecutiveBad": 3
+      },
+      {
+        "id": "portal-tutti",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 2,
+        "fetched": 2,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 2,
+        "geo": 0,
+        "consecutiveBad": 2
+      },
+      {
+        "id": "portal-anibis",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 2,
+        "fetched": 2,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 2,
+        "geo": 0,
+        "consecutiveBad": 2
+      },
+      {
+        "id": "portal-urbanhome",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 2,
+        "fetched": 2,
+        "llm": 2,
+        "kept": 0,
+        "new": 0,
+        "agencies": 1,
+        "junk": 1,
+        "geo": 0,
+        "consecutiveBad": 2
+      },
+      {
+        "id": "search",
+        "queries": 4,
+        "hits": 40,
+        "candidates": 1,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 1,
+        "geo": 0,
+        "consecutiveBad": 1
+      },
+      {
+        "id": "portal-homegate",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-immoscout24",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-newhome",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-petitesannonces",
+        "queries": 1,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-acheter-louer",
+        "queries": 1,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-immostreet",
+        "queries": 1,
+        "hits": 6,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-home",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-icasa",
+        "queries": 1,
+        "hits": 3,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      }
+    ],
+    "wavesRun": [
+      "carousel"
+    ],
+    "preview": [
+      {
+        "url": "flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/",
+        "title": "2 Zimmer-Wohnung in Landquart mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Landquart",
+        "rooms": 2,
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "2"
+      },
+      {
+        "url": "flatfox.ch/en/flat/gadenzweg-16-7206-igis-landquart/86229785/",
+        "title": "Rent a 4 ½ rooms apartment in Igis-Landquart | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Landquart",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "flatfox.ch/fr/flat/russhofstrasse-7302-landquart/86221943/",
+        "title": "Appartement 3 pièces à louer à Landquart | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Landquart",
+        "rooms": null,
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": ""
+      },
+      {
+        "url": "www.facebook.com/groups/544128092418978/posts/3496472550517836/",
+        "title": "Hallo Zusammen Dringend suche 4,5 zimmer wohnung ab ...",
+        "source": "search",
+        "municipality": "Landquart",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "seeker_post",
+        "detail": "snippet"
+      },
+      {
+        "url": "www.tutti.ch/de/q/immobilien-graubuenden-landquart-gewerbeobjekte/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZbJjb21tZXJjaWFsUHJvcGVydHnAwJGTqGxvY2F0aW9ukrVnZW8tY2FudG9uLWdyYXVidW5kZW6yZ2VvLWNpdHktbGFuZHF1YXJ0wA",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "list_or_search_page",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/84219671",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "list_or_search_page",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10010900601",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "list_or_search_page",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10011106627",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "list_or_search_page",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8228146-3-5-room-apartment",
+        "title": "3.5 Zimmer Wohnung in Landquart | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Landquart",
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "agency",
+        "detail": "agency_language"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8063317-4-5-zimmer-wohnung",
+        "title": "4.5 Zimmer Wohnung in Landquart | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Landquart",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "for_sale",
+        "detail": "page_text"
+      },
+      {
+        "url": "www.immobilier.ch/fr/louer/appartement/grisons/landquart/livit-ag-real-estate-management-675/attraktive-wohnung-an-zentraler-lage-1566538",
+        "title": "Attraktive Wohnung an zentraler Lage",
+        "source": "portal-immobilier",
+        "municipality": "Landquart",
+        "rooms": null,
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": ""
+      },
+      {
+        "url": "www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart",
+        "title": "Aucun appartement ou maison à louer à Landquart (GR)",
+        "source": "portal-immobilier",
+        "municipality": "Landquart",
+        "rooms": 0,
+        "kept": true,
+        "reason": null,
+        "detail": "rooms_unverified, provisional_search_snippet"
+      }
+    ]
+  }
+}
