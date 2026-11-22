@@ -144,6 +144,95 @@ export async function verifyGitHubAppConnection(config: GitHubAppConfig, fetcher
   }
 }
 
+export interface GitHubAppProbe {
+  verdict: 'OK' | 'FAIL';
+  cause: string;
+  fix: string;
+  checkedAt: string;
+  app?: { id: number | null; slug: string | null; permissions: Record<string, string> };
+  installation?: { id: number | null; appId: number | null; account: string | null; repositorySelection: string | null; permissions: Record<string, string>; suspended: boolean; updatedAt: string | null };
+  steps: Array<{ step: string; httpStatus: number | null; message: string; requestId: string }>;
+  missingEnv?: string[];
+}
+
+export function githubAppConfigFromEnv(env: NodeJS.ProcessEnv): { config: GitHubAppConfig | null; missing: string[] } {
+  const values: Record<string, string> = {
+    GITHUB_APP_ID: String(env.GITHUB_APP_ID || '').trim(),
+    GITHUB_APP_INSTALLATION_ID: String(env.GITHUB_APP_INSTALLATION_ID || '').trim(),
+    GITHUB_APP_PRIVATE_KEY: String(env.GITHUB_APP_PRIVATE_KEY || '').replace(/\\n/g, '\n').trim(),
+    GITHUB_REPOSITORY_OWNER: String(env.GITHUB_REPOSITORY_OWNER || '').trim(),
+    GITHUB_REPOSITORY_NAME: String(env.GITHUB_REPOSITORY_NAME || '').trim(),
+  };
+  const missing = Object.keys(values).filter((key) => !values[key]);
+  if (missing.length) return { config: null, missing };
+  return { config: { appId: values.GITHUB_APP_ID, installationId: values.GITHUB_APP_INSTALLATION_ID, privateKey: values.GITHUB_APP_PRIVATE_KEY, owner: values.GITHUB_REPOSITORY_OWNER, repository: values.GITHUB_REPOSITORY_NAME }, missing };
+}
+
+const stringMap = (value: unknown): Record<string, string> => {
+  const out: Record<string, string> = {};
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    for (const [key, level] of Object.entries(value as Record<string, unknown>)) if (typeof level === 'string') out[key] = level;
+  }
+  return out;
+};
+
+/**
+ * Live, read-only diagnosis of the GitHub App setup for the Contents publishers. It states what the App declares,
+ * what the installation actually holds, whether the repository is reachable and whether a write token can be minted
+ * right now, then names one cause and the exact fix. No token or key is ever returned.
+ */
+export async function probeGitHubAppSetup(config: GitHubAppConfig, fetcher: typeof fetch = fetch): Promise<GitHubAppProbe> {
+  const base = apiBase(config);
+  const probe: GitHubAppProbe = { verdict: 'FAIL', cause: 'unknown', fix: '', checkedAt: new Date().toISOString(), steps: [] };
+  const record = async (step: string, response: Response | null, error?: unknown): Promise<any> => {
+    let body: any = null;
+    if (response) { try { body = await response.json(); } catch { body = null; } }
+    const message = response ? String(body?.message || '').slice(0, 200) : `${(error as { name?: string })?.name === 'TimeoutError' ? 'timeout' : 'network_error'}`;
+    const rawId = response?.headers?.get?.('x-github-request-id') || '';
+    probe.steps.push({ step, httpStatus: response ? response.status : null, message, requestId: /^[a-z0-9-]{1,80}$/i.test(rawId) ? rawId : '' });
+    return body;
+  };
+  const fail = (cause: string, fix: string): GitHubAppProbe => { probe.cause = cause; probe.fix = fix; return probe; };
+  try {
+    const jwt = createGitHubAppJwt(config.appId, config.privateKey);
+    const appHeaders = { ...GH_HEADERS, Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' };
+    const appRes = await fetcher(`${base}/app`, { headers: appHeaders, signal: AbortSignal.timeout(10_000) });
+    const app = await record('app', appRes);
+    if (!appRes.ok) return fail('app_credentials_rejected', 'GitHub rejected the App JWT: GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY on the server do not belong together (or the key was revoked). Generate a new private key for the App and update both values.');
+    probe.app = { id: Number.isInteger(app?.id) ? app.id : null, slug: typeof app?.slug === 'string' ? app.slug : null, permissions: stringMap(app?.permissions) };
+
+    const instRes = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}`, { headers: appHeaders, signal: AbortSignal.timeout(10_000) });
+    const inst = await record('installation', instRes);
+    if (!instRes.ok) return fail('installation_not_found', `GITHUB_APP_INSTALLATION_ID=${config.installationId} is not an installation of App ${probe.app.slug || config.appId}. Open the installation page of the organization and copy the number at the end of its URL.`);
+    probe.installation = {
+      id: Number.isInteger(inst?.id) ? inst.id : null, appId: Number.isInteger(inst?.app_id) ? inst.app_id : null,
+      account: typeof inst?.account?.login === 'string' ? inst.account.login : null,
+      repositorySelection: typeof inst?.repository_selection === 'string' ? inst.repository_selection : null,
+      permissions: stringMap(inst?.permissions), suspended: Boolean(inst?.suspended_at), updatedAt: typeof inst?.updated_at === 'string' ? inst.updated_at : null,
+    };
+    if (probe.installation.suspended) return fail('installation_suspended', 'The installation is suspended; unsuspend it in the organization settings.');
+    if (probe.installation.permissions.contents !== 'write') {
+      return probe.app.permissions.contents === 'write'
+        ? fail('permission_not_accepted_on_installation', `The App declares Contents: write but the installation of ${probe.installation.account || 'the account'} still holds contents=${probe.installation.permissions.contents || 'none'}. Open the installation (Settings > Installed GitHub Apps > Configure) and accept the pending permission request.`)
+        : fail('app_lacks_contents_write', `The App ${probe.app.slug || ''} declares contents=${probe.app.permissions.contents || 'none'}. Set Repository permissions > Contents to Read and write in the App settings, then accept the request on the installation.`);
+    }
+    const boot = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}/access_tokens`, { method: 'POST', headers: appHeaders, body: JSON.stringify({ permissions: { contents: 'read' } }), signal: AbortSignal.timeout(10_000) });
+    const bootBody = await record('read_token', boot);
+    if (!boot.ok || !bootBody?.token) return fail('read_token_refused', 'The installation refuses even a read token; see the step message.');
+    const repoRes = await fetcher(`${base}${repoPath(config)}`, { headers: { ...GH_HEADERS, Authorization: `Bearer ${bootBody.token}` }, signal: AbortSignal.timeout(10_000) });
+    const repo = await record('repository', repoRes);
+    if (!repoRes.ok) return fail('repository_not_in_installation', `The installation cannot see ${config.owner}/${config.repository}. Add the repository under the installation's Repository access.`);
+    const scoped = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}/access_tokens`, { method: 'POST', headers: appHeaders, body: JSON.stringify({ repository_ids: [repo?.id], permissions: { contents: 'write' } }), signal: AbortSignal.timeout(10_000) });
+    const scopedBody = await record('write_token', scoped);
+    if (!scoped.ok || !scopedBody?.token) return fail('write_token_refused', 'The installation holds Contents: write but GitHub still refuses a repository-scoped write token; see the step message and request ID.');
+    probe.verdict = 'OK'; probe.cause = 'none'; probe.fix = '';
+    return probe;
+  } catch (error) {
+    probe.steps.push({ step: 'probe', httpStatus: null, message: (error as { name?: string })?.name === 'TimeoutError' ? 'timeout' : String((error as Error)?.message || 'error').slice(0, 120), requestId: '' });
+    return fail('probe_error', 'The probe could not reach GitHub or the private key is malformed (check GITHUB_APP_PRIVATE_KEY line breaks).');
+  }
+}
+
 // ---- P16 / BX-19 (continued): read PRs and check runs, commit the Task Package to biforge/<task_id> -----------------
 // Deliberately no merge, no workflow, no write to any branch outside `biforge/*` (TZ 11.7, E.5).
 const GH_HEADERS = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };

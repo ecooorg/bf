@@ -24,6 +24,7 @@ import { parseRepairFile } from './immofinderRepair.ts';
 import { publishGitHubListingsSnapshot, publishGitHubRunDiagnostics } from './immofinderSnapshot.ts';
 import { capturedImmoFinderTrace } from './projectDiagnostics.ts';
 import { persistImmoFinderRunDiagnostics, latestImmoFinderRunDiagnostics } from './immofinderRunDiagnostics.ts';
+import { githubAppConfigFromEnv, probeGitHubAppSetup } from './githubIntegration.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -73,7 +74,7 @@ export function isImmoCronCall(req: Request): boolean {
 /** Read-only diagnostics polling endpoint for GitHub Actions; the same timing-safe run secret protects it. */
 export function isImmoDiagnosticsCall(req: Request): boolean {
   const path = String(req.originalUrl || req.path).split('?')[0];
-  return req.method === 'GET' && path === '/api/immofinder/diagnostics/latest' && secretOk(req);
+  return req.method === 'GET' && (path === '/api/immofinder/diagnostics/latest' || path === '/api/immofinder/github/probe') && secretOk(req);
 }
 
 /** Folder precedence: saved setting, then env, then the config default. */
@@ -220,7 +221,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
 
-  /** GitHub Actions polls this endpoint every five minutes and archives each newly completed run. */
+  /** GitHub Actions polls this endpoint every ten minutes and archives each newly completed run. */
   app.get('/api/immofinder/diagnostics/latest', async (_req, res) => {
     try {
       const latest = await latestImmoFinderRunDiagnostics();
@@ -230,6 +231,18 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     } catch (e) {
       return res.status(503).json({ success: false, error: String((e as Error)?.message || e).slice(0, 180), code: 'DIAGNOSTICS_UNAVAILABLE' });
     }
+  });
+
+  /** Live GitHub App diagnosis for the health workflow: what the App and installation hold and why a write token is refused. No secrets are returned. */
+  app.get('/api/immofinder/github/probe', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    if (!secretOk(req)) return res.status(401).json({ success: false, code: 'UNAUTHORIZED' });
+    const { config, missing } = githubAppConfigFromEnv(process.env);
+    if (!config) {
+      const legacy = Boolean(String(process.env.IMMOFINDER_GITHUB_TOKEN || '').trim());
+      return res.json({ success: true, probe: { verdict: legacy ? 'OK' : 'FAIL', cause: legacy ? 'legacy_token_in_use' : 'github_app_env_missing', fix: legacy ? 'A legacy personal token is used instead of the GitHub App.' : 'Set the missing GitHub App variables on the server.', checkedAt: new Date().toISOString(), steps: [], missingEnv: missing } });
+    }
+    return res.json({ success: true, probe: await probeGitHubAppSetup(config) });
   });
 
   // Assistant repair protocol: snapshot is intentionally complete (including saved contacts/evidence).
