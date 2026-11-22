@@ -550,6 +550,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const shortStayReason = shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
       if (shortStayReason) { await deny(shortStayReason, evidenceKind); continue; }
       const qualityReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
+      // Provisional snippet must not keep a price that would fail the real gate (PLZ/error codes as rent).
+      if (snippetEvidence && (qualityReason === 'price_above_max' || qualityReason === 'price_not_monthly')) {
+        price = null;
+        ex.priceQuote = null;
+        if (qualityReason) ex.signals.push('provisional_price_cleared:' + qualityReason);
+      }
       const qReason = snippetEvidence ? null : qualityReason;
       if (snippetEvidence && qualityReason) ex.signals.push('provisional_quality_gate:' + qualityReason);
       // A: diagnostics when price missing or reject is price_*

@@ -1,3 +1,8 @@
+## P130.10h — PLZ/status/m2 not rent + provisional price clear
+
+- **PROBLEM:** Tutti Chur provisional keep stored rent=7000 from snippet "7000, Chur" (Swiss PLZ). User reported index/error codes in price.
+- **CHANGE:** parsePrice skips PLZ+city, HTTP status, m2; provisional clears price on price_above_max. BUGFIX.
+
 ## P130.10g — SERP title over brand + challenge on portal detail
 
 - **PROBLEM:** Run 1bcba049 kept=1 (iCasa) with brand-only title; Homegate detail challenged as list_or_search.

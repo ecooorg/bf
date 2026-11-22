@@ -665,6 +665,22 @@ export function parsePrice(text: string): ParsedPrice | null {
       // Bare 2026 with no currency and no month/night word — skip
       if (!h.currency && unit === 'unknown') continue;
     }
+    // Swiss PLZ (4-digit 1000–9999) before a place name is not rent — e.g. "7000, Chur".
+    if (h.amount >= 1000 && h.amount <= 9999 && Number.isInteger(h.amount)) {
+      const after = t.slice(h.idx + h.quote.length, h.idx + h.quote.length + 48);
+      const before = t.slice(Math.max(0, h.idx - 20), h.idx);
+      if (/^\s*[,;./]?\s*[A-ZÄÖÜ][A-Za-zÄÖÜäöüß' -]{2,}/.test(after) || /\b(PLZ|postleitzahl)\b/i.test(before + after)) {
+        if (!h.currency) continue;
+        if (!/monat|mtl|miete|rent|\/mo/i.test(h.quote + after.slice(0, 20))) continue;
+      }
+    }
+    // HTTP / fetch status codes without currency are not rent.
+    if (!h.currency && [200, 403, 404, 429, 500, 502, 503].includes(h.amount)) continue;
+    // Floor area "60m2" is not rent.
+    {
+      const tail = t.slice(h.idx + Math.max(0, h.quote.length - 4), h.idx + h.quote.length + 10);
+      if (/\d\s*m(?:2|²)\b/i.test(tail)) continue;
+    }
     const cand: ParsedPrice = { amount: h.amount, unit, monthlyChf, quote: h.quote };
     if (!best || score(cand) > score(best)) best = cand;
   }
