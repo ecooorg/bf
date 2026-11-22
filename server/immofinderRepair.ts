@@ -29,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '130.10e.5';
+export const REPAIR_RULES_VERSION = '130.10f.5';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -224,8 +224,18 @@ export function priceVerdict(row: Row): PriceVerdict {
     const labelled = list.filter((c) => c.rentLabelled);
     const labelledDistinct = [...new Map(labelled.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     if (labelledDistinct.length === 1) return labelledDistinct[0];
-    // Two+ explicitly labelled rents (e.g. CHF 1450 and CHF 1650 both "Miete") stay ambiguous.
-    if (labelledDistinct.length > 1) return null;
+    // Two+ labelled rents: soft-pick dominant monthly main-rent in the CH band (Adlerweg / Flatfox).
+    if (labelledDistinct.length > 1) {
+      const labBand = labelledDistinct.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
+      if (labBand.length >= 1) {
+        labBand.sort((a, b) => b.amount - a.amount);
+        if (labBand.length === 1) return labBand[0];
+        if (labBand[0].amount >= labBand[1].amount * 1.08) return labBand[0];
+        if (labBand[0].amount - labBand[1].amount >= 200) return labBand[0];
+        if (labBand.length === 2) return labBand[0];
+      }
+      return null;
+    }
     // P130.10: unlabelled monthly amounts — main rent is almost always the largest in the 900–4500 band (garage/NK are smaller).
     const band = list.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
     if (band.length >= 1) {
@@ -368,7 +378,11 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= (c.unit === 'night' ? 50 : c.unit === 'week' || c.unit === 'season' ? 100 : 400) && c.amount <= 100000)
       .map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     const hasStoredPrice = raw.price?.amount != null || row.rent_monthly_chf != null;
-    if (rentCandidates.length === 0 && hasStoredPrice) why = 'price_not_confirmed_on_detail_page';
+    if (rentCandidates.length === 0 && hasStoredPrice) {
+      const quote = String(raw.price_quote || obj(raw.price).quote || '');
+      const fromQuote = quote ? (resolveListingPrice(quote, null) || parsePrice(quote + '\n' + pageEvidence.slice(0, 2000))) : null;
+      if (!fromQuote || !fromQuote.amount) why = 'price_not_confirmed_on_detail_page';
+    }
   }
 
   if (!why) {

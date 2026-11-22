@@ -1,3 +1,8 @@
+## P130.10f — labelled multi-rent soft pick + Homegate 400-ids + quote confirm
+
+- **PROBLEM:** Chur run f6dfc413 kept=0. Adlerweg price_ambiguous; Calvenweg price_not_confirmed; Homegate expansion 0.
+- **CHANGE:** soft-pick among labelled monthly band; accept parseable price_quote; harvest Homegate 400xxxxxxx ids. BUGFIX.
+
 ## P130.10e — Homegate listingId harvest + price band + rooms first-hit
 
 - **PROBLEM:** Chur run c8b28cdc kept=0. Homegate expansion still 0 details. Flatfox Adlerweg rejected price_ambiguous. parseRooms inflated 3.5→4.5.

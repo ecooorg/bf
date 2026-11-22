@@ -226,6 +226,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           fromBare.push(origin + '/mieten/' + id);
           fromBare.push(origin + '/rent/' + id);
         }
+        // homegate_400_id_harvest: classic Homegate numeric ids often appear as 400xxxxxxx in SPA payloads
+        const hgIdRe = /\b(400\d{6,9})\b/g;
+        let hg: RegExpExecArray | null;
+        while ((hg = hgIdRe.exec(listPg.body)) !== null) {
+          const origin2 = (() => { try { return new URL(listPg.finalUrl || it.url).origin; } catch { return 'https://www.homegate.ch'; } })();
+          fromBare.push(origin2 + '/mieten/' + hg[1]);
+        }
         const uniq = [...new Set([...fromAnchors, ...fromBare])].slice(0, 6);
         diag('expandable_index_expanded', { source: src.id, listUrl: safeDiagUrl(it.url), detailCount: uniq.length, sample: uniq.slice(0, 3).map(safeDiagUrl) });
         for (const u of uniq) {
