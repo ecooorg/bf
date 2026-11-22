@@ -1,0 +1,21 @@
+name: apply-price-plz-guard
+on:
+  workflow_dispatch:
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/apply-price-plz-guard.mjs
+      - name: commit
+        run: |
+          git config user.name "biforge-bot"
+          git config user.email "341088617+biforge-control[bot]@users.noreply.github.com"
+          git add server/immofinderCore.ts server/immofinderPipeline.ts server/immofinderRepair.ts package.json package-lock.json CHANGELOG.md
+          git commit -m "fix(immofinder): P130.10h PLZ/status/m2 not rent + provisional price clear" || echo no-change
+          git push
