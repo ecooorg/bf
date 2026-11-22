@@ -1,3 +1,8 @@
+## P130.9 — Homegate list expansion, geo canton reject, municipality from URL
+
+- **PROBLEM:** site:homegate.ch SERP only returns trefferliste (0 detail candidates); Anibis Bern/Obwalden accepted for Chur; immobilier /chur/ URL lost municipality after LLM.
+- **CHANGE:** keep Homegate/ImmoScout trefferliste and expand to /mieten/{id}; OUTSIDE covers other cantons; municipality fallback from URL path. BUGFIX.
+
 ## P130.8 — Seeker false positive, rent cap, portal detail queries
 
 - **PROBLEM:** Chur run kept 0: FB offer "… zu vermieten" classified seeker_post; maxMonthlyRentChf=2000 hid typical Chur 3.5+ rents; site: portal queries returned only category/list URLs (Homegate/Tutti/ImmoScout 0 candidates).

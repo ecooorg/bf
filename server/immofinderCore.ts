@@ -132,7 +132,7 @@ export function placeFromTitleOrSnippet(title: string, snippet: string, list: st
   const m = matchMunicipality(head, list);
   if (m) return { matched: m, outside: false, hint: m };
   // Strong outside signals common in GR tourism pages (Engadin, Scuol, Samnaun, …)
-  const OUTSIDE = /\b(scuol|engadin|samnaun|sils|silvaplana|st\.?\s*moritz|pontresina|zuoz|madulain|celerina|samedan|zernez|guarda|arosa(?!\s*[-–]?chur)|davos|klosters|val\s*müstair|poschiavo|brusio)\b/i;
+  const OUTSIDE = /\b(scuol|engadin|samnaun|sils|silvaplana|st\.?\s*moritz|pontresina|zuoz|madulain|celerina|samedan|zernez|guarda|arosa(?!\s*[-–]?chur)|davos|klosters|val\s*müstair|poschiavo|brusio|kanton\s+bern|im\s+kanton\s+bern|\bbern\b(?!\s*hard)|kanton\s+z[uü]rich|\bz[uü]rich\b(?!\s*(see|gebiet))|\bbasel\b|\bluzern\b|\blucerne\b|\bgenf\b|\bgeneva\b|genève|obwalden|nidwalden|\bwallis\b|\bvalais\b|\btessin\b|\bticino\b|\baargau\b|\bthurgau\b|solothurn|schaffhausen|appenzell|st\.?\s*gallen)\b/i;
   const om = OUTSIDE.exec(head);
   if (om) return { matched: null, outside: true, hint: om[1] };
   return { matched: null, outside: false, hint: null };

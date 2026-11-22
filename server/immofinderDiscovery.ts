@@ -1,7 +1,7 @@
 import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink, isPortalDetailUrl } from './immofinderCore.ts';
 
 export interface SearchHit { title: string; link: string; snippet: string; /** Serper/organic date string when present, e.g. "2 days ago" or "15.11.2026". */ date?: string | null }
-export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean }
+export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean; expandableIndex?: boolean }
 
 export const hostOf = (u: string): string => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
 const hostMatches = (host: string, list: string[]) => list.some((h) => host === h || host.endsWith(`.${h}`));
@@ -77,7 +77,8 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (deci
     if (isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) { decide(false, 'agency_host'); continue; }
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
     const nonListing = nonListingReason(h.title || '', h.link, portalHosts);
-    if (nonListing) { decide(false, `non_listing:${nonListing}`); continue; }
+    const expandableIndex = /homegate\.ch|immoscout24\.ch/i.test(host) && /trefferliste|\/liste(\/|$)/i.test(h.link);
+    if (nonListing && !expandableIndex) { decide(false, `non_listing:${nonListing}`); continue; }
     // Social feeds may expose ads only through snippets; retain them as provisional leads.
     const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
     // Bare site roots are never a single rental offer (project portals, agency landings).
@@ -95,8 +96,8 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (deci
     }
     seen.add(h.link);
     // Keep social-feed candidates; the pipeline records their evidence as provisional.
-    out.push({ url: h.link, host, hit: h, snippetOnly });
-    decide(true, snippetOnly ? 'accepted_snippet_only' : 'accepted_direct_fetch');
+    out.push({ url: h.link, host, hit: h, snippetOnly, expandableIndex: Boolean(typeof expandableIndex !== 'undefined' && expandableIndex) });
+    decide(true, (typeof expandableIndex !== 'undefined' && expandableIndex) ? 'accepted_expandable_index' : (snippetOnly ? 'accepted_snippet_only' : 'accepted_direct_fetch'));
   }
   const list = cfg.municipalities || [];
   const score = (it: DiscoveryItem) => {

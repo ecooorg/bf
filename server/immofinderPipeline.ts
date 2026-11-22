@@ -116,7 +116,7 @@ async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof
     summaryDe: String(out.summary_de ?? '').slice(0, 300), signals, llm: true, priceQuote: pq, listedAtQuote: q('listed_at_quote') } };
 }
 
-interface Item { url: string; hit?: SearchHit; snippetOnly?: boolean; municipalityHint?: string | null }
+interface Item { url: string; hit?: SearchHit; snippetOnly?: boolean; municipalityHint?: string | null; expandableIndex?: boolean }
 interface SrcMeta { id: string; cutMarkers?: string[]; privateTitleHint?: string }
 
 export type RunWave = 'priority' | 'extended' | 'full' | 'carousel';
@@ -415,7 +415,17 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (!ex.single) { await deny('not_single_listing'); continue; }
       if (ex.agency) { await deny('agency', ex.agency); continue; }
       if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }
+      if (!ex.municipality) {
+        const fromUrl = placeFromUrl(url, cfg.municipalities);
+        if (fromUrl.matched) ex.municipality = fromUrl.matched;
+        else {
+          const pathMuni = matchMunicipality(String(url).replace(/[-_/]/g, ' '), cfg.municipalities);
+          if (pathMuni) ex.municipality = pathMuni;
+        }
+      }
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
+      const geoPre = placeFromTitleOrSnippet(meta.title, text.slice(0, 600), cfg.municipalities);
+      if (geoPre.outside && !ex.municipality) { await deny('municipality_not_whitelisted', 'outside:' + (geoPre.hint || '')); continue; }
       if (!ex.rooms || !(ex.rooms.rooms > 0)) { await deny('rooms_unknown'); continue; }
       if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
       // Group houses / hostels mis-parsed as 15–68 rooms — never a private 3.5-room flat
@@ -734,7 +744,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const duplicateAcrossQueries = pickedForBatch.filter((it) => processedUrls.has(it.url)).length;
       const items = pickedForBatch.filter((it) => !processedUrls.has(it.url)).slice(0, maxCandidatesPerQuery);
       const remaining = Math.max(0, pageLimit - processedItems);
-      diag('discovery_batch_selected', { source: currentSourceId, rawHits: batchHits.length, pickedBeforeCrossQueryDedupe: pickedForBatch.length, duplicateAcrossQueries, selectedAfterPerQueryCap: items.length, maxCandidatesPerQuery, processedItemsBefore: processedItems, pageLimit, remainingPageBudget: remaining, candidateUrls: items.map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 160), snippetOnly: it.snippetOnly })) });
+      diag('discovery_batch_selected', { source: currentSourceId, rawHits: batchHits.length, pickedBeforeCrossQueryDedupe: pickedForBatch.length, duplicateAcrossQueries, selectedAfterPerQueryCap: items.length, maxCandidatesPerQuery, processedItemsBefore: processedItems, pageLimit, remainingPageBudget: remaining, candidateUrls: items.map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 160), snippetOnly: it.snippetOnly, expandableIndex: Boolean((it as any).expandableIndex) })) });
       for (const it of items) processedUrls.add(it.url);
       batchHits = [];
       if (items.length && remaining > 0) {
@@ -777,8 +787,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         getStat(currentSourceId).hits += batch.length;
         const pickDecisions: { accepted: boolean; reason: string; host: string; url: string; title: string }[] = [];
         const picked = pickItems(batch, cfg, (decision) => { if (pickDecisions.length < 30) pickDecisions.push({ ...decision, url: safeDiagUrl(decision.url), title: safeDiagText(decision.title, 180) }); });
-        diag('serper_query_succeeded', { source: currentSourceId, queryIndex: qi, queryTotal: slice.length, query: safeDiagText(q, 400), resultCount: batch.length, pickedCount: picked.length, selectedCount: Math.min(picked.length, maxCandidatesPerQuery), pickDecisions, results: batch.slice(0, 10).map((hit, rank) => ({ rank: rank + 1, host: hostOf(hit.link), url: safeDiagUrl(hit.link), title: safeDiagText(hit.title, 180), snippet: safeDiagText(hit.snippet, 360), date: hit.date || null, selected: picked.some((item) => item.url === hit.link) })), selected: picked.slice(0, maxCandidatesPerQuery).map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 180), snippetOnly: it.snippetOnly })) });
-        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, maxCandidatesPerQuery), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
+        diag('serper_query_succeeded', { source: currentSourceId, queryIndex: qi, queryTotal: slice.length, query: safeDiagText(q, 400), resultCount: batch.length, pickedCount: picked.length, selectedCount: Math.min(picked.length, maxCandidatesPerQuery), pickDecisions, results: batch.slice(0, 10).map((hit, rank) => ({ rank: rank + 1, host: hostOf(hit.link), url: safeDiagUrl(hit.link), title: safeDiagText(hit.title, 180), snippet: safeDiagText(hit.snippet, 360), date: hit.date || null, selected: picked.some((item) => item.url === hit.link) })), selected: picked.slice(0, maxCandidatesPerQuery).map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 180), snippetOnly: it.snippetOnly, expandableIndex: Boolean((it as any).expandableIndex) })) });
+        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, maxCandidatesPerQuery), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly, expandableIndex: Boolean((it as any).expandableIndex) })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {
