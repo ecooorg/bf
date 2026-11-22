@@ -1,5 +1,9 @@
 name: Core CI — Full Project Verification
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
 permissions:
   contents: read
   actions: read
