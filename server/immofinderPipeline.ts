@@ -205,8 +205,18 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const detailRe = /homegate\.ch|immoscout24\.ch/i.test(it.url)
           ? /\/(mieten|rent)\/\d{5,}|\/(de|en|fr)\/flat\/[^"'\s]+\/\d{5,}/i
           : /\/\d{6,}(?:\/|$)|\/(mieten|rent)\/\d{5,}/i;
-        const links = candidateLinks(listPg.body, listPg.finalUrl || it.url, 40, detailRe);
-        const uniq = [...new Set(links)].slice(0, 6);
+        // SPA list pages often omit classic <a href>; also harvest bare path ids from HTML/JSON.
+        const fromAnchors = candidateLinks(listPg.body, listPg.finalUrl || it.url, 40, detailRe);
+        const bareRe = /(?:https?:\/\/(?:www\.)?(?:homegate|immoscout24)\.ch)?(\/(?:mieten|rent)\/\d{5,})/gi;
+        const fromBare: string[] = [];
+        let bm: RegExpExecArray | null;
+        const baseHost = (() => { try { return new URL(listPg.finalUrl || it.url).origin; } catch { return 'https://www.homegate.ch'; } })();
+        while ((bm = bareRe.exec(listPg.body)) !== null) {
+          const path = bm[1];
+          const abs = path.startsWith('http') ? path : baseHost + path;
+          fromBare.push(abs);
+        }
+        const uniq = [...new Set([...fromAnchors, ...fromBare])].slice(0, 6);
         diag('expandable_index_expanded', { source: src.id, listUrl: safeDiagUrl(it.url), detailCount: uniq.length, sample: uniq.slice(0, 3).map(safeDiagUrl) });
         for (const u of uniq) {
           expanded.push({ url: u, hit: it.hit ? { ...it.hit, link: u, title: it.hit.title || 'Homegate detail' } : undefined, snippetOnly: false, municipalityHint: it.municipalityHint, expandableIndex: false });
@@ -412,6 +422,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (snippetEvidence && !ex.rooms) {
         // Leave rooms null — inventing 0 previously bypassed minRooms and produced garbage cards.
         ex.signals.push('rooms_unverified');
+      }
+      // SERP title/snippet often carries "3.5 Zimmer" when the fetched page title is a brand (iCasa.ch).
+      if (!ex.rooms && it.hit) {
+        const serpRooms = parseRooms(`${it.hit.title || ''}\n${it.hit.snippet || ''}`);
+        if (serpRooms) {
+          ex.rooms = { rooms: serpRooms.rooms, basis: serpRooms.basis || 'serp_title', quote: '' };
+          ex.signals.push('rooms_from_serp_title');
+        }
       }
       if (snippetEvidence) ex.signals.push('provisional_search_snippet');
       diag('candidate_extracted', { source: src.id, url: safeDiagUrl(it.url), title: safeDiagText(meta!.title, 180), textChars: text.length, llmUsed: ex.llm, llmCalls, extractionDurationMs: now() - extractionStartedAt, llmError: err || null, single: ex.single, agencyDetected: Boolean(ex.agency), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceQuotePresent: Boolean(ex.priceQuote), listedAtQuotePresent: Boolean(ex.listedAtQuote), ownerVerified: Boolean(ex.owner), regForbidden: ex.regForbidden });

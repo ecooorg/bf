@@ -942,7 +942,7 @@ export function isListingUnavailable(title: string, text: string): boolean {
   if (/dieses objekt ist leider gerade nicht verfügbar/.test(h)) return true;
   if (/dieses inserat ist nicht mehr verfügbar/.test(h)) return true;
   if (/objekt ist (leider )?(gerade )?nicht (mehr )?verfügbar/.test(h)) return true;
-  if (/inserat ist nicht mehr verfügbar/.test(h)) return true;
+  if (/inserat (ist )?nicht mehr verfügbar/.test(h)) return true;
   if (/anzeige (wurde )?(wurde )?gelöscht|anzeige nicht (mehr )?verfügbar/.test(h)) return true;
   if (/nicht mehr online|nicht mehr aktiv|inserat abgelaufen|inserat beendet/.test(h)) return true;
   if (/wohnung (ist )?(leider )?(schon )?vermietet|bereits vermietet|schon vergeben/.test(h) && /nicht verfügbar|nicht mehr/.test(h)) return true;

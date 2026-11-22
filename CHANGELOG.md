@@ -1,3 +1,8 @@
+## P130.10d — Homegate list expansion + SERP rooms + unavailable title
+
+- **PROBLEM:** Chur run 6b3eeecb kept=0. Homegate trefferliste expanded to 0 detail URLs. iCasa dropped rooms_unknown after LLM timeout. UrbanHome unavailable title missed.
+- **CHANGE:** harvest bare /mieten|/rent ids from list HTML; rooms fallback from SERP title/snippet; broaden unavailable regex. BUGFIX.
+
 ## P130.10c — isPortalDetailUrl: only reject category paths that end at category
 
 - **PROBLEM:** emergency category guard rejected real detail URLs like \/rent/flat/offer-77 (no 5+ digit id), so the Swiss-portal discovery test failed (1 FAIL in test:core).
