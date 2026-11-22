@@ -1,3 +1,8 @@
+## P130.10 — Homegate list→detail expansion, price main-rent preference, challenge Jina
+
+- **PROBLEM:** Chur run 852a2499 kept 0: Homegate trefferliste tagged expandableIndex but never expanded (flag dropped before processItems); Flatfox Adlerweg CHF 1510+garage rejected as price_ambiguous; Tutti "Security check" skipped Jina and burned an LLM call as not_single_listing.
+- **CHANGE:** expand Homegate/ImmoScout index pages into up to 6 detail URLs; priceVerdict only suspects when pick cannot choose (prefer gross/labelled/largest 900–4500); challenge phrases include Security check → Jina; early nonListing on challenge titles. BUGFIX.
+
 ## P130.9 — Homegate list expansion, geo canton reject, municipality from URL
 
 - **PROBLEM:** site:homegate.ch SERP only returns trefferliste (0 detail candidates); Anibis Bern/Obwalden accepted for Chur; immobilier /chur/ URL lost municipality after LLM.

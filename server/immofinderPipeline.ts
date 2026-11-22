@@ -192,6 +192,31 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
   /** Fetch and verify one direct listing page before extraction, filtering and persistence. */
   async function processItems(src: SrcMeta, items: Item[], maxPages: number) {
+    // P130.10 expandable expansion: Homegate/ImmoScout trefferliste → concrete /mieten/{id} (or en/fr flat) detail URLs
+    const expanded: Item[] = [];
+    for (const it of items) {
+      if (!(it as any).expandableIndex) { expanded.push(it); continue; }
+      try {
+        const listPg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
+        if (!listPg.ok || !listPg.body || listPg.body.length < 80) {
+          diag('expandable_index_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: listPg.status });
+          continue;
+        }
+        const detailRe = /homegate\.ch|immoscout24\.ch/i.test(it.url)
+          ? /\/(mieten|rent)\/\d{5,}|\/(de|en|fr)\/flat\/[^"'\s]+\/\d{5,}/i
+          : /\/\d{6,}(?:\/|$)|\/(mieten|rent)\/\d{5,}/i;
+        const links = candidateLinks(listPg.body, listPg.finalUrl || it.url, 40, detailRe);
+        const uniq = [...new Set(links)].slice(0, 6);
+        diag('expandable_index_expanded', { source: src.id, listUrl: safeDiagUrl(it.url), detailCount: uniq.length, sample: uniq.slice(0, 3).map(safeDiagUrl) });
+        for (const u of uniq) {
+          expanded.push({ url: u, hit: it.hit ? { ...it.hit, link: u, title: it.hit.title || 'Homegate detail' } : undefined, snippetOnly: false, municipalityHint: it.municipalityHint, expandableIndex: false });
+        }
+      } catch (e) {
+        diag('expandable_index_error', { source: src.id, url: safeDiagUrl(it.url), error: safeDiagText((e as Error)?.message || e, 200) });
+      }
+    }
+    items = expanded.length ? expanded : items.filter((it) => !(it as any).expandableIndex);
+
     res.counts.candidates += items.length;
     const st = getStat(src.id);
     st.candidates += items.length;
@@ -749,7 +774,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       batchHits = [];
       if (items.length && remaining > 0) {
         res.counts.sources++;
-        await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly, municipalityHint: currentQueryMunicipality })), remaining);
+        await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly, municipalityHint: currentQueryMunicipality, expandableIndex: Boolean((i as any).expandableIndex) })), remaining);
         processedItems += Math.min(items.length, remaining);
       }
     };

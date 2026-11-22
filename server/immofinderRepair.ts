@@ -29,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '130.6.5';
+export const REPAIR_RULES_VERSION = '130.10.0';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -223,10 +223,24 @@ export function priceVerdict(row: Row): PriceVerdict {
     if (list.length === 1) return list[0];
     const labelled = list.filter((c) => c.rentLabelled);
     const labelledDistinct = [...new Map(labelled.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
-    return labelledDistinct.length === 1 ? labelledDistinct[0] : null;
+    if (labelledDistinct.length === 1) return labelledDistinct[0];
+    // Two+ explicitly labelled rents (e.g. CHF 1450 and CHF 1650 both "Miete") stay ambiguous.
+    if (labelledDistinct.length > 1) return null;
+    // P130.10: unlabelled monthly amounts — main rent is almost always the largest in the 900–4500 band (garage/NK are smaller).
+    const band = list.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
+    if (band.length >= 1) {
+      band.sort((a, b) => b.amount - a.amount);
+      if (band.length === 1 || band[0].amount >= band[1].amount * 1.25) return band[0];
+    }
+    return null;
   };
-  if (Number.isFinite(stored) && stored > 0 && distinct.length > 1 && grossCandidates.length !== 1) {
-    return { status: 'suspect', why: 'price_ambiguous_on_detail_page' };
+  // P130.10: prefer labelled/gross/largest main rent; only mark ambiguous when pick cannot choose.
+  if (Number.isFinite(stored) && stored > 0 && distinct.length > 1) {
+    const one = pick(distinct);
+    if (!one) return { status: 'suspect', why: 'price_ambiguous_on_detail_page' };
+    if (one.amount !== stored) {
+      return { status: 'repair', price: { amount: one.amount, unit: one.unit as 'month' | 'week' | 'night' | 'season' }, why: 'prefer_labelled_or_largest_main_rent' };
+    }
   }
   if (Number.isFinite(stored) && stored > 0 && grossCandidates.length === 1 && stored !== grossCandidates[0].amount) {
     const gross = grossCandidates[0];

@@ -157,7 +157,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       break;
     }
     const directTextChars = htmlToText(direct.body).trim().length;
-    const challengeLike = /just a moment|attention required|cf-browser-verification|checking your browser|enable javascript and cookies|ddos protection by/i.test(direct.body || '');
+    const challengeLike = /just a moment|attention required|cf-browser-verification|checking your browser|enable javascript and cookies|ddos protection by|security check|access denied|one more step|please wait|verify you are human|captcha/i.test((direct.body || '') + ' ' + ((direct as any).title || ''));
     logFetch('direct_result', { ok: direct.ok, status: direct.status, fetchMode: redirected ? 'direct_redirect' : 'direct', bodyChars: direct.body.length, textChars: directTextChars, finalHost: (() => { try { return new URL(direct.finalUrl || currentUrl).hostname; } catch { return 'invalid'; } })(), error: !direct.ok ? String(direct.body || '').slice(0, 240) : null });
     if (!direct.ok || directTextChars < 30 || challengeLike) {
       if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
