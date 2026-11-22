@@ -224,18 +224,8 @@ export function priceVerdict(row: Row): PriceVerdict {
     const labelled = list.filter((c) => c.rentLabelled);
     const labelledDistinct = [...new Map(labelled.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     if (labelledDistinct.length === 1) return labelledDistinct[0];
-    // Two+ labelled rents: soft-pick dominant monthly main-rent in the CH band (Adlerweg / Flatfox).
-    if (labelledDistinct.length > 1) {
-      const labBand = labelledDistinct.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
-      if (labBand.length >= 1) {
-        labBand.sort((a, b) => b.amount - a.amount);
-        if (labBand.length === 1) return labBand[0];
-        if (labBand[0].amount >= labBand[1].amount * 1.08) return labBand[0];
-        if (labBand[0].amount - labBand[1].amount >= 200) return labBand[0];
-        if (labBand.length === 2) return labBand[0];
-      }
-      return null;
-    }
+    // Two+ explicitly labelled rents (e.g. CHF 1450 and CHF 1650 both "Miete") stay ambiguous (P129.49).
+    if (labelledDistinct.length > 1) return null;
     // P130.10: unlabelled monthly amounts — main rent is almost always the largest in the 900–4500 band (garage/NK are smaller).
     const band = list.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
     if (band.length >= 1) {
