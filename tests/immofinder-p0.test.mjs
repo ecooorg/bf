@@ -46,7 +46,7 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '130.5.5');
+  assert.equal(REPAIR_RULES_VERSION, '130.5a.5');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
@@ -479,4 +479,40 @@ test('P129.44 enrichment uses holiday-home wording only for house-style names', 
   assert.ok(!plain.some((q) => /Chalet OR Chesa/.test(q)));
   const house = buildSecondaryQueries({ listingUrl: 'u', propertyName: 'Chesa Alba Chur Haus', municipality: 'Chur', ownerName: null, photoUrls: [], existingPhones: [], existingEmails: [], platformDomains: [] });
   assert.ok(house.some((q) => /Chalet OR Chesa/.test(q)));
+});
+
+test('P130.5 GitHub App probe names the exact cause and never returns a token', async () => {
+  const crypto = await import('node:crypto');
+  const { probeGitHubAppSetup, githubAppConfigFromEnv } = await import('../server/githubIntegration.ts');
+  const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } });
+  const config = { appId: '123', installationId: '456', privateKey, owner: 'o', repository: 'r' };
+  const reply = (status, body, id = 'REQ1') => ({ ok: status < 300, status, headers: { get: (k) => (k === 'x-github-request-id' ? id : null) }, json: async () => body });
+  const make = ({ appPerm, instPerm, scopedStatus = 201, repoStatus = 200, instStatus = 200 }) => async (url, init = {}) => {
+    if (url.endsWith('/app')) return reply(200, { id: 123, slug: 'biforge-control', permissions: { contents: appPerm } });
+    if (url.endsWith('/app/installations/456')) return reply(instStatus, { id: 456, app_id: 123, account: { login: 'ecooorg' }, repository_selection: 'selected', permissions: { contents: instPerm } });
+    if (url.endsWith('/access_tokens')) {
+      const wantsWrite = JSON.parse(init.body).permissions.contents === 'write';
+      return wantsWrite ? reply(scopedStatus, scopedStatus < 300 ? { token: 'ghs_SECRET' } : { message: 'The level of access for permissions requested are not granted to this installation' }) : reply(201, { token: 'ghs_read' });
+    }
+    if (url.endsWith('/repos/o/r')) return reply(repoStatus, { id: 9, full_name: 'o/r' });
+    throw new Error('unexpected ' + url);
+  };
+  const run = (opts) => probeGitHubAppSetup(config, make(opts));
+  let p = await run({ appPerm: 'read', instPerm: 'read' });
+  assert.equal(p.cause, 'app_lacks_contents_write');
+  p = await run({ appPerm: 'write', instPerm: 'read' });
+  assert.equal(p.cause, 'permission_not_accepted_on_installation');
+  assert.match(p.fix, /accept the pending permission request/);
+  p = await run({ appPerm: 'write', instPerm: 'write', repoStatus: 404 });
+  assert.equal(p.cause, 'repository_not_in_installation');
+  p = await run({ appPerm: 'write', instPerm: 'write', scopedStatus: 422 });
+  assert.equal(p.cause, 'write_token_refused');
+  assert.equal(p.steps.at(-1).httpStatus, 422);
+  p = await run({ appPerm: 'write', instPerm: 'write', instStatus: 404 });
+  assert.equal(p.cause, 'installation_not_found');
+  p = await run({ appPerm: 'write', instPerm: 'write' });
+  assert.equal(p.verdict, 'OK');
+  assert.equal(p.installation.account, 'ecooorg');
+  assert.doesNotMatch(JSON.stringify(p), /ghs_|BEGIN/, 'no token or key in the result');
+  assert.deepEqual(githubAppConfigFromEnv({}).missing.sort(), ['GITHUB_APP_ID', 'GITHUB_APP_INSTALLATION_ID', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_REPOSITORY_NAME', 'GITHUB_REPOSITORY_OWNER']);
 });

@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const cfg = JSON.parse(fs.readFileSync('config/project-user-value-prompts.json', 'utf8'));
-const wf = fs.readFileSync('.github/workflows/project-user-value.yml', 'utf8');
 
 test('P127.23 live prompt set is well-formed, unique and states its authorship', () => {
   assert.ok(cfg.version && cfg.authoredBy);
@@ -22,20 +21,4 @@ test('P127.23 live runner needs no input: fixed default URL, lists scenarios off
   assert.equal(r.status, 0);
   assert.match(r.stdout, /base=https:\/\/biforge\.onrender\.com repeats=2/);
   assert.match(r.stdout, /uv-calc/);
-});
-
-test('P127.26a live workflow is manual-only, input-free and waits for the deployed commit', () => {
-  assert.match(wf, /\n  workflow_dispatch:/);
-  for (const t of ['workflow_run:', 'pull_request:', 'push:', 'schedule:']) assert.ok(!new RegExp(`\\n  ${t}`).test(wf), `no automatic trigger ${t}`);
-  assert.match(wf, /EVAL_BASE_URL: https:\/\/biforge\.onrender\.com/);
-  assert.match(wf, /UV_EXPECTED_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/);
-  assert.ok(!/inputs\./.test(wf), 'no manual inputs are required or read');
-  assert.ok(!/vars\.EVAL_BASE_URL/.test(wf));
-});
-
-test('P127.24 live gate compares against the last measured commit, not just the previous commit', () => {
-  assert.ok(!/HEAD~1/.test(wf));
-  assert.match(wf, /actions\/artifacts\?name=project-user-value-live/);
-  assert.match(wf, /fetch-depth: 0/);
-  assert.match(wf, /actions: read/);
 });

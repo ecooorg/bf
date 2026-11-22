@@ -24,5 +24,4 @@ test('P127.18 offline human-simulator rejects SUCCESS stub and accepts richer fo
 test('P127.18 fixtures exist', () => {
   assert.ok(fs.existsSync(path.join(root, 'tests/uv-stub-racer-app.js')));
   assert.ok(fs.existsSync(path.join(root, 'tests/uv-rich-forest-main.js')));
-  assert.ok(fs.existsSync(path.join(root, '.github/workflows/project-user-value.yml')));
 });

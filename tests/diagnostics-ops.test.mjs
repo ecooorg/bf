@@ -170,42 +170,6 @@ test('P130.4 health workflow is scheduled, has no Actions-triggered write beyond
   assert.match(read('scripts/scripts-integrity.mjs'), /immofinder-health-check\.mjs/);
 });
 
-test('P130.5 GitHub App probe names the exact cause and never returns a token', async () => {
-  const crypto = await import('node:crypto');
-  const { probeGitHubAppSetup, githubAppConfigFromEnv } = await import('../server/githubIntegration.ts');
-  const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } });
-  const config = { appId: '123', installationId: '456', privateKey, owner: 'o', repository: 'r' };
-  const reply = (status, body, id = 'REQ1') => ({ ok: status < 300, status, headers: { get: (k) => (k === 'x-github-request-id' ? id : null) }, json: async () => body });
-  const make = ({ appPerm, instPerm, scopedStatus = 201, repoStatus = 200, instStatus = 200 }) => async (url, init = {}) => {
-    if (url.endsWith('/app')) return reply(200, { id: 123, slug: 'biforge-control', permissions: { contents: appPerm } });
-    if (url.endsWith('/app/installations/456')) return reply(instStatus, { id: 456, app_id: 123, account: { login: 'ecooorg' }, repository_selection: 'selected', permissions: { contents: instPerm } });
-    if (url.endsWith('/access_tokens')) {
-      const wantsWrite = JSON.parse(init.body).permissions.contents === 'write';
-      return wantsWrite ? reply(scopedStatus, scopedStatus < 300 ? { token: 'ghs_SECRET' } : { message: 'The level of access for permissions requested are not granted to this installation' }) : reply(201, { token: 'ghs_read' });
-    }
-    if (url.endsWith('/repos/o/r')) return reply(repoStatus, { id: 9, full_name: 'o/r' });
-    throw new Error('unexpected ' + url);
-  };
-  const run = (opts) => probeGitHubAppSetup(config, make(opts));
-  let p = await run({ appPerm: 'read', instPerm: 'read' });
-  assert.equal(p.cause, 'app_lacks_contents_write');
-  p = await run({ appPerm: 'write', instPerm: 'read' });
-  assert.equal(p.cause, 'permission_not_accepted_on_installation');
-  assert.match(p.fix, /accept the pending permission request/);
-  p = await run({ appPerm: 'write', instPerm: 'write', repoStatus: 404 });
-  assert.equal(p.cause, 'repository_not_in_installation');
-  p = await run({ appPerm: 'write', instPerm: 'write', scopedStatus: 422 });
-  assert.equal(p.cause, 'write_token_refused');
-  assert.equal(p.steps.at(-1).httpStatus, 422);
-  p = await run({ appPerm: 'write', instPerm: 'write', instStatus: 404 });
-  assert.equal(p.cause, 'installation_not_found');
-  p = await run({ appPerm: 'write', instPerm: 'write' });
-  assert.equal(p.verdict, 'OK');
-  assert.equal(p.installation.account, 'ecooorg');
-  assert.doesNotMatch(JSON.stringify(p), /ghs_|BEGIN/, 'no token or key in the result');
-  assert.deepEqual(githubAppConfigFromEnv({}).missing.sort(), ['GITHUB_APP_ID', 'GITHUB_APP_INSTALLATION_ID', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_REPOSITORY_NAME', 'GITHUB_REPOSITORY_OWNER']);
-});
-
 test('P130.5 health check reports the live probe and downgrades old log failures when it is OK', async () => {
   const { runChecks } = await import('../scripts/immofinder-health-check.mjs');
   const logs = 'github_app_contents_write_token_http_422_the_level_of_access';
