@@ -1,3 +1,8 @@
+## P130.8 — Seeker false positive, rent cap, portal detail queries
+
+- **PROBLEM:** Chur run kept 0: FB offer "… zu vermieten" classified seeker_post; maxMonthlyRentChf=2000 hid typical Chur 3.5+ rents; site: portal queries returned only category/list URLs (Homegate/Tutti/ImmoScout 0 candidates).
+- **CHANGE:** title "zu vermieten" is never a seeker; default rent cap 3500; portalQueries prefer room-count phrases so Serper surfaces detail ads. BUGFIX.
+
 ## P130.7 — Homegate detail titles + FR pièces rooms fallback
 
 - **PROBLEM:** Homegate SERP titles "Wohnung mieten in X" were rejected as list pages, so real detail ads never entered the fetch queue; French "3 pièces" titles stayed rooms_unknown when LLM omitted rooms_quote.

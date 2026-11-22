@@ -886,7 +886,11 @@ export function dateDiagSnippet(text: string, maxLen = 240): string | null {
 /** True when the post is from someone *looking for* a flat, not offering one.
  * Uses word boundaries so "Besucher" / "Besuchen Sie die Region" do not trigger. */
 export function isSeekerPost(title: string, text: string): boolean {
-  const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
+  const tOnly = String(title || '').toLowerCase();
+  // Clear offer title wins: "… zu vermieten" without demand language.
+  if (/\bzu\s+vermieten\b/i.test(tOnly) && !/\bgesucht\b/i.test(tOnly)) return false;
+  if (/\bvermiete\b/i.test(tOnly) && !/\b(suche|gesucht)\b/i.test(tOnly)) return false;
+const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
   // CH market: "Nachmieter gesucht" = current tenant / landlord seeking a successor = OFFER, not seeker.
   if (/\bnachmieter\s+gesucht\b/i.test(h) && !/\b(suche\s+wohnung|wohnung\s+gesucht|ich\s+suche)\b/i.test(h)) return false;
   // Strong offer language wins only when it is not pure seeker phrasing
@@ -1203,7 +1207,8 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
   if (isWeakFacebookListingUrl(url)) return 'weak_facebook_url';
   if (isListingUnavailable(title, ev)) return 'listing_unavailable';
   // "Zu vermieten gesucht" = demand, but isSeekerPost treats "zu vermieten" as offer — catch it here.
-  if (/\bzu\s+vermieten\s+gesucht\b/i.test(hay) || (/\b(wir\s+suchen|ich\s+suche)\b/i.test(hay) && /(wohnung|haus|zimmer)/i.test(hay))) {
+  if (/\bzu\s+vermieten\s+gesucht\b/i.test(hay)) return 'seeker_post';
+  if ((/\b(wir\s+suchen|ich\s+suche)\b/i.test(hay) && /(wohnung|haus|zimmer)/i.test(hay)) && !/\b(zu\s+vermieten|nachmieter\s+gesucht|vermiete)\b/i.test(hay)) {
     return 'seeker_post';
   }
   if (isSeekerPost(title, ev)) return 'seeker_post';
