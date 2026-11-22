@@ -13,6 +13,7 @@ paths = [
   '''^src/i18n/ui\.ts$''',
   '''^\.env\.example$''',
   '''^tests/''',
-    '''^src/storage\.ts$''',
+  '''^src/storage\.ts$''',
   '''^src/utils/storage\.ts$''',
+  '''^docs/DOCUMENTATION-INDEX\.md$''',
 ]
