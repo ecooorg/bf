@@ -1,0 +1,51 @@
+name: emergency-fix-rooms-null
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Null-safe all ex.rooms accesses in keep path
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('server/immofinderPipeline.ts')
+          t = p.read_text()
+          # blanket: any remaining ex.rooms.X without optional chaining on property access after rooms_?
+          # Safe replacements for keep/diag lines that still crash when rooms is null
+          reps = [
+            ("rooms: ex.rooms.rooms, kept: true", "rooms: ex.rooms?.rooms ?? null, kept: true"),
+            ("rooms: ex.rooms.rooms, roomsBasis: ex.rooms.basis", "rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null"),
+            ("rooms: ex.rooms.rooms, priceChf", "rooms: ex.rooms?.rooms ?? null, priceChf"),
+            ("rooms: ex.rooms.rooms, kept: false", "rooms: ex.rooms?.rooms ?? null, kept: false"),
+            ("roomsEstimated: ex.rooms.rooms,", "roomsEstimated: ex.rooms?.rooms ?? null,"),
+            ("rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis,",
+             "rooms_text: ex.rooms?.quote || '', rooms_estimated: ex.rooms?.rooms ?? 0, rooms_basis: ex.rooms?.basis || '',"),
+            ("rooms: ex.rooms.rooms })", "rooms: ex.rooms?.rooms ?? null })"),
+            ("rooms: ex.rooms.rooms },", "rooms: ex.rooms?.rooms ?? null },"),
+          ]
+          for a,b in reps:
+            if a in t:
+              t = t.replace(a, b)
+              print('replaced', a[:50])
+            else:
+              print('skip missing', a[:50])
+          # any leftover bare ex.rooms.rooms outside of guarded if (ex.rooms && ...)
+          import re
+          for m in re.finditer(r'ex\.rooms\.rooms', t):
+            start = max(0, m.start()-40)
+            print('REMAINING', t[start:m.end()+5])
+          p.write_text(t)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/immofinderPipeline.ts
+          git diff --cached --stat
+          git commit -m "fix(immofinder): null-safe ex.rooms on provisional snippet keep path" || echo 'no changes'
+          git push origin HEAD:main
