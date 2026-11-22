@@ -198,6 +198,18 @@ test('UI does not render search found date on cards', () => {
 
 
 
+
+test('P130.6 rooms gate and empty SERP titles', async () => {
+  const { nonListingReason, parseRooms, isListingUnavailable, isPortalDetailUrl } = await import('../server/immofinderCore.ts');
+  assert.equal(nonListingReason('Aucun appartement ou maison à louer à Landquart (GR)', 'https://www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart'), 'list_or_search_page');
+  assert.equal(parseRooms('Appartement 3 pièces à louer à Landquart')?.rooms, 3);
+  assert.equal(parseRooms('3 pièces appartement')?.rooms, 3);
+  assert.equal(isListingUnavailable('Rent a 4 ½ rooms apartment', 'Modern apartment with balcony. Available now.'), false);
+  const portals = ['immobilier.ch', 'flatfox.ch'];
+  assert.equal(isPortalDetailUrl('https://www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart', portals), false);
+  assert.equal(isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals), true);
+});
+
 test('nonListingReason rejects portal list/index URLs and challenge titles', async () => {
   const { nonListingReason, isPortalDetailUrl } = await import('../server/immofinderCore.ts');
   assert.equal(

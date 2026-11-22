@@ -379,7 +379,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         ex.signals.push('municipality_from_search_query');
       }
       if (snippetEvidence && !ex.rooms) {
-        ex.rooms = { rooms: 0, basis: 'not_stated_in_search_snippet', quote: 'nicht angegeben' };
+        // Leave rooms null — inventing 0 previously bypassed minRooms and produced garbage cards.
         ex.signals.push('rooms_unverified');
       }
       if (snippetEvidence) ex.signals.push('provisional_search_snippet');
@@ -410,8 +410,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (ex.agency) { await deny('agency', ex.agency); continue; }
       if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
-      if (!ex.rooms) { await deny('rooms_unknown'); continue; }
-      if (ex.rooms.rooms > 0 && ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
+      if (!ex.rooms || !(ex.rooms.rooms > 0)) { await deny('rooms_unknown'); continue; }
+      if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
       // Group houses / hostels mis-parsed as 15–68 rooms — never a private 3.5-room flat
       if (ex.rooms.rooms >= 12) { await deny('rooms_too_many', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }

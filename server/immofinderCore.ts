@@ -147,11 +147,11 @@ export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'be
   t = t.replace(/(\d{1,2})\s+1\/2/g, '$1.5');
   type Hit = { rooms: number; index: number };
   const hits: Hit[] = [];
-  for (const m of t.matchAll(/(?:zimmer|zi\.?|rooms?|pieces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)) {
+  for (const m of t.matchAll(/(?:zimmer|zi\.?|rooms?|pi[eè]ces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)) {
     const n = Number(m[1]);
     if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
   }
-  for (const m of t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pieces?|-?zimmerwohnung)/gi)) {
+  for (const m of t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pi[eè]ces?|-?zimmerwohnung)/gi)) {
     const n = Number(m[1]);
     if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
   }
@@ -408,6 +408,8 @@ export function nonListingReason(title: string, url: string): NonListing | null 
   const t = String(title ?? '').trim();
   // Bot-challenge / interstitial pages (Cloudflare etc.) are never a single rental offer.
   if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\b/i.test(t)) return 'list_or_search_page';
+  // Empty SERP / zero-offer index pages must never become cards.
+  if (/\b(aucun (appartement|maison|bien)|keine (wohnungen?|angebote|resultate|treffer)|no (results?|listings?|apartments?)|0\s+(wohnungen|inserate|resultate|angebote)|aucun résultat)\b/i.test(t)) return 'list_or_search_page';
   if (/\b(inserat nicht mehr|nicht mehr verfügbar|objekt nicht (mehr )?verfügbar)\b/i.test(t)) return 'list_or_search_page';
   if (/\b(tiefgarage|parkhaus|parkplatz|stellplatz|einstellplatz|garagenplatz|garage|parking)\b/i.test(t) && !/\b(wohnung|haus|chalet|zimmer)\b/i.test(t)) return 'list_or_search_page';
   if (/\.pdf(?:\?|$)/i.test(url)) return 'list_or_search_page';
@@ -443,6 +445,8 @@ export function isPortalDetailUrl(url: string, portalHosts: string[] = []): bool
   if (!parts[parts.length - 1] || generic.has(parts[parts.length - 1])) return false;
   // Category / commune index routes (home.ch unterkategorie…/in-chur, …/in-thusis) are not detail pages.
   if (parts.some((p) => /^(search|suche|suchen|results|resultate|map|karte|unterkategorie)/.test(p) || /^in-[a-z0-9-]{2,}$/.test(p) || /^seite-\d+$/.test(p) || /^page-?\d+$/.test(p))) return false;
+  // Shallow portal index (…/louer/appartement-maison/grisons/landquart) has no listing id.
+  if (parts.length <= 4 && !parts.some((p) => /\d{4,}/.test(p))) return false;
   return true;
 }
 /** True when the URL points at one concrete ad (an ID or a long slug), not at a group or generic page. */
@@ -939,7 +943,7 @@ export function isListingUnavailable(title: string, text: string): boolean {
   if (/n['']est plus disponible|annonce (n['']est )?plus disponible|oggetto non (più )?disponibile/.test(h)) return true;
   // HTTP-ish soft pages
   if (/page not found|404 not found|inserzione non trovata/.test(h) && h.length < 1500) return true;
-  if (/unfortunately,?\s*this listing is currently not available|this listing is currently not available|listing is not available/i.test(h)) return true;
+  if (/unfortunately,?\s*this (listing|ad|property) is (currently )?not available|this (listing|ad|property) is (no longer|currently not) available/i.test(h)) return true;
   return false;
 }
 

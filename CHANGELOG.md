@@ -1,3 +1,8 @@
+## P130.6 — ImmoFinder: stop garbage cards (rooms=0 / empty SERP)
+
+- **PROBLEM:** Landquart run kept an immobilier index page ("Aucun appartement…") as a card with rooms 0 / price n/a; French "3 pièces" was rooms_unknown; Flatfox live ads were falsely listing_unavailable; rooms=0 from snippet invent bypassed minRooms.
+- **CHANGE:** reject empty-result titles; require rooms>0 before minRooms; parse pièces; tighten unavailable phrases; reject shallow portal index URLs without an id. BUGFIX.
+
 ## P130.5a — Core CI repair after workflow cleanup
 
 - **PROBLEM:** Core CI failed in three suites: two tests still read `project-user-value.yml`, which the owner removed, and the P130.5 probe test imported a `.ts` module in a suite that runs on plain Node.
