@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-22T08:01:13.165Z",
+  "generatedAt": "2026-11-22T14:31:16.068Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at 478466d, 2 still running"
+      "detail": "2 checks at da7511a, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 130, commit 478466d"
+      "detail": "HTTP 200, version 130, commit 2ee99cb"
     },
     {
       "group": "RENDER",
@@ -29,19 +29,14 @@
     {
       "group": "RENDER",
       "name": "Deployed commit",
-      "status": "OK",
-      "detail": "production runs main HEAD"
+      "status": "WARN",
+      "detail": "production is 15 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 0, SSL warnings 64, 5xx 0 in collected Render logs",
-      "data": {
-        "geminiTimeouts": 0,
-        "sslWarnings": 64,
-        "http5xx": 0
-      }
+      "detail": "Render log collection failed: Render pagination safety limit exceeded for srv-dbcbq2e1egvs73a59log; publisher errors and runtime signals are unchecked"
     },
     {
       "group": "PUBLISHING",
@@ -52,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-22T08:01:12.174Z",
+        "checkedAt": "2026-11-22T14:31:15.210Z",
         "steps": [
           {
             "step": "app",
@@ -114,40 +109,36 @@
     {
       "group": "PUBLISHING",
       "name": "GitHub publishers",
-      "status": "OK",
-      "detail": "no GitHub publisher errors in the collected window"
+      "status": "SKIP",
+      "detail": "no runtime logs to inspect"
     },
     {
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 2.5 h old"
+      "detail": "1048c357-43c1-49d3-b259-342552da08bc, 1.0 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "54 candidates, 2 quality of target 10, 5 snippet-only, 0 fallback, LLM calls 35, failing sources: portal-tutti, portal-immostreet, portal-anibis",
+      "detail": "15 candidates, 1 quality of target 10, 1 snippet-only, 0 fallback, LLM calls 10",
       "data": {
-        "candidates": 54,
-        "quality": 2,
+        "candidates": 15,
+        "quality": 1,
         "target": 10,
-        "snippetOnly": 5,
-        "llmCalls": 35,
+        "snippetOnly": 1,
+        "llmCalls": 10,
         "fallback": 0,
-        "errors": 5,
-        "failingSources": [
-          "portal-tutti",
-          "portal-immostreet",
-          "portal-anibis"
-        ]
+        "errors": 1,
+        "failingSources": []
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
       "status": "OK",
-      "detail": "run 948df3b5-3b04-462f-a47b-0da4df85e95a is archived in the repository"
+      "detail": "run 1048c357-43c1-49d3-b259-342552da08bc is archived in the repository"
     }
   ]
 }
