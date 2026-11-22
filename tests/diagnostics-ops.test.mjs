@@ -73,7 +73,7 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(store, /INSERT INTO immofinder_run_diagnostics/);
   assert.match(store, /OFFSET 100/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immofinder_run_diagnostics/);
-  assert.match(poll, /cron: '\*\/5 \* \* \* \*'/);
+  assert.match(poll, /cron: '\*\/10 \* \* \* \*'/);
   assert.match(poll, /push:\s+branches: \[main\]/);
   assert.match(poll, /scripts\/collect-platform-logs\.mjs/);
   assert.match(poll, /api\/immofinder\/diagnostics\/latest/);
@@ -157,14 +157,81 @@ test('P130.4 health check names the failing GitHub publisher and compares deploy
   assert.equal(verdict([{ status: 'FAIL' }, { status: 'OK' }]), 'FAIL');
 });
 
-test('P130.4 health workflow is scheduled, least-privilege and uses the shared collector', () => {
+test('P130.4 health workflow is scheduled, has no Actions-triggered write beyond its snapshot and uses the shared collector', () => {
   const wf = read('.github/workflows/immofinder-health.yml');
-  assert.match(wf, /cron: '17 6 \* \* \*'/);
+  assert.match(wf, /cron: '17 \*\/6/);
   assert.match(wf, /workflow_dispatch/);
   assert.match(wf, /issues: write/);
-  assert.doesNotMatch(wf, /contents: write/);
+  assert.match(wf, /contents: write/, 'needed only to commit data/immofinder/health/latest.json');
+  assert.doesNotMatch(wf, /pull-requests: write|actions: write/);
   assert.match(wf, /RENDER_LOG_LOOKBACK_MINUTES: '180'/, 'a 24 h window exceeds the collector pagination limit');
   assert.match(wf, /scripts\/collect-platform-logs\.mjs/);
   assert.match(wf, /scripts\/immofinder-health-check\.mjs/);
   assert.match(read('scripts/scripts-integrity.mjs'), /immofinder-health-check\.mjs/);
+});
+
+test('P130.5 GitHub App probe names the exact cause and never returns a token', async () => {
+  const crypto = await import('node:crypto');
+  const { probeGitHubAppSetup, githubAppConfigFromEnv } = await import('../server/githubIntegration.ts');
+  const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } });
+  const config = { appId: '123', installationId: '456', privateKey, owner: 'o', repository: 'r' };
+  const reply = (status, body, id = 'REQ1') => ({ ok: status < 300, status, headers: { get: (k) => (k === 'x-github-request-id' ? id : null) }, json: async () => body });
+  const make = ({ appPerm, instPerm, scopedStatus = 201, repoStatus = 200, instStatus = 200 }) => async (url, init = {}) => {
+    if (url.endsWith('/app')) return reply(200, { id: 123, slug: 'biforge-control', permissions: { contents: appPerm } });
+    if (url.endsWith('/app/installations/456')) return reply(instStatus, { id: 456, app_id: 123, account: { login: 'ecooorg' }, repository_selection: 'selected', permissions: { contents: instPerm } });
+    if (url.endsWith('/access_tokens')) {
+      const wantsWrite = JSON.parse(init.body).permissions.contents === 'write';
+      return wantsWrite ? reply(scopedStatus, scopedStatus < 300 ? { token: 'ghs_SECRET' } : { message: 'The level of access for permissions requested are not granted to this installation' }) : reply(201, { token: 'ghs_read' });
+    }
+    if (url.endsWith('/repos/o/r')) return reply(repoStatus, { id: 9, full_name: 'o/r' });
+    throw new Error('unexpected ' + url);
+  };
+  const run = (opts) => probeGitHubAppSetup(config, make(opts));
+  let p = await run({ appPerm: 'read', instPerm: 'read' });
+  assert.equal(p.cause, 'app_lacks_contents_write');
+  p = await run({ appPerm: 'write', instPerm: 'read' });
+  assert.equal(p.cause, 'permission_not_accepted_on_installation');
+  assert.match(p.fix, /accept the pending permission request/);
+  p = await run({ appPerm: 'write', instPerm: 'write', repoStatus: 404 });
+  assert.equal(p.cause, 'repository_not_in_installation');
+  p = await run({ appPerm: 'write', instPerm: 'write', scopedStatus: 422 });
+  assert.equal(p.cause, 'write_token_refused');
+  assert.equal(p.steps.at(-1).httpStatus, 422);
+  p = await run({ appPerm: 'write', instPerm: 'write', instStatus: 404 });
+  assert.equal(p.cause, 'installation_not_found');
+  p = await run({ appPerm: 'write', instPerm: 'write' });
+  assert.equal(p.verdict, 'OK');
+  assert.equal(p.installation.account, 'ecooorg');
+  assert.doesNotMatch(JSON.stringify(p), /ghs_|BEGIN/, 'no token or key in the result');
+  assert.deepEqual(githubAppConfigFromEnv({}).missing.sort(), ['GITHUB_APP_ID', 'GITHUB_APP_INSTALLATION_ID', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_REPOSITORY_NAME', 'GITHUB_REPOSITORY_OWNER']);
+});
+
+test('P130.5 health check reports the live probe and downgrades old log failures when it is OK', async () => {
+  const { runChecks } = await import('../scripts/immofinder-health-check.mjs');
+  const logs = 'github_app_contents_write_token_http_422_the_level_of_access';
+  const mk = (verdict) => ({
+    exists: (p) => p.endsWith('render-logs.jsonl'), readFile: () => logs,
+    async getJson(url) {
+      if (url.includes('/github/probe')) return { status: 200, body: { probe: { verdict, cause: verdict === 'OK' ? 'none' : 'permission_not_accepted_on_installation', fix: 'accept it', app: { slug: 'x', permissions: { contents: 'write' } }, installation: { account: 'o', repositorySelection: 'selected', permissions: { contents: verdict === 'OK' ? 'write' : 'read' } }, steps: [{ step: 'installation', httpStatus: 200, message: '', requestId: '' }] } } };
+      return { status: 404, body: null };
+    },
+  });
+  const env = { IMMOFINDER_BASE_URL: 'https://x.example', IMMOFINDER_RUN_SECRET: 's' };
+  const bad = await runChecks(env, mk('FAIL'));
+  assert.equal(bad.find((c) => c.name === 'GitHub App (live)').status, 'FAIL');
+  assert.match(bad.find((c) => c.name === 'GitHub App (live)').detail, /permission_not_accepted_on_installation.*installation on o holds/);
+  assert.equal(bad.find((c) => c.name === 'Publisher github_app_token').status, 'FAIL');
+  const good = await runChecks(env, mk('OK'));
+  assert.equal(good.find((c) => c.name === 'GitHub App (live)').status, 'OK');
+  assert.equal(good.find((c) => c.name === 'Publisher github_app_token').status, 'WARN', 'old log failures are history once the probe is OK');
+});
+
+test('P130.5 workflows: health commits its snapshot, the poller no longer collects Render logs every run', () => {
+  const health = read('.github/workflows/immofinder-health.yml');
+  assert.match(health, /cron: '17 \*\/6 \* \* \*'/);
+  assert.match(health, /HEALTH_SNAPSHOT_DIR: data\/immofinder\/health/);
+  assert.match(health, /\[skip ci\]/);
+  const poll = read('.github/workflows/immofinder-diagnostics-poll.yml');
+  assert.match(poll, /Collect Render and GitHub Actions logs\n\s+if: \$\{\{ failure\(\) \|\| github\.event_name == 'workflow_dispatch' \}\}/);
+  assert.doesNotMatch(poll, /cron: '\*\/5/);
 });
