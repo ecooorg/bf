@@ -20,29 +20,20 @@ jobs:
           git show $GOOD:server/immofinderFetcher.ts > server/immofinderFetcher.ts
           python3 - <<'PY'
           from pathlib import Path
+          import json
           core = Path('server/immofinderCore.ts').read_text()
-          # seite in LIST_URL_MORE
           a = '\\/liste(\\/|$)|gruppenhaus\\.ch|\\/_join_/i;'
           b = '\\/liste(\\/|$)|\\/seite-\\d+|\\/page\\/\\d+|gruppenhaus\\.ch|\\/_join_/i;'
           assert a in core, 'LIST_URL_MORE anchor missing'
           core = core.replace(a, b, 1)
-          # parking + soft404 + pdf + wrong canton after challenge check
           needle = "if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\\b/i.test(t)) return 'list_or_search_page';\n  if (WANTED.test(t)) return 'wanted_ad';"
-          insert = "if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\\b/i.test(t)) return 'list_or_search_page';\n  if (/\\b(inserat nicht mehr|nicht mehr verfügbar|objekt nicht (mehr )?verfügbar)\\b/i.test(t)) return 'list_or_search_page';\n  if (/\\b(tiefgarage|parkhaus|parkplatz|stellplatz|einstellplatz|garagenplatz|garage|parking)\\b/i.test(t) and not False) pass\n"
-          # use proper JS in insert
-          insert = """if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\\b/i.test(t)) return 'list_or_search_page';
-  if (/\\b(inserat nicht mehr|nicht mehr verfügbar|objekt nicht (mehr )?verfügbar)\\b/i.test(t)) return 'list_or_search_page';
-  if (/\\b(tiefgarage|parkhaus|parkplatz|stellplatz|einstellplatz|garagenplatz|garage|parking)\\b/i.test(t) && !/\\b(wohnung|haus|chalet|zimmer)\\b/i.test(t)) return 'list_or_search_page';
-  if (/\\.pdf(?:\\?|$)/i.test(url)) return 'list_or_search_page';
-  if (WANTED.test(t)) return 'wanted_ad';"""
+          insert = "if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\\b/i.test(t)) return 'list_or_search_page';\n  if (/\\b(inserat nicht mehr|nicht mehr verfügbar|objekt nicht (mehr )?verfügbar)\\b/i.test(t)) return 'list_or_search_page';\n  if (/\\b(tiefgarage|parkhaus|parkplatz|stellplatz|einstellplatz|garagenplatz|garage|parking)\\b/i.test(t) && !/\\b(wohnung|haus|chalet|zimmer)\\b/i.test(t)) return 'list_or_search_page';\n  if (/\\.pdf(?:\\?|$)/i.test(url)) return 'list_or_search_page';\n  if (WANTED.test(t)) return 'wanted_ad';"
           assert needle in core, 'nonListing needle missing'
           core = core.replace(needle, insert, 1)
-          # wrong-canton path in try block of nonListingReason
           host_needle = "if (/\\bumzug|moving\\s*company|offerten?\\s*vergleich|stündlich\\s*\\d+\\s*mietportale/i.test(t)) return 'service_or_aggregator';\n  } catch { /* ignore */ }"
           host_ins = "if (/\\bumzug|moving\\s*company|offerten?\\s*vergleich|stündlich\\s*\\d+\\s*mietportale/i.test(t)) return 'service_or_aggregator';\n    if (/\\/(zuerich|zurich|zürich|bern|basel|luzern|lucerne|genf|geneva|genève)\\b/i.test(url)) return 'list_or_search_page';\n  } catch { /* ignore */ }"
           assert host_needle in core
           core = core.replace(host_needle, host_ins, 1)
-          # isPortalDetailUrl seite
           p_old = "if (parts.some((p) => /^(search|suche|suchen|results|resultate|map|karte|unterkategorie)/.test(p) || /^in-[a-z0-9-]{2,}$/.test(p))) return false;"
           p_new = "if (parts.some((p) => /^(search|suche|suchen|results|resultate|map|karte|unterkategorie)/.test(p) || /^in-[a-z0-9-]{2,}$/.test(p) || /^seite-\\d+$/.test(p) || /^page-?\\d+$/.test(p))) return false;"
           assert p_old in core
@@ -71,7 +62,6 @@ jobs:
           fet = fet.replace('if (!direct.ok || directTextChars < 30) {', 'if (!direct.ok || directTextChars < 30 || challengeLike) {', 1)
           Path('server/immofinderFetcher.ts').write_text(fet)
           print('fetcher patched')
-          import json
           cfg = json.loads(Path('config/immofinder.json').read_text())
           for h in ['ferienhausmiete.de','adankanhaenger.ch','happyholiday.ch','traum-ferienwohnungen.ch','fewo-direkt.de','hometogo.de']:
             if h not in cfg['discovery']['skipHosts']:
