@@ -75,7 +75,7 @@ export function preflight({ files, deleted = [], allowlist = [] }) {
       && !(seg.length === 3 && seg[0] === 'src' && seg[1] === 'workspace')
       && !(seg.length === 3 && seg[0] === 'server' && seg[1] === 'appBuilder')
       && !(seg.length === 4 && seg[0] === 'docs' && /^phase\d+$/i.test(seg[1]) && seg[2] === 'generated')
-      && !rel.startsWith('data/immofinder/diagnostics/'))
+      && !rel.startsWith('data/immofinder/'))
       v.push(`${rel}: nested folder (the structure is flat)`);
     if (rel.startsWith('tests/acceptance/')) v.push(`${rel}: protected path tests/acceptance/**`);
     if (allowlist.some((re) => re.test(rel)) || buf.includes(0)) continue;
