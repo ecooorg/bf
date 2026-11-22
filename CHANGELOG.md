@@ -1,3 +1,8 @@
+## P130.10a — Restore pipeline + fix undefined text in geo prefilter
+
+- **PROBLEM:** Core CI typecheck/build failed after P130.10: text not in scope in post-extraction loop; pipeline was left as placeholder; per-patch apply scripts violated scripts-integrity.
+- **CHANGE:** restore pipeline from 638c071, use pages[i].text for geo prefilter; remove forbidden apply-p130* scripts. BUGFIX.
+
 ## P130.10 — Homegate list→detail expansion, price main-rent preference, challenge Jina
 
 - **PROBLEM:** Chur run 852a2499 kept 0: Homegate trefferliste tagged expandableIndex but never expanded (flag dropped before processItems); Flatfox Adlerweg CHF 1510+garage rejected as price_ambiguous; Tutti "Security check" skipped Jina and burned an LLM call as not_single_listing.
