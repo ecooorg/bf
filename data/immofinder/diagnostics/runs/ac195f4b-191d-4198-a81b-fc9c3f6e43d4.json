@@ -1,0 +1,2160 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-23T11:43:54.362Z",
+  "runId": "ac195f4b-191d-4198-a81b-fc9c3f6e43d4",
+  "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+  "eventCount": 54,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
+  "events": [
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "run_started",
+      "at": "2026-11-23T11:39:37.656Z",
+      "elapsedMs": 0,
+      "wave": "carousel",
+      "dryRun": false,
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Maienfeld",
+        "Fläsch",
+        "Jenins",
+        "Malans",
+        "Grüsch",
+        "Seewis-Pardisla",
+        "Schiers",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Laax",
+        "Versam",
+        "Valendas",
+        "Castrisch",
+        "Ilanz",
+        "Bonaduz",
+        "Rhäzüns",
+        "Rothenbrunnen",
+        "Rodels",
+        "Realta",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Parpan",
+        "Valbella",
+        "Lenzerheide",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen",
+        "Castiel",
+        "Lüen",
+        "St. Peter-Molinis",
+        "Peist"
+      ],
+      "minRooms": 3,
+      "discoveryEnabled": true,
+      "privateQueryTemplates": 4,
+      "portalQueryTemplates": 13,
+      "maxCandidatesPerQuery": 8,
+      "pageLimit": 420,
+      "runMaxDurationMs": 2700000,
+      "llmEnabled": true,
+      "searchEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "discovery_plan",
+      "at": "2026-11-23T11:39:37.656Z",
+      "elapsedMs": 1,
+      "wave": "carousel",
+      "finishAll": true,
+      "coverAllCommunes": false,
+      "cycle": 205,
+      "selectedCommunes": [
+        "Realta",
+        "Cazis",
+        "Thusis",
+        "Maladers"
+      ],
+      "queryCountTotal": 68,
+      "queryOffset": 0,
+      "queryCountThisWave": 68,
+      "maxCandidatesPerQuery": 6,
+      "pageLimit": 420,
+      "resultsPerQuery": 10,
+      "serperMinIntervalMs": 1500,
+      "serperMaxPerMinute": 40,
+      "queryFamilies": [
+        "private",
+        "portals"
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-23T11:39:40.564Z",
+      "elapsedMs": 2908,
+      "source": "search",
+      "queryIndex": 1,
+      "queryTotal": 68,
+      "query": "\"Realta\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 3,
+      "selectedCount": 3,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "realta.at",
+          "url": "www.realta.at/objekt/14171809",
+          "title": "Vermietete Anlegerwohnung"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "nestpick.com",
+          "url": "www.nestpick.com/de/milan/",
+          "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung ..."
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002473777",
+          "title": "Wohnung mieten in Bonaduz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Apartment for sale in Vienna"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen von Privatpersonen Zu vermieten in Montegranaro ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "40 qm - ZweiZimmerWohnung mit Balkon - Ruhelage in ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Graubünden: Rohbau der JVA Realta fertig"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "VIVA MI CANAL"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 24 - Properties for sale: Switzerland"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Jetzt kann der Neustart für die Hochgebirgsklinik beginnen"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "realta.at",
+          "url": "www.realta.at/objekt/14171809",
+          "title": "Vermietete Anlegerwohnung",
+          "snippet": "REALTA IMMOBILIEN. B&Co GmbH. Rudolfsplatz 12/10A, 1010 Wien Mobil: [phone] email: [email]. URL: www.realta.at. Wir weisen darauf hin, dass ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "nestpick.com",
+          "url": "www.nestpick.com/de/milan/",
+          "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung ...",
+          "snippet": "Nestpick: Möblierte Wohnungen & Zimmer · Wohnung Mieten; Wohnen auf Zeit Mailand ... This Universität lebt nach folgendem Motto „Nel Cuore della realta“, was ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002473777",
+          "title": "Wohnung mieten in Bonaduz",
+          "snippet": "Wohnung mieten in Bonaduz. Bei homegate ... Eigentümer:innen · Ratgeber · Immobilienpreise-Atlas ... Station: Rodels-Realta · Two-story house with white ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Apartment for sale in Vienna",
+          "snippet": "50 m² PLUS BALCONY +++ Two-room apartment with morning sun. B&Co GmbH REALTA Immobilien. ANDREAS C. REPOLLES. B&Co GmbH REALTA Immobilien.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen von Privatpersonen Zu vermieten in Montegranaro ...",
+          "snippet": "Entdecken Sie alle Inserate von Privaten ... wohnungen von Privatpersonen Zu vermieten Pesaro: Montegranaro, Loreto, Muraglia. Privat ... realta' individuale, oltre ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "40 qm - ZweiZimmerWohnung mit Balkon - Ruhelage in ...",
+          "snippet": "REALTA IMMOBILIEN. B&Co GmbH. Rudolfsplatz 12/10A, 1010 Wien Mobil: [phone] email: [email]. URL: www.realta.at. Wir weisen darauf hin, dass ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Graubünden: Rohbau der JVA Realta fertig",
+          "snippet": "In der Bündner Gemeinde Cazis entsteht seit Januar 2017 die neue Justizvollzugsanstalt Realta für 152 Häftlinge.",
+          "date": "02.05.2018",
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "VIVA MI CANAL",
+          "snippet": "[ Realtà Mapei ] Suisse No. 07. 1. PROJEKTE | PROJETS. VIVA MI CANAL ‒ VIVA MI PANAMÁ. THEMA SPITÄLER | THÈME HÔPITAUX. HÖCHSTE ANFORDERUNGEN. DES STRUCTURES ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 24 - Properties for sale: Switzerland",
+          "snippet": "Von Privat an Privat - keine Makler, keine Provision!Permanent Ferien in einem der schönsten Orte des Bodensees? Nur 15 min bis zum Bodensee und der ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Jetzt kann der Neustart für die Hochgebirgsklinik beginnen",
+          "snippet": "In deren Gebiet wird die neue JVA Realta, auch «Nuovo. Realta» genannt, die zweite geschlos- sene Anstalt neben Pöschwies im Kan- ton Zürich ...",
+          "date": "02.05.2014",
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "realta.at",
+          "url": "www.realta.at/objekt/14171809",
+          "title": "Vermietete Anlegerwohnung",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "nestpick.com",
+          "url": "www.nestpick.com/de/milan/",
+          "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung ...",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002473777",
+          "title": "Wohnung mieten in Bonaduz",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-23T11:39:40.565Z",
+      "elapsedMs": 2909,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 3,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 3,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": [
+        {
+          "host": "realta.at",
+          "url": "www.realta.at/objekt/14171809",
+          "title": "Vermietete Anlegerwohnung",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "nestpick.com",
+          "url": "www.nestpick.com/de/milan/",
+          "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung ...",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002473777",
+          "title": "Wohnung mieten in Bonaduz",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:39:40.565Z",
+      "elapsedMs": 2909,
+      "source": "search",
+      "url": "www.realta.at/objekt/14171809",
+      "host": "realta.at",
+      "title": "Vermietete Anlegerwohnung",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:39:45.316Z",
+      "elapsedMs": 7660,
+      "source": "search",
+      "url": "www.realta.at/objekt/14171809",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 4744,
+      "bodyChars": 17338,
+      "textChars": 16827,
+      "finalUrl": "www.realta.at/objekt/14171809"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_extracted",
+      "at": "2026-11-23T11:39:47.435Z",
+      "elapsedMs": 9779,
+      "source": "search",
+      "url": "www.realta.at/objekt/14171809",
+      "title": "Vermietete Anlegerwohnung",
+      "textChars": 16827,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 2117,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": 2,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:39:47.435Z",
+      "elapsedMs": 9779,
+      "source": "search",
+      "url": "www.nestpick.com/de/milan/",
+      "host": "nestpick.com",
+      "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung ...",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:39:48.037Z",
+      "elapsedMs": 10381,
+      "source": "search",
+      "url": "www.nestpick.com/de/milan/",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 594,
+      "bodyChars": 207443,
+      "textChars": 15800,
+      "finalUrl": "www.nestpick.com/de/milan/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:39:48.052Z",
+      "elapsedMs": 10396,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002473777",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Bonaduz",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:39:53.017Z",
+      "elapsedMs": 15361,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002473777",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 4960,
+      "bodyChars": 610,
+      "textChars": 520,
+      "finalUrl": "www.homegate.ch/mieten/4002473777"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_extracted",
+      "at": "2026-11-23T11:39:54.333Z",
+      "elapsedMs": 16677,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002473777",
+      "title": "Just a moment...",
+      "textChars": 520,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 1315,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-23T11:39:54.334Z",
+      "elapsedMs": 16678,
+      "source": "search",
+      "url": "www.realta.at/objekt/14171809",
+      "host": "realta.at",
+      "title": "Vermietete Anlegerwohnung",
+      "reason": "rooms_below_min",
+      "detail": "2",
+      "municipality": "Realta",
+      "rooms": 2,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-23T11:39:54.338Z",
+      "elapsedMs": 16682,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002473777",
+      "host": "homegate.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-23T11:39:55.754Z",
+      "elapsedMs": 18098,
+      "source": "search",
+      "queryIndex": 2,
+      "queryTotal": 68,
+      "query": "\"Cazis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 1,
+      "selectedCount": 1,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002367078",
+          "title": "Wohnung mieten in Cazis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "🏡 Nachmieter gesucht – Schöne 4.5-Zimmer-Wohnung in Cazis ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive 4.5 Zimmer-Wohnung an zentraler Lage in Cazis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Wohnungen zum Mieten: Bezirk Viamala (ab CHF 700.–)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Tartar: 6 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Mieten Sie einen Ferienhaus für 8 Personen in Cazis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Cazis macht Sinn!"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungsbörse"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in 7451 (Alvaschein)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Anmeldung"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002367078",
+          "title": "Wohnung mieten in Cazis",
+          "snippet": "Wohnung mieten in Cazis. Bei homegate.ch findest Du 1 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "🏡 Nachmieter gesucht – Schöne 4.5-Zimmer-Wohnung in Cazis ...",
+          "snippet": "Nachmieter gesucht – Schöne 4.5-Zimmer-Wohnung in Cazis 🏔️ Da ich aus beruflichen Gründen in die Genfer Region ziehe, suche ich einen Nachmieter für...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Attraktive 4.5 Zimmer-Wohnung an zentraler Lage in Cazis",
+          "snippet": "Wir vermieten per 1. November 2026 eine grosszügige und moderne 4.5-Zimmer-Neubauwohnung an attraktiver Lage direkt beim Bahnhof Cazis.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "20 Wohnungen zum Mieten: Bezirk Viamala (ab CHF 700.–)",
+          "snippet": "Bahnhofstrasse 14b, 7408 Cazis. Attraktive 4.5 Zimmer-Wohnung an zentraler Lage in Cazis. Wir vermieten per 1. November 2026 eine grosszügige und moderne 4.5 ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Tartar: 6 Inserate",
+          "snippet": "Wohnung mieten in Tartar ; 4 Schlafzimmer Wohnung von 88.0 m² - Gemütlicher Wohnraum. vor 21 Tagen. 4 Zimmer Wohnung von 88m². Bargia 1, 7421 Cazis, Switzerland.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Mieten Sie einen Ferienhaus für 8 Personen in Cazis",
+          "snippet": "Du suchst ein Ferienhaus für 8 Personen in Cazis, Graubünden, Schweiz? Dann bist du bei Belvilla an der richtigen Adresse!",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Cazis macht Sinn!",
+          "snippet": "Das Projekt «Cazis macht Sinn!» möchte dies ändern und die touristischen Potenziale von Cazis für Gäste, Ein- und Zweitheimische weiter- entwickeln. CAZIS MACHT ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungsbörse",
+          "snippet": "Du suchst eine Wohnung, ein Zimmer oder einen Platz in einer Wohngemeinschaft ... 7408 Cazis. Frei/Verfügbar ab [phone] · Wohnung. Monatspreis in CHF 2150.00.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in 7451 (Alvaschein)",
+          "snippet": "Wir vermieten per 1. Oktober 2026 eine grosszügige und moderne 4.5-Zimmer-Neubauwohnung an attraktiver Lage direkt beim Bahnhof Cazis. Die Wohnung überzeugt ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Anmeldung",
+          "snippet": "Liegenschaft \"Bahnhofpark\", Cazis. Wohnung-Nr.: Parkplatz: □Ja □Nein Anzahl: _____. Bezugstermin: vorauss. 1. Oktober 2025 ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002367078",
+          "title": "Wohnung mieten in Cazis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-23T11:39:55.755Z",
+      "elapsedMs": 18099,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 1,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 3,
+      "pageLimit": 420,
+      "remainingPageBudget": 417,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002367078",
+          "title": "Wohnung mieten in Cazis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:39:55.755Z",
+      "elapsedMs": 18099,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002367078",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Cazis",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:40:00.755Z",
+      "elapsedMs": 23099,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002367078",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 4994,
+      "bodyChars": 610,
+      "textChars": 520,
+      "finalUrl": "www.homegate.ch/mieten/4002367078"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_extracted",
+      "at": "2026-11-23T11:40:01.661Z",
+      "elapsedMs": 24005,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002367078",
+      "title": "Just a moment...",
+      "textChars": 520,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 905,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-23T11:40:01.661Z",
+      "elapsedMs": 24005,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002367078",
+      "host": "homegate.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-23T11:40:02.795Z",
+      "elapsedMs": 25139,
+      "source": "search",
+      "queryIndex": 3,
+      "queryTotal": 68,
+      "query": "\"Thusis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 1,
+      "selectedCount": 1,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002881598",
+          "title": "5 Wohnung mieten in Thusis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienhäuser & Ferienwohnungen in Thusis mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche möbliertes Wohnung/Studio. WLAN sollte verfügbar ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ihr neues Zuhause in Thusis helle 2.5-Zimmer-Wohnung"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "ZUKUNFTS WEISEND UMBAUEN"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Gesetz über die Lenkung des Zweitwohnungsbaus"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienwohnungen & Ferienhäuser in der Schweiz mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "NEUBAU SCHLOSSWALD"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienunterkünfte in Rueras-Dieni, Graubünden privat mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Winterurlaub Graubünden: Ferienhäuser privat mieten"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002881598",
+          "title": "5 Wohnung mieten in Thusis",
+          "snippet": "5 Treffer - Wohnung mieten in Thusis ; 1 / 5. CHF 1'270.–. 2.5 · 51m² Wohnfläche. Äussere Bahnhofstrasse 3, 7430 Thusis ; 1 / 4 · CHF 1'500.–. 3.5 · 60m² Wohnfläche.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienhäuser & Ferienwohnungen in Thusis mieten",
+          "snippet": "Ferienhäuser & Ferienwohnungen in Thusis für Ihren Urlaub ✔️ Provisionsfrei und günstig von privat mieten. ✔️ Jetzt buchen!",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche möbliertes Wohnung/Studio. WLAN sollte verfügbar ...",
+          "snippet": "Suche möbliertes Wohnung/Studio. WLAN sollte verfügbar sein. Sowie Parkplatz. Im Umkreis bis 40km von Thusis. Langfristig zu mieten.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ihr neues Zuhause in Thusis helle 2.5-Zimmer-Wohnung",
+          "snippet": "An der Altdorfstrasse 23, 7430 Thusis vermieten wir ab sofort oder nach Vereinbarung eine gepflegte 2.5-Zimmer-Wohnung mit ca. 60 m² Wohnfläche.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "ZUKUNFTS WEISEND UMBAUEN",
+          "snippet": "Umbauobjekte sind das Haus Trepp in Thusis, ein 1845 erbautes, klassizistisches Stadthaus. (S. 20), sowie zwei Bauernhäuser, das Hand- schin-Haus in ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Gesetz über die Lenkung des Zweitwohnungsbaus",
+          "snippet": "Im Gebiet der Fraktion Thusis unter- liegt der Zweitwohnungsbau keiner Beschränkung. Art. 2. Zweck. Die Gemeinde Thusis beschränkt im Interesse der ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienwohnungen & Ferienhäuser in der Schweiz mieten",
+          "snippet": "Chalet mit Terrasse, Garten und Grill. Thusis, Hinterrhein, Schweiz. Charmantes Chalet in Thusis mit Garten und Küche für unvergessliche Auszeiten mit bis zu ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "NEUBAU SCHLOSSWALD",
+          "snippet": "Der Hausberg von Thusis ist der \"Fast-Dreitausender\" Piz Beverin mit 2998 m ü. M. und herrlicher Rundsicht. Trittsichere und schwindelfreie ...",
+          "date": "17.07.2019",
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienunterkünfte in Rueras-Dieni, Graubünden privat mieten",
+          "snippet": "Thusis · Tinizong · Trin · Tschierv · Tschlin · Urmein · Valbella · Valchava · Valendas ... Ferienwohnung in Rueras Dieni • 3.5 Zimmer-Wohnung in einem ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Winterurlaub Graubünden: Ferienhäuser privat mieten",
+          "snippet": "In der Region Graubünden finden Sie zahlreiche Ferienhäuser direkt von privat. Mieten ... Ferienhaus in Urmein - Oberurmein 10 km von Thusis ... Ferienhaus in Flims ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002881598",
+          "title": "5 Wohnung mieten in Thusis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-23T11:40:02.795Z",
+      "elapsedMs": 25139,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 1,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 4,
+      "pageLimit": 420,
+      "remainingPageBudget": 416,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002881598",
+          "title": "5 Wohnung mieten in Thusis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:40:02.795Z",
+      "elapsedMs": 25139,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002881598",
+      "host": "homegate.ch",
+      "title": "5 Wohnung mieten in Thusis",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:40:09.683Z",
+      "elapsedMs": 32027,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002881598",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 6882,
+      "bodyChars": 610,
+      "textChars": 520,
+      "finalUrl": "www.homegate.ch/mieten/4002881598"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_extracted",
+      "at": "2026-11-23T11:40:10.557Z",
+      "elapsedMs": 32901,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002881598",
+      "title": "Just a moment...",
+      "textChars": 520,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 874,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-23T11:40:10.558Z",
+      "elapsedMs": 32902,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002881598",
+      "host": "homegate.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-23T11:40:14.297Z",
+      "elapsedMs": 36641,
+      "source": "search",
+      "queryIndex": 4,
+      "queryTotal": 68,
+      "query": "\"Maladers\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_expandable_index",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/immobilien/plz-7026/trefferliste",
+          "title": "Immobilien mieten in 7026 (Maladers)"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/plz-7026-maladers",
+          "title": "Wohnungen mit Balkon mieten in 7026 (Maladers)"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002574713",
+          "title": "Wohnung mieten in Maladers"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkunft mieten in Maladers als : 14 Anzeigen - Roomlala"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Räumliches Leitbild Maladers"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Kritik an Bauprojekt in Maladers: So reagiert der Architekt ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Single family house with 5.5 rooms on sale in Maladers - 190 m²"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Maria Terpilak"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstklassige Ferienwohnungen und Apartments in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen mieten mit Aufzug in Chur"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/immobilien/plz-7026/trefferliste",
+          "title": "Immobilien mieten in 7026 (Maladers)",
+          "snippet": "Immobilien mieten in 7026 (Maladers). Bei homegate.ch findest Du 0 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/plz-7026-maladers",
+          "title": "Wohnungen mit Balkon mieten in 7026 (Maladers)",
+          "snippet": "Finde Wohnungen mit Balkon zum Mieten in 7026 (Maladers). Entdecke zahlreiche Angebote und finde dein neues Zuhause mit ImmoScout24.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002574713",
+          "title": "Wohnung mieten in Maladers",
+          "snippet": "Wohnung mieten in Maladers. Bei homegate.ch findest Du 0 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkunft mieten in Maladers als : 14 Anzeigen - Roomlala",
+          "snippet": "14 Zimmer zur Miete in Maladers ; WG-Zimmer Mit Frühstück. Unterkunft beim Gastgeber | Savognin ([phone] Pers. | Mindestaufenthalt: 1 Nacht ; Möbliertes kleines ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Räumliches Leitbild Maladers",
+          "snippet": "- Thema der Siedlungserneuerung bzw. -sanie- rung in Maladers damit insgesamt eher von untergeordneter Rolle. Wohnungsangebot nach Zimmerzahl.",
+          "date": "17.12.2019",
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Kritik an Bauprojekt in Maladers: So reagiert der Architekt ...",
+          "snippet": "Unterhalb von Maladers sollen Terrassenhäuser entstehen. Die Pläne riefen Kritik hervor. Nun reagiert Architekt Marcel Caminada und erklärt, ...",
+          "date": "02.06.2026",
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Single family house with 5.5 rooms on sale in Maladers - 190 m²",
+          "snippet": "In sonniger und privilegierter Südhanglage von Maladers erwartet Sie dieses freistehende Einfamilienhaus, welches durch seine besondere Aussicht, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Maria Terpilak",
+          "snippet": "Bergblick & Ausbau nach Wunsch. Maladers. Wohnung • 3.5 Zimmer • 123 m². Zu Favoriten hinzufügen. Eine Nachricht senden. Maria Terpilak. PREMIUM HOMES AG.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Erstklassige Ferienwohnungen und Apartments in Chur",
+          "snippet": "Ferienwohnungen in Maladers. Link, der die folgende Seite öffnet: Ferienwohnungen in Maladers · Ferienwohnungen in Bezirk Plessur. Link, der die folgende Seite ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungen mieten mit Aufzug in Chur",
+          "snippet": "Maladers · Malix · Molinis · Pagig · Parpan · Passugg · Peist · Praden · St. Peter · Tschiertschen. ImmoScout24. Inserat erstellen · Werbung ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/immobilien/plz-7026/trefferliste",
+          "title": "Immobilien mieten in 7026 (Maladers)",
+          "snippetOnly": false,
+          "expandableIndex": true
+        },
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002574713",
+          "title": "Wohnung mieten in Maladers",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-23T11:40:14.298Z",
+      "elapsedMs": 36642,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 5,
+      "pageLimit": 420,
+      "remainingPageBudget": 415,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/immobilien/plz-7026/trefferliste",
+          "title": "Immobilien mieten in 7026 (Maladers)",
+          "snippetOnly": false,
+          "expandableIndex": true
+        },
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002574713",
+          "title": "Wohnung mieten in Maladers",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "expandable_index_expanded",
+      "at": "2026-11-23T11:40:18.541Z",
+      "elapsedMs": 40885,
+      "source": "search",
+      "listUrl": "www.homegate.ch/mieten/immobilien/plz-7026/trefferliste",
+      "detailCount": 0,
+      "sample": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_received",
+      "at": "2026-11-23T11:40:18.541Z",
+      "elapsedMs": 40885,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002574713",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Maladers",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-23T11:40:23.443Z",
+      "elapsedMs": 45787,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002574713",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 4897,
+      "bodyChars": 610,
+      "textChars": 520,
+      "finalUrl": "www.homegate.ch/mieten/4002574713"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_extracted",
+      "at": "2026-11-23T11:40:24.318Z",
+      "elapsedMs": 46662,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002574713",
+      "title": "Just a moment...",
+      "textChars": 520,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 874,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-23T11:40:24.319Z",
+      "elapsedMs": 46663,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002574713",
+      "host": "homegate.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:40:34.323Z",
+      "elapsedMs": 56667,
+      "source": "portal-homegate",
+      "queryIndex": 5,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Realta\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:40:45.824Z",
+      "elapsedMs": 68168,
+      "source": "portal-homegate",
+      "queryIndex": 6,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Cazis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:40:57.325Z",
+      "elapsedMs": 79669,
+      "source": "portal-homegate",
+      "queryIndex": 7,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Thusis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:41:08.825Z",
+      "elapsedMs": 91169,
+      "source": "portal-homegate",
+      "queryIndex": 8,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Maladers\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:41:20.326Z",
+      "elapsedMs": 102670,
+      "source": "search",
+      "queryIndex": 9,
+      "queryTotal": 68,
+      "query": "\"Realta\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:41:31.827Z",
+      "elapsedMs": 114171,
+      "source": "search",
+      "queryIndex": 10,
+      "queryTotal": 68,
+      "query": "\"Cazis\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:41:43.327Z",
+      "elapsedMs": 125671,
+      "source": "search",
+      "queryIndex": 11,
+      "queryTotal": 68,
+      "query": "\"Thusis\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:41:54.828Z",
+      "elapsedMs": 137172,
+      "source": "search",
+      "queryIndex": 12,
+      "queryTotal": 68,
+      "query": "\"Maladers\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:42:06.328Z",
+      "elapsedMs": 148672,
+      "source": "portal-immoscout24",
+      "queryIndex": 13,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Realta\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:42:17.829Z",
+      "elapsedMs": 160173,
+      "source": "portal-immoscout24",
+      "queryIndex": 14,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Cazis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:42:29.331Z",
+      "elapsedMs": 171675,
+      "source": "portal-immoscout24",
+      "queryIndex": 15,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Thusis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:42:40.833Z",
+      "elapsedMs": 183177,
+      "source": "portal-immoscout24",
+      "queryIndex": 16,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Maladers\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:42:52.335Z",
+      "elapsedMs": 194679,
+      "source": "search",
+      "queryIndex": 17,
+      "queryTotal": 68,
+      "query": "\"Realta\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:03.835Z",
+      "elapsedMs": 206179,
+      "source": "search",
+      "queryIndex": 18,
+      "queryTotal": 68,
+      "query": "\"Cazis\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:05.426Z",
+      "elapsedMs": 207770,
+      "source": "search",
+      "queryIndex": 19,
+      "queryTotal": 68,
+      "query": "\"Thusis\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 429: Rate exceeded.",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:10.017Z",
+      "elapsedMs": 212361,
+      "source": "search",
+      "queryIndex": 20,
+      "queryTotal": 68,
+      "query": "\"Maladers\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 429: Rate exceeded.",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:24.518Z",
+      "elapsedMs": 226863,
+      "source": "portal-flatfox",
+      "queryIndex": 21,
+      "queryTotal": 68,
+      "query": "site:flatfox.ch \"Realta\" (\"3.5 Zimmer\" OR \"3 ½\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (mieten OR Wohnung)",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:36.019Z",
+      "elapsedMs": 238363,
+      "source": "portal-flatfox",
+      "queryIndex": 22,
+      "queryTotal": 68,
+      "query": "site:flatfox.ch \"Cazis\" (\"3.5 Zimmer\" OR \"3 ½\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (mieten OR Wohnung)",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:37.621Z",
+      "elapsedMs": 239965,
+      "source": "portal-flatfox",
+      "queryIndex": 23,
+      "queryTotal": 68,
+      "query": "site:flatfox.ch \"Thusis\" (\"3.5 Zimmer\" OR \"3 ½\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (mieten OR Wohnung)",
+      "error": "Serper HTTP 429: Rate exceeded.",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "serper_query_failed",
+      "at": "2026-11-23T11:43:52.125Z",
+      "elapsedMs": 254469,
+      "source": "portal-flatfox",
+      "queryIndex": 24,
+      "queryTotal": 68,
+      "query": "site:flatfox.ch \"Maladers\" (\"3.5 Zimmer\" OR \"3 ½\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (mieten OR Wohnung)",
+      "error": "step_timeout:serper",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "41affaaa-7d5d-4405-b38e-2817a1586853",
+      "event": "run_completed",
+      "at": "2026-11-23T11:43:54.302Z",
+      "elapsedMs": 256646,
+      "durationMs": 256646,
+      "counts": {
+        "sources": 4,
+        "index_pages": 0,
+        "candidates": 6,
+        "fetched": 6,
+        "snippet_only": 0,
+        "skipped_known": 0,
+        "skipped_seen": 0,
+        "skipped_geo": 0,
+        "search_queries": 24,
+        "serper_calls": 24,
+        "serper_fallback": 0,
+        "llm_skipped_no_rooms": 0,
+        "kept": 0,
+        "new": 0,
+        "updated": 0,
+        "llm_calls": 5,
+        "enriched": 0
+      },
+      "filtered": {
+        "shared_room": 1,
+        "rooms_below_min": 1,
+        "not_single_listing": 4
+      },
+      "errors": [
+        {
+          "source": "portal-homegate",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 429: Rate exceeded."
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 429: Rate exceeded."
+        },
+        {
+          "source": "portal-flatfox",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-flatfox",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "portal-flatfox",
+          "code": "search_failed",
+          "detail": "Serper HTTP 429: Rate exceeded."
+        },
+        {
+          "source": "portal-flatfox",
+          "code": "step_timeout",
+          "detail": "step_timeout:serper"
+        },
+        {
+          "source": "search",
+          "code": "search_abort",
+          "detail": "20 consecutive Serper failures"
+        }
+      ],
+      "sourceStats": [
+        {
+          "id": "search",
+          "queries": 12,
+          "hits": 40,
+          "candidates": 6,
+          "fetched": 6,
+          "llm": 5,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 6,
+          "geo": 0,
+          "consecutiveBad": 6
+        },
+        {
+          "id": "portal-homegate",
+          "queries": 4,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-immoscout24",
+          "queries": 4,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        },
+        {
+          "id": "portal-flatfox",
+          "queries": 4,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        }
+      ],
+      "wavesRun": [
+        "carousel"
+      ],
+      "previewCount": 6,
+      "preview": [
+        {
+          "url": "www.nestpick.com/de/milan/",
+          "source": "search",
+          "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung zur Zwischenmiete Mailand | Nestpick",
+          "kept": false,
+          "reason": "shared_room",
+          "detail": "prefilter_after_fetch",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.realta.at/objekt/14171809",
+          "source": "search",
+          "title": "Vermietete Anlegerwohnung",
+          "kept": false,
+          "reason": "rooms_below_min",
+          "detail": "2",
+          "municipality": "Realta",
+          "rooms": 2
+        },
+        {
+          "url": "www.homegate.ch/mieten/4002473777",
+          "source": "search",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "not_single_listing",
+          "detail": "",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.homegate.ch/mieten/4002367078",
+          "source": "search",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "not_single_listing",
+          "detail": "",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.homegate.ch/mieten/4002881598",
+          "source": "search",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "not_single_listing",
+          "detail": "",
+          "municipality": null,
+          "rooms": null
+        },
+        {
+          "url": "www.homegate.ch/mieten/4002574713",
+          "source": "search",
+          "title": "Just a moment...",
+          "kept": false,
+          "reason": "not_single_listing",
+          "detail": "",
+          "municipality": null,
+          "rooms": null
+        }
+      ],
+      "estimatedCostUsd": 0.034
+    }
+  ],
+  "result": {
+    "counts": {
+      "sources": 4,
+      "index_pages": 0,
+      "candidates": 6,
+      "fetched": 6,
+      "snippet_only": 0,
+      "skipped_known": 0,
+      "skipped_seen": 0,
+      "skipped_geo": 0,
+      "search_queries": 24,
+      "serper_calls": 24,
+      "serper_fallback": 0,
+      "llm_skipped_no_rooms": 0,
+      "kept": 0,
+      "new": 0,
+      "updated": 0,
+      "llm_calls": 5,
+      "enriched": 0
+    },
+    "filtered": {
+      "shared_room": 1,
+      "rooms_below_min": 1,
+      "not_single_listing": 4
+    },
+    "errors": [
+      {
+        "source": "portal-homegate",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 429: Rate exceeded."
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 429: Rate exceeded."
+      },
+      {
+        "source": "portal-flatfox",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-flatfox",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "portal-flatfox",
+        "code": "search_failed",
+        "detail": "Serper HTTP 429: Rate exceeded."
+      },
+      {
+        "source": "portal-flatfox",
+        "code": "step_timeout",
+        "detail": "step_timeout:serper"
+      },
+      {
+        "source": "search",
+        "code": "search_abort",
+        "detail": "20 consecutive Serper failures"
+      }
+    ],
+    "sourceStats": [
+      {
+        "id": "search",
+        "queries": 12,
+        "hits": 40,
+        "candidates": 6,
+        "fetched": 6,
+        "llm": 5,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 6,
+        "geo": 0,
+        "consecutiveBad": 6
+      },
+      {
+        "id": "portal-homegate",
+        "queries": 4,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-immoscout24",
+        "queries": 4,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-flatfox",
+        "queries": 4,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      }
+    ],
+    "wavesRun": [
+      "carousel"
+    ],
+    "preview": [
+      {
+        "url": "www.nestpick.com/de/milan/",
+        "title": "Wohnen auf Zeit Mailand: Möblierte Wohnung zur Zwischenmiete Mailand | Nestpick",
+        "source": "search",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "shared_room",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "www.realta.at/objekt/14171809",
+        "title": "Vermietete Anlegerwohnung",
+        "source": "search",
+        "municipality": "Realta",
+        "rooms": 2,
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "2"
+      },
+      {
+        "url": "www.homegate.ch/mieten/4002473777",
+        "title": "Just a moment...",
+        "source": "search",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.homegate.ch/mieten/4002367078",
+        "title": "Just a moment...",
+        "source": "search",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.homegate.ch/mieten/4002881598",
+        "title": "Just a moment...",
+        "source": "search",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.homegate.ch/mieten/4002574713",
+        "title": "Just a moment...",
+        "source": "search",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      }
+    ]
+  }
+}
