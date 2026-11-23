@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-22T23:35:33.753Z",
+  "generatedAt": "2026-11-23T23:49:34.674Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at ad001b2, 1 still running"
+      "detail": "3 checks at 8f54700, 1 still running"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-22T20:51:31Z"
+      "detail": "last completed run success at 2026-11-23T21:44:27Z"
     },
     {
       "group": "RENDER",
@@ -30,15 +30,15 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 25 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
+      "detail": "production is 53 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 0, SSL warnings 0, 5xx 1 in collected Render logs",
+      "detail": "Gemini timeouts 2, SSL warnings 0, 5xx 1 in collected Render logs",
       "data": {
-        "geminiTimeouts": 0,
+        "geminiTimeouts": 2,
         "sslWarnings": 0,
         "http5xx": 1
       }
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-22T23:35:32.552Z",
+        "checkedAt": "2026-11-23T23:49:33.699Z",
         "steps": [
           {
             "step": "app",
@@ -121,32 +121,29 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "abfa5739-51ba-4424-8746-e4c812a6bb0f, 1.2 h old"
+      "detail": "afa5b9d2-85e7-410e-a6d8-3897767abe65, 1.5 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "33 candidates, 5 quality of target 10, 4 snippet-only, 0 fallback, LLM calls 18, failing sources: portal-urbanhome, portal-immostreet",
+      "detail": "0 candidates, 0 quality of target 10, 0 snippet-only, 0 fallback, LLM calls 0",
       "data": {
-        "candidates": 33,
-        "quality": 5,
+        "candidates": 0,
+        "quality": 0,
         "target": 10,
-        "snippetOnly": 4,
-        "llmCalls": 18,
+        "snippetOnly": 0,
+        "llmCalls": 0,
         "fallback": 0,
-        "errors": 4,
-        "failingSources": [
-          "portal-urbanhome",
-          "portal-immostreet"
-        ]
+        "errors": 21,
+        "failingSources": []
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
       "status": "OK",
-      "detail": "run abfa5739-51ba-4424-8746-e4c812a6bb0f is archived in the repository"
+      "detail": "run afa5b9d2-85e7-410e-a6d8-3897767abe65 is archived in the repository"
     }
   ]
 }
