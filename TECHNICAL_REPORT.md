@@ -1,3 +1,7 @@
+## P130.17 — ImmoFinder trust engine (2026-11-24)
+
+- **CHANGE:** Added fresh rental-intent planning, deterministic page-only extraction, and a final fail-closed admission boundary; settings now require monthly CHF rent and direct page contact.
+- **NOT_RUN:** local tests/typecheck/build, hosted CI, live Serper/portal yield, production DB/deployment and user-visible outcome.
 ## P130.11 — Single Recheck feed (2026-11-24)
 
 - **CHANGE:** UI exposes one **Recheck feed** button. `POST /api/immofinder/recheck-list` still runs page refresh + `listing_unavailable` hide, then chains `recheckStored()` (local filters / price fix) before the job is marked finished.
