@@ -566,8 +566,8 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <label style={labelBlock}>
               <input
                 type="checkbox"
-                checked={!!s.search.requireContact}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))}
+                checked={true}
+                disabled
               />{' '}
               Require page-attributed phone or email (mandatory)
             </label>
@@ -577,8 +577,8 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <label style={labelBlock}>
               <input
                 type="checkbox"
-                checked={!!s.search.rejectNonMonthly}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectNonMonthly: e.target.checked } }))}
+                checked={true}
+                disabled
               />{' '}
               Reject night / week / season-only prices (mandatory)
             </label>
@@ -594,18 +594,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 style={{ width: 100 }}
               />
             </label>
-            <label style={labelBlock}>
-              Analyse at most{' '}
-              <select
-                value={s.search.maxAiPages}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxAiPages: Number(e.target.value) } }))}
-              >
-                {[20, 40, 60, 100, 200].map((n) => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>{' '}
-              pages per search (AI extraction is disabled; facts come from fetched pages)
-            </label>
+            <p style={hint}>AI extraction is disabled. Search facts are parsed and checked directly against the fetched listing page.</p>
             <label style={labelBlock}>
               Private-search queries per commune{' '}
               <select
