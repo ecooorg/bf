@@ -84,7 +84,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   if (!Number.isFinite(published.getTime())) return reject('trust_publication_date_missing');
   const now = input.nowMs ?? Date.now();
   if (published.getTime() > now + 24 * 60 * 60 * 1000) return reject('trust_publication_date_future');
-  if (now - published.getTime() > Math.max(1, input.maxAgeDays) * 86400000) return reject('trust_listing_stale');
+  if (now - published.getTime() > (input.maxAgeDays > 0 ? input.maxAgeDays : 180) * 86400000) return reject('trust_listing_stale');
 
   const phone = input.phone ? normPhone(input.phone) : null;
   const validPhone = Boolean(phone && isPlausibleSwissPhone(phone));
