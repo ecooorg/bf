@@ -93,6 +93,7 @@ test('P130.17d ImmoFinder runs use durable PostgreSQL leases and recover after p
   assert.match(migration, /cancel_requested/);
   assert.match(migration, /recoveredFromLegacy/);
   assert.match(store, /FOR UPDATE SKIP LOCKED/);
+  assert.match(store, /workerId',\$1::text/);
   assert.match(store, /lease_until/);
   assert.match(store, /settingsSnapshot/);
   assert.match(store, /cancel_requested = true/);
