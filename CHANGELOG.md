@@ -1,3 +1,5 @@
+## P130.17 — ImmoFinder evidence-first admission
+- Rebuilt rental discovery and page-only fact extraction; publication now requires matching live detail-page evidence, rooms, monthly CHF rent, freshness, active rental status and advertiser-labelled contact.
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
 
 - **PROBLEM:** Two buttons (Recheck filters / Recheck list) split offline rules from page re-fetch; delisted ads (e.g. urbanhome «Inserat gelöscht») stayed in the agent feed unless the user knew to press Recheck list.
