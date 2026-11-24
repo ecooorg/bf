@@ -27,7 +27,7 @@ const dir = join(root, 'server');
   }
 }
 
-// --- Store module (PLACEHOLDER / truncated recovery) ---
+// --- Store module ---
 {
   const target = join(dir, 'immofinderStore.ts');
   let st = existsSync(target) ? readFileSync(target, 'utf8') : '';
@@ -95,14 +95,7 @@ try {
   if (r.stderr) process.stderr.write(r.stderr);
 }
 
-// P130.13 P1 rooms_too_many + version
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p1-rooms-hygiene.mjs')], { encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
-}
-
-// P130.11 single Recheck feed (idempotent UI + routes merge)
+// P130.11 single Recheck feed
 {
   const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-recheck-feed.mjs')], { encoding: 'utf8' });
   if (r.stdout) process.stdout.write(r.stdout);
@@ -110,7 +103,7 @@ try {
   if (r.status) process.exit(r.status || 1);
 }
 
-// agents-contract: restore + Recheck feed assertion
+// agents-contract
 {
   const r = spawnSync(process.execPath, [join(root, 'scripts/fix-agents-contract.mjs')], { encoding: 'utf8' });
   if (r.stdout) process.stdout.write(r.stdout);
@@ -124,4 +117,11 @@ try {
   if (r.stdout) process.stdout.write(r.stdout);
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.status) process.exit(r.status || 1);
+}
+
+// P130.13 P1 rooms_too_many (MUST run last so payload/fix-ci cannot overwrite)
+{
+  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p1-rooms-hygiene.mjs')], { encoding: 'utf8' });
+  if (r.stdout) process.stdout.write(r.stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
 }
