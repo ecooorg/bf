@@ -45,7 +45,8 @@ export type TrustRejectReason =
   | 'trust_publication_date_future'
   | 'trust_listing_stale'
   | 'trust_contact_missing'
-  | 'trust_contact_not_page_attributed';
+  | 'trust_contact_not_page_attributed'
+  | 'trust_contact_not_advertiser';
 
 export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: number; listedAt: string; contact: 'phone' | 'email' } | { accepted: false; reason: TrustRejectReason };
 
@@ -54,6 +55,27 @@ export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: nu
  * values are never evidence here: every required fact must be present on the one
  * identity-matched detail page fetched for this candidate.
  */
+function hasAdvertiserContactContext(text: string, value: string, kind: 'phone' | 'email'): boolean {
+  const labels = /(kontakt|vermieter|anbieter|kontaktperson|contact|propri[eé]taire|annonceur|telefon|tel\\.?|t[eé]l\\.?|mobile|phone|landlord|owner|advertiser)/i;
+  if (kind === 'email') {
+    const index = text.toLowerCase().indexOf(value.toLowerCase());
+    if (index < 0) return false;
+    return labels.test(text.slice(Math.max(0, index - 120), Math.min(text.length, index + value.length + 120)));
+  }
+  const digits = value.replace(/\\D/g, '').slice(-9);
+  if (digits.length !== 9) return false;
+  const digitStream = text.replace(/\\D/g, '');
+  const offset = digitStream.indexOf(digits);
+  if (offset < 0) return false;
+  let seen = 0; let textIndex = -1;
+  for (let i = 0; i < text.length; i++) {
+    if (/\\d/.test(text[i])) seen++;
+    if (seen === offset + 1) { textIndex = i; break; }
+  }
+  if (textIndex < 0) return false;
+  return labels.test(text.slice(Math.max(0, textIndex - 120), Math.min(text.length, textIndex + 100)));
+}
+
 export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmission {
   const reject = (reason: TrustRejectReason): TrustAdmission => ({ accepted: false, reason });
   const text = String(input.pageText || '').trim();
@@ -91,6 +113,9 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   const email = input.email ? input.email.trim().toLowerCase() : null;
   const validEmail = Boolean(email && isPlausibleEmail(email));
   if (!validPhone && !validEmail) return reject('trust_contact_missing');
+  const advertiserPhone = Boolean(validPhone && phone && hasAdvertiserContactContext(text, phone, 'phone'));
+  const advertiserEmail = Boolean(validEmail && email && hasAdvertiserContactContext(text, email, 'email'));
+  if (!advertiserPhone && !advertiserEmail) return reject('trust_contact_not_advertiser');
   const pageUrl = input.finalUrl as string;
   const attributed = input.contactEvidenceUrls.some((url) => {
     try {
@@ -100,7 +125,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   });
   if (!attributed) return reject('trust_contact_not_page_attributed');
 
-  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: validPhone ? 'phone' : 'email' };
+  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: advertiserPhone ? 'phone' : 'email' };
 }
 
 export interface TrustSearchPlanInput {
