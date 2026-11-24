@@ -134,8 +134,9 @@ for (const p of walk(ROOT)) {
 }
 // Repository language policy: maintained copy/docs/scripts are English by default.
 // User-language fixtures and bilingual parsing/response modules are explicitly allowlisted.
+// Runtime diagnostic dumps (ImmoFinder runs) may contain scraped listing titles in any script.
 for (const rel of walkRepo()) {
-  if (rel.startsWith('tests/') || LANGUAGE_ALLOWLIST.has(rel)) continue;
+  if (rel.startsWith('tests/') || rel.startsWith('data/immofinder/diagnostics/') || LANGUAGE_ALLOWLIST.has(rel)) continue;
   const text = fs.readFileSync(rel, 'utf8');
   if (/[\u0400-\u04FF]/.test(text)) {
     console.error(`LANGUAGE ${rel}: Cyrillic is not allowed outside the user-language allowlist.`);
