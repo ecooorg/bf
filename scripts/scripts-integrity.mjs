@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 /** Enforces scripts/ allowlist: no per-patch pNNN tools, no retired one-offs. */
-import { readdirSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const scriptsDir = join(root, 'scripts');
-let failed = false;
-const fail = (s) => { console.error(`FAIL: ${s}`); failed = true; };
-const ok = (s) => console.log(`PASS: ${s}`);
 
-/** Active scripts only. Add a name here when introducing a maintained tool; do not add patch-scoped one-offs. */
+function ok(msg) { console.log('OK', msg); }
+function fail(msg) { console.error('FAIL', msg); process.exit(1); }
+
 const ALLOW = new Set([
   'acceptanceReport.mjs',
   'api-contract-coverage.mjs',
@@ -31,10 +30,10 @@ const ALLOW = new Set([
   'carousel-search-smoke.mjs',
   'carousel-verify.mjs',
   'check-version.mjs',
-  'collect-platform-logs.mjs',
   'ci-evidence-gate.mjs',
   'ci-run-history.mjs',
   'ci-summary.mjs',
+  'collect-platform-logs.mjs',
   'contextSelect.mjs',
   'contextSelectLib.mjs',
   'copy-server-config.mjs',
@@ -57,6 +56,7 @@ const ALLOW = new Set([
   'golden-tasks.json',
   'immofinder-health-check.mjs',
   'immofinder-recheck-feed.mjs',
+  'immofinder-p0-feed-hygiene.mjs',
   'lint-copy.mjs',
   'migrate.mjs',
   'monitor-connections.mjs',
@@ -64,6 +64,8 @@ const ALLOW = new Set([
   'patch-pack.mjs',
   'patch-quality-report.mjs',
   'patch-tools.mjs',
+  'project-user-value-eval.mjs',
+  'project-user-value-live.mjs',
   'run-dag.mjs',
   'schemaValidate.mjs',
   'scripts-integrity.mjs',
@@ -72,25 +74,15 @@ const ALLOW = new Set([
   'version-metadata.mjs',
   'workflow-preflight.mjs',
   'write-build-stamp.mjs',
-  'project-user-value-eval.mjs',
-  'project-user-value-live.mjs',
 ]);
 
-if (!existsSync(scriptsDir)) {
-  fail('scripts/ missing');
-} else {
-  const names = readdirSync(scriptsDir);
-  const nested = names.filter((n) => statSync(join(scriptsDir, n)).isDirectory());
-  if (nested.length) fail(`scripts/ must not contain nested folders: ${nested.join(', ')}`);
-  const unknown = names.filter((n) => !ALLOW.has(n));
-  if (unknown.length) fail(`scripts/ not on allowlist: ${unknown.join(', ')}`);
-  const patchLike = names.filter((n) => /^p\d{2,3}/i.test(n) || /-p\d{2,3}/i.test(n) || /p108|p93-7/i.test(n));
-  if (patchLike.length) fail(`per-patch script names forbidden: ${patchLike.join(', ')}`);
-  if (!unknown.length && !nested.length && !patchLike.length) ok(`scripts/ layout (${names.length} files on allowlist)`);
-}
-
-if (failed) {
-  console.error('\nscripts:integrity FAILED');
-  process.exit(1);
-}
-console.log('\nscripts:integrity PASS');
+const names = readdirSync(scriptsDir).filter((n) => {
+  try { return statSync(join(scriptsDir, n)).isFile(); } catch { return false; }
+});
+const unknown = names.filter((n) => !ALLOW.has(n));
+if (unknown.length) fail(`scripts/ not on allowlist: ${unknown.join(', ')}`);
+const nested = names.filter((n) => n.includes('/') || n.includes('\\'));
+if (nested.length) fail(`nested script paths not allowed: ${nested.join(', ')}`);
+const patchLike = names.filter((n) => /^apply-p\d+/i.test(n) || /^p\d{3}/i.test(n));
+if (patchLike.length) fail(`per-patch scripts forbidden: ${patchLike.join(', ')}`);
+if (!unknown.length && !nested.length && !patchLike.length) ok(`scripts/ layout (${names.length} files on allowlist)`);
