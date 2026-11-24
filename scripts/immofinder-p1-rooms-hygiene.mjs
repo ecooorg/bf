@@ -1,34 +1,38 @@
 #!/usr/bin/env node
-/** P130.13 P1: rooms_too_many threshold 8, soft-dedupe key helper */
+/** P130.13 P1: rooms_too_many threshold 8 */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-let n = 0;
-
 const repairPath = join(root, 'server/immofinderRepair.ts');
-if (existsSync(repairPath)) {
-  let r = readFileSync(repairPath, 'utf8');
-  if (r.includes("rooms >= 12) why = 'rooms_too_many'")) {
-    r = r.replace("rooms >= 12) why = 'rooms_too_many'", "rooms >= 8) why = 'rooms_too_many'");
+if (!existsSync(repairPath)) { console.log('no repair'); process.exit(0); }
+let r = readFileSync(repairPath, 'utf8');
+let n = 0;
+// Match both quote styles
+const patterns = [
+  ["rooms >= 12) why = 'rooms_too_many'", "rooms >= 8) why = 'rooms_too_many'"],
+  ['rooms >= 12) why = "rooms_too_many"', 'rooms >= 8) why = "rooms_too_many"'],
+  ['rooms >= 12)', 'rooms >= 8)'],
+];
+for (const [from, to] of patterns) {
+  if (r.includes(from) && from.includes('12')) {
+    r = r.replace(from, to);
     n++;
-    console.log('P1: rooms_too_many 12->8');
+    console.log('P1 applied:', from, '->', to);
+    break;
   }
-  const r2 = r.replace(/REPAIR_RULES_VERSION = '130\.\d+\.\d+'/, "REPAIR_RULES_VERSION = '130.13.5'");
-  if (r2 !== r) { r = r2; console.log('REPAIR_RULES_VERSION -> 130.13.5'); }
-  writeFileSync(repairPath, r);
 }
-
+r = r.replace(/REPAIR_RULES_VERSION = '130\.\d+\.\d+'/, "REPAIR_RULES_VERSION = '130.13.5'");
 const pkgPath = join(root, 'package.json');
 if (existsSync(pkgPath)) {
   let p = readFileSync(pkgPath, 'utf8');
-  if (p.includes('"patch": "130.12"')) {
-    p = p.replace('"patch": "130.12"', '"patch": "130.13"');
+  if (/"patch":\s*"130\.12"/.test(p)) {
+    p = p.replace(/"patch":\s*"130\.12"/, '"patch": "130.13"');
     writeFileSync(pkgPath, p);
     console.log('package patch 130.13');
     n++;
   }
 }
-
-console.log('P1 patches applied:', n);
+writeFileSync(repairPath, r);
+console.log('P1 done, patches', n, 'rooms8', r.includes('rooms >= 8)'));
