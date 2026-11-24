@@ -36,6 +36,7 @@ test('P130.17 trust engine admits only same-page, current, explicit rental facts
   assert.deepEqual(verifyListingAdmission({ ...input, listedAt: '2025-01-01T00:00:00.000Z' }), { accepted: false, reason: 'trust_listing_stale' });
   assert.deepEqual(verifyListingAdmission({ ...input, phone: null, email: null }), { accepted: false, reason: 'trust_contact_missing' });
   assert.deepEqual(verifyListingAdmission({ ...input, contactEvidenceUrls: ['https://example.ch/contact'] }), { accepted: false, reason: 'trust_contact_not_page_attributed' });
+  assert.deepEqual(verifyListingAdmission({ ...input, pageText: input.pageText.replace('Kontakt Vermieter: ', '') }), { accepted: false, reason: 'trust_contact_not_advertiser' });
   assert.deepEqual(verifyListingAdmission({ ...input, priceUnit: 'week' }), { accepted: false, reason: 'trust_price_not_monthly_chf' });
 });
 
