@@ -102,3 +102,45 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
 
   return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: validPhone ? 'phone' : 'email' };
 }
+
+export interface TrustSearchPlanInput {
+  municipalities: string[];
+  communeLimit: number;
+  privateTemplateCount: number;
+  portalQueryTemplates: string[];
+}
+export interface TrustSearchPlanOptions {
+  allCommunes: boolean;
+  families?: Array<'private' | 'portals'>;
+}
+
+/** Build fresh rental-intent queries; legacy query wording is deliberately ignored. */
+export function buildTrustSearchPlan(
+  config: TrustSearchPlanInput,
+  cycle: number,
+  options: TrustSearchPlanOptions,
+): string[] {
+  const municipalities = config.municipalities || [];
+  if (!municipalities.length) return [];
+  const count = options.allCommunes
+    ? municipalities.length
+    : Math.max(1, Math.min(municipalities.length, Math.floor(config.communeLimit) || 1));
+  const start = options.allCommunes ? 0 : (Math.max(0, Math.floor(cycle) || 0) * count) % municipalities.length;
+  const communes = Array.from({ length: count }, (_, index) => municipalities[(start + index) % municipalities.length]);
+  const families = options.families || ['private', 'portals'];
+  const privateTemplates = [
+    (place: string) => `"${place}" ("Wohnung zu vermieten" OR "Mietwohnung" OR "Wohnung mieten") -kaufen -verkaufen`,
+    (place: string) => `"${place}" ("3 Zimmer" OR "3.5 Zimmer" OR "4 Zimmer" OR "4.5 Zimmer") (Miete OR Mietzins) -kaufen -verkaufen`,
+    (place: string) => `"${place}" (Privat OR Eigentümer OR "von privat") (Wohnung OR Haus) mieten -kaufen -verkaufen`,
+    (place: string) => `"${place}" ("à louer" OR affitto OR "for rent") (appartement OR Wohnung) -vente -kaufen`,
+  ].slice(0, Math.max(0, Math.min(4, config.privateTemplateCount)));
+  const portalHosts = [...new Set((config.portalQueryTemplates || []).map((query) => /site:([a-z0-9.-]+)/i.exec(query)?.[1]?.replace(/^www\./i, '').toLowerCase()).filter((host): host is string => Boolean(host)))];
+  const portalTemplates = portalHosts.map((host) => (place: string) =>
+    `site:${host} "${place}" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen`);
+  const out: string[] = [];
+  for (const place of communes) {
+    if (families.includes('private')) for (const make of privateTemplates) out.push(make(place));
+    if (families.includes('portals')) for (const make of portalTemplates) out.push(make(place));
+  }
+  return out;
+}
