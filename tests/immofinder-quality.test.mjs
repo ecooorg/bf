@@ -144,10 +144,11 @@ test('ImmoFinder reports a readable service-unavailable error when fetch cannot 
   assert.match(ui, /Check that the service is online, then retry/);
 });
 
-test('settings UI does not claim a published monthly price is mandatory', () => {
+test('P130.17 settings UI describes mandatory page-verified rent and contact', () => {
   const ui = read('src/ImmoFinderSettings.tsx');
-  assert.match(ui, /undisclosed rent may remain marked as unknown/);
-  assert.doesNotMatch(ui, /with a stated monthly price pass the quality gate/);
+  assert.match(ui, /explicit monthly CHF rent/i);
+  assert.match(ui, /direct advertiser phone or email/i);
+  assert.match(ui, /AI extraction is disabled/i);
 });
 
 test('config prioritises long-term Swiss rental discovery portals', () => {
@@ -526,10 +527,10 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.privateQueryTemplates, 4);
   assert.equal(defaults.search.maxAiPages, 100);
   assert.equal(defaults.search.enrichSearchesPerRun, 12);
-  assert.equal(defaults.search.requirePrice, false);
-  assert.equal(defaults.search.rejectNonMonthly, false);
+  assert.equal(defaults.search.requirePrice, true);
+  assert.equal(defaults.search.rejectNonMonthly, true);
   assert.equal(defaults.search.rejectSeekerPosts, true);
-  assert.equal(defaults.search.requireContact, false);
+  assert.equal(defaults.search.requireContact, true);
   assert.equal(defaults.search.maxMonthlyRentChf, 3500);
   assert.equal(defaults.delivery.driveFolderId, cfg.driveFolderId);
   assert.ok(Object.values(defaults.search.sources).filter(Boolean).length >= 14);
