@@ -63,9 +63,14 @@ test('P130.16 Flims Zweitwohnung is for_sale when helpers live', async () => {
     'for_sale',
   );
   assert.ok(buildCrossSourceSaleQuery(title)?.includes('kaufen'));
+  // Hit must share the title key prefix used by crossSourceIndicatesSale (first 12 chars).
   assert.equal(
     crossSourceIndicatesSale(title, [
-      { title: 'Flims kaufen', link: 'https://dreamo.ch/kaufen/x', snippet: 'Kaufpreis 1380000 Zweitwohnung' },
+      {
+        title: 'Seltene Gelegenheit in Flims kaufen',
+        link: 'https://dreamo.ch/kaufen/x',
+        snippet: 'Kaufpreis 1380000 Zweitwohnung Flims',
+      },
     ]),
     true,
   );
