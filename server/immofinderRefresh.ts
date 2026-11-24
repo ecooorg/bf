@@ -5,7 +5,7 @@
  * keeps what is stored.
  * P130.16 L2: after page fetch, re-verify with verifyListingFromPageText and hide sale/mismatch objects.
  */
-import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet, isListingUnavailable, verifyListingFromPageText, parsePrice } from './immofinderCore.ts';
+import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet, isListingUnavailable, verifyListingFromPageText, parsePrice, type ParsedPrice } from './immofinderCore.ts';
 import { applyEnrichmentToRecord, type EnrichmentInput, type EnrichmentResult } from './immofinderContactEnrichment.ts';
 import { cardFields, completenessSummary, safeUrlSample } from './immofinderDiag.ts';
 
@@ -37,6 +37,18 @@ interface Parsed { id: string; row: any; http: number; fetched: boolean; date: D
 
 const obj = (v: unknown): Record<string, any> => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Record<string, any>) } : {});
 const hostOf = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+
+function priceFromRow(row: any): ParsedPrice | null {
+  const amount = row.price_amount != null ? Number(row.price_amount) : NaN;
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const unit = String(row.price_unit || 'month');
+  const quote = String(row.price_quote || '');
+  let monthlyChf: number | null = null;
+  if (unit === 'month') monthlyChf = amount;
+  else if (unit === 'week') monthlyChf = Math.round(amount * (52 / 12));
+  else if (unit === 'night') monthlyChf = Math.round(amount * 30);
+  return { amount, unit: unit as ParsedPrice['unit'], monthlyChf, quote };
+}
 
 async function readPage(row: any, deps: RefreshDeps): Promise<Parsed> {
   const url = String(row.listing_url || '');
@@ -118,7 +130,7 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
       }
       // P130.16 L2: full-page re-verify — hide sale / price-sale-mismatch objects that slipped in as rent
       if (p.fetched && p.pageText) {
-        const storedPrice = row.price_amount != null ? { amount: Number(row.price_amount), unit: String(row.price_unit || 'month'), currency: 'CHF', quote: String(row.price_quote || '') } : null;
+        const storedPrice = priceFromRow(row);
         const pagePrice = parsePrice(p.pageText) || storedPrice;
         const reason = verifyListingFromPageText({
           title: p.pageTitle || String(row.property_name || ''),
@@ -126,7 +138,7 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
           pageText: p.pageText,
           municipality: row.municipality || null,
           roomsEstimated: row.rooms != null ? Number(row.rooms) : null,
-          price: pagePrice || storedPrice,
+          price: pagePrice,
         });
         if (reason === 'for_sale' || reason === 'price_sale_mismatch') {
           raw.verify_l2 = { at: now().toISOString(), reason, evidence_kind: 'page_text' };
