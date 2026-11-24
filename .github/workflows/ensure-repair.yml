@@ -15,14 +15,14 @@ jobs:
           node-version: '22'
       - name: Restore immofinderRepair.ts from payload
         run: node scripts/ensure-repair.mjs
-      - name: Commit restored file if changed
+      - name: Commit restored/synced files if changed
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add server/immofinderRepair.ts
+          git add server/immofinderRepair.ts package-lock.json
           if git diff --staged --quiet; then
             echo 'No changes'
           else
-            git commit -m 'chore: restore server/immofinderRepair.ts from compressed payload'
+            git commit -m 'chore: restore repair module and sync package-lock patch'
             git push
           fi
