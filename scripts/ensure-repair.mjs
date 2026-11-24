@@ -30,22 +30,17 @@ const dir = join(root, 'server');
 {
   const target = join(dir, 'immofinderStore.ts');
   let st = existsSync(target) ? readFileSync(target, 'utf8') : '';
-  const bad = st.length < 5000 || st.trim() === 'PLACEHOLDER' || !st.includes('async upsert') || !st.includes('createPgStore');
+  const bad = st.length < 5000 || st.trim() === 'PLACEHOLDER' || !st.includes('async upsert') || !st.includes('createPgStore') || !st.includes('getSettings');
   if (bad) {
-    const parts = [0,1,2,3].map((i) => join(dir, `immofinderStore.ts.part${i}`));
-    if (parts.every((p) => existsSync(p))) {
-      const full = parts.map((p) => readFileSync(p, 'utf8')).join('');
+    const names = ['part0', 'part1', 'part2', 'part3a', 'part3b'];
+    const paths = names.map((n) => join(dir, `immofinderStore.ts.${n}`));
+    if (paths.every((p) => existsSync(p))) {
+      const full = paths.map((p) => readFileSync(p, 'utf8')).join('');
       writeFileSync(target, full);
-      console.log('Restored server/immofinderStore.ts from part0..part3 (%d bytes)', full.length);
+      console.log('Restored server/immofinderStore.ts from part0+1+2+3a+3b (%d bytes)', full.length);
     } else {
-      const single = join(dir, 'immofinderStore.ts.zlib.b64');
-      const zparts = readdirSync(dir).filter((f) => /^immofinderStore\.ts\.zlib\.b64(\.p\d+)?$/.test(f)).sort();
-      let b64 = existsSync(single) ? readFileSync(single, 'utf8').trim().replace(/\s+/g, '') : '';
-      if (!b64 && zparts.length) b64 = zparts.map((f) => readFileSync(join(dir, f), 'utf8').trim()).join('').replace(/\s+/g, '');
-      if (!b64) { console.error('immofinderStore payload missing'); process.exit(1); }
-      const buf = inflateSync(Buffer.from(b64, 'base64'));
-      writeFileSync(target, buf);
-      console.log('Restored server/immofinderStore.ts from zlib (%d bytes)', buf.length);
+      console.error('immofinderStore parts missing:', names.filter((_, i) => !existsSync(paths[i])));
+      process.exit(1);
     }
   } else {
     console.log('immofinderStore.ts ok (%d bytes)', st.length);
