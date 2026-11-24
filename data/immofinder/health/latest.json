@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-23T23:49:34.674Z",
-  "verdict": "WARN",
+  "generatedAt": "2026-11-24T08:30:49.057Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at 8f54700, 1 still running"
+      "detail": "2 checks at 4e88d98, 1 still running"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-23T21:44:27Z"
+      "detail": "last completed run success at 2026-11-24T08:30:23Z"
     },
     {
       "group": "RENDER",
@@ -30,17 +30,17 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 53 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
+      "detail": "production is 76 commit(s) behind main with 12 non-archive file(s) changed (e.g. .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml, .github/workflows/emergency-fix-portal-detail.yml); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 2, SSL warnings 0, 5xx 1 in collected Render logs",
+      "detail": "Gemini timeouts 0, SSL warnings 0, 5xx 2 in collected Render logs",
       "data": {
-        "geminiTimeouts": 2,
+        "geminiTimeouts": 0,
         "sslWarnings": 0,
-        "http5xx": 1
+        "http5xx": 2
       }
     },
     {
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-23T23:49:33.699Z",
+        "checkedAt": "2026-11-24T08:30:48.051Z",
         "steps": [
           {
             "step": "app",
@@ -121,7 +121,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "afa5b9d2-85e7-410e-a6d8-3897767abe65, 1.5 h old"
+      "detail": "2330d6a2-6917-401a-90c1-6143d2e90e79, 2.2 h old"
     },
     {
       "group": "SEARCH",
@@ -142,8 +142,8 @@
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "OK",
-      "detail": "run afa5b9d2-85e7-410e-a6d8-3897767abe65 is archived in the repository"
+      "status": "FAIL",
+      "detail": "latest run 2330d6a2-6917-401a-90c1-6143d2e90e79 is not archived (archive holds 259ca5fe-1289-4d34-a2ee-dc9fe07c25f1); poller runs every 10 minutes (GitHub may delay schedules)"
     }
   ]
 }
