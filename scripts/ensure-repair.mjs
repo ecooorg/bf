@@ -95,3 +95,25 @@ try {
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.status) process.exit(r.status || 1);
 }
+
+// Restore agents-contract if emptied; keep Recheck feed assertion
+{
+  const path = join(root, 'tests/agents-contract.test.mjs');
+  let t = existsSync(path) ? readFileSync(path, 'utf8') : '';
+  if (t.length < 1000 || !t.includes('P129.23a')) {
+    const r = spawnSync('git', ['show', '28fdc70c4f0677dce552f5b687967c6e7df679e2:tests/agents-contract.test.mjs'], {
+      encoding: 'utf8', cwd: root, maxBuffer: 5_000_000,
+    });
+    if (r.status !== 0 || !r.stdout || r.stdout.length < 1000) {
+      console.error('failed to restore agents-contract.test.mjs', r.stderr || r.status);
+      process.exit(1);
+    }
+    t = r.stdout;
+    console.log('Restored tests/agents-contract.test.mjs from 28fdc70c (%d bytes)', t.length);
+  }
+  if (t.includes('assert.match(ui, /Recheck list/)')) {
+    t = t.replace('assert.match(ui, /Recheck list/);', 'assert.match(ui, /Recheck feed/);');
+    console.log('agents-contract: Recheck list -> Recheck feed');
+  }
+  writeFileSync(path, t);
+}
