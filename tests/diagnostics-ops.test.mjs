@@ -67,7 +67,8 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(route, /latestImmoFinderRunDiagnostics\(\)/);
   assert.match(route, /isImmoDiagnosticsCall/);
   assert.match(route, /if \(diagnosticsPoll\) return next\(\)/, 'read-only polling must not trigger repair bootstrap');
-  assert.equal((route.match(/publishGitHubDiagnosticsAfterRun\(runId!, result, errors\)/g) || []).length, 2, 'manual and scheduled runs both persist diagnostics');
+  assert.equal((route.match(/publishGitHubDiagnosticsAfterRun\(runId!, result, errors\)/g) || []).length, 1, 'manual and scheduled runs share the durable worker completion path');
+  assert.equal((route.match(/startRun\(trigger, dryRun, \{ settings, wave, cycle: await realRunCount\(\) \}\)/g) || []).length, 2);
   assert.match(server, /installLogCapture\(\)/);
   assert.match(server, /isImmoDiagnosticsCall\(req\)/);
   assert.match(store, /INSERT INTO immofinder_run_diagnostics/);

@@ -538,7 +538,8 @@ test('P129.50 full database snapshot is authenticated ciphertext and is committe
   const routes = read('server/immofinderRoutes.ts');
   assert.match(pipeline, /knownAutoHidden: Boolean\(known\?\.autoHidden\)/);
   assert.match(pipeline, /pages\[i\]\.knownAutoHidden/);
-  assert.equal((routes.match(/publishGitHubSnapshotAfterRun\(runId!\)/g) || []).length, 2);
+  assert.equal((routes.match(/publishGitHubSnapshotAfterRun\(runId!\)/g) || []).length, 1, 'manual and scheduled runs share one durable worker completion path');
+  assert.equal((routes.match(/startRun\(trigger, dryRun, \{ settings, wave, cycle: await realRunCount\(\) \}\)/g) || []).length, 2);
 });
 
 
