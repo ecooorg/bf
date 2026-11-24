@@ -1,117 +1,24 @@
 #!/usr/bin/env node
-/** P130.12 P0 feed hygiene — idempotent patches on server/immofinderCore.ts */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const corePath = join(root, 'server/immofinderCore.ts');
-let t = readFileSync(corePath, 'utf8');
+const core = join(dirname(fileURLToPath(import.meta.url)), '../server/immofinderCore.ts');
+let t = readFileSync(core, 'utf8');
 let n = 0;
-
-function once(label, from, to) {
-  if (!t.includes(from)) {
-    console.log('skip (no match):', label);
-    return;
-  }
-  if (to.length > 40 && t.includes(to.slice(0, 48))) {
-    console.log('skip (already):', label);
-    return;
-  }
-  t = t.replace(from, to);
-  n++;
-  console.log('applied:', label);
-}
-
 if (!t.includes('clearSerpTitle')) {
-  once(
-    'clearSerpTitle',
-    `  // Homegate/ImmoScout detail ads often use titles like "Wohnung mieten in X" — do not treat those as list pages when the URL is a concrete portal detail.
-  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));
-  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
-  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';`,
-    `  // Google Travel / Hotels entities are never long-term rentals.
-  if (/google\\.[a-z.]+\\/travel\\/hotels\\//i.test(url) || /\\/travel\\/hotels\\/entity\\//i.test(url)) return 'hotel_or_guesthouse';
-  // Category / sale index pages on aggregators.
-  if (/acheter-louer\\.ch\\/(acheter|fr\\/achat)/i.test(url) || /rentola\\.ch\\/listings\\//i.test(url)) return 'list_or_search_page';
-  // Homegate/ImmoScout detail ads often use titles like "Wohnung mieten in X" — do not treat those as list pages when the URL is a concrete portal detail.
-  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));
-  const clearSerpTitle = /\\d+\\s+treffer|treffer\\s*-|^(wohnung(en)? mieten in\\s+\\w+\\s*$)|bei homegate\\.ch findest/i.test(t);
-  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
-  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url) || clearSerpTitle)) return 'list_or_search_page';`
-  );
+  const a = "  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));\n  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';\n  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';";
+  const b = "  if (/google\\.[a-z.]+\\/travel\\/hotels\\//i.test(url) || /\\/travel\\/hotels\\/entity\\//i.test(url)) return 'hotel_or_guesthouse';\n  if (/acheter-louer\\.ch\\/(acheter|fr\\/achat)/i.test(url) || /rentola\\.ch\\/listings\\//i.test(url)) return 'list_or_search_page';\n  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));\n  const clearSerpTitle = /\\d+\\s+treffer|treffer\\s*-|^(wohnung(en)? mieten in\\s+\\w+\\s*$)|bei homegate\\.ch findest/i.test(t);\n  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';\n  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url) || clearSerpTitle)) return 'list_or_search_page';";
+  if (t.includes(a)) { t = t.replace(a, b); n++; }
 }
-
-if (!t.includes('rentola.ch)$') && !t.includes('rentola\\.ch)$')) {
-  once(
-    'rentola-host',
-    '(moving24\\.ch|umzugsfirma-buchen\\.ch|rentumo\\.ch|umzug[^/]*\\.ch)$',
-    '(moving24\\.ch|umzugsfirma-buchen\\.ch|rentumo\\.ch|umzug[^/]*\\.ch|rentola\\.ch)$'
-  );
+if (!t.includes('kaufpreis')) {
+  const a = "export function isForSaleListing(title: string, text: string, url: string): boolean {\n  const hay = `${title}\\n${text}\\n${url}`;\n  if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\\/kaufen\\//i.test(url)) return true;";
+  const b = "export function isForSaleListing(title: string, text: string, url: string): boolean {\n  const hay = `${title}\\n${text}\\n${url}`;\n  if (/\\bkaufpreis\\b/i.test(hay) || /\\bverkaufspreis\\b/i.test(hay)) return true;\n  if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\\/kaufen\\//i.test(url)) return true;";
+  if (t.includes(a)) { t = t.replace(a, b); n++; }
 }
-
-if (!/\\bkaufpreis\\b/i.test(t) && !t.includes('kaufpreis')) {
-  once(
-    'kaufpreis-for-sale',
-    `export function isForSaleListing(title: string, text: string, url: string): boolean {
-  const hay = \\`\${title}\\n\${text}\\n\${url}\\`;
-  if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\\/kaufen\\//i.test(url)) return true;`,
-    `export function isForSaleListing(title: string, text: string, url: string): boolean {
-  const hay = \\`\${title}\\n\${text}\\n\${url}\\`;
-  if (/\\bkaufpreis\\b/i.test(hay) || /\\bverkaufspreis\\b/i.test(hay)) return true;
-  if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\\/kaufen\\//i.test(url)) return true;`
-  );
+if (!t.includes('Group root without')) {
+  const a = "    if (/\\/photo\\.php/i.test(p) || /\\/photos\\//i.test(p)) return true;\n    if (/fbid=/i.test(u.search) && /set=gm\\./i.test(u.search) && !/\\/posts\\//i.test(p)) return true;";
+  const b = "    if (/\\/photo\\.php/i.test(p) || /\\/photos\\//i.test(p)) return true;\n    if (/\\/groups\\/\\d+\\/?$/i.test(p) || /\\/groups\\/[^/]+\\/?$/i.test(p)) return true;\n    if (/fbid=/i.test(u.search) && /set=gm\\./i.test(u.search) && !/\\/posts\\//i.test(p)) return true;";
+  if (t.includes(a)) { t = t.replace(a, b); n++; }
 }
-
-if (!t.includes('Group root without a specific post')) {
-  once(
-    'fb-group-root',
-    `    if (/\\/photo\\.php/i.test(p) || /\\/photos\\//i.test(p)) return true;
-    if (/fbid=/i.test(u.search) && /set=gm\\./i.test(u.search) && !/\\/posts\\//i.test(p)) return true;`,
-    `    if (/\\/photo\\.php/i.test(p) || /\\/photos\\//i.test(p)) return true;
-    // Group root without a specific post is the whole board, not one ad.
-    if (/\\/groups\\/\\d+\\/?$/i.test(p) || /\\/groups\\/[^/]+\\/?$/i.test(p)) return true;
-    if (/fbid=/i.test(u.search) && /set=gm\\./i.test(u.search) && !/\\/posts\\//i.test(p)) return true;`
-  );
-}
-
-if (!t.includes("unit === 'month' && h.amount >= 2020")) {
-  once(
-    'year-as-price',
-    `    // Calendar years in "ab 01.11.2026" must not become rent (was keeping amount=2026).
-    if (h.amount >= 2020 && h.amount <= 2035) {
-      const near = t.slice(Math.max(0, h.idx - 30), h.idx + h.quote.length + 20);
-      if (/(?:^|\\D)(20[2-3]\\d)(?:\\D|$)/.test(near) && /(?:per|ab|vom|verf\u00fcgbar|bezug|frei|ab\\s*dem|ab\\s*sofort|\\d{1,2}[./]\\d{1,2}[./])/.test(near)) {
-        continue;
-      }
-      // Bare 2026 with no currency and no month/night word — skip
-      if (!h.currency && unit === 'unknown') continue;
-    }`,
-    `    // Calendar years in "ab 01.11.2026" / "Per 01. November 2026" must not become rent (was keeping amount=2026).
-    if (h.amount >= 2020 && h.amount <= 2035) {
-      const near = t.slice(Math.max(0, h.idx - 40), h.idx + h.quote.length + 30);
-      if (/(?:^|\\D)(20[2-3]\\d)(?:\\D|$)/.test(near) && /(?:per|ab|vom|verf\u00fcgbar|bezug|frei|ab\\s*dem|ab\\s*sofort|november|dezember|januar|februar|m\u00e4rz|april|mai|juni|juli|august|september|oktober|\\d{1,2}[./]\\d{1,2}[./]|einzug|bezugstermin)/i.test(near)) {
-        continue;
-      }
-      if (unit === 'unknown' || !h.currency) continue;
-      if (unit === 'month' && h.amount >= 2020 && h.amount <= 2035) continue;
-    }`
-  );
-}
-
-if (n > 0) {
-  writeFileSync(corePath, t);
-  console.log('Wrote server/immofinderCore.ts with', n, 'patches');
-} else {
-  console.log('immofinderCore.ts already has P0 patches or no matches');
-}
-
-const repairPath = join(root, 'server/immofinderRepair.ts');
-if (existsSync(repairPath)) {
-  let r = readFileSync(repairPath, 'utf8');
-  const r2 = r.replace(/REPAIR_RULES_VERSION = '130\.\d+\.\d+'/, "REPAIR_RULES_VERSION = '130.12.5'");
-  if (r2 !== r) {
-    writeFileSync(repairPath, r2);
-    console.log('REPAIR_RULES_VERSION -> 130.12.5');
-  }
-}
+if (n) writeFileSync(core, t);
+console.log('P0 patches', n);
