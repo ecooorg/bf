@@ -1,0 +1,1396 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-24T10:34:05.885Z",
+  "runId": "2eeade71-4d78-47dc-a65b-f296a7bed85e",
+  "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+  "eventCount": 28,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
+  "events": [
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "run_started",
+      "at": "2026-11-24T10:33:39.900Z",
+      "elapsedMs": 0,
+      "wave": "carousel",
+      "dryRun": false,
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Bonaduz",
+        "Rhäzüns",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen"
+      ],
+      "minRooms": 3,
+      "discoveryEnabled": true,
+      "privateQueryTemplates": 4,
+      "portalQueryTemplates": 13,
+      "maxCandidatesPerQuery": 8,
+      "pageLimit": 420,
+      "runMaxDurationMs": 2700000,
+      "llmEnabled": true,
+      "searchEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_plan",
+      "at": "2026-11-24T10:33:39.901Z",
+      "elapsedMs": 1,
+      "wave": "carousel",
+      "finishAll": true,
+      "coverAllCommunes": false,
+      "cycle": 6,
+      "selectedCommunes": [
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis"
+      ],
+      "queryCountTotal": 68,
+      "queryOffset": 0,
+      "queryCountThisWave": 68,
+      "maxCandidatesPerQuery": 6,
+      "pageLimit": 420,
+      "resultsPerQuery": 10,
+      "serperMinIntervalMs": 1500,
+      "serperMaxPerMinute": 40,
+      "queryFamilies": [
+        "private",
+        "portals"
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-24T10:33:41.350Z",
+      "elapsedMs": 1450,
+      "source": "search",
+      "queryIndex": 1,
+      "queryTotal": 68,
+      "query": "\"Trimmis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 1,
+      "selectedCount": 1,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003141170",
+          "title": "Wohnung mieten in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 4 Zimmern in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Appartement de 4.5 pièces à Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "saltinis - trimmis - AZ Immo AG"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 bis 4.5 Zimmer | Wohnungen zum Mieten in Passugg"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis · immomax"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Entscheidungsgrundlage Zukunftsinvestitionen Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Terrassenwohnung In Folge Hausübernahme ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "«Tauschimmobilie Moderne 4.5-Zimmer Wohnung in Trimmis ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzug Trimmis (GR) — Umzugsunternehmen"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003141170",
+          "title": "Wohnung mieten in Trimmis",
+          "snippet": "3 Treffer - Wohnung mieten in Trimmis ; 1 / 6 · CHF 2'500.–. 4.5 · 100m² · 7203 Trimmis ; 1 / 6. CHF 1'330.–. 2 · 55m² · Rüfiwisweg 11, 7203 Trimmis ; 1 / 4. CHF 200.– ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 4 Zimmern in Trimmis",
+          "snippet": "Immobilien mieten mit 4 Zimmern in Trimmis: Entdecke eine grosse Auswahl an attraktiven Angeboten und finde die Immobilie, die deinen Bedürfnissen ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Appartement de 4.5 pièces à Trimmis",
+          "snippet": "Entdecken Sie diese exklusive 4.5-Zimmer Wohnung in Trimmis, erbaut im Jahr 2015. Auf einer Wohnfläche von 108 m² bietet dieses Zuhause eine ...",
+          "date": "vor 7 Tagen",
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "saltinis - trimmis - AZ Immo AG",
+          "snippet": "Das Dreifamilienhaus in Trimmis verbindet zeitgemässe. Architektur mit grosszügigem Wohnraum und einer Lage, die Ruhe und. Komfort in Einklang bringt. Mit nur ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 bis 4.5 Zimmer | Wohnungen zum Mieten in Passugg",
+          "snippet": "7203 Trimmis. Weitere interessante Objekte. Mietobjekte in der Nähe. Maisonette / Duplex Mieten: Passugg · Attikawohnung Mieten: Passugg · Studio Mieten: ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung in Trimmis · immomax",
+          "snippet": "Diese Immobilie steht zum TauschEntdecken Sie diese exklusive 4.5-Zimmer Wohnung in Trimmis, erbaut im Jahr 2015. Auf einer Wohnfläche von 108 m² bietet dieses ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Entscheidungsgrundlage Zukunftsinvestitionen Trimmis",
+          "snippet": "Die Gemeinde Trimmis verfügt über einen umfangreichen Bestand an gemein- deeigenen Liegenschaften und Immobilien. Die Gemeinde bietet damit ...",
+          "date": "26.11.2024",
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Terrassenwohnung In Folge Hausübernahme ...",
+          "snippet": "Freundliche Grüsse Enzo Seglias, [phone] Cholplatzweg 22B 7203 Trimmis ... Eine 4.5 Zimmerwohnung in Landquart eventuell eine Wohnung privat ...",
+          "date": "vor 8 Monaten",
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "«Tauschimmobilie Moderne 4.5-Zimmer Wohnung in Trimmis ...",
+          "snippet": "Gesucht wird im Gegenzug:Der aktuelle Eigentümer sucht eine Wohnung zum Kauf mit mindestens 5 und maximal 6 Zimmern, einem Budget von CHF 1.1 Mio. in Trimmis, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzug Trimmis (GR) — Umzugsunternehmen",
+          "snippet": "Ihr zuverlässiges Umzugsunternehmen für Trimmis und die ganze Region Region Landquart. Privat- und Firmenumzüge, Packservice, Endreinigung und Möbellift – aus ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003141170",
+          "title": "Wohnung mieten in Trimmis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-24T10:33:41.352Z",
+      "elapsedMs": 1452,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 1,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 0,
+      "pageLimit": 420,
+      "remainingPageBudget": 420,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003141170",
+          "title": "Wohnung mieten in Trimmis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_received",
+      "at": "2026-11-24T10:33:41.353Z",
+      "elapsedMs": 1453,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003141170",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Trimmis",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-24T10:33:41.988Z",
+      "elapsedMs": 2088,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003141170",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 629,
+      "error": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scal",
+      "finalUrl": "www.homegate.ch/mieten/4003141170"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-24T10:33:41.988Z",
+      "elapsedMs": 2088,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003141170",
+      "host": "homegate.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 197,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_extracted",
+      "at": "2026-11-24T10:33:41.992Z",
+      "elapsedMs": 2092,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003141170",
+      "title": "Wohnung mieten in Trimmis",
+      "textChars": 197,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 1,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Trimmis",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-24T10:33:45.847Z",
+      "elapsedMs": 5947,
+      "source": "search",
+      "queryIndex": 2,
+      "queryTotal": 68,
+      "query": "\"Untervaz\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 2,
+      "selectedCount": 2,
+      "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003196829",
+          "title": "Wohnung mieten in Untervaz"
+        },
+        {
+          "accepted": false,
+          "reason": "site_root_not_listing",
+          "host": "flumisimmo.ch",
+          "url": "www.flumisimmo.ch/",
+          "title": "Flumis Immobilien Ag | Untervaz"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "bger.ch",
+          "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+          "title": "1C_434/[phone]"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 bis 4.5 Zimmer | Immobilien zum Mieten in Felsberg (ab ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "DFR - BGer 1C_434/2012 vom [phone]"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Hauswartung Untervaz - Reinigung, Garten & Technik"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Probleme bei der Vermietung von Wohnungen im ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungsbörse"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzug Untervaz (GR) — Umzugsunternehmen"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkünfte für längere Aufenthalte in Valens"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003196829",
+          "title": "Wohnung mieten in Untervaz",
+          "snippet": "3 Treffer - Wohnung mieten in Untervaz ; 1 / 7. CHF 1'905.– · 5.5 · 115m² · 7204 Untervaz ; 1 / 15. CHF 2'390.–. 4.5 · 116m² · Bawangs 19, 7204 Untervaz ; 1 / 13. CHF 2 ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
+          "host": "flumisimmo.ch",
+          "url": "www.flumisimmo.ch/",
+          "title": "Flumis Immobilien Ag | Untervaz",
+          "snippet": "Wir die Flumis Immobilien AG, mit Sitz in Untervaz, sind in der Immobilienentwicklung tätig. Der persönliche Kundenkontakt wird bei uns grossgeschrieben.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "bger.ch",
+          "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+          "title": "1C_434/[phone]",
+          "snippet": "Gemeinde Untervaz, Ulmgasse 1, 7204 Untervaz, vertreten durch Rechtsanwalt Dr. Otmar Bänziger. Gegenstand Baueinsprache, Beschwerde gegen das Urteil vom 3 ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4 bis 4.5 Zimmer | Immobilien zum Mieten in Felsberg (ab ...",
+          "snippet": "Die Angaben zum Objekt stammen vom Eigentümer und dienen einer ersten Information. ... Cosenzstrasse 4, 7204 Untervaz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "DFR - BGer 1C_434/2012 vom [phone]",
+          "snippet": "Sachverhalt: A. Am 10. März 2011 stellte die X.______ AG bei der Gemeinde Untervaz ein Gesuch um Erstellung eines Mehrfamilienhauses auf der Parzelle Nr. 178 ( ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Hauswartung Untervaz - Reinigung, Garten & Technik",
+          "snippet": "Hauswartung in Untervaz ab CHF 50 pro Mieter, digital dokumentiert. Jetzt in wenigen Minuten online eine kostenlose und unverbindliche Offerte anfragen.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Probleme bei der Vermietung von Wohnungen im ...",
+          "snippet": "FA bei der Beat Bernhard GmbH, Untervaz. Ein Stockwerkeigentümer muss sein Nutzungsrecht nicht persönlich ausüben. Dies ist einer der Gründe ...",
+          "date": "20.05.2020",
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungsbörse",
+          "snippet": "Du suchst eine Wohnung, ein Zimmer oder einen Platz in einer Wohngemeinschaft ... 7204 Untervaz. Frei/Verfügbar ab [phone] · Zimmer. Monatspreis in CHF 600.00.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzug Untervaz (GR) — Umzugsunternehmen",
+          "snippet": "Jeder Umzug in Untervaz ist vollständig versichert – ohne versteckte Kosten. Termingenau. Wir halten den vereinbarten Termin ein – pünktlich und zuverlässig.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkünfte für längere Aufenthalte in Valens",
+          "snippet": "Gemütliche Wohnung mit Sitzplatz. Durchschnittliche Bewertung: 4.91 von 5, 246 ... Blockhütte in Untervaz. Eco Alpine Chalet mit HotPot. Durchschnittliche ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003196829",
+          "title": "Wohnung mieten in Untervaz",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "bger.ch",
+          "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+          "title": "1C_434/[phone]",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-24T10:33:45.848Z",
+      "elapsedMs": 5948,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 2,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 1,
+      "pageLimit": 420,
+      "remainingPageBudget": 419,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003196829",
+          "title": "Wohnung mieten in Untervaz",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "bger.ch",
+          "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+          "title": "1C_434/[phone]",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_received",
+      "at": "2026-11-24T10:33:45.848Z",
+      "elapsedMs": 5948,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003196829",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Untervaz",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-24T10:33:46.002Z",
+      "elapsedMs": 6102,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003196829",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 149,
+      "error": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scal",
+      "finalUrl": "www.homegate.ch/mieten/4003196829"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-24T10:33:46.002Z",
+      "elapsedMs": 6102,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003196829",
+      "host": "homegate.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 199,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_extracted",
+      "at": "2026-11-24T10:33:46.004Z",
+      "elapsedMs": 6104,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4003196829",
+      "title": "Wohnung mieten in Untervaz",
+      "textChars": 199,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Untervaz",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_received",
+      "at": "2026-11-24T10:33:46.005Z",
+      "elapsedMs": 6105,
+      "source": "search",
+      "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+      "host": "bger.ch",
+      "title": "1C_434/[phone]",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-24T10:33:46.536Z",
+      "elapsedMs": 6636,
+      "source": "search",
+      "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+      "status": 0,
+      "fetchMode": "direct",
+      "durationMs": 529,
+      "error": "fetch failed",
+      "finalUrl": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-24T10:33:46.536Z",
+      "elapsedMs": 6636,
+      "source": "search",
+      "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+      "host": "bger.ch",
+      "originalFetchStatus": 0,
+      "snippetChars": 181,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_extracted",
+      "at": "2026-11-24T10:33:46.538Z",
+      "elapsedMs": 6638,
+      "source": "search",
+      "url": "www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php",
+      "title": "1C_434/[phone]",
+      "textChars": 181,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Untervaz",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-24T10:33:55.690Z",
+      "elapsedMs": 15790,
+      "source": "search",
+      "queryIndex": 3,
+      "queryTotal": 68,
+      "query": "\"Zizers\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Zizers: 3 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "13 Wohnung mieten in Zizers"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-zizers",
+          "title": "Loft Mieten: Zizers"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Nachmieter gesucht – 2,5-Zimmer-Studio in Zizers (GR)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkunft mieten in Zizers als : 15 Anzeigen - Roomlala"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "im Prättigauerhof – Ihr neues Zuhause in Schiers! An der ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienwohnung - CHEZ ZIZERS - JUICQ, Nouvelle-Aquitaine"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Zizers GR, Neubauprojekt «Hochwang"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "RESIDIEREN IM SCHLOSS ZIZERS. GESCHICHTE ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Haus- & Wohnungsreinigung in Zizers für Ihren Haushalt finden"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Zizers: 3 Inserate",
+          "snippet": "Finden Sie einfach eine Wohnung zur Miete von privat in Zizers ➤ Entdecken Sie 3 Wohnungen für jedes Budget ➤ Geprüfte Inserate ➤ Täglich aktualisiert!",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "13 Wohnung mieten in Zizers",
+          "snippet": "Wohnung mieten in Zizers. Bei homegate.ch findest Du 13 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-zizers",
+          "title": "Loft Mieten: Zizers",
+          "snippet": "Loft Mieten in Zizers: Finden Sie jetzt Ihre Traumimmobilie auf ImmoScout24 - Die Plattform für Immobilien in der Schweiz.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Nachmieter gesucht – 2,5-Zimmer-Studio in Zizers (GR)",
+          "snippet": "Sichtbare Holzbalken, Waschküche. Keine Haustiere. Zizers, ca. 15 Min. nach Chur Miete: CHF 980.– netto Nebenkosten: CHF 150.– ➡️ ...",
+          "date": "vor 8 Monaten",
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Unterkunft mieten in Zizers als : 15 Anzeigen - Roomlala",
+          "snippet": "Zimmer mieten in Zizers : Mieten Sie ein günstiges Zimmer für Studenten, Berufseinsteiger oder einen Kurzaufenthalt. Zimmervermietung monats- oder tageweise ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "im Prättigauerhof – Ihr neues Zuhause in Schiers! An der ...",
+          "snippet": "... Neubauwohnung #Mietwohnung #WohnenInGraubünden #griconag #gricon #remax #immobilien #treuhand #klosters #zizers #ilanz\".",
+          "date": "vor 1 Monat",
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienwohnung - CHEZ ZIZERS - JUICQ, Nouvelle-Aquitaine",
+          "snippet": "CHEZ ZIZERS · Beschreibung · Lokalisierung · Themenbereiche · Einrichtungen · Freizeitbeschäftigungen und Annehmlichkeiten · Optionen · Ihr Gastgeber · Bewertungen.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Zizers GR, Neubauprojekt «Hochwang",
+          "snippet": "Zizers GR Neubauprojekt «Hochwang». Die Überbauung umfasst insgesamt 10 Mietwohnungen, die grosszügig geplant und mit modernsten Geräten ausgestattet sind.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "RESIDIEREN IM SCHLOSS ZIZERS. GESCHICHTE ...",
+          "snippet": "Kontakt und Beratung. Schloss Salis Zizers AG. Vialstrasse [phone] Zizers. [phone] [email] www.schloss-zizers.ch.",
+          "date": "05.07.2021",
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Haus- & Wohnungsreinigung in Zizers für Ihren Haushalt finden",
+          "snippet": "Haushaltsreinigung in Zizers gesucht? ✓ Über 123'800 Reinigungskräfte in der Schweiz ✓ einmalig & regelmässig ➤ Jetzt anmelden und Wohnungsreinigung ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-24T10:33:55.691Z",
+      "elapsedMs": 15791,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 3,
+      "pageLimit": 420,
+      "remainingPageBudget": 417,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-24T10:33:59.230Z",
+      "elapsedMs": 19330,
+      "source": "search",
+      "queryIndex": 4,
+      "queryTotal": 68,
+      "query": "\"Igis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "resultCount": 10,
+      "pickedCount": 0,
+      "selectedCount": 0,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:service_or_aggregator",
+          "host": "rentola.ch",
+          "url": "rentola.ch/listings/rent-a-3-rooms-attic-flat-in-igis-landquart-flatfox-p63555c",
+          "title": "Wohnung mieten in Igis: 3 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/wohnung/ort-igis/ImM1Z0LN",
+          "title": "4.5 Zimmer Wohnung in Igis - Homematch"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-valzeina/trefferliste",
+          "title": "Wohnung mieten mit 4 Zimmern in Valzeina"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "IGIS Apartament z tarasem na dachu, Wohnung Zamosc - Gites.fr"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche einen Nachmieter per [phone] für eine 4.5 ..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Zählung der leer stehenden Wohnungen"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzugsreinigung Igis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in 7233 (Jenaz)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Studio/Zimmer mieten in Bad Ragaz"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Calanda BnB, Igis"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "rentola.ch",
+          "url": "rentola.ch/listings/rent-a-3-rooms-attic-flat-in-igis-landquart-flatfox-p63555c",
+          "title": "Wohnung mieten in Igis: 3 Inserate",
+          "snippet": "Finden Sie einfach eine Wohnung zur Miete von privat in Igis ➤ Entdecken Sie 3 Wohnungen für jedes Budget ➤ Geprüfte Inserate ➤ Täglich aktualisiert!",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "homematch.ch",
+          "url": "homematch.ch/de/mieten/wohnung/ort-igis/ImM1Z0LN",
+          "title": "4.5 Zimmer Wohnung in Igis - Homematch",
+          "snippet": "4.5-Zimmer-Wohnung in Igis, Graubünden mit 95 m² Wohnfläche zu mieten für CHF 2'030/Monat inkl. Lift, Balkon - Jetzt auf Homematch ...",
+          "date": "20.10.2026",
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-valzeina/trefferliste",
+          "title": "Wohnung mieten mit 4 Zimmern in Valzeina",
+          "snippet": "Castaletweg 16, 7206 Landquart. Helle 4.5-Zimmer Wohnung in Igis ab Oktober 2026. Schöne, helle 4.5-Zimmer Wohnung mit direkter und unverbaubarer Aussicht auf ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "IGIS Apartament z tarasem na dachu, Wohnung Zamosc - Gites.fr",
+          "snippet": "Die Unterkunft IGIS Apartament z tarasem na dachu verfügt über Gartenblick und Übernachtungsmöglichkeiten mit einem Balkon und einer Kaffeemaschine, ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Suche einen Nachmieter per [phone] für eine 4.5 ...",
+          "snippet": "Suche einen Nachmieter per [phone] für eine 4.5 Zimmerwohnung in Igis - Haustiere erlaubt - ca. 2100 CHF - 3. OG - für mehr Infos bitte PN.",
+          "date": "vor 1 Jahr",
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Zählung der leer stehenden Wohnungen",
+          "snippet": "Wir ersuchen daher alle Eigentümer ... Juni 2024 per Post oder per Email ([email]) dem Bauamt Landquart, Postfach 15, 7206 Igis zu melden.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Umzugsreinigung Igis",
+          "snippet": "Ziehen Sie in Igis um? Wir reinigen Ihre alte Wohnung besenrein bis in den letzten Winkel, mit Abnahmegarantie gegenüber der Verwaltung. StandorteLandquart GR · ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in 7233 (Jenaz)",
+          "snippet": "In wenigen Gehminuten erreichen Sie den Bahnhof Igis, von wo aus Sie mit der RhB nach Landquart gelangen. Im nahegelegenen Dorfkern von Landquart befinden ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Studio/Zimmer mieten in Bad Ragaz",
+          "snippet": "Gandastrasse 13, 7206 Igis. Miete CHF/Monat. 799.–. Wohnfläche. 22 m. Zur Merkliste hinzufügen. 1 Zimmer Studio. Sabarra 12, 9479 Oberschan. Miete CHF/Monat.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Calanda BnB, Igis",
+          "snippet": "Igis ist der ideale Ausgangspunkt für Ausflüge im nebelfreien Graubünden: Wander- und Skigebiete, Golfplätze, Reiten, Velofahren, Thermalbad! Unterkunft: ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-24T10:33:59.231Z",
+      "elapsedMs": 19331,
+      "source": "search",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 0,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 0,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 3,
+      "pageLimit": 420,
+      "remainingPageBudget": 417,
+      "candidateUrls": []
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-24T10:34:04.040Z",
+      "elapsedMs": 24140,
+      "source": "portal-homegate",
+      "queryIndex": 5,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Trimmis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "resultCount": 10,
+      "pickedCount": 1,
+      "selectedCount": 1,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-trimmis/trefferliste",
+          "title": "Wohnung mieten in Trimmis"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003290511",
+          "title": "Wohnung mieten in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:for_sale",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/kaufen/wohnung/ort-trimmis/trefferliste",
+          "title": "Wohnung kaufen in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "stillvoll renovierte 4.5 Zimmer-Wohnung in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung zum Mieten in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 4 Zimmern in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien in 7203 (Trimmis) kaufen"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 2 Zimmern in Trimmis"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 5 Zimmern in Trimmis"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-trimmis/trefferliste",
+          "title": "Wohnung mieten in Trimmis",
+          "snippet": "Diese schöne 4.5-Zimmer-Wohnung befindet sich in Grüsch an zentraler Lage ... Diese tolle 3.5-Zimmer-Wohnung mit 65 m² Wohnfläche bietet Ihnen zudem ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003290511",
+          "title": "Wohnung mieten in Trimmis",
+          "snippet": "Diese moderne 4.5 Zimmer Etagenwohnung in Trimmis begeistert mit hochwertigem Innenausbau im Eigentumsstandard und einheitlichen Parkettböden. Die moderne ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/kaufen/wohnung/ort-trimmis/trefferliste",
+          "title": "Wohnung kaufen in Trimmis",
+          "snippet": "Einziehen und wohlfühlen - stillvoll renovierte 4.5 Zimmer-Wohnung in Trimmis ... Einzigartige 3.5 Zimmer-Terrassenwohnung mit 40m² Sonnenterrasse und traumhafter ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Trimmis",
+          "snippet": "Schöne, helle 4.5-Zimmer Wohnung mit direkter und ... Willkommen in dieser grosszügigen und hellen 3.5-Zimmer-Wohnung im 5. ... Exklusive 4- Zimmer-Wohnung im ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "stillvoll renovierte 4.5 Zimmer-Wohnung in Trimmis",
+          "snippet": "Wohnung in Trimmis für CHF 970000 zu verkaufen: Diese attraktive 4.5 Zimmer-Wohnung im 1. Obergeschoss eines Mehrfamilienhauses aus dem Jahr 2012 überzeugt ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Dachwohnung zum Mieten in Trimmis",
+          "snippet": "4.5 Zimmer110m² Wohnfläche. Aeuli 12, 7304 ... Ankommen und wohlfühlen: Helle 3.5-Zimmer-Dachwohnung in Felsberg ... Immobilien mieten Trimmis|Haus mieten Trimmis| ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 4 Zimmern in Trimmis",
+          "snippet": "Trimmis - Immobilien mieten mit 4 Zimmern ... Fontanastrasse 15, 7000 Chur. 4.5-Zimmer-Wohnung. WOHNUNG ... November 2026 eine schöne 4 Zimmer-Wohnung im 3.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien in 7203 (Trimmis) kaufen",
+          "snippet": "Einziehen und wohlfühlen - stillvoll renovierte 4.5 Zimmer-Wohnung in Trimmis ... 4 Zimmer - Immobilien kaufen: 7203 (Trimmis)|5 zimmer und mehr ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten mit 2 Zimmern in Trimmis",
+          "snippet": "Immobilien mieten Trimmis|Haus mieten Trimmis|Möbliertes Wohnobjekt mieten Trimmis ... 4 Zimmer - Wohnung mieten: Trimmis|5 zimmer und mehr - Wohnung mieten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten mit 5 Zimmern in Trimmis",
+          "snippet": "Wohnung mieten Trimmis|Haus mieten Trimmis|Möbliertes Wohnobjekt mieten Trimmis ... mieten: Trimmis|4 Zimmer - Immobilien mieten: Trimmis. Homegate. Über uns ...",
+          "date": null,
+          "selected": false
+        }
+      ],
+      "selected": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003290511",
+          "title": "Wohnung mieten in Trimmis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-24T10:34:04.040Z",
+      "elapsedMs": 24140,
+      "source": "portal-homegate",
+      "rawHits": 10,
+      "pickedBeforeCrossQueryDedupe": 1,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "maxCandidatesPerQuery": 6,
+      "processedItemsBefore": 3,
+      "pageLimit": 420,
+      "remainingPageBudget": 417,
+      "candidateUrls": [
+        {
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4003290511",
+          "title": "Wohnung mieten in Trimmis",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_received",
+      "at": "2026-11-24T10:34:04.040Z",
+      "elapsedMs": 24140,
+      "source": "portal-homegate",
+      "url": "www.homegate.ch/mieten/4003290511",
+      "host": "homegate.ch",
+      "title": "Wohnung mieten in Trimmis",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-24T10:34:04.463Z",
+      "elapsedMs": 24563,
+      "source": "portal-homegate",
+      "url": "www.homegate.ch/mieten/4003290511",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 417,
+      "error": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scal",
+      "finalUrl": "www.homegate.ch/mieten/4003290511"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-24T10:34:04.463Z",
+      "elapsedMs": 24563,
+      "source": "portal-homegate",
+      "url": "www.homegate.ch/mieten/4003290511",
+      "host": "homegate.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 184,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "7916776b-19cb-4b1e-b3c7-4334368787ca",
+      "event": "candidate_extracted",
+      "at": "2026-11-24T10:34:04.463Z",
+      "elapsedMs": 24563,
+      "source": "portal-homegate",
+      "url": "www.homegate.ch/mieten/4003290511",
+      "title": "Wohnung mieten in Trimmis",
+      "textChars": 184,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Trimmis",
+      "rooms": 4.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    }
+  ],
+  "result": {
+    "counts": {},
+    "filtered": {},
+    "errors": [
+      {
+        "source": "",
+        "code": "run_failed",
+        "detail": "duplicate key value violates unique constraint \"immofinder_listings_canonical_key_key\""
+      }
+    ],
+    "sourceStats": [],
+    "wavesRun": [],
+    "preview": []
+  }
+}
