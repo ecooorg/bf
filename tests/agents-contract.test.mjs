@@ -203,7 +203,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
 
 test('P128.4 pipeline reports live progress with stage, text and counters', async () => {
   const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['q {commune}'] }, sources: [{ id: 'h', url: 'https://h.example/area/', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
-  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer Wohnung zu vermieten. Inseriert am: 20.11.2026. Mietzins CHF 1\'100 pro Monat.</p>') };
+  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer Wohnung zu vermieten. Inseriert am: 20.11.2026. Mietzins CHF 1\'100 pro Monat. Kontakt Vermieter: +41 79 123 45 67. Helle Räume mit Balkon, Küche, Bad, Kellerabteil und ruhiger Lage.</p>') };
   const ev = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
   await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 404, body: '' }), llm: null, store, search: async () => [], onProgress: (e) => { ev.push(e); if (ev.length === 2) throw new Error('progress must not break runs'); } }, { dryRun: true });
