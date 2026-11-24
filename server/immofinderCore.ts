@@ -431,7 +431,7 @@ export function nonListingReason(title: string, url: string, portalHosts: string
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
   try {
     const host = new URL(url).hostname.replace(/^www\./, '');
-    if (/(^|\.)(moving24\.ch|umzugsfirma-buchen\.ch|rentumo\.ch|umzug[^/]*\.ch)$/i.test(host)) return 'service_or_aggregator';
+    if (/(^|\.)(moving24\.ch|umzugsfirma-buchen\.ch|rentumo\.ch|umzug[^/]*\.ch|rentola\.ch|trovit\.[a-z]+|feriwa\.ch)$/i.test(host)) return 'service_or_aggregator';
     if (/\bumzug|moving\s*company|offerten?\s*vergleich|stündlich\s*\d+\s*mietportale/i.test(t)) return 'service_or_aggregator';
     if (/\/(zuerich|zurich|zürich|bern|basel|luzern|lucerne|genf|geneva|genève)\b/i.test(url)) return 'list_or_search_page';
   } catch { /* ignore */ }
