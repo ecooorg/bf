@@ -702,13 +702,13 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
     const executeQueuedRun = async (job: any, workerId: string, leaseLost: () => boolean) => {
     const runId = String(job.id);
-    const progress = job.progress && typeof job.progress === 'object' ? job.progress : {};
+    const progress = job.progress && typeof job.progress === 'object' ? { ...job.progress } : {};
     const settings = progress.settingsSnapshot || await getSettings(loadImmoConfig());
     const wave: 'carousel' | 'full' = progress.wave === 'full' ? 'full' : 'carousel';
     const dryRun = Boolean(job.dry_run);
     if (job.cancel_requested) {
       markRunCancelLocal(runId);
-      await finishRunCancelled(runId, progress.counts || {}, workerId);
+      await finishRunCancelled(runId, { ...(progress.counts || {}), filtered: progress.filtered || {}, sourceStats: progress.sourceStats || [] }, workerId);
       return;
     }
 
@@ -719,7 +719,21 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         void saveWorkerProgress(runId, workerId, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
       };
       push(ev, true);
-      const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; let pipelineCompleted = false; const delivery: Record<string, string> = {};
+      const errors: unknown[] = [];
+      let result = null as Awaited<ReturnType<typeof runPipeline>> | null;
+      let pipelineCompleted = false;
+      const delivery: Record<string, string> = { ...((progress.deliveryResults && typeof progress.deliveryResults === 'object') ? progress.deliveryResults : {}) };
+      const deliveryCompleted = new Set<string>(Array.isArray(progress.deliveryCompleted) ? progress.deliveryCompleted.filter((v: unknown): v is string => typeof v === 'string') : []);
+      const waveAListingIds = new Set<string>(Array.isArray(progress.waveAListingIds) ? progress.waveAListingIds.filter((v: unknown): v is string => typeof v === 'string') : []);
+      const runStartedAtMs = new Date(job.started_at).getTime();
+      const persistDelivery = async (key: string, status: string) => {
+        delivery[key] = status;
+        deliveryCompleted.add(key);
+        const patch = { deliveryResults: { ...delivery }, deliveryCompleted: [...deliveryCompleted] };
+        const saved = await saveWorkerProgress(runId, workerId, patch);
+        if (!saved) throw new Error('worker_lease_lost_while_saving_delivery');
+        Object.assign(progress, patch);
+      };
       try {
         immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot before run');
         const cfg = applySettings(loadImmoConfig(), settings);
@@ -728,45 +742,97 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
           const label = immofinderWaveLabel(wave);
           const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
-          const newKeys = new Set(newInWave.map((l) => l.canonical_key));
-          const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
-          // emailContent: 'new' = only this wave; 'all' = every visible listing (setting in Delivery).
+          const runNew = all.filter((row: any) => {
+            const firstSeen = new Date(row.first_seen_at).getTime();
+            return Number.isFinite(firstSeen) && firstSeen >= runStartedAtMs;
+          });
+          const fallbackKeys = new Set(newInWave.map((row) => row.canonical_key));
+          const candidates = runNew.length ? runNew : all.filter((row: any) => fallbackKeys.has(row.canonical_key));
+          const fresh = wave === 'extended'
+            ? candidates.filter((row: any) => !waveAListingIds.has(String(row.id)))
+            : candidates;
           const emailAllMode = dl.emailContent === 'all';
           const emailRows = emailAllMode ? all : fresh;
           const notifyTelegram = fresh.length > 0 || dl.notifyWhenEmpty;
           const notifyEmail = emailRows.length > 0 || dl.notifyWhenEmpty;
-          push({ stage: 'delivery', text: `${label}: email=${emailAllMode ? `all ${emailRows.length}` : `${fresh.length} new`} · telegram=${fresh.length} new`, counts }, true);
-          if (dl.drive) {
-            const d = await exportDrive(all, driveFolder(dl.driveFolderId));
-            delivery.drive = d.status;
-            if (d.url) delivery.driveUrl = d.url;
-            delivery[`${wave}_drive`] = d.status;
-          } else delivery.drive = 'off';
           const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
+          push({ stage: 'delivery', text: `${label}: email=${emailAllMode ? `all ${emailRows.length}` : `${fresh.length} new`} · telegram=${fresh.length} new`, counts }, true);
+
+          if (dl.drive) {
+            const key = `${wave}:drive`;
+            if (deliveryCompleted.has(key)) delivery.drive = delivery[`${wave}_drive`] || 'already exported';
+            else {
+              try {
+                const d = await exportDrive(all, driveFolder(dl.driveFolderId));
+                if (d.url) delivery.driveUrl = d.url;
+                delivery[`${wave}_drive`] = d.status;
+                delivery.drive = d.status;
+                await persistDelivery(key, d.status);
+              } catch (e) {
+                const detail = String((e as Error)?.message || e).slice(0, 160);
+                delivery[`${wave}_drive`] = `error: ${detail}`;
+                errors.push({ code: `${wave}_drive_delivery_failed`, detail });
+              }
+            }
+          } else delivery.drive = 'off';
+
           if (dl.telegram) {
-            delivery[`${wave}_telegram`] = notifyTelegram
-              ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
-              : 'skipped: nothing new';
-            delivery.telegram = delivery[`${wave}_telegram`];
+            const key = `${wave}:telegram`;
+            if (deliveryCompleted.has(key)) delivery.telegram = delivery[`${wave}_telegram`] || 'already sent';
+            else {
+              try {
+                const status = notifyTelegram
+                  ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
+                  : 'skipped: nothing new';
+                delivery[`${wave}_telegram`] = status;
+                delivery.telegram = status;
+                await persistDelivery(key, status);
+              } catch (e) {
+                const detail = String((e as Error)?.message || e).slice(0, 160);
+                delivery[`${wave}_telegram`] = `error: ${detail}`;
+                errors.push({ code: `${wave}_telegram_delivery_failed`, detail });
+              }
+            }
           } else delivery.telegram = 'off';
+
           if (dl.email && dl.emailTo) {
-            delivery[`${wave}_email`] = notifyEmail
-              ? await sendEmail(
-                dl.emailTo,
-                emailAllMode
-                  ? `ImmoFinder ${label}: all ${emailRows.length} listings (${fresh.length} new in wave)`
-                  : `ImmoFinder ${label}: ${fresh.length} new listings`,
-                formatListingsText(emailRows, {
-                  heading: emailAllMode
-                    ? `${head}\nAll current listings (${emailRows.length}), newest first:`
-                    : head,
-                  limit: emailAllMode ? 60 : 30,
-                  driveUrl: delivery.driveUrl,
-                }),
-              )
-              : (emailAllMode ? 'skipped: no listings' : 'skipped: nothing new');
-            delivery.email = delivery[`${wave}_email`];
+            const key = `${wave}:email`;
+            if (deliveryCompleted.has(key)) delivery.email = delivery[`${wave}_email`] || 'already sent';
+            else {
+              try {
+                const status = notifyEmail
+                  ? await sendEmail(
+                    dl.emailTo,
+                    emailAllMode
+                      ? `ImmoFinder ${label}: all ${emailRows.length} listings (${fresh.length} new in wave)`
+                      : `ImmoFinder ${label}: ${fresh.length} new listings`,
+                    formatListingsText(emailRows, {
+                      heading: emailAllMode
+                        ? `${head}\nAll current listings (${emailRows.length}), newest first:`
+                        : head,
+                      limit: emailAllMode ? 60 : 30,
+                      driveUrl: delivery.driveUrl,
+                    }),
+                  )
+                  : (emailAllMode ? 'skipped: no listings' : 'skipped: nothing new');
+                delivery[`${wave}_email`] = status;
+                delivery.email = status;
+                await persistDelivery(key, status);
+              } catch (e) {
+                const detail = String((e as Error)?.message || e).slice(0, 160);
+                delivery[`${wave}_email`] = `error: ${detail}`;
+                errors.push({ code: `${wave}_email_delivery_failed`, detail });
+              }
+            }
           } else delivery.email = 'off';
+
+          if (wave === 'priority' || wave === 'carousel') {
+            for (const row of candidates) waveAListingIds.add(String(row.id));
+            const patch = { waveAListingIds: [...waveAListingIds], deliveryResults: { ...delivery }, deliveryCompleted: [...deliveryCompleted] };
+            const saved = await saveWorkerProgress(runId, workerId, patch);
+            if (!saved) throw new Error('worker_lease_lost_while_saving_wave_delivery');
+            Object.assign(progress, patch);
+          }
         };
         result = await runPipeline({
           config: cfg,
@@ -777,6 +843,20 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           maxLlmCalls: settings.search.maxAiPages,
           search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
           cycle: Number(progress.cycle ?? 0),
+          resume: {
+            completedQueryKeys: Array.isArray(progress.completedQueryKeys) ? progress.completedQueryKeys : [],
+            discoveryProcessedItems: Number(progress.discoveryProcessedItems) || 0,
+            counts: progress.counts && typeof progress.counts === 'object' ? progress.counts : {},
+            filtered: progress.filtered && typeof progress.filtered === 'object' ? progress.filtered : {},
+            sourceStats: Array.isArray(progress.sourceStats) ? progress.sourceStats : [],
+            wavesRun: Array.isArray(progress.wavesRun) ? progress.wavesRun : [],
+          },
+          onCheckpoint: async (checkpoint) => {
+            const patch = { ...checkpoint, checkpointAt: new Date().toISOString() };
+            const saved = await saveWorkerProgress(runId, workerId, patch);
+            if (!saved) throw new Error('worker_lease_lost_before_query_checkpoint');
+            Object.assign(progress, patch);
+          },
           shouldCancel: () => isRunCancelled(runId) || workerStopping || leaseLost(),
           onWaveComplete: dryRun ? undefined : async ({ wave, newInWave, counts }) => {
             try { await deliverWave(wave, newInWave, counts); }
@@ -807,9 +887,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         } catch (diagError) {
           immoLog('warn', 'search_quality_summary_failed', { runId, error: String((diagError as Error)?.message || diagError).slice(0, 120) });
         }
-        // Safety net: if waves produced nothing and notifyWhenEmpty, still one summary delivery
-        if (!dryRun && dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
-          await deliverWave('extended', [], result.counts);
+        const rowsSinceRunStart = (await listListingsForRefresh()).filter((row: any) => {
+          if (row.hidden) return false;
+          const firstSeen = new Date(row.first_seen_at).getTime();
+          return Number.isFinite(firstSeen) && firstSeen >= runStartedAtMs;
+        });
+        if (result) {
+          result.counts.new = rowsSinceRunStart.length;
+          result.newListings = rowsSinceRunStart as any;
+        }
+        if (!dryRun && dl.notifyWhenEmpty && rowsSinceRunStart.length === 0) {
+          await deliverWave('extended', [], result?.counts ?? {});
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
       if (leaseLost()) return;
@@ -818,20 +906,13 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         return;
       }
       try {
-        if (isRunCancelled(runId)) await finishRunCancelled(runId, result?.counts ?? {}, workerId);
+        if (isRunCancelled(runId)) await finishRunCancelled(runId, { ...(result?.counts ?? progress.counts ?? {}), filtered: result?.filtered ?? progress.filtered ?? {}, sourceStats: result?.sourceStats ?? progress.sourceStats ?? [] }, workerId);
         else await finishRun(runId, result, errors, delivery, workerId);
       } catch { /* lease expiry lets another process recover the run */ }
       const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
       const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
-      try {
-        await saveWorkerProgress(runId, workerId, {
-          stage: 'done',
-          text: `${result?.errors?.some((e) => e.code === 'cancelled') || isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub diagnostics ${diagnosticsStatus} · snapshot ${snapshotStatus}`,
-          counts: result?.counts ?? {},
-          log,
-        });
-        clearRunCancel(runId!);
-      } catch { /* progress is best-effort; snapshot is already handled */ }
+      clearRunCancel(runId!);
+      immoLog('info', 'immofinder_worker_run_finalized', { runId, diagnosticsStatus, snapshotStatus, counts: result?.counts ?? {} });
 
   };
   // PostgreSQL-backed queue consumer; expired leases are recovered by the next app process.
@@ -851,7 +932,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           void renewRunLease(String(job.id), workerId).then((cancelled) => {
             if (cancelled === null) leaseLost = true;
             else if (cancelled) markRunCancelLocal(String(job.id));
-          }).catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_heartbeat_failed', runId: job.id, error: String((error as Error)?.message || error).slice(0, 120) })));
+          }).catch((error) => {
+            leaseLost = true;
+            console.warn(JSON.stringify({ type: 'immofinder_worker_heartbeat_failed', runId: job.id, leaseLost: true, error: String((error as Error)?.message || error).slice(0, 120) }));
+          });
         }, 10_000);
         heartbeat.unref();
         active = (async () => {
@@ -869,7 +953,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     stopImmoFinderWorkerImpl = async () => {
       workerStopping = true;
       clearInterval(timer);
-      if (active) await Promise.race([active, new Promise((resolve) => setTimeout(resolve, 8_000))]);
+      if (active) await Promise.race([active, new Promise((resolve) => setTimeout(resolve, 20_000))]);
     };
     console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 2_000 }));
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));

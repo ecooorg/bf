@@ -1,3 +1,6 @@
+# P130.18a — ImmoFinder run continuity
+- **OBSERVED:** query-level checkpoints and durable delivery state are implemented in source.
+- **NOT_RUN:** recovery during an actual deploy, duplicate-notification acceptance, completed listing yield and user task outcome.
 # P130.18 — ImmoFinder search evidence
 - **OBSERVED:** the interrupted baseline yielded zero admitted listings; 162/190 search links were Google redirects and several portal pages returned 403 or empty text.
 - **INFERRED:** resolving links and rendering client-side pages should increase verifiable detail-page evidence without admitting snippets.

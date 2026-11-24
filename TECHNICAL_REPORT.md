@@ -1,3 +1,7 @@
+## P130.18a — Durable query checkpoints
+- **OBSERVED:** P130.17d recovers PostgreSQL run leases but restarts the query plan from its beginning after process replacement.
+- **CHANGE:** Persist completed-query keys, discovery page budget, cumulative counters and delivery acknowledgements; retry only incomplete queries and fail closed on lease loss.
+- **NOT_RUN:** hosted recovery during an actual deploy and live listing yield pending.
 ## P130.18 — Hosted verification
 - **OBSERVED:** Core CI `45468379261` passed on `7c245d5`; Render deploy `dep-dc2u4sijnfac73d5mogg` is live. Migration `029` is applied and the durable worker started; no worker poll errors were observed.
 - **NOT_RUN:** a live search using `/resolve` and Playwright fallback, recovery of an actively running search during deploy, and user-visible listing outcome.

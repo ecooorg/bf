@@ -1,3 +1,6 @@
+## P130.18a — ImmoFinder recovery reliability
+- Query-level resume, cumulative progress and delivery acknowledgements; recovery under an actual production deploy remains NOT_VERIFIED.
+
 ## P130.18 — Search evidence retrieval
 - Added measured remediation for Google redirect URLs and JavaScript-rendered portal pages; real listing yield remains NOT_VERIFIED pending a completed live search.
 

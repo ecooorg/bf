@@ -1,3 +1,5 @@
+## P130.18a — Resume ImmoFinder searches after process replacement
+- Persist completed-query keys, cumulative evidence counters and delivery acknowledgements; retry only incomplete queries without relaxing listing verification.
 ## P130.18 — Resolve Serper redirects and JS-rendered rental pages
 - Resolve Google `/goto` results through Serper `/resolve`; add bounded public-target-checked browser rendering for empty/challenged detail pages without relaxing evidence gates.
 ## P130.17d — Durable ImmoFinder worker

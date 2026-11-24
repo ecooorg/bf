@@ -2805,7 +2805,7 @@ async function start() {
     if (shuttingDown) return;
     shuttingDown = true;
     stopKeepAlive?.();
-    const force = setTimeout(() => process.exit(0), 10_000);
+    const force = setTimeout(() => process.exit(0), 25_000);
     force.unref();
     try { await stopImmoFinderWorker(); } catch (e) { console.error('ImmoFinder worker stop failed', e); }
     try { if (projectWorker) await projectWorker.stop(); } catch (e) { console.error('Project worker stop failed', e); }

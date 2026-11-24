@@ -681,3 +681,83 @@ test('P130.3 ImmoFinder GitHub publishing uses a repository-scoped contents:writ
   assert.match(app422.message, /github_app_contents_write_token_http_422_resource_not_accessible_by_integration_request_REQ-APP-422/);
   assert.doesNotMatch(app422.message, /bootstrap-token|repo-scoped-token|privateKey/);
 });
+
+
+test('P130.18a PostgreSQL query checkpoints resume completed work and retry only failed queries', async () => {
+  const { buildTrustSearchPlan } = await import('../server/immofinderTrustEngine.ts');
+  const cfg = {
+    ...immoCfg,
+    municipalities: ['Chur'],
+    sources: [],
+    discovery: {
+      ...immoCfg.discovery,
+      enabled: true,
+      communesPerRun: 1,
+      queries: ['template one', 'template two'],
+      portalQueries: [],
+      fallbackPortalQueries: [],
+      resultsPerQuery: 10,
+      maxPagesPerRun: 10,
+      serperMinIntervalMs: 1,
+    },
+  };
+  const plan = buildTrustSearchPlan({
+    municipalities: ['Chur'], communeLimit: 1, privateTemplateCount: 2, portalQueryTemplates: [],
+  }, 0, { allCommunes: false, families: ['private'] });
+  const makeStore = () => ({
+    findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new',
+    getSeen: async () => null, markSeen: async () => {},
+  });
+  const firstCalls = [];
+  const checkpoints = [];
+  const first = await runPipeline({
+    config: cfg, fetchPage: async () => ({ ok: false, status: 404, body: '' }), llm: null, store: makeStore(),
+    search: async (query) => {
+      firstCalls.push(query);
+      if (query === plan[0]) throw new Error('temporary search outage');
+      return [];
+    },
+    cycle: 0,
+    onCheckpoint: async (checkpoint) => { checkpoints.push(checkpoint); },
+  }, { dryRun: true, wave: 'carousel' });
+  assert.deepEqual(firstCalls, plan);
+  assert.equal(first.counts.search_queries, 2);
+  const saved = checkpoints.at(-1);
+  assert.deepEqual(saved.completedQueryKeys, [plan[1]], 'failed query is not checkpointed as complete');
+
+  const resumedCalls = [];
+  const resumed = await runPipeline({
+    config: cfg, fetchPage: async () => ({ ok: false, status: 404, body: '' }), llm: null, store: makeStore(),
+    search: async (query) => { resumedCalls.push(query); return []; },
+    cycle: 0,
+    resume: saved,
+    onCheckpoint: async (checkpoint) => { checkpoints.push(checkpoint); },
+  }, { dryRun: true, wave: 'carousel' });
+  assert.deepEqual(resumedCalls, [plan[0]], 'completed query is skipped, failed query is retried');
+  assert.equal(resumed.counts.search_queries, 3, 'attempt counters survive worker replacement');
+  assert.deepEqual(checkpoints.at(-1).completedQueryKeys, plan);
+});
+
+test('P130.18a durable ImmoFinder worker leases, checkpoints, delivery acknowledgements and shutdown are wired', () => {
+  const routes = read('server/immofinderRoutes.ts');
+  const store = read('server/immofinderStore.ts');
+  const server = read('server.ts');
+  const pipeline = read('server/immofinderPipeline.ts');
+  assert.match(routes, /claimNextRun\(workerId\)/);
+  assert.match(routes, /renewRunLease\(String\(job\.id\), workerId\)/);
+  assert.match(routes, /onCheckpoint: async \(checkpoint\)/);
+  assert.match(routes, /completedQueryKeys: Array\.isArray\(progress\.completedQueryKeys\)/);
+  assert.match(routes, /discoveryProcessedItems: Number\(progress\.discoveryProcessedItems\)/);
+  assert.match(routes, /deliveryCompleted/);
+  assert.match(routes, /waveAListingIds/);
+  assert.match(routes, /releaseRunForRetry\(String\(job\.id\), workerId/);
+  assert.match(routes, /leaseLost = true/);
+  assert.match(store, /FOR UPDATE SKIP LOCKED/);
+  assert.match(store, /attempts < 12/);
+  assert.match(store, /return Number\(r\.rowCount \|\| 0\) > 0/);
+  assert.match(pipeline, /completedQueryKeys\.has\(q\)/);
+  assert.match(pipeline, /discoveryProcessedItems = processedItems/);
+  assert.match(pipeline, /deps\.onCheckpoint/);
+  assert.match(server, /await stopImmoFinderWorker\(\)/);
+  assert.match(server, /process\.exit\(0\), 25_000/);
+});

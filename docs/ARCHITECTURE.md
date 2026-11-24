@@ -1,6 +1,13 @@
 ## ImmoFinder evidence-first admission
 - Search queries are generated from rental intent; listing facts come only from the fetched detail page, not SERP snippets or an LLM.
 - The final gate requires matching URL, rental status, page-sourced rooms, CHF/month rent, fresh publication date and advertiser-labelled direct contact; unknown evidence fails closed.
+
+## ImmoFinder durable run execution
+- The immofinder_runs table is the PostgreSQL queue authority; workers claim one row with SKIP LOCKED and an expiring lease renewed by heartbeat.
+- The run row snapshots settings, wave and cycle. Progress stores completed query keys, cumulative counts/source stats, delivery acknowledgements and cancellation state.
+- A query is checkpointed only after its candidates are processed; after process replacement, completed queries are skipped and incomplete/failed queries are retried. Listing writes remain idempotent by URL/canonical key.
+- SIGTERM stops new claims, requests a bounded drain, and releases the active lease for recovery; manual cancellation is persisted in PostgreSQL and retains final counters.
+
 # Architecture and Component Boundaries
 
 **Authority:** Product and behavior requirements are in `../TECHNICAL_SPECIFICATION.md`. This file records architectural constraints and implementation landmarks; it must not redefine user-facing behavior.

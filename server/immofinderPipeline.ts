@@ -40,6 +40,10 @@ export interface PipelineDeps {
   reverseImageSearch?: (imageUrl: string) => Promise<SearchHit[]>;
   /** When true, the pipeline stops between items and returns what it has. */
   shouldCancel?: () => boolean;
+  /** PostgreSQL-persisted state restored after a worker/process replacement. */
+  resume?: PipelineResumeState;
+  /** Persist a query checkpoint only after its candidates have been fully processed. */
+  onCheckpoint?: (checkpoint: PipelineResumeState) => void | Promise<void>;
   /**
    * Called after the priority wave (high-value catalogues, ~first 10 min) with listings found in that wave.
    * Used to push an early delivery (UI / Drive / email) before the extended wave continues.
@@ -71,6 +75,16 @@ export interface RunResult {
   sourceStats?: SourceStats[];
   /** Which wave(s) actually ran. */
   wavesRun?: ('priority' | 'extended' | 'carousel')[];
+}
+
+/** Durable recovery state; a query is complete only after all its candidates were processed. */
+export interface PipelineResumeState {
+  completedQueryKeys?: string[];
+  discoveryProcessedItems?: number;
+  counts?: Record<string, number>;
+  filtered?: Record<string, number>;
+  sourceStats?: SourceStats[];
+  wavesRun?: RunResult['wavesRun'];
 }
 
 const MIN_DIRECT_PAGE_TEXT_CHARS = 120;
@@ -118,7 +132,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const diag = (event: string, details: Record<string, unknown> = {}) => { try { console.info(JSON.stringify({ type: 'immofinder_trace', traceId: diagnosticRunId, event, at: new Date(now()).toISOString(), elapsedMs: Math.max(0, now() - diagnosticStartedAt), ...details })); } catch { /* diagnostics must never affect search */ } };
   diag('run_started', { wave: opts.wave || 'full', dryRun: opts.dryRun, municipalities: cfg.municipalities, minRooms: cfg.minRooms, discoveryEnabled: Boolean(cfg.discovery?.enabled), privateQueryTemplates: cfg.discovery?.queries?.length || 0, portalQueryTemplates: cfg.discovery?.portalQueries?.length || 0, maxCandidatesPerQuery: cfg.discovery?.maxCandidatesPerQuery ?? 4, pageLimit: cfg.discovery?.maxPagesPerRun ?? null, runMaxDurationMs: cfg.runMaxDurationMs ?? null, factExtractor: 'deterministic_page_only', llmEnabled: false, searchEnabled: Boolean(deps.search), sourceCount: cfg.sources.length });
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
-  const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
+  const resume = deps.resume || {};
+  const res: RunResult = {
+    counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0, ...(resume.counts || {}) },
+    filtered: { ...(resume.filtered || {}) }, errors: [], newListings: [], preview: [], estCostUsd: 0,
+    sourceStats: [], wavesRun: [...(resume.wavesRun || [])],
+  };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
   /** Communes for the current carousel tick — attached to every progress event for the UI title. */
   let carouselCommunesSlot: string[] = [];
@@ -134,7 +153,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   /** Active wave deadline (priority wave tightens this to ~10 min). */
   let waveDeadline = runDeadline;
   const timeLeft = () => Math.min(runDeadline, waveDeadline) - (deps.now ?? Date.now)();
-  const sourceStatMap = new Map<string, SourceStats>();
+  const sourceStatMap = new Map<string, SourceStats>((resume.sourceStats || []).map((stat) => [stat.id, { ...stat }]));
   const getStat = (id: string): SourceStats => {
     let s = sourceStatMap.get(id);
     if (!s) { s = { id, queries: 0, hits: 0, candidates: 0, fetched: 0, llm: 0, kept: 0, new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0 }; sourceStatMap.set(id, s); }
@@ -731,6 +750,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
   /** Run discovery search queries. `discoveryQueryOffset` skips already-run queries in full mode so priority+extended do not repeat. */
   let discoveryQueryOffset = 0;
+  let discoveryProcessedItems = Math.max(0, Number(resume.discoveryProcessedItems) || 0);
+  const completedQueryKeys = new Set((resume.completedQueryKeys || []).filter((key): key is string => typeof key === 'string'));
   const serperMinIntervalMs = Math.max(0, Number(cfg.discovery?.serperMinIntervalMs ?? 1500) || 1500);
   const serperMaxPerMinute = Math.max(1, Number(cfg.discovery?.serperMaxPerMinute ?? 40) || 40);
   const serperTimestamps: number[] = [];
@@ -775,9 +796,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
     let qi = 0;
     let consecutiveSearchFails = 0;
-    let processedItems = 0;
+    let processedItems = discoveryProcessedItems;
     const processedUrls = new Set<string>();
     const pageLimit = maxPages ?? (finishAll ? Math.max(d.maxPagesPerRun, 80) : d.maxPagesPerRun);
+    if (processedItems >= pageLimit) { diag('discovery_stopped_page_limit', { processedItems, pageLimit, queryOffset: discoveryQueryOffset }); return; }
     diag('discovery_plan', { wave: waveMode, finishAll, coverAllCommunes: coverAll, cycle: deps.cycle ?? 0, selectedCommunes: coverAll ? cfg.municipalities : communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0), queryCountTotal: qs.length, queryOffset: discoveryQueryOffset, queryCountThisWave: Math.max(0, qs.length - discoveryQueryOffset), maxCandidatesPerQuery, pageLimit, resultsPerQuery: d.resultsPerQuery, serperMinIntervalMs, serperMaxPerMinute, queryFamilies: families });
     const communeHint = waveMode === 'carousel' && carouselCommunesSlot.length
       ? ` [${carouselCommunesSlot.join(', ')}]`
@@ -811,6 +833,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         res.counts.sources++;
         await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly, municipalityHint: currentQueryMunicipality, expandableIndex: Boolean((i as any).expandableIndex) })), remaining);
         processedItems += Math.min(items.length, remaining);
+        discoveryProcessedItems = processedItems;
       }
     };
     for (const q of slice) {
@@ -821,6 +844,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (deps.shouldCancel?.()) break;
       currentQueryMunicipality = cfg.municipalities.find((m) => q.toLowerCase().includes(m.toLowerCase())) || null;
       currentSourceId = sourceIdForQuery(q);
+      if (completedQueryKeys.has(q)) {
+        discoveryQueryOffset++;
+        qi++;
+        diag('discovery_query_resumed_skip', { source: currentSourceId, queryIndex: qi, queryTotal: slice.length, query: safeDiagText(q, 400) });
+        continue;
+      }
       getStat(currentSourceId).queries++;
       if (!finishAll && timeLeft() < 45_000) {
         diag('discovery_stopped_time_budget', { queryIndex: qi, queryTotal: slice.length, remainingQueries: slice.length - qi, timeLeftMs: timeLeft() });
@@ -834,6 +863,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       res.counts.search_queries++;
       discoveryQueryOffset++;
       say('search', `Searching: ${q}`, ++qi, slice.length);
+      let querySucceeded = false;
       try {
         let batch: SearchHit[] = [];
         // No hard Google date filter: live rental listings can remain indexed for months.
@@ -844,6 +874,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           finally { serperTimestamps.push((deps.now ?? Date.now)()); }
         };
         batch = await serperCall('serper');
+        querySucceeded = true;
         getStat(currentSourceId).hits += batch.length;
         const pickDecisions: { accepted: boolean; reason: string; host: string; url: string; title: string }[] = [];
         const picked = pickItems(batch, cfg, (decision) => { if (pickDecisions.length < 30) pickDecisions.push({ ...decision, url: safeDiagUrl(decision.url), title: safeDiagText(decision.title, 180) }); });
@@ -866,7 +897,19 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       // Process each query's candidates before the next SERP call. This bounds volatile in-memory work to one query and commits verified rows incrementally.
       await flushBatch();
-      try { console.info(JSON.stringify({ type: 'immofinder_discovery_batch_processed', queryIndex: qi, queryTotal: slice.length, processedItems, kept: res.counts.kept, new: res.counts.new, fetched: res.counts.fetched })); } catch { /* diagnostics only */ }
+      if (deps.shouldCancel?.()) break;
+      if (querySucceeded) completedQueryKeys.add(q);
+      if (deps.onCheckpoint) {
+        await deps.onCheckpoint({
+          completedQueryKeys: [...completedQueryKeys],
+          discoveryProcessedItems,
+          counts: { ...res.counts },
+          filtered: { ...res.filtered },
+          sourceStats: [...sourceStatMap.values()].map((stat) => ({ ...stat })),
+          wavesRun: [...(res.wavesRun || [])],
+        });
+      }
+      try { console.info(JSON.stringify({ type: 'immofinder_discovery_batch_processed', queryIndex: qi, queryTotal: slice.length, processedItems, kept: res.counts.kept, new: res.counts.new, fetched: res.counts.fetched, checkpointed: querySucceeded })); } catch { /* diagnostics only */ }
       if (processedItems >= pageLimit) { diag('discovery_stopped_page_limit', { processedItems, pageLimit, queryIndex: qi, queryTotal: slice.length }); break; }
     }
     await flushBatch();
@@ -908,7 +951,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         // widen this carousel tick to the complete Swiss portal pool without changing saved settings.
         const selectedPortalQueries = cfg.discovery?.portalQueries || [];
         const fallbackPortalQueries = cfg.discovery?.fallbackPortalQueries || [];
-        const remainingPages = Math.max(0, pageBudget - res.counts.candidates);
+        const remainingPages = Math.max(0, pageBudget - discoveryProcessedItems);
         if (
           res.counts.kept < 10 &&
           fallbackPortalQueries.length > selectedPortalQueries.length &&
@@ -926,7 +969,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
             remainingPageBudget: remainingPages,
           });
           try {
-            await runDiscoverySearch(undefined, remainingPages, { finishAll: true, stopAtKept: 10 });
+            await runDiscoverySearch(undefined, pageBudget, { finishAll: true, stopAtKept: 10 });
           } finally {
             cfg.discovery!.portalQueries = selectedPortalQueries;
             discoveryQueryOffset = originalOffset;
@@ -1038,5 +1081,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       wave: opts.wave || 'full',
     }));
   } catch { /* diag only */ }
+  res.sourceStats = [...sourceStatMap.values()];
+  res.wavesRun = [...new Set(res.wavesRun || [])];
   return res;
 }
