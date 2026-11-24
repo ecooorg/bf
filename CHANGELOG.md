@@ -1,3 +1,7 @@
+## P130.17 — ImmoFinder evidence-first search and admission
+
+- **CHANGE:** Replaced legacy query wording and LLM fact extraction with generated rental-intent queries and deterministic page parsing; only identity-matched, fresh, explicit monthly-CHF rentals with page-attributed direct contact can pass.
+- **SCOPE:** USER_VALUE; snippet-only, failed-fetch, stale, sale, seeker, conflicting, incomplete and contactless candidates fail closed.
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
 
 - **PROBLEM:** Two buttons (Recheck filters / Recheck list) split offline rules from page re-fetch; delisted ads (e.g. urbanhome «Inserat gelöscht») stayed in the agent feed unless the user knew to press Recheck list.
