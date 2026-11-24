@@ -144,10 +144,11 @@ test('ImmoFinder reports a readable service-unavailable error when fetch cannot 
   assert.match(ui, /Check that the service is online, then retry/);
 });
 
-test('settings UI does not claim a published monthly price is mandatory', () => {
+test('P130.17 settings UI describes mandatory page-verified rent and contact', () => {
   const ui = read('src/ImmoFinderSettings.tsx');
-  assert.match(ui, /undisclosed rent may remain marked as unknown/);
-  assert.doesNotMatch(ui, /with a stated monthly price pass the quality gate/);
+  assert.match(ui, /explicit monthly CHF rent is mandatory/i);
+  assert.match(ui, /direct page contact/i);
+  assert.match(ui, /AI extraction is disabled/i);
 });
 
 test('config prioritises long-term Swiss rental discovery portals', () => {
