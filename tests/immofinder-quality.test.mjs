@@ -10,6 +10,52 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
+test('P130.17 trust engine admits only same-page, current, explicit rental facts', async () => {
+  const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
+  const url = 'https://example.ch/listing/123456';
+  const quote = "CHF 1'450.– pro Monat";
+  const pageText = [
+    '3.5 Zimmer Wohnung zu vermieten',
+    'Inseriert am: 20.11.2026',
+    'Verfügbar ab sofort. Helle Wohnung mit Balkon und eigener Küche.',
+    quote,
+    'Kontakt Vermieter: +41 79 123 45 67',
+    'Weitere Angaben zur Wohnung: renoviertes Bad, Kellerabteil, Waschküche und ruhige Lage.',
+  ].join('\\n');
+  const input = {
+    requestedUrl: url, finalUrl: url, title: '3.5 Zimmer Wohnung zu vermieten', pageText,
+    provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: quote,
+    listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
+    contactEvidenceUrls: [url], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
+  };
+  const accepted = verifyListingAdmission(input);
+  assert.equal(accepted.accepted, true);
+  if (accepted.accepted) assert.deepEqual([accepted.rooms, accepted.monthlyRentChf, accepted.contact], [3.5, 1450, 'phone']);
+  assert.deepEqual(verifyListingAdmission({ ...input, provisional: true }), { accepted: false, reason: 'trust_snippet_only' });
+  assert.deepEqual(verifyListingAdmission({ ...input, finalUrl: 'https://example.ch/listing/999999' }), { accepted: false, reason: 'trust_fetch_url_unverified' });
+  assert.deepEqual(verifyListingAdmission({ ...input, listedAt: '2025-01-01T00:00:00.000Z' }), { accepted: false, reason: 'trust_listing_stale' });
+  assert.deepEqual(verifyListingAdmission({ ...input, phone: null, email: null }), { accepted: false, reason: 'trust_contact_missing' });
+  assert.deepEqual(verifyListingAdmission({ ...input, contactEvidenceUrls: ['https://example.ch/contact'] }), { accepted: false, reason: 'trust_contact_not_page_attributed' });
+  assert.deepEqual(verifyListingAdmission({ ...input, priceUnit: 'week' }), { accepted: false, reason: 'trust_price_not_monthly_chf' });
+});
+
+test('P130.17 trust engine rejects sale, seeker, unavailable and unquoted room facts', async () => {
+  const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
+  const base = {
+    requestedUrl: 'https://example.ch/listing/123456', finalUrl: 'https://example.ch/listing/123456',
+    title: '3.5 Zimmer Wohnung zu vermieten',
+    pageText: "3.5 Zimmer Wohnung zu vermieten. CHF 1'450.– pro Monat. Inseriert am: 20.11.2026. Verfügbar ab sofort. Kontakt +41 79 123 45 67. Heller Wohnbereich, Küche, Bad, Balkon und Kellerabteil.",
+    provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: "CHF 1'450.– pro Monat",
+    listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
+    contactEvidenceUrls: ['https://example.ch/listing/123456'], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
+  };
+  assert.deepEqual(verifyListingAdmission({ ...base, title: '3.5 Zimmer Eigentumswohnung Kaufpreis CHF 450000' }), { accepted: false, reason: 'trust_for_sale' });
+  assert.deepEqual(verifyListingAdmission({ ...base, title: 'Ich suche eine 3.5 Zimmer Wohnung' }), { accepted: false, reason: 'trust_seeker_post' });
+  assert.deepEqual(verifyListingAdmission({ ...base, pageText: base.pageText + ' Inserat bereits vermietet.' }), { accepted: false, reason: 'trust_listing_unavailable' });
+  assert.deepEqual(verifyListingAdmission({ ...base, rooms: 4 }), { accepted: false, reason: 'trust_rooms_conflict' });
+  assert.deepEqual(verifyListingAdmission({ ...base, listedAt: null }), { accepted: false, reason: 'trust_publication_date_missing' });
+});
+
 test('immofinder core exports plausible contact helpers', () => {
   const core = read('server/immofinderCore.ts');
   assert.match(core, /export function isPlausibleSwissPhone/);
