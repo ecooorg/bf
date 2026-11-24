@@ -756,7 +756,7 @@ test('P129.52 pipeline validates optional final URL, same-listing redirects and 
   assert.match(pipeline, /const fetchedUrl = String\(pg\.finalUrl \|\| ''\)\.trim\(\)/);
   assert.match(pipeline, /sameListingUrlTarget\(it\.url, fetchedUrl\)/);
   assert.match(pipeline, /evidenceUrl = fetchedUrl \|\| it\.url/);
-  assert.match(pipeline, /MIN_DIRECT_PAGE_TEXT_CHARS = 30/);
+  assert.match(pipeline, /MIN_DIRECT_PAGE_TEXT_CHARS = 120/);
   assert.match(fetcher, /Promise<\{ ok: boolean; status: number; body: string; finalUrl\?: string; fetchMode\?: string \}>/);
   assert.match(fetcher, /jinaFallback/);
   assert.match(fetcher, /URL Source/);

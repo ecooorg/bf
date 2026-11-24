@@ -139,7 +139,7 @@ function isGoogleGotoLink(raw: unknown): boolean {
   try {
     const url = new URL(raw);
     const host = url.hostname.toLowerCase();
-    return (host === 'google.com' || host === 'www.google.com' || host.startsWith('google.')) && url.pathname === '/goto';
+    return (host === 'google.com' || host.endsWith('.google.com') || host === 'google.ch' || host.endsWith('.google.ch')) && url.pathname === '/goto';
   } catch { return false; }
 }
 
@@ -173,7 +173,7 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
         const resolvedResponse = await fetchImpl('https://google.serper.dev/resolve', {
           method: 'POST',
           headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
-          body: JSON.stringify(d),
+          body: JSON.stringify(Object.fromEntries(Object.entries(d).filter(([name]) => !['credits', 'retryAfter', 'provider', 'cache_hit'].includes(name)))),
           signal: AbortSignal.timeout(35_000),
         });
         if (resolvedResponse.ok) {

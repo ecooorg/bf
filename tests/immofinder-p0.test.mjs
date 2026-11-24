@@ -486,7 +486,7 @@ test('robots.txt Allow exceptions override broader Disallow rules without bypass
   assert.equal(blocked.ok, false);
   assert.equal(blocked.fetchMode, 'robots_blocked', 'the more specific Disallow still wins');
   assert.equal(calls.filter((url) => url.endsWith('/robots.txt')).length, 1, 'robots rules are cached per host');
-  assert.equal(calls.filter((url) => url.includes('/mieten/')).length, 1, 'blocked pages are not fetched');
+  assert.equal(calls.filter((url) => url.startsWith('https://robots-test.example/mieten/')).length, 1, 'blocked pages are not fetched; a Jina retry is a separate host');
 });
 test('P129.52 blocked direct portal pages retry through Jina Reader with source URL verification', async () => {
   const target = 'https://portal.example/listing/123456';
@@ -494,7 +494,7 @@ test('P129.52 blocked direct portal pages retry through Jina Reader with source 
   const fetchImpl = async (url, init) => {
     calls.push({ url: String(url), headers: init?.headers || {} });
     if (String(url).startsWith('https://r.jina.ai/')) {
-      return new Response(`Title: 4.5 Zimmer Wohnung in Chur\nURL Source: ${target}\n\nMarkdown Content:\n4.5 Zimmer Wohnung in Chur. CHF 1'600 pro Monat. Helle Wohnung mit Balkon und Küche.`, {
+      return new Response(`Title: 4.5 Zimmer Wohnung in Chur\nURL Source: ${target}\n\nMarkdown Content:\n4.5 Zimmer Wohnung in Chur. CHF 1'600 pro Monat. Helle Wohnung mit Balkon und Küche, separates Kellerabteil, ruhige Lage und gute Verkehrsanbindung. Die Wohnung verfügt über einen grosszügigen Wohnbereich, eine moderne Küche, ein Badezimmer und einen sonnigen Balkon.`, {
         status: 200, headers: { 'content-type': 'text/plain; charset=utf-8' },
       });
     }
