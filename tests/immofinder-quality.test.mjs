@@ -56,6 +56,19 @@ test('P130.17 trust engine rejects sale, seeker, unavailable and unquoted room f
   assert.deepEqual(verifyListingAdmission({ ...base, listedAt: null }), { accepted: false, reason: 'trust_publication_date_missing' });
 });
 
+test('P130.17 search planner ignores legacy query wording and generates rental-only intent', async () => {
+  const { buildTrustSearchPlan } = await import('../server/immofinderTrustEngine.ts');
+  const plan = buildTrustSearchPlan({
+    municipalities: ['Town A', 'Town B', 'Town C'], communeLimit: 2, privateTemplateCount: 2,
+    portalQueryTemplates: ['site:flatfox.ch obsolete text {commune}'],
+  }, 0, { allCommunes: false });
+  assert.equal(plan.length, 6);
+  assert.match(plan[0], /Wohnung zu vermieten/);
+  assert.match(plan[2], /site:flatfox\.ch/);
+  assert.ok(plan.every((query) => !/obsolete text|kaufen|verkaufen/.test(query) || /-kaufen -verkaufen/.test(query)));
+  assert.ok(plan.every((query) => !/Town C/.test(query)), 'carousel limits the selected commune slice');
+});
+
 test('immofinder core exports plausible contact helpers', () => {
   const core = read('server/immofinderCore.ts');
   assert.match(core, /export function isPlausibleSwissPhone/);
