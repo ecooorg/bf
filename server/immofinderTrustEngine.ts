@@ -56,7 +56,7 @@ export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: nu
  * identity-matched detail page fetched for this candidate.
  */
 function hasAdvertiserContactContext(text: string, value: string, kind: 'phone' | 'email'): boolean {
-  const labels = /(kontakt|vermieter|anbieter|kontaktperson|contact|propri[eé]taire|annonceur|telefon|tel\\.?|t[eé]l\\.?|mobile|phone|landlord|owner|advertiser)/i;
+  const labels = /(kontakt|vermieter|anbieter|kontaktperson|ansprechpartner|ansprechperson|contact|e-?mail|propri[eé]taire|annonceur|telefon|tel\\.?|t[eé]l\\.?|mobile|phone|landlord|owner|advertiser)/i;
   if (kind === 'email') {
     const index = text.toLowerCase().indexOf(value.toLowerCase());
     if (index < 0) return false;
