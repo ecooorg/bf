@@ -72,7 +72,7 @@ test('P130.17 search planner ignores legacy query wording and generates rental-i
 
 test('P130.17 repair automation preserves current patch and append-only history', () => {
   const versionScript = read('scripts/immofinder-p3-version.mjs');
-  assert.doesNotMatch(versionScript, /patch.*130\\.16|p\\.replace\\(.*130\\.16/);
+  assert.doesNotMatch(versionScript, /pkgPath|pkg\.patch\s*=/);
   assert.match(versionScript, /REPAIR_RULES_VERSION/);
   const repairScript = read('scripts/immofinder-recheck-feed.mjs');
   assert.match(repairScript, /!cl\\.includes\\('## P130\\.11'\\)/);
