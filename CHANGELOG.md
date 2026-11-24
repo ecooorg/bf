@@ -1,3 +1,9 @@
+## P130.11 — Single Recheck feed button (delist + enrich + filters)
+
+- **PROBLEM:** Two buttons (Recheck filters / Recheck list) split offline rules from page re-fetch; delisted ads (e.g. urbanhome «Inserat gelöscht») stayed in the agent feed unless the user knew to press Recheck list.
+- **CHANGE:** One **Recheck feed** control. Job re-fetches each listing page, hides `listing_unavailable`, refreshes dates/contacts, then runs local quality filters (junk hide, price re-parse). Removed the separate filters button from the UI; `POST /api/immofinder/recheck` remains for API compatibility.
+- **SCOPE:** USER_VALUE. `src/ImmoFinder.tsx`, `server/immofinderRoutes.ts`.
+
 ## P130.17 — ImmoFinder evidence-first admission
 - Rebuilt rental discovery and page-only fact extraction; publication now requires matching live detail-page evidence, rooms, monthly CHF rent, freshness, active rental status and advertiser-labelled contact.
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
