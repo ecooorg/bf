@@ -60,7 +60,7 @@ try {
 }
 
 for (const script of [
-  'scripts/p13016-core-restore.mjs',
+  'scripts/immofinder-core-restore.mjs',
   'scripts/immofinder-p0-feed-hygiene.mjs',
   'scripts/immofinder-recheck-feed.mjs',
   'scripts/fix-agents-contract.mjs',
@@ -68,7 +68,7 @@ for (const script of [
   'scripts/immofinder-p1-rooms-hygiene.mjs',
   'scripts/immofinder-p2-junk-hosts.mjs',
   'scripts/immofinder-p3-version.mjs',
-  'scripts/immofinder-p13016-verify-hygiene.mjs',
+  'scripts/immofinder-verify-hygiene.mjs',
 ]) {
   const r = spawnSync(process.execPath, [join(root, script)], { encoding: 'utf8' });
   if (r.stdout) process.stdout.write(r.stdout);
