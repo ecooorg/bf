@@ -134,6 +134,15 @@ export function sanitizeSerperQuery(q: string, maxLen = 380): string {
   return s;
 }
 
+function isGoogleGotoLink(raw: unknown): boolean {
+  if (typeof raw !== 'string') return false;
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    return (host === 'google.com' || host === 'www.google.com' || host.startsWith('google.')) && url.pathname === '/goto';
+  } catch { return false; }
+}
+
 export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
   // Serper returns HTTP 400 when num is outside 1..10 (or query empty).
   const n = Math.max(1, Math.min(10, Number(num) || 10));
@@ -155,6 +164,37 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
       throw new Error(msg);
     }
     const d: any = await r.json();
+    const organic = Array.isArray(d.organic) ? d.organic : [];
+    const gotoCount = organic.filter((o: any) => isGoogleGotoLink(o?.link)).length;
+    if (gotoCount > 0) {
+      const resolveStarted = Date.now();
+      try {
+        // Serper's free /resolve endpoint accepts the original search response and replaces Google /goto URLs.
+        const resolvedResponse = await fetchImpl('https://google.serper.dev/resolve', {
+          method: 'POST',
+          headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+          body: JSON.stringify(d),
+          signal: AbortSignal.timeout(35_000),
+        });
+        if (resolvedResponse.ok) {
+          const resolved: any = await resolvedResponse.json();
+          if (Array.isArray(resolved.organic) && resolved.organic.length === organic.length) {
+            d.organic = organic.map((row: any, index: number) => ({
+              ...row,
+              link: typeof resolved.organic[index]?.link === 'string' ? resolved.organic[index].link : row.link,
+            }));
+            const remaining = d.organic.filter((o: any) => isGoogleGotoLink(o?.link)).length;
+            console.info(JSON.stringify({ type: 'immofinder_serper_redirect_resolution', before: gotoCount, after: remaining, durationMs: Date.now() - resolveStarted, retryAfter: typeof resolved.retryAfter === 'number' ? resolved.retryAfter : null }));
+          } else {
+            console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_shape_mismatch', before: gotoCount, organicExpected: organic.length, organicReturned: Array.isArray(resolved.organic) ? resolved.organic.length : null }));
+          }
+        } else {
+          console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_failed', status: resolvedResponse.status, before: gotoCount }));
+        }
+      } catch (error) {
+        console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_failed', before: gotoCount, error: String((error as Error)?.message || error).slice(0, 160) }));
+      }
+    }
     return (d.organic || []).map((o: any) => ({
       title: String(o.title || ''),
       link: String(o.link || ''),

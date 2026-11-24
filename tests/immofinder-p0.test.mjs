@@ -37,6 +37,43 @@ test('Serper search sends weekly freshness filter when requested', async () => {
   delete process.env.SERPER_API_KEY;
 });
 
+test('Serper Google goto links are resolved to original result URLs without another search credit', async () => {
+  const previousKey = process.env.SERPER_API_KEY;
+  process.env.SERPER_API_KEY = 'test-key';
+  const googleLink = 'https://www.google.com/goto?url=opaque-token';
+  const directLink = 'https://www.homegate.ch/mieten/4001234567';
+  const searchResponse = { organic: [{ title: 'Wohnung in Chur', link: googleLink, snippet: '4.5 Zimmer Wohnung zu vermieten' }], credits: 1 };
+  const resolvedResponse = { organic: [{ title: 'Wohnung in Chur', link: directLink, snippet: '4.5 Zimmer Wohnung zu vermieten' }], credits: 1 };
+  const calls = [];
+  try {
+    const search = createSerperSearch(async (url, init) => {
+      calls.push({ url: String(url), body: init?.body ? JSON.parse(init.body) : null });
+      return new Response(JSON.stringify(String(url).endsWith('/resolve') ? resolvedResponse : searchResponse), { status: 200 });
+    });
+    const rows = await search('Chur Wohnung mieten');
+    assert.equal(calls.length, 2);
+    assert.match(calls[0].url, /\/search$/);
+    assert.match(calls[1].url, /\/resolve$/);
+    assert.equal(calls[1].body.organic[0].link, googleLink);
+    assert.equal(rows[0].link, directLink);
+  } finally {
+    if (previousKey === undefined) delete process.env.SERPER_API_KEY;
+    else process.env.SERPER_API_KEY = previousKey;
+  }
+});
+
+test('browser fetch fallback is bounded and rejects private navigation targets', () => {
+  const fetcher = readFileSync(new URL('../server/immofinderFetcher.ts', import.meta.url), 'utf8');
+  const pipeline = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
+  assert.match(fetcher, /await import\('playwright'\)/);
+  assert.match(fetcher, /await isPublicTarget\(requestUrl\)/);
+  assert.match(fetcher, /visibleText\.length < 120/);
+  assert.match(fetcher, /fetchMode: 'browser_rendered'/);
+  assert.match(pipeline, /SERPER_STEP_MS = 40_000/);
+  assert.match(pipeline, /withStepTimeout\(label, \(\) => deps\.search!\(q\), SERPER_STEP_MS\)/);
+  assert.match(pipeline, /withStepTimeout\('fetch', \(\) => deps\.fetchPage\(it\.url\), 25_000\)/);
+});
+
 test('geo helper requires title, snippet and municipality allowlist and matches only explicit local evidence', () => {
   assert.deepEqual(placeFromTitleOrSnippet('3.5 Zimmer Wohnung', 'in Chur zu vermieten', ['Chur']), { matched: 'Chur', outside: false, hint: 'Chur' });
   assert.equal(placeFromTitleOrSnippet('Wohnung zu vermieten', 'Graubünden', ['Chur']).matched, null);

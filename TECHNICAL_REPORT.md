@@ -1,3 +1,7 @@
+## P130.18 — Search evidence retrieval
+- **OBSERVED:** baseline run `7c91fdb1` had 162/190 Google `/goto` links and direct fetches with HTTP 403 or zero extracted text.
+- **CHANGE:** Added zero-credit Serper URL resolution and bounded Playwright detail-page rendering; monthly rent, rooms, date, status and advertiser-contact gates remain fail-closed.
+- **NOT_RUN:** hosted build/CI, live fetch yield and user-visible listing outcome pending.
 ## P130.17d — Durable ImmoFinder execution
 - **OBSERVED:** production run `7c91fdb1` stopped at query 19/68 when Render replaced its process; manual stop overwrote progress counters.
 - **CHANGE:** PostgreSQL queue/leases, boot recovery, persisted cancellation and graceful worker drain; patch `130.17d`.

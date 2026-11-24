@@ -1,3 +1,6 @@
+## P130.18 — Search evidence retrieval
+- Added measured remediation for Google redirect URLs and JavaScript-rendered portal pages; real listing yield remains NOT_VERIFIED pending a completed live search.
+
 ## P130.17d — Durable ImmoFinder execution
 - Implemented: PostgreSQL-backed queue/lease recovery, persisted run settings, cross-instance cancellation and graceful shutdown; live recovery acceptance remains NOT_VERIFIED.
 

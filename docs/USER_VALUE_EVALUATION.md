@@ -1,3 +1,7 @@
+# P130.18 — ImmoFinder search evidence
+- **OBSERVED:** the interrupted baseline yielded zero admitted listings; 162/190 search links were Google redirects and several portal pages returned 403 or empty text.
+- **INFERRED:** resolving links and rendering client-side pages should increase verifiable detail-page evidence without admitting snippets.
+- **NOT_RUN:** completed live search, accepted-listing precision/recall, and user task outcome.
 # P130.17d — ImmoFinder run continuity
 - **OBSERVED:** production run was interrupted by Render process replacement; no completed result was delivered.
 - **INFERRED:** durable queue recovery should prevent the UI from remaining stuck after deploy/restart.

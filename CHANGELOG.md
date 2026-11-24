@@ -1,3 +1,5 @@
+## P130.18 — Resolve Serper redirects and JS-rendered rental pages
+- Resolve Google `/goto` results through Serper `/resolve`; add bounded public-target-checked browser rendering for empty/challenged detail pages without relaxing evidence gates.
 ## P130.17d — Durable ImmoFinder worker
 - Queue runs in PostgreSQL with expiring leases, persisted settings, cross-instance cancellation and deploy-time recovery.
 ## P130.17c — Restore ImmoFinder CI

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { htmlToText, type ImmoConfig } from './immofinderCore.ts';
 import { isPublicFetchTarget } from './webSearch.ts';
 
@@ -114,7 +115,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       const marker = /(?:^|\n)Markdown Content:\s*/i.exec(raw);
       const content = (marker ? raw.slice(marker.index + marker[0].length) : raw)
         .replace(/^Title:\s*.+$/im, '').replace(/^URL Source:\s*.+$/im, '').trim();
-      if (content.length < 30) return null;
+      if (content.length < 120) return null;
       const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return {
         ok: true, status: 200, finalUrl: target, fetchMode: 'jina_reader',
@@ -123,6 +124,55 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     } catch { return null; }
     finally { clearTimeout(timer); }
   };
+
+  /** Bounded browser rendering for JS-shell/anti-bot responses; all navigations remain public-target checked. */
+  async function browserFallback(target: string, logFetch: (event: string, details?: Record<string, unknown>) => void) {
+    if (process.env.NODE_ENV !== 'production' || process.env.IMMOFINDER_BROWSER_FALLBACK === 'false') return null;
+    if (!await isPublicTarget(target)) return null;
+    let browser: any = null;
+    try {
+      if (!process.env.PLAYWRIGHT_BROWSERS_PATH && existsSync('/opt/render/project/playwright-browsers')) {
+        process.env.PLAYWRIGHT_BROWSERS_PATH = '/opt/render/project/playwright-browsers';
+      }
+      const { chromium } = await import('playwright');
+      browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] });
+      const context = await browser.newContext({ userAgent: cfg.fetch.userAgent, locale: 'de-CH' });
+      const page = await context.newPage();
+      page.setDefaultNavigationTimeout(9_000);
+      await page.route('**/*', async (route) => {
+        try {
+          const request = route.request();
+          const kind = request.resourceType();
+          if (kind === 'image' || kind === 'media' || kind === 'font') return await route.abort();
+          const requestUrl = request.url();
+          if (/^https?:/i.test(requestUrl) && !await isPublicTarget(requestUrl)) return await route.abort();
+          await route.continue();
+        } catch { await route.abort().catch(() => {}); }
+      });
+      const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 9_000 });
+      await page.waitForLoadState('networkidle', { timeout: 1_500 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const visible = String(await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '')).trim();
+      const title = String(await page.title().catch(() => new URL(target).hostname)).trim();
+      const finalUrl = page.url();
+      const visibleText = visible.slice(0, cfg.limits.maxPageBytes);
+      const challenge = /just a moment|attention required|cf-browser-verification|checking your browser|enable javascript and cookies|ddos protection by|security check|access denied|one more step|please wait|verify you are human|captcha/i.test(visibleText);
+      if (!response?.ok() || !await isPublicTarget(finalUrl) || visibleText.length < 120 || challenge) {
+        logFetch('browser_fallback_rejected', { status: response?.status() ?? 0, textChars: visibleText.length, challenge, finalHost: (() => { try { return new URL(finalUrl).hostname; } catch { return 'invalid'; } })() });
+        await context.close().catch(() => {});
+        return null;
+      }
+      const esc = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const body = '<html><head><title>' + esc(title) + '</title></head><body><main>' + esc(visibleText) + '</main></body></html>';
+      await context.close().catch(() => {});
+      return { ok: true, status: response.status(), body, finalUrl, fetchMode: 'browser_rendered' };
+    } catch (error) {
+      logFetch('browser_fallback_failed', { error: String((error as Error)?.message || error).slice(0, 180) });
+      return null;
+    } finally {
+      if (browser) await browser.close().catch(() => {});
+    }
+  }
 
   return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string }> {
     const startedAt = Date.now();
@@ -159,7 +209,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     const directTextChars = htmlToText(direct.body).trim().length;
     const challengeLike = /just a moment|attention required|cf-browser-verification|checking your browser|enable javascript and cookies|ddos protection by|security check|access denied|one more step|please wait|verify you are human|captcha/i.test((direct.body || '') + ' ' + ((direct as any).title || ''));
     logFetch('direct_result', { ok: direct.ok, status: direct.status, fetchMode: redirected ? 'direct_redirect' : 'direct', bodyChars: direct.body.length, textChars: directTextChars, finalHost: (() => { try { return new URL(direct.finalUrl || currentUrl).hostname; } catch { return 'invalid'; } })(), error: !direct.ok ? String(direct.body || '').slice(0, 240) : null });
-    if (!direct.ok || directTextChars < 30 || challengeLike) {
+    if (!direct.ok || directTextChars < 120 || challengeLike) {
       if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
       const fallback = await jinaFallback(url);
       if (fallback) {
@@ -168,6 +218,13 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         return fallback;
       }
       logFetch('jina_fallback_failed', { directStatus: direct.status, directTextChars, directError: String(direct.body || '').slice(0, 240), fallbackConfigured: Boolean(process.env.JINA_READER_BASE_URL), fallbackKeyConfigured: Boolean(process.env.JINA_API_KEY) });
+      const rendered = await browserFallback(url, logFetch);
+      if (rendered) {
+        const renderedChars = htmlToText(rendered.body).trim().length;
+        logFetch('browser_fallback_succeeded', { directStatus: direct.status, directTextChars, renderedTextChars: renderedChars, fetchMode: rendered.fetchMode });
+        try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'browser_rendered', directStatus: direct.status, directTextChars, renderedTextChars: renderedChars })); } catch { /* diagnostics only */ }
+        return rendered;
+      }
       try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
     }
     logFetch('fetch_completed', { ok: direct.ok, status: direct.status, bodyChars: direct.body.length, textChars: directTextChars, fetchMode: redirected ? 'direct_redirect' : 'direct' });

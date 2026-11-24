@@ -73,7 +73,7 @@ export interface RunResult {
   wavesRun?: ('priority' | 'extended' | 'carousel')[];
 }
 
-const MIN_DIRECT_PAGE_TEXT_CHARS = 30;
+const MIN_DIRECT_PAGE_TEXT_CHARS = 120;
 interface Extract { name: string; municipality: string | null; streetAddress: string | null; rooms: { rooms: number; basis: string; quote: string } | null; owner: string | null; agency: string | null; regForbidden: boolean; single: boolean; summaryDe: string; signals: string[]; llm: boolean; priceQuote: string | null; listedAtQuote: string | null }
 
 /** Listing facts are derived deterministically from the fetched detail page; no model prompt is used. */
@@ -144,13 +144,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const consecutiveStopFor = (id: string) => (id === 'search' ? 64 : 14);
   /** Hard cap per LLM attempt — never sleep minutes between retries (UI looked frozen). */
   const STEP_MS = 10_000;
-  const withStepTimeout = async <T,>(label: string, work: () => Promise<T>): Promise<T> => {
+  const SERPER_STEP_MS = 40_000;
+  const withStepTimeout = async <T,>(label: string, work: () => Promise<T>, timeoutMs = STEP_MS): Promise<T> => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       return await Promise.race([
         work(),
         new Promise<T>((_, rej) => {
-          timer = setTimeout(() => rej(new Error(`step_timeout:${label}`)), STEP_MS);
+          timer = setTimeout(() => rej(new Error(`step_timeout:${label}`)), timeoutMs);
         }),
       ]);
     } finally {
@@ -166,7 +167,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     for (const it of items) {
       if (!(it as any).expandableIndex) { expanded.push(it); continue; }
       try {
-        const listPg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
+        const listPg = await withStepTimeout('fetch', () => deps.fetchPage(it.url), 25_000);
         if (!listPg.ok || !listPg.body || listPg.body.length < 80) {
           diag('expandable_index_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: listPg.status });
           continue;
@@ -310,7 +311,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         diag('candidate_snippet_used', { source: src.id, url: safeDiagUrl(it.url), host, title: safeDiagText(it.hit?.title, 180), snippet: safeDiagText(it.hit?.snippet, 700), municipalityHint: it.municipalityHint || null, evidenceConfidence: 'low' });
       } else {
         try {
-          pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
+          pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url), 25_000);
         } catch (fetchError) {
           pg = { ok: false, status: 0, body: String((fetchError as Error)?.message || fetchError).slice(0, 240) };
           res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
@@ -839,7 +840,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         // qdr:m hid valid ads before fetch/verification could inspect them.
         const serperCall = async (label: string) => {
           res.counts.serper_calls = (res.counts.serper_calls || 0) + 1;
-          try { return await withStepTimeout(label, () => deps.search!(q)); }
+          try { return await withStepTimeout(label, () => deps.search!(q), SERPER_STEP_MS); }
           finally { serperTimestamps.push((deps.now ?? Date.now)()); }
         };
         batch = await serperCall('serper');
