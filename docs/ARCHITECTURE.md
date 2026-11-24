@@ -50,6 +50,13 @@ A build or answer that passes syntax checks is not evidence that its information
 
 Detailed acceptance criteria and human blind-review process remain under `docs/TESTING_AND_ACCEPTANCE.md` and `docs/USER_VALUE_EVALUATION.md`.
 
+## ImmoFinder evidence-first search and admission
+
+- Discovery uses generated rental-intent queries; legacy query wording is ignored. Serper remains only a transport adapter and never supplies listing facts.
+- The model is not called for listing fact extraction. Rooms, monthly rent, publication date and direct contacts are derived from the fetched page.
+- A single final admission boundary rejects snippets, failed or identity-mismatched fetches, non-rent/sale/seeker/unavailable pages, missing or conflicting room/rent/date/contact facts, stale offers and contacts not attributable to the same page. Unknown is reject, never a verified card.
+- Only admitted records proceed to storage and the existing UI/delivery surfaces; no storage schema, auth, privacy, Drive or delivery contract is changed.
+
 ## Model routing landmarks
 
 - Gemini free-key allowlist and catalog summary: `docs/MODEL_REGISTRY.md`.
