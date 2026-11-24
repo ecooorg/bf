@@ -1,5 +1,6 @@
 {
   "name": "biforge",
+  "description": "BiForge",
   "private": true,
   "version": "130",
   "patch": "130.16",
