@@ -184,7 +184,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   ];
   const items = pickItems(hits, cfg);
   assert.deepEqual(items.map((i) => [i.host, i.snippetOnly]), [['chesa-mia.example', false], ['facebook.com', true]]);
-  const pages = { 'https://chesa-mia.example/listing/123456': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example. Die Wohnung verfügt über Balkon, Küche, Bad und gute Verkehrsanbindung.</p>') };
+  const pages = { 'https://chesa-mia.example/listing/123456': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung zu vermieten. Inseriert am: 20.11.2026. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example. Die Wohnung verfügt über Balkon, Küche, Bad, Kellerabteil und gute Verkehrsanbindung.</p>') };
   const saved = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
   const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 403, body: '' });
