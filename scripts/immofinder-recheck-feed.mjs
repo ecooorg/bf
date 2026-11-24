@@ -134,7 +134,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
   const clPath = join(root, 'CHANGELOG.md');
   if (existsSync(clPath)) {
     const cl = readFileSync(clPath, 'utf8');
-    if (!cl.startsWith('## P130.11')) {
+    if (!cl.includes('## P130.11')) {
       writeFileSync(clPath, entry + cl);
       console.log('CHANGELOG.md prepended P130.11');
     }
@@ -148,7 +148,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 `;
   if (existsSync(trPath)) {
     const tr = readFileSync(trPath, 'utf8');
-    if (!tr.startsWith('## P130.11')) {
+    if (!tr.includes('## P130.11')) {
       writeFileSync(trPath, trEntry + tr);
       console.log('TECHNICAL_REPORT.md prepended P130.11');
     }
