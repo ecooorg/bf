@@ -117,7 +117,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   const llm = async (_s, prompt) => prompt.includes('Chesa Alba')
     ? { single_property: true, property_name: 'Chesa Alba', municipality_quote: 'Chesa Alba in Churwalden', rooms_quote: '4.5 Zimmer', owner_name: 'Fritz Erfunden', owner_name_quote: 'Fritz Erfunden', is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: 'Wohnung in Churwalden', title_ru: 'Chesa Alba', summary_ru: 'Квартира в Churwalden' }
     : { single_property: true, property_name: null, municipality_quote: null, rooms_quote: null, owner_name: null, owner_name_quote: null, is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: '', title_ru: '', summary_ru: '' };
-  const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm, store }, { dryRun: false });
+  const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 404, body: '' }), llm, store }, { dryRun: false });
   assert.equal(saved.length, 1);
   assert.equal(saved[0].municipality, 'Churwalden');
   assert.equal(saved[0].owner_name, null, 'owner name not found in the page text must be dropped');
@@ -126,7 +126,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   assert.ok(saved[0].draft_message_de.length > 200);
   assert.equal(res.filtered.agency, 1);
   assert.ok(res.filtered.municipality_not_whitelisted >= 1 || res.filtered.rooms_below_min >= 1);
-  const dry = await runPipeline({ config: cfg, fetchPage: async (u) => ({ ok: true, status: 200, body: pages[u] || '' }), llm, store }, { dryRun: true });
+  const dry = await runPipeline({ config: cfg, fetchPage: async (u) => ({ ok: true, status: 200, body: pages[u] || '', finalUrl: u }), llm, store }, { dryRun: true });
   assert.equal(dry.counts.llm_calls, 0);
   assert.equal(saved.length, 1, 'dry run persists nothing');
 });
