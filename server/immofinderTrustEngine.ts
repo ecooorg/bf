@@ -117,7 +117,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   });
   if (!attributed) return reject('trust_contact_not_page_attributed');
 
-  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: validPhone ? 'phone' : 'email' };
+  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: validPhone && phone && hasAdvertiserContactContext(text, phone, 'phone') ? 'phone' : 'email' };
 }
 
 
