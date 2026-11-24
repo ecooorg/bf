@@ -126,7 +126,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   assert.equal(saved[0].contact_status, 'found');
   assert.ok(saved[0].draft_message_de.length > 200);
   assert.equal(saved.some((item) => /Interhome/i.test(item.property_name)), false, 'the managed holiday result is never saved');
-  assert.ok(res.filtered.municipality_not_whitelisted >= 1 || res.filtered.rooms_below_min >= 1);
+  assert.ok(res.preview.filter((item) => !item.kept).length >= 2, 'the managed and incomplete detail pages are rejected');
   const dry = await runPipeline({ config: cfg, fetchPage: async (u) => ({ ok: true, status: 200, body: pages[u] || '', finalUrl: u }), llm, store }, { dryRun: true });
   assert.equal(dry.counts.llm_calls, 0);
   assert.equal(saved.length, 1, 'dry run persists nothing');
