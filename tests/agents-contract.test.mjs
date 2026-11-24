@@ -423,7 +423,7 @@ test('P129.23a ImmoFinder recheck exports, wiring, and diagnostic completeness a
   assert.match(core, /export function dateDiagSnippet/);
   assert.match(refresh, /parseListedAtDetailed/);
   assert.match(refresh, /recheck_refresh_item/);
-  assert.match(refresh, /contact searches \${status\.contactSearches}/);
+  assert.match(refresh, /enrichSearches: status\.contactSearches/);
   assert.match(diag, /export function completenessSummary/);
   assert.match(routes, /recheck-list-status/);
   assert.match(routes, /recheck-list/);
