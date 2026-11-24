@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { hostOf, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { verifyListingAdmission, buildTrustSearchPlan } from './immofinderTrustEngine.ts';
@@ -21,7 +21,7 @@ export interface ImmoStore {
 export interface PipelineDeps {
   config: ImmoConfig;
   fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string }>;
-  /** Returns one parsed JSON object; null disables model extraction (dry run / no key). */
+  /** Compatibility input only; listing fact extraction is deterministic and does not call an LLM. */
   llm: ((system: string, prompt: string) => Promise<unknown>) | null;
   store: ImmoStore;
   /** Web search for discovery (Serper); null disables discovery. */
@@ -30,7 +30,7 @@ export interface PipelineDeps {
   cycle?: number;
   /** Called often with a short human-readable status; must be cheap and must not throw. */
   onProgress?: (e: ProgressEvent) => void;
-  /** Cost guard: after this many model calls the rest of the run uses the deterministic fallback. */
+  /** Deprecated compatibility field; no model calls are made by the trust engine. */
   maxLlmCalls?: number;
   now?: () => number;
   /**
@@ -116,7 +116,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const safeDiagText = (value: unknown, max = 500) => String(value ?? '').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, '[phone]').slice(0, max);
   const safeDiagUrl = (value: unknown) => { try { const u = new URL(String(value)); return u.hostname + u.pathname; } catch { return '[invalid-url]'; } };
   const diag = (event: string, details: Record<string, unknown> = {}) => { try { console.info(JSON.stringify({ type: 'immofinder_trace', traceId: diagnosticRunId, event, at: new Date(now()).toISOString(), elapsedMs: Math.max(0, now() - diagnosticStartedAt), ...details })); } catch { /* diagnostics must never affect search */ } };
-  diag('run_started', { wave: opts.wave || 'full', dryRun: opts.dryRun, municipalities: cfg.municipalities, minRooms: cfg.minRooms, discoveryEnabled: Boolean(cfg.discovery?.enabled), privateQueryTemplates: cfg.discovery?.queries?.length || 0, portalQueryTemplates: cfg.discovery?.portalQueries?.length || 0, maxCandidatesPerQuery: cfg.discovery?.maxCandidatesPerQuery ?? 4, pageLimit: cfg.discovery?.maxPagesPerRun ?? null, runMaxDurationMs: cfg.runMaxDurationMs ?? null, llmEnabled: Boolean(deps.llm), searchEnabled: Boolean(deps.search), maxLlmCalls: deps.maxLlmCalls ?? null, sourceCount: cfg.sources.length });
+  diag('run_started', { wave: opts.wave || 'full', dryRun: opts.dryRun, municipalities: cfg.municipalities, minRooms: cfg.minRooms, discoveryEnabled: Boolean(cfg.discovery?.enabled), privateQueryTemplates: cfg.discovery?.queries?.length || 0, portalQueryTemplates: cfg.discovery?.portalQueries?.length || 0, maxCandidatesPerQuery: cfg.discovery?.maxCandidatesPerQuery ?? 4, pageLimit: cfg.discovery?.maxPagesPerRun ?? null, runMaxDurationMs: cfg.runMaxDurationMs ?? null, factExtractor: 'deterministic_page_only', llmEnabled: false, searchEnabled: Boolean(deps.search), sourceCount: cfg.sources.length });
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
   const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
