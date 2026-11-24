@@ -77,7 +77,8 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (deci
     if (isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) { decide(false, 'agency_host'); continue; }
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
     const nonListing = nonListingReason(h.title || '', h.link, portalHosts);
-    const expandableIndex = /homegate\.ch|immoscout24\.ch/i.test(host) && /trefferliste|\/liste(\/|$)/i.test(h.link);
+    // Homegate trefferliste returns HTTP 403 from our fetchers — do not queue for expansion (SERP detail links still accepted).
+    const expandableIndex = /immoscout24\.ch/i.test(host) && /trefferliste|\/liste(\/|$)/i.test(h.link);
     if (nonListing && !expandableIndex) { decide(false, `non_listing:${nonListing}`); continue; }
     // Social feeds may expose ads only through snippets; retain them as provisional leads.
     const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
