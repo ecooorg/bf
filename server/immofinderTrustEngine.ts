@@ -80,7 +80,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   if (!parsedPrice || parsedPrice.unit !== 'month' || parsedPrice.monthlyChf !== input.priceMonthlyChf) return reject('trust_price_not_monthly_chf');
 
   if (!input.listedAt) return reject('trust_publication_date_missing');
-  const published = new Date(input.listedAt);
+  const published = input.listedAt instanceof Date ? new Date(input.listedAt.getTime()) : new Date(input.listedAt);
   if (!Number.isFinite(published.getTime())) return reject('trust_publication_date_missing');
   const now = input.nowMs ?? Date.now();
   if (published.getTime() > now + 24 * 60 * 60 * 1000) return reject('trust_publication_date_future');
@@ -91,7 +91,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   const email = input.email ? input.email.trim().toLowerCase() : null;
   const validEmail = Boolean(email && isPlausibleEmail(email));
   if (!validPhone && !validEmail) return reject('trust_contact_missing');
-  const pageUrl = input.finalUrl;
+  const pageUrl = input.finalUrl as string;
   const attributed = input.contactEvidenceUrls.some((url) => {
     try {
       const a = new URL(url); const b = new URL(pageUrl);
