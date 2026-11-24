@@ -1,3 +1,11 @@
+## P130.18 — Resolve search redirects and render JS-backed listings
+- **PROBLEM / BASELINE:** Production search run `7c91fdb1-b189-4858-8bab-a9dbc378c2a6`: 190 SERP hits included 162 Google `/goto` wrappers; only 9 candidates were selected, 8 processed, 0 admitted. Direct fetches included Homegate/Huusbro HTTP 403 and Newhome HTTP 200 with zero extracted text; 7 candidates fell back to snippets and were rejected.
+- **HYPOTHESIS:** Resolve Serper redirect links through its zero-credit `/resolve` endpoint and use a bounded, public-target-checked Playwright render when direct HTML/Jina extraction is empty or challenged; more real detail pages should reach the unchanged trust gate.
+- **METRICS:** goto links before/after resolution; resolver latency and unresolved count; direct/Jina/browser text length and status by host; trust-gate admissions and rejection reasons; no snippet-only admission.
+- **ACCEPTANCE:** resolver preserves result-array shape and falls back safely; only public HTTP(S) requests are allowed in browser fallback; page identity is rechecked; at least 120 visible characters are required; monthly CHF rent, rooms, date, active status and advertiser contact remain mandatory; Core CI and Render deploy pass.
+- **SCOPE:** Serper result normalization, ImmoFinder fetcher, search/fetch step timeouts and existing ImmoFinder category tests. No new search provider, no model extraction, no relaxed trust gate.
+- **ROLLBACK:** revert redirect resolution and browser fallback together if resolver latency exceeds the run budget, browser memory destabilizes Render, or source identity/public-target checks fail.
+- **CLASSIFICATION:** EXPERIMENT. The baseline run was interrupted by deploy and admitted zero listings; user-visible rental yield after this change remains NOT_RUN until a completed live search is observed.
 ## P130.17d — Durable ImmoFinder run recovery
 - **PROBLEM / BASELINE:** Production run `7c91fdb1-b189-4858-8bab-a9dbc378c2a6` was replaced during Render deploy after 19/68 queries; 8 candidates were processed, 0 admitted, and the run row later lost its latest counters on manual stop.
 - **HYPOTHESIS:** A PostgreSQL-backed queue with expiring worker leases, persisted run settings, durable cancellation, and idempotent retry will let a new app process recover unfinished searches after deploy/restart without concurrent workers.
