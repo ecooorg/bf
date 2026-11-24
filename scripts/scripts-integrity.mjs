@@ -57,6 +57,7 @@ const ALLOW = new Set([
   'immofinder-health-check.mjs',
   'immofinder-recheck-feed.mjs',
   'immofinder-p0-feed-hygiene.mjs',
+  'immofinder-p1-rooms-hygiene.mjs',
   'lint-copy.mjs',
   'migrate.mjs',
   'monitor-connections.mjs',
