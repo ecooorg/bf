@@ -1,3 +1,11 @@
+## P130.17d — Durable ImmoFinder run recovery
+- **PROBLEM / BASELINE:** Production run `7c91fdb1-b189-4858-8bab-a9dbc378c2a6` was replaced during Render deploy after 19/68 queries; 8 candidates were processed, 0 admitted, and the run row later lost its latest counters on manual stop.
+- **HYPOTHESIS:** A PostgreSQL-backed queue with expiring worker leases, persisted run settings, durable cancellation, and idempotent retry will let a new app process recover unfinished searches after deploy/restart without concurrent workers.
+- **METRICS:** queued/claimed/recovered/attempted/completed/cancelled runs; lease age/owner; query progress; saved-listing duplication; delivery status; CI recovery contracts.
+- **ACCEPTANCE:** only one live lease per run; queued work is claimed after boot; expired leases are recovered; settings/wave/cycle survive process replacement; stop is persisted and does not erase counts; retries do not duplicate listing rows; worker drains or releases its lease on SIGTERM; migration is idempotent.
+- **SCOPE:** existing PostgreSQL `immofinder_runs`, run routes/store, in-process queue consumer, server shutdown hook, migration 029 and existing ImmoFinder category tests. No new paid Render service or Key Value instance.
+- **ROLLBACK:** revert worker dispatch/lease handling and migration 029 only if concurrent claim, lost queued work, duplicate listing writes, or unrecoverable stop state is observed.
+- **CLASSIFICATION:** RELIABILITY. Baseline search yield was zero; live recovery after this patch and user-visible listing value remain NOT_RUN until independently exercised.
 ## P130.17 — ImmoFinder page-evidence gate
 - **PROBLEM:** Prior diagnostics showed snippet-only and weakly attributed facts in visible results.
 - **HYPOTHESIS:** Generated rental-intent queries plus deterministic extraction and fail-closed page admission reduce false listings.
