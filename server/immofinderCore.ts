@@ -420,9 +420,12 @@ export function nonListingReason(title: string, url: string, portalHosts: string
   if (WANTED.test(t)) return 'wanted_ad';
   if (FOR_SALE.test(t) || /\/kaufen\//i.test(url)) return 'for_sale';
   // Homegate/ImmoScout detail ads often use titles like "Wohnung mieten in X" — do not treat those as list pages when the URL is a concrete portal detail.
+  if (/google\.[a-z.]+\/travel\/hotels\//i.test(url) || /\/travel\/hotels\/entity\//i.test(url)) return 'hotel_or_guesthouse';
+  if (/acheter-louer\.ch\/(acheter|fr\/achat)/i.test(url) || /rentola\.ch\/listings\//i.test(url)) return 'list_or_search_page';
   const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));
+  const clearSerpTitle = /\d+\s+treffer|treffer\s*-|^(wohnung(en)? mieten in\s+\w+\s*$)|bei homegate\.ch findest/i.test(t);
   if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
-  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
+  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url) || clearSerpTitle)) return 'list_or_search_page';
   if (SHARED.test(t)) return 'shared_room';
   if (DEVELOPMENT.test(t) && !FERIEN_WOHNUNGEN.test(t)) return 'development_project';
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
@@ -1112,6 +1115,7 @@ export function isHolidayOrTourismListing(title: string, text: string, url: stri
 /** Sale signal wins even when a rent fragment also appears in the collage. */
 export function isForSaleListing(title: string, text: string, url: string): boolean {
   const hay = `${title}\n${text}\n${url}`;
+  if (/\bkaufpreis\b/i.test(hay) || /\bverkaufspreis\b/i.test(hay)) return true;
   if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\/kaufen\//i.test(url)) return true;
   if (/\b(zu\s+verkaufen|zum\s+verkauf|for\s+sale|to\s+buy|verkauft)\b/i.test(hay)) return true;
   if (/\bverkauf(en|s|te)?\b/i.test(hay) && !/\b(verkauft\s+worden|nicht\s+verkaufen)\b/i.test(hay)) {
@@ -1166,6 +1170,7 @@ export function isWeakFacebookListingUrl(url: string): boolean {
     if (!/facebook\.com$/i.test(u.hostname.replace(/^www\./, '')) && !/\.facebook\.com$/i.test(u.hostname)) return false;
     const p = u.pathname;
     if (/\/photo\.php/i.test(p) || /\/photos\//i.test(p)) return true;
+    if (/\/groups\/\d+\/?$/i.test(p) || /\/groups\/[^/]+\/?$/i.test(p)) return true;
     if (/fbid=/i.test(u.search) && /set=gm\./i.test(u.search) && !/\/posts\//i.test(p)) return true;
     return false;
   } catch {
