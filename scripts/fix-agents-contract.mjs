@@ -28,8 +28,14 @@ function fixRecheckAssertion(relPath, restoreSha, minLen) {
       process.exit(1);
     }
   }
-  const next = t.replace(/assert\.match\(ui, \/Recheck list\/\);/g, 'assert.match(ui, /Recheck feed/);');
+  let next = t.replace(/assert\.match\(ui, \/Recheck list\/\);/g, 'assert.match(ui, /Recheck feed/);');
   if (next !== t) console.log('%s: Recheck list -> Recheck feed', relPath);
+  const oldLog = 'assert.match(refresh, /contact searches \\${status\\.contactSearches}/);';
+  const newLog = 'assert.match(refresh, /enrichSearches: status\\.contactSearches/);';
+  if (next.includes(oldLog)) {
+    next = next.replace(oldLog, newLog);
+    console.log('%s: refresh contactSearches assertion updated', relPath);
+  }
   writeFileSync(path, next);
   if (next.includes('/Recheck list/')) {
     console.error('%s still has /Recheck list/ assertion', relPath);
