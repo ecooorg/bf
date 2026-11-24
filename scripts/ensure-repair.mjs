@@ -9,13 +9,10 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'server');
 
-// --- Repair module ---
 {
   const target = join(dir, 'immofinderRepair.ts');
   let text = existsSync(target) ? readFileSync(target, 'utf8') : '';
-  const needs = text.length < 20000
-    || !text.includes('export function hardRejectReason')
-    || !text.includes('export function sanitizeNewRecord');
+  const needs = text.length < 20000 || !text.includes('export function hardRejectReason') || !text.includes('export function sanitizeNewRecord');
   if (needs) {
     const parts = readdirSync(dir).filter((f) => /^immofinderRepair\.ts\.zlib\.b64\.p\d+$/.test(f)).sort();
     if (!parts.length) { console.error('immofinderRepair payload parts missing'); process.exit(1); }
@@ -27,7 +24,6 @@ const dir = join(root, 'server');
   }
 }
 
-// --- Store module ---
 {
   const target = join(dir, 'immofinderStore.ts');
   let st = existsSync(target) ? readFileSync(target, 'utf8') : '';
@@ -38,9 +34,9 @@ const dir = join(root, 'server');
     if (paths.every((p) => existsSync(p))) {
       const full = paths.map((p) => readFileSync(p, 'utf8')).join('');
       writeFileSync(target, full);
-      console.log('Restored server/immofinderStore.ts from part0+1+2+3a+3b (%d bytes)', full.length);
+      console.log('Restored server/immofinderStore.ts (%d bytes)', full.length);
     } else {
-      console.error('immofinderStore parts missing:', names.filter((_, i) => !existsSync(paths[i])));
+      console.error('immofinderStore parts missing');
       process.exit(1);
     }
   } else {
@@ -48,31 +44,6 @@ const dir = join(root, 'server');
   }
 }
 
-// Rooms gate on repair
-{
-  const target = join(dir, 'immofinderRepair.ts');
-  let text = readFileSync(target, 'utf8');
-  const roomsPatterns = [
-    [/if \(!why && !row\.provisional && \(!Number\.isFinite\(rooms\) \|\| rooms <= 0\)\) why = 'rooms_unknown';/,
-     "if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';"],
-    [/if \(!why && \(!Number\.isFinite\(rooms\) \|\| rooms <= 0\)\) why = 'rooms_unknown';/,
-     "if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';"],
-  ];
-  let roomsPatched = false;
-  for (const [from, to] of roomsPatterns) {
-    if (from.test(text)) { text = text.replace(from, to); roomsPatched = true; break; }
-  }
-  if (roomsPatched) {
-    writeFileSync(target, text);
-    console.log('Applied rooms_unknown provisionalSnippet exemption');
-  } else if (text.includes('!provisionalSnippet && (!Number.isFinite(rooms)')) {
-    console.log('provisionalSnippet rooms_unknown exemption already present');
-  } else {
-    console.log('rooms_unknown pattern not found (ok if rules already differ)');
-  }
-}
-
-// package-lock patch sync
 try {
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   const lockPath = join(root, 'package-lock.json');
@@ -85,43 +56,21 @@ try {
     console.log('Synced package-lock patch to', want);
   }
 } catch (e) {
-  console.warn('package-lock patch sync skipped:', e && e.message ? e.message : e);
+  console.warn('package-lock patch sync skipped');
 }
 
-// P130.12 P0 feed hygiene
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p0-feed-hygiene.mjs')], { encoding: 'utf8' });
+for (const script of [
+  'scripts/immofinder-p0-feed-hygiene.mjs',
+  'scripts/immofinder-recheck-feed.mjs',
+  'scripts/fix-agents-contract.mjs',
+  'scripts/fix-ci-scripts.mjs',
+  'scripts/immofinder-p1-rooms-hygiene.mjs',
+  'scripts/immofinder-p2-junk-hosts.mjs',
+  'scripts/immofinder-p3-version.mjs',
+]) {
+  const r = spawnSync(process.execPath, [join(root, script)], { encoding: 'utf8' });
   if (r.stdout) process.stdout.write(r.stdout);
   if (r.stderr) process.stderr.write(r.stderr);
-}
-
-// P130.11 single Recheck feed
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-recheck-feed.mjs')], { encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
-  if (r.status) process.exit(r.status || 1);
-}
-
-// agents-contract
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/fix-agents-contract.mjs')], { encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
-  if (r.status) process.exit(r.status || 1);
-}
-
-// package.json critical scripts + REPAIR_RULES_VERSION
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/fix-ci-scripts.mjs')], { encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
-  if (r.status) process.exit(r.status || 1);
-}
-
-// P130.13 P1 rooms_too_many (MUST run last so payload/fix-ci cannot overwrite)
-{
-  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p1-rooms-hygiene.mjs')], { encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
+  // only fail hard on recheck/agents/ci-scripts
+  if (r.status && /recheck-feed|fix-agents|fix-ci/.test(script)) process.exit(r.status || 1);
 }
