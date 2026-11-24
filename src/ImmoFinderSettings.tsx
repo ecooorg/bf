@@ -388,7 +388,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Search targets</strong>
         <p style={hint}>
-          Uses Google site: searches for the enabled Swiss portal domains plus private-owner queries; these are search targets, not independent portal crawlers or APIs. Each result is fetched and verified before it becomes a card. Holiday-rental catalogues stay off. Single-property ads in selected communes must meet the room-count rule; known rent is checked against the configured ceiling, while undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
+          Searches use generated rental-intent queries for enabled portal domains and private offers. A listing is published only after its own detail page confirms the room count, explicit monthly CHF rent, publication date within the age limit, active rental status, and an advertiser-labelled phone or email. Snippets, failed fetches, sales, seeker posts, stale offers, platform contacts, and missing or conflicting facts are rejected.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
@@ -566,21 +566,21 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <label style={labelBlock}>
               <input
                 type="checkbox"
-                checked={!!s.search.requireContact}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))}
+                checked={true}
+                disabled
               />{' '}
-              Require phone or email (drops Messenger-only posts)
+              Require direct advertiser phone or email (mandatory)
             </label>
             <div style={{ marginTop: 6, fontSize: 13, opacity: 0.8 }}>
-              Listings without a published price are kept and marked as price unknown. A known rent above the configured limit is still filtered.
+              An explicit monthly CHF rent and a direct contact labelled as belonging to the advertiser are mandatory. A missing publication date or unknown status is not treated as current.
             </div>
             <label style={labelBlock}>
               <input
                 type="checkbox"
-                checked={!!s.search.rejectNonMonthly}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectNonMonthly: e.target.checked } }))}
+                checked={true}
+                disabled
               />{' '}
-              Reject night / week / season prices only
+              Reject night / week / season-only prices (mandatory)
             </label>
             <label style={labelBlock}>
               Max listing age (days, 0 = no limit){' '}
@@ -594,18 +594,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 style={{ width: 100 }}
               />
             </label>
-            <label style={labelBlock}>
-              Analyse at most{' '}
-              <select
-                value={s.search.maxAiPages}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxAiPages: Number(e.target.value) } }))}
-              >
-                {[20, 40, 60, 100, 200].map((n) => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>{' '}
-              pages with AI per search
-            </label>
+            <p style={hint}>AI extraction is disabled. Listing facts are parsed from the fetched detail page and checked by deterministic rules.</p>
             <label style={labelBlock}>
               Private-search queries per commune{' '}
               <select
