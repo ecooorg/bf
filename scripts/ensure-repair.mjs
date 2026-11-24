@@ -103,3 +103,11 @@ try {
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.status) process.exit(r.status || 1);
 }
+
+// package.json critical scripts + REPAIR_RULES_VERSION
+{
+  const r = spawnSync(process.execPath, [join(root, 'scripts/fix-ci-scripts.mjs')], { encoding: 'utf8' });
+  if (r.stdout) process.stdout.write(r.stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
+  if (r.status) process.exit(r.status || 1);
+}
