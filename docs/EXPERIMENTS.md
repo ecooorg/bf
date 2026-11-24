@@ -1,3 +1,13 @@
+## P130.17 — ImmoFinder evidence-first trust engine
+
+- **PROBLEM / BASELINE:** P129.49 observed 29/30 visible rows with snippet or missing page evidence; P129.51 supplied diagnostics still counted snippet-only candidates as kept. Existing pipeline also permits inferred dates, optional price/contact, and contact enrichment that never drops a row.
+- **HYPOTHESIS:** A new fail-closed admission engine, isolated from discovery and extraction, will prevent any candidate lacking an identity-matched fetched detail page, explicit rental intent, consistent page-sourced room count, explicit monthly CHF price, fresh publication date, active status, and direct page-attributed contact from entering storage or delivery.
+- **METRICS:** zero snippet/fetch-failure/redirect candidates admitted; zero unknown or conflicting required facts admitted; per-reason rejection counts; existing ImmoFinder category tests and typecheck/build; live search and user-visible quality separately reported.
+- **ACCEPTANCE:** require a successful direct detail-page fetch with matching final URL and >=120 text chars; explicit rent intent and no sale/seeker/unavailable markers; page-only room evidence matching extracted value; exact page-quoted CHF/month rent; publication date within configured age; at least one plausible phone/email found on that same page; all missing/ambiguous facts reject; no enrichment or SERP fact can satisfy admission.
+- **SCOPE:** new trust-engine module, pipeline admission integration, existing ImmoFinder quality category tests, patch/version metadata and concise experiment/report/changelog records. Preserve discovery provider, storage schema, UI, delivery, auth, privacy and all non-ImmoFinder systems. Serper credits, migrations, production DB and deployment are out of scope.
+- **ROLLBACK:** revert the isolated trust-engine integration if a fixture with all required page evidence is rejected or any negative fixture (snippet, stale date, missing fact, wrong final URL, sale, unavailable, absent contact) is admitted.
+- **CLASSIFICATION:** USER_VALUE. Baseline live quality and post-change live search remain NOT_RUN until independently observed.
+
 ## P129.53 — Purge legacy seen cache and restore CI metadata contract
 
 - **PROBLEM / BASELINE:** The supplied P129.52 commit has inconsistent lock metadata: `package.json.patch` and top-level `package-lock.json.patch` are `129.52`, but `package-lock.json.packages[""].patch` remains `129.51`; `tests/project-mode-contract.test.mjs` asserts equality and therefore fails. Production `immofinder_seen` contains 2,483 legacy rows that the owner explicitly wants physically removed.
