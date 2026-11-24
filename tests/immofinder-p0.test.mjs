@@ -261,7 +261,7 @@ test('Swiss listings with net and gross rent remain eligible and gross rent is p
 });
 test('pipeline uses the configured portal allowlist at its final write gate', async () => {
   const url = 'https://flatfox.ch/en/flat/abc-123';
-  const body = `<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume mit Balkon, Küche und Bad. Bezug ab sofort möglich.</p></body></html>`;
+  const body = `<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Inseriert am: 20.11.2026. Kontakt +41 79 123 45 67. Wohnfläche 80 m2. Helle Räume mit Balkon, Küche und Bad. Bezug ab sofort möglich.</p></body></html>`;
   const saved = [];
   const localCfg = leanCfg({ contactEnrichment: { ...cfg.contactEnrichment, enabled: false } });
   const result = await runPipeline({
@@ -325,7 +325,7 @@ test('discovery performs one unrestricted Serper call per query, without a fresh
   assert.deepEqual(calls, [null]);
 });
 
-test('P129.52 social feed snippets become provisional cards instead of being discarded', async () => {
+test('P130.17 social feed snippets are rejected and never become listings', async () => {
   const hits = [
     { title: 'Wohnung zu vermieten in Chur', link: 'https://www.facebook.com/groups/1/posts/11/', snippet: 'Schöne Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
     { title: '3.5 Zimmer Wohnung in Chur', link: 'https://www.facebook.com/groups/1/posts/12/', snippet: 'Zu vermieten in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
@@ -335,15 +335,14 @@ test('P129.52 social feed snippets become provisional cards instead of being dis
   const llm = async () => { llmCalls++; return null; };
   const res = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm, store, search: async () => hits, cycle: 0 }, { dryRun: false, wave: 'carousel' });
   assert.equal(res.counts.snippet_only, 2);
-  assert.equal(res.counts.kept, 2);
-  assert.equal(llmCalls, 0, 'snippet evidence is parsed deterministically, without pretending a page was verified');
-  assert.equal(saved.length, 2);
-  assert.ok(saved.every((row) => row.raw.provisional === true && row.raw.evidence_kind === 'snippet'));
-  assert.ok(saved.every((row) => row.raw.evidence_confidence === 'low'));
-  assert.equal(marked.length, 0, 'potential social posts are not poisoned in the seen cache');
+  assert.equal(res.counts.kept, 0);
+  assert.equal(llmCalls, 0, 'snippet evidence is never sent to extraction');
+  assert.equal(saved.length, 0, 'snippet-only social posts never enter storage');
+  assert.equal(marked.length, 2);
+  assert.ok(marked.every((item) => item.reason === 'trust_snippet_only'));
 });
 
-test('P129.51 a failed portal fetch falls back to a provisional SERP-evidence card', async () => {
+test('P130.17 a failed portal fetch cannot fall back to a SERP-evidence listing', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const saved = []; let llmCalls = 0;
   const res = await runPipeline({
@@ -352,14 +351,12 @@ test('P129.51 a failed portal fetch falls back to a provisional SERP-evidence ca
     search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Miete CHF 1\'500 pro Monat, Chur' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
   assert.equal(res.counts.snippet_only, 1);
-  assert.equal(res.counts.kept, 1);
-  assert.equal(llmCalls, 0, 'unverified fallback evidence is parsed deterministically');
-  assert.equal(saved.length, 1);
-  assert.equal(saved[0].raw.provisional, true);
-  assert.equal(saved[0].raw.evidence_kind, 'snippet');
+  assert.equal(res.counts.kept, 0);
+  assert.equal(llmCalls, 0, 'unverified fallback evidence is never sent to extraction');
+  assert.equal(saved.length, 0);
 });
 
-test('P129.52 direct detail pages accept optional final URL and use search snippets after redirects or short pages', async () => {
+test('P130.17 direct detail admission requires identity-matched URL and complete page facts', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
   const saved = [];
@@ -377,8 +374,8 @@ test('P129.52 direct detail pages accept optional final URL and use search snipp
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body }),
     llm: null, store: memStore(noFinalUrlSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(noFinalUrl.counts.kept, 1, 'the documented optional finalUrl field must not discard a verified direct response');
-  assert.equal(noFinalUrlSaved.length, 1);
+  assert.equal(noFinalUrl.counts.kept, 0, 'missing final URL provenance fails closed');
+  assert.equal(noFinalUrlSaved.length, 0);
 
   const wrongSaved = [];
   const redirected = await runPipeline({
@@ -386,9 +383,8 @@ test('P129.52 direct detail pages accept optional final URL and use search snipp
     llm: null, store: memStore(wrongSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
   assert.equal(redirected.counts.snippet_only, 1);
-  assert.equal(redirected.counts.kept, 1);
-  assert.equal(wrongSaved.length, 1);
-  assert.equal(wrongSaved[0].raw.provisional, true, 'a redirect mismatch falls back to the search result as low-confidence evidence');
+  assert.equal(redirected.counts.kept, 0);
+  assert.equal(wrongSaved.length, 0, 'redirect mismatch cannot become a provisional listing');
 
   const shortSaved = [];
   const shortPage = await runPipeline({
@@ -396,9 +392,8 @@ test('P129.52 direct detail pages accept optional final URL and use search snipp
     llm: null, store: memStore(shortSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
   assert.equal(shortPage.counts.snippet_only, 1);
-  assert.equal(shortPage.counts.kept, 1, 'a short fetched page falls back to its search-result title/snippet');
-  assert.equal(shortSaved.length, 1);
-  assert.equal(shortSaved[0].raw.provisional, true);
+  assert.equal(shortPage.counts.kept, 0, 'short page and snippet fallback are rejected');
+  assert.equal(shortSaved.length, 0);
 });
 
 test('Google SERP crawl date is not treated as the listing publication date', async () => {
@@ -409,10 +404,9 @@ test('Google SERP crawl date is not treated as the listing publication date', as
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }), llm: null, store: memStore(saved),
     search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten', date: '2 years ago' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(result.counts.kept, 1);
-  assert.equal(saved.length, 1);
-  assert.equal(saved[0].listed_at, null, 'only a date verified on the listing page may be shown as its publication date');
-  assert.equal(saved[0].raw.search_result_date, '2 years ago', 'keep SERP date for diagnostics without applying the stale-listing gate');
+  assert.equal(result.counts.kept, 0, 'a SERP crawl date cannot substitute for page publication date');
+  assert.equal(saved.length, 0);
+  assert.equal(result.filtered.trust_publication_date_missing, 1);
 });
 test('polite fetcher blocks private targets and validates each redirect hop', async () => {
   const calls = [];
