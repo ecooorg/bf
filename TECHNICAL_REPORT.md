@@ -1,3 +1,7 @@
+## P130.17b — Render TypeScript follow-up
+- **OBSERVED:** deploy `dep-dc2sv6k9v7es73bl625g` passed Vite but failed server type-check at `trust.reason`.
+- **CHANGE:** Narrow rejection via `'reason' in trust`; patch metadata is `130.17b`.
+- **NOT_RUN:** local build/tests; awaiting hosted verification.
 ## P130.17a — Render build repair
 - **OBSERVED:** Render deploy `dep-dc2smm8m7kps73dbjuv0` failed on TypeScript syntax errors in `server/immofinderTrustEngine.ts`.
 - **CHANGE:** Restored valid query templates and portal-host matching; patch metadata is `130.17a`.

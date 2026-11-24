@@ -576,7 +576,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         contactEvidenceUrls: contactEvidence.map((item) => item.url),
         nowMs: now(),
       });
-      if (!trust.accepted) { await deny(trust.reason, 'strict_trust_admission'); continue; }
+      if ('reason' in trust) { await deny(trust.reason, 'strict_trust_admission'); continue; }
       if (trust.contact === 'phone') {
         rec.direct_email = null;
         rec.contact_evidence = rec.contact_evidence.filter((item) => item.type === 'phone');

@@ -1,3 +1,5 @@
+## P130.17b — Fix trust admission type narrowing
+- Use a property-presence guard for rejected trust results so the server TypeScript build can narrow the admission union.
 ## P130.17a — Restore ImmoFinder build
 - Fixed malformed rental-search template literals and portal-host matching so the ImmoFinder trust planner compiles and interpolates locations.
 ## P130.17 — ImmoFinder evidence-first admission
