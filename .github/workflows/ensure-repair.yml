@@ -10,6 +10,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -19,8 +21,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add server/immofinderRepair.ts server/immofinderStore.ts package-lock.json \
-            src/ImmoFinder.tsx server/immofinderRoutes.ts CHANGELOG.md TECHNICAL_REPORT.md
+          git add server/immofinderRepair.ts server/immofinderStore.ts package-lock.json package.json \
+            src/ImmoFinder.tsx server/immofinderRoutes.ts CHANGELOG.md TECHNICAL_REPORT.md \
+            tests/agents-contract.test.mjs
           if git diff --staged --quiet; then
             echo 'No changes'
           else
