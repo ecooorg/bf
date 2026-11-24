@@ -1,3 +1,6 @@
+## P130.18b — Recovery test contract correction
+- Aligned tests with planner-owned query ordering and post-batch checkpoint semantics; hosted verification pending.
+
 ## P130.18a — ImmoFinder recovery reliability
 - Query-level resume, cumulative progress and delivery acknowledgements; recovery under an actual production deploy remains NOT_VERIFIED.
 

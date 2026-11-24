@@ -124,7 +124,7 @@ test('discovery query set replaces generic Facebook group search with fresh-inte
 
 test('pipeline batches discovery processing and avoids poisoning seen with insufficient evidence', () => {
   const source = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
-  assert.match(source, /await flushBatch\(\);\s*try \{ console\.info\(JSON\.stringify\(\{ type: 'immofinder_discovery_batch_processed'/);
+  assert.match(source, /await flushBatch\(\);\s*if \(deps\.shouldCancel\?\.\(\)\) break;\s*if \(querySucceeded\) completedQueryKeys\.add\(q\);/);
   assert.doesNotMatch(source, /qdr:\$\{freshWindow\}/);
   assert.match(source, /sameListingUrlTarget\(it\.url, fetchedUrl\)/);
   assert.match(source, /text\.trim\(\)\.length < MIN_DIRECT_PAGE_TEXT_CHARS/);

@@ -1,3 +1,7 @@
+## P130.18b — CI corrective follow-up
+- **OBSERVED:** Core CI `45469253660` exposed two test-contract mismatches; 175/177 core tests passed.
+- **CHANGE:** Assert planned queries independent of order and require the checkpoint immediately after a successful batch; no runtime behavior changed.
+- **NOT_RUN:** hosted verification after correction pending.
 ## P130.18a — Durable query checkpoints
 - **OBSERVED:** P130.17d recovers PostgreSQL run leases but restarts the query plan from its beginning after process replacement.
 - **CHANGE:** Persist completed-query keys, discovery page budget, cumulative counters and delivery acknowledgements; retry only incomplete queries and fail closed on lease loss.

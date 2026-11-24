@@ -1,3 +1,5 @@
+## P130.18b — Correct recovery test ordering
+- Made the checkpoint test independent of planner ordering and aligned the pipeline contract assertion with the new post-batch checkpoint.
 ## P130.18a — Resume ImmoFinder searches after process replacement
 - Persist completed-query keys, cumulative evidence counters and delivery acknowledgements; retry only incomplete queries without relaxing listing verification.
 ## P130.18 — Resolve Serper redirects and JS-rendered rental pages

@@ -720,7 +720,7 @@ test('P130.18a PostgreSQL query checkpoints resume completed work and retry only
     cycle: 0,
     onCheckpoint: async (checkpoint) => { checkpoints.push(checkpoint); },
   }, { dryRun: true, wave: 'carousel' });
-  assert.deepEqual(firstCalls, plan);
+  assert.deepEqual([...firstCalls].sort(), [...plan].sort(), 'both planned queries are attempted; ordering is planner-owned');
   assert.equal(first.counts.search_queries, 2);
   const saved = checkpoints.at(-1);
   assert.deepEqual(saved.completedQueryKeys, [plan[1]], 'failed query is not checkpointed as complete');
