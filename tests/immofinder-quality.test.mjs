@@ -70,6 +70,15 @@ test('P130.17 search planner ignores legacy query wording and generates rental-i
   assert.ok(plan.every((query) => !/Town C/.test(query)));
 });
 
+test('P130.17 repair automation preserves current patch and append-only history', () => {
+  const versionScript = read('scripts/immofinder-p3-version.mjs');
+  assert.doesNotMatch(versionScript, /patch.*130\\.16|p\\.replace\\(.*130\\.16/);
+  assert.match(versionScript, /REPAIR_RULES_VERSION/);
+  const repairScript = read('scripts/immofinder-recheck-feed.mjs');
+  assert.match(repairScript, /!cl\\.includes\\('## P130\\.11'\\)/);
+  assert.match(repairScript, /!tr\\.includes\\('## P130\\.11'\\)/);
+});
+
 test('immofinder core exports plausible contact helpers', () => {
   const core = read('server/immofinderCore.ts');
   assert.match(core, /export function isPlausibleSwissPhone/);
