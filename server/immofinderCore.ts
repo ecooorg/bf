@@ -947,11 +947,11 @@ export interface QualitySettings {
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
-  // Trust-engine contract: visible listings require explicit monthly rent and direct contact.
-  requirePrice: true,
-  rejectNonMonthly: true,
+  // Legacy stored-row utilities remain permissive by default; live admission is stricter in immofinderTrustEngine.
+  requirePrice: false,
+  rejectNonMonthly: false,
   rejectSeekerPosts: true,
-  requireContact: true,
+  requireContact: false,
 };
 
 /** Returns a filter reason or null if the listing may be kept.
