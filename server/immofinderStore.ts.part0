@@ -41,6 +41,7 @@ export function createPgStore(): ImmoStore {
     async getSeen(url) {
       const p = await getPool(); const r = await p.query('SELECT checked_at, decision, reason FROM immofinder_seen WHERE url = $1', [url]);
       if (!r.rows[0]) return null;
+      // Entries written by older search rules are ignored once, then replaced with the current version if rejected again.
       const reason = decodeSeenReason(r.rows[0].reason);
       if (reason === null) return null;
       return { checked_at: new Date(r.rows[0].checked_at).toISOString(), decision: r.rows[0].decision, reason };
@@ -57,6 +58,9 @@ export function createPgStore(): ImmoStore {
         rec.raw = { ...(rec.raw || {}), write_time_quality: { notes: sanitized.notes, hardReason: sanitized.hardReason, rules: REPAIR_RULES_VERSION } };
         if (sanitized.hardReason) { rec.hidden = true; rec.hide_reason = sanitized.hardReason; }
       }
+      // Prefer exact listing_url / source_urls match. Fall back to canonical_key so a second
+      // URL with the same name+municipality+host updates instead of crashing on the unique constraint
+      // (provisional snippets often share generic titles like "Wohnung mieten in Trimmis").
       const ex = await p.query(
         `SELECT id, listing_url, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw, property_name, municipality, rooms_estimated, description_de, hidden, hide_reason
          FROM immofinder_listings
@@ -82,6 +86,7 @@ export function createPgStore(): ImmoStore {
         if (recoverAutomaticHide && repairAutoHide) nextRaw.repair = { ...(prevRaw.repair || {}), source: 'automatic_recovery', recoveredAt: new Date().toISOString() };
         if (recoverAutomaticHide && writeGateAutoHide) nextRaw.write_time_quality = { ...prevRaw.write_time_quality, hardReason: null, recoveredAt: new Date().toISOString() };
         if (prevRaw.listed_at && !nextRaw.listed_at) nextRaw.listed_at = prevRaw.listed_at;
+        // Prefer newly parsed price when present (same URL re-fetch); else keep previous.
         if (prevRaw.price && !nextRaw.price) nextRaw.price = prevRaw.price;
         await p.query(
           `UPDATE immofinder_listings SET
