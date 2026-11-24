@@ -355,7 +355,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
 
   const rooms = Number(row.rooms_estimated);
   // Real long-term rental ads always state room count; 0 / missing is not a presentable card.
-  if (!why && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';
+  if (!why && !row.provisional && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';
   if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
