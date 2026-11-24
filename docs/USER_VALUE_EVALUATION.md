@@ -1,3 +1,7 @@
+# P130.17d — ImmoFinder run continuity
+- **OBSERVED:** production run was interrupted by Render process replacement; no completed result was delivered.
+- **INFERRED:** durable queue recovery should prevent the UI from remaining stuck after deploy/restart.
+- **NOT_RUN:** recovery under an actual deploy during a running search, completed listing yield and user task outcome.
 # P130.17 — ImmoFinder evidence-first search
 - **OBSERVED:** Main-branch source now rejects snippet-only and incomplete candidates at the final trust gate; no post-change live-feed audit has run.
 - **INFERRED:** False positives should fall; visible listing volume may fall sharply when portals omit dates, monthly prices or advertiser contacts.

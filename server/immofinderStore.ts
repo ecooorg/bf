@@ -418,16 +418,16 @@ export async function updateListingContacts(
   );
 }
 
-export async function startRun(trigger: string, dryRun: boolean): Promise<string | null> {
+export async function startRun(trigger: string, dryRun: boolean, payload?: { settings?: ImmoSettings; wave?: 'carousel' | 'full'; cycle?: number }): Promise<string | null> {
   const p = await getPool();
   const client = await p.connect();
   try {
     await client.query('BEGIN');
-    // Serialize starts across app instances; the run itself can last 45 minutes.
     await client.query('SELECT pg_advisory_xact_lock($1)', [8147339201]);
-    const busy = await client.query(`SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL AND started_at > now() - interval '50 minutes' LIMIT 1`);
+    const busy = await client.query('SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL LIMIT 1');
     if (busy.rows[0]) { await client.query('ROLLBACK'); return null; }
-    const r = await client.query('INSERT INTO immofinder_runs (trigger, dry_run) VALUES ($1, $2) RETURNING id', [trigger, dryRun]);
+    const progress = { state: 'queued', settingsSnapshot: payload?.settings ?? null, wave: payload?.wave ?? 'carousel', cycle: Number.isInteger(payload?.cycle) ? payload!.cycle : 0, attempts: 0, queuedAt: new Date().toISOString() };
+    const r = await client.query('INSERT INTO immofinder_runs (trigger, dry_run, progress) VALUES ($1, $2, $3::jsonb) RETURNING id', [trigger, dryRun, JSON.stringify(progress)]);
     await client.query('COMMIT');
     return r.rows[0]?.id ?? null;
   } catch (error) {
@@ -435,10 +435,36 @@ export async function startRun(trigger: string, dryRun: boolean): Promise<string
     throw error;
   } finally { client.release(); }
 }
-export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown) {
+
+export async function claimNextRun(workerId: string) {
   const p = await getPool();
-  await p.query('UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, est_cost_usd = $4, delivery = $5::jsonb, sources = $6::jsonb WHERE id = $1',
-    [id, j({ ...(res?.counts ?? {}), filtered: res?.filtered ?? {} }), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 200) ?? [])]);
+  await p.query("UPDATE immofinder_runs SET finished_at = now(), errors = COALESCE(errors, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('code','worker_retry_limit','detail','Run exceeded the automatic recovery attempt limit')), progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','failed','text','Automatic recovery limit reached') WHERE finished_at IS NULL AND attempts >= 5 AND (lease_until IS NULL OR lease_until < now())");
+  const r = await p.query(
+    "WITH candidate AS (SELECT id FROM immofinder_runs WHERE finished_at IS NULL AND (lease_until IS NULL OR lease_until < now()) AND COALESCE(progress->>'state','queued') IN ('queued','running') AND attempts < 5 ORDER BY started_at FOR UPDATE SKIP LOCKED LIMIT 1) UPDATE immofinder_runs AS run SET lease_owner = $1, lease_until = now() + interval '45 seconds', attempts = run.attempts + 1, progress = COALESCE(run.progress, '{}'::jsonb) || jsonb_build_object('state','running','attempts',run.attempts + 1,'workerId',$1,'workerStartedAt',now()) FROM candidate WHERE run.id = candidate.id RETURNING run.*",
+    [workerId],
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function renewRunLease(runId: string, workerId: string): Promise<boolean | null> {
+  const p = await getPool();
+  const r = await p.query("UPDATE immofinder_runs SET lease_until = now() + interval '45 seconds' WHERE id = $1 AND lease_owner = $2 AND finished_at IS NULL RETURNING cancel_requested", [runId, workerId]);
+  return r.rowCount ? Boolean(r.rows[0].cancel_requested) : null;
+}
+
+export async function releaseRunForRetry(runId: string, workerId: string, reason = 'Worker stopping; run will be recovered by the next process') {
+  const p = await getPool();
+  await p.query("UPDATE immofinder_runs SET lease_owner = NULL, lease_until = now() + interval '3 seconds', progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','queued','text',$3,'releasedAt',now()) WHERE id = $1 AND lease_owner = $2 AND finished_at IS NULL", [runId, workerId, reason]);
+}
+
+export async function saveWorkerProgress(runId: string, workerId: string, progress: unknown) {
+  const p = await getPool();
+  await p.query("UPDATE immofinder_runs SET progress = COALESCE(progress, '{}'::jsonb) || $3::jsonb WHERE id = $1 AND lease_owner = $2 AND finished_at IS NULL", [runId, workerId, JSON.stringify(progress ?? {})]);
+}
+export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown, workerId?: string) {
+  const p = await getPool();
+  await p.query("UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, est_cost_usd = $4, delivery = $5::jsonb, sources = $6::jsonb, lease_owner = NULL, lease_until = NULL, cancel_requested = false, progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','completed','stage','done','text','Finished') WHERE id = $1 AND ($7::text IS NULL OR lease_owner = $7)",
+    [id, j({ ...(res?.counts ?? {}), filtered: res?.filtered ?? {} }), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 200) ?? []), workerId ?? null]);
 }
 export async function latestRun() {
   const p = await getPool();
@@ -452,7 +478,7 @@ export async function realRunCount(): Promise<number> {
 
 export async function saveProgress(id: string, progress: unknown) {
   const p = await getPool();
-  await p.query('UPDATE immofinder_runs SET progress = $2::jsonb WHERE id = $1', [id, JSON.stringify(progress ?? {})]);
+  await p.query("UPDATE immofinder_runs SET progress = COALESCE(progress, '{}'::jsonb) || $2::jsonb WHERE id = $1", [id, JSON.stringify(progress ?? {})]);
 }
 
 export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
@@ -469,18 +495,23 @@ export async function lastRealRunAt(): Promise<Date | null> {
   return r.rows[0]?.t ? new Date(r.rows[0].t) : null;
 }
 
-/** In-process cancel flags for active Immofinder runs (lost on process restart — acceptable). */
+/** Local fast-path plus a durable cancellation flag shared by every app instance. */
 const cancelFlags = new Set<string>();
-export function requestRunCancel(runId: string): void { if (runId) cancelFlags.add(runId); }
+export function markRunCancelLocal(runId: string): void { if (runId) cancelFlags.add(runId); }
+export async function requestRunCancel(runId: string): Promise<void> {
+  if (!runId) return;
+  markRunCancelLocal(runId);
+  const p = await getPool();
+  await p.query('UPDATE immofinder_runs SET cancel_requested = true WHERE id = $1 AND finished_at IS NULL', [runId]);
+}
 export function isRunCancelled(runId: string): boolean { return cancelFlags.has(runId); }
 export function clearRunCancel(runId: string): void { cancelFlags.delete(runId); }
 
-/** Mark the open run finished as cancelled (no delivery). */
-export async function finishRunCancelled(id: string, counts: Record<string, number> = {}) {
+export async function finishRunCancelled(id: string, counts: Record<string, number> = {}, workerId?: string) {
   const p = await getPool();
   clearRunCancel(id);
   await p.query(
-    `UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, progress = $4::jsonb WHERE id = $1 AND finished_at IS NULL`,
-    [id, JSON.stringify(counts), JSON.stringify([{ code: 'cancelled', detail: 'Stopped by user' }]), JSON.stringify({ stage: 'done', text: 'Stopped by user', counts })],
+    "UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = COALESCE(errors, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('code','cancelled','detail','Stopped by user')), progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','cancelled','stage','done','text','Stopped by user','counts',$2::jsonb), lease_owner = NULL, lease_until = NULL, cancel_requested = false WHERE id = $1 AND finished_at IS NULL AND ($3::text IS NULL OR lease_owner = $3)",
+    [id, JSON.stringify(counts), workerId ?? null],
   );
 }

@@ -5,6 +5,9 @@ import { createPoliteFetch } from './immofinderFetcher.ts';
 import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 
+let stopImmoFinderWorkerImpl: (() => Promise<void>) | null = null;
+export async function stopImmoFinderWorker(): Promise<void> { await stopImmoFinderWorkerImpl?.(); }
+
 /** User-facing run name: only Carousel vs Full (settings). Internal priority/extended map to these. */
 function immofinderWaveLabel(wave: string): string {
   const w = String(wave || '').toLowerCase();
@@ -15,7 +18,7 @@ function immofinderWaveLabel(wave: string): string {
 }
 import { TIMEZONE, applySettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
@@ -172,6 +175,7 @@ async function publishQualityCheckedListings(reason: string): Promise<Record<str
 }
 
 export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): void {
+  let workerStopping = false;
   const json = express.json({ limit: '10kb' });
   app.use('/api/immofinder', (req, res, next) => {
     const isRunPost = req.method === 'POST' && req.path === '/run';
@@ -610,9 +614,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     try {
       const latest = await latestRun();
       if (!latest || latest.finished_at) return res.json({ success: true, stopped: false, reason: 'no_active_run' });
-      requestRunCancel(String(latest.id));
-      await finishRunCancelled(String(latest.id), latest.counts || {});
-      return res.json({ success: true, stopped: true, runId: latest.id });
+      await requestRunCancel(String(latest.id));
+      return res.json({ success: true, stopped: true, runId: latest.id, state: 'cancellation_requested' });
     } catch {
       return res.status(500).json({ success: false, error: 'Could not stop run', code: 'IMMOFINDER_FAILED' });
     }
@@ -687,22 +690,39 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       console.info(JSON.stringify({ type: 'immofinder_run_start', trigger: 'manual', dryRun }));
     }
     let runId: string | null;
-    try { runId = await startRun(trigger, dryRun); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
+    try { runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() }); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
     if (!runId) {
       console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
-      return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
+      return res.status(409).json({ suc      // The durable PostgreSQL worker claims and executes this queued run.
+ GitHub diagnostics ${diagnosticsStatus} · snapshot ${snapshotStatus}`,
+          counts: result?.counts ?? {},
+          log,
+        });
+        clearRunCancel(runId!);
+      } catch { /* progress is best-effort; snapshot is already handled */ }
+    })();
+  });
+
+    const executeQueuedRun = async (job: any, workerId: string, leaseLost: () => boolean) => {
+    const runId = String(job.id);
+    const progress = job.progress && typeof job.progress === 'object' ? job.progress : {};
+    const settings = progress.settingsSnapshot || await getSettings(loadImmoConfig());
+    const wave: 'carousel' | 'full' = progress.wave === 'full' ? 'full' : 'carousel';
+    const dryRun = Boolean(job.dry_run);
+    if (job.cancel_requested) {
+      markRunCancelLocal(runId);
+      await finishRunCancelled(runId, progress.counts || {}, workerId);
+      return;
     }
-    console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun, wave }));
-    res.status(202).json({ success: true, runId, dryRun, wave });
-    void (async () => {
+
       const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number>; communes?: string[] } = { stage: 'catalogue', text: 'Starting' };
       const push = (e: typeof ev, force = false) => {
         ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
         const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
-        void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
+        void saveWorkerProgress(runId, workerId, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
       };
       push(ev, true);
-      const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; const delivery: Record<string, string> = {};
+      const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; let pipelineCompleted = false; const delivery: Record<string, string> = {};
       try {
         immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot before run');
         const cfg = applySettings(loadImmoConfig(), settings);
@@ -759,13 +779,14 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           onProgress: push,
           maxLlmCalls: settings.search.maxAiPages,
           search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
-          cycle: await realRunCount(),
-          shouldCancel: () => isRunCancelled(runId!),
+          cycle: Number(progress.cycle ?? 0),
+          shouldCancel: () => isRunCancelled(runId) || workerStopping || leaseLost(),
           onWaveComplete: dryRun ? undefined : async ({ wave, newInWave, counts }) => {
             try { await deliverWave(wave, newInWave, counts); }
             catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
           },
         }, { dryRun, wave });
+        pipelineCompleted = true;
         immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot after run');
         errors.push(...(result.errors || []));
         try {
@@ -794,14 +815,19 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           await deliverWave('extended', [], result.counts);
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
+      if (leaseLost()) return;
+      if (workerStopping && (!pipelineCompleted || result?.errors?.some((e) => e.code === 'cancelled'))) {
+        await releaseRunForRetry(runId, workerId, 'Render is replacing this instance; the queued run will resume on the new process');
+        return;
+      }
       try {
-        if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
-        else await finishRun(runId!, result, errors, delivery);
-      } catch { /* run row stays open; the 30-minute guard releases it */ }
+        if (isRunCancelled(runId)) await finishRunCancelled(runId, result?.counts ?? {}, workerId);
+        else await finishRun(runId, result, errors, delivery, workerId);
+      } catch { /* lease expiry lets another process recover the run */ }
       const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
       const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
       try {
-        await saveProgress(runId!, {
+        await saveWorkerProgress(runId, workerId, {
           stage: 'done',
           text: `${result?.errors?.some((e) => e.code === 'cancelled') || isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub diagnostics ${diagnosticsStatus} · snapshot ${snapshotStatus}`,
           counts: result?.counts ?? {},
@@ -809,10 +835,48 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         });
         clearRunCancel(runId!);
       } catch { /* progress is best-effort; snapshot is already handled */ }
-    })();
-  });
-
-  // --- In-process schedule (default hourly carousel; no external cron required) ---
+    
+  };
+  const workerDisabled = process.env.NODE_ENV === 'test' || Boolean(process.env.NODE_TEST_CONTEXT) || process.env.IMMOFINDER_DISABLE_WORKER === '1';
+  if (!workerDisabled && !stopImmoFinderWorkerImpl) {
+    let active: Promise<void> | null = null;
+    let polling = false;
+    const workerId = `immo-${process.pid}-${crypto.randomUUID()}`;
+    const tick = async () => {
+      if (workerStopping || polling || active) return;
+      polling = true;
+      try {
+        const job = await claimNextRun(workerId);
+        if (!job) return;
+        let leaseLost = false;
+        const heartbeat = setInterval(() => {
+          void renewRunLease(String(job.id), workerId).then((cancelled) => {
+            if (cancelled === null) leaseLost = true;
+            else if (cancelled) markRunCancelLocal(String(job.id));
+          }).catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_heartbeat_failed', runId: job.id, error: String((error as Error)?.message || error).slice(0, 120) })));
+        }, 10_000);
+        heartbeat.unref();
+        active = (async () => {
+          try { await executeQueuedRun(job, workerId, () => leaseLost); }
+          catch (error) {
+            if (!leaseLost) await releaseRunForRetry(String(job.id), workerId, `Worker error: ${String((error as Error)?.message || error).slice(0, 160)}`).catch(() => {});
+            console.error(JSON.stringify({ type: 'immofinder_worker_run_failed', runId: job.id, error: String((error as Error)?.message || error).slice(0, 200) }));
+          } finally { clearInterval(heartbeat); active = null; }
+        })();
+        await active;
+      } finally { polling = false; }
+    };
+    const timer = setInterval(() => { void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) }))); }, 2_000);
+    timer.unref();
+    stopImmoFinderWorkerImpl = async () => {
+      workerStopping = true;
+      clearInterval(timer);
+      if (active) await Promise.race([active, new Promise((resolve) => setTimeout(resolve, 8_000))]);
+    };
+    console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 2_000 }));
+    void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
+  }
+// --- In-process schedule (default hourly carousel; no external cron required) ---
   // Checks every 10 minutes; isDue() enforces everyHours / dailyAt. Manual mode still disables auto-runs.
   // Do not start timers under node:test / explicit disable — they keep the event loop alive and time out CI.
   const scheduleDisabled =
@@ -853,7 +917,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         const dryRun = false;
         const trigger = 'schedule';
         let runId: string | null = null;
-        try { runId = await startRun(trigger, dryRun); } catch (e) {
+        try { runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() }); } catch (e) {
           console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'START_FAILED', trigger: 'internal', detail: String((e as Error)?.message || e).slice(0, 120) }));
           return;
         }
@@ -863,121 +927,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         }
         console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger: 'internal', runId, dryRun, wave }));
 
-        void (async () => {
-          const log: { t: number; text: string }[] = [];
-          let lastSave = 0;
-          let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number>; communes?: string[] } = { stage: 'catalogue', text: 'Scheduled carousel starting' };
-          const push = (e: typeof ev, force = false) => {
-            ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
-            const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
-            void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
-          };
-          push(ev, true);
-          const errors: unknown[] = [];
-          let result = null as Awaited<ReturnType<typeof runPipeline>> | null;
-          const delivery: Record<string, string> = {};
-          try {
-            immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'Scheduled ImmoFinder database snapshot before run');
-            const cfg = applySettings(loadImmoConfig(), settings);
-            try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* optional */ }
-            const dl = settings.delivery;
-            const deliverWave = async (w: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
-              const label = immofinderWaveLabel(w);
-              const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
-              const newKeys = new Set(newInWave.map((l) => l.canonical_key));
-              const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
-              const emailAllMode = dl.emailContent === 'all';
-              const emailRows = emailAllMode ? all : fresh;
-              const notifyTelegram = fresh.length > 0 || dl.notifyWhenEmpty;
-              const notifyEmail = emailRows.length > 0 || dl.notifyWhenEmpty;
-              push({ stage: 'delivery', text: `${label}: email=${emailAllMode ? `all ${emailRows.length}` : `${fresh.length} new`}`, counts }, true);
-              if (dl.drive) {
-                const d = await exportDrive(all, driveFolder(dl.driveFolderId));
-                delivery.drive = d.status;
-                if (d.url) delivery.driveUrl = d.url;
-              } else delivery.drive = 'off';
-              const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
-              if (dl.telegram) {
-                delivery.telegram = notifyTelegram
-                  ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
-                  : 'skipped: nothing new';
-              } else delivery.telegram = 'off';
-              if (dl.email && dl.emailTo) {
-                delivery.email = notifyEmail
-                  ? await sendEmail(
-                    dl.emailTo,
-                    emailAllMode
-                      ? `ImmoFinder ${label}: all ${emailRows.length} listings (${fresh.length} new)`
-                      : `ImmoFinder ${label}: ${fresh.length} new`,
-                    formatListingsText(emailRows, {
-                      heading: emailAllMode ? `${head}\nAll current listings (${emailRows.length}), newest first:` : head,
-                      limit: emailAllMode ? 60 : 30,
-                      driveUrl: delivery.driveUrl,
-                    }),
-                  )
-                  : (emailAllMode ? 'skipped: no listings' : 'skipped: nothing new');
-              } else delivery.email = 'off';
-            };
-            result = await runPipeline({
-              config: cfg,
-              fetchPage: createPoliteFetch(cfg),
-              llm: deps.llm,
-              store: createPgStore(),
-              onProgress: push,
-              maxLlmCalls: settings.search.maxAiPages,
-              search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
-              cycle: await realRunCount(),
-              shouldCancel: () => isRunCancelled(runId!),
-              onWaveComplete: async ({ wave: w, newInWave, counts }) => {
-                try { await deliverWave(w, newInWave, counts); }
-                catch (e) { errors.push({ code: `${w}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
-              },
-            }, { dryRun: false, wave });
-            immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'Scheduled ImmoFinder database snapshot after run');
-            errors.push(...(result.errors || []));
-            try {
-              const saved = await listListings(null, { includeHidden: true });
-              immoLog(
-                'info',
-                'search_quality_summary',
-                searchQualityPayload({
-                  runId,
-                  wave: 'scheduled',
-                  counts: result.counts,
-                  filtered: result.filtered,
-                  errors: result.errors?.length || 0,
-                  sourceStats: result.sourceStats || [],
-                  wavesRun: result.wavesRun || [],
-                  savedRows: saved,
-                  preview: result.preview || [],
-                }),
-                'Scheduled search quality, card completeness and weak-sample summary for All Logs',
-              );
-            } catch (diagError) {
-              immoLog('warn', 'search_quality_summary_failed', { runId, error: String((diagError as Error)?.message || diagError).slice(0, 120) });
-            }
-            if (dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
-              await deliverWave('extended', [], result.counts);
-            }
-          } catch (e) {
-            errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) });
-          }
-          try {
-            if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
-            else await finishRun(runId!, result, errors, delivery);
-          } catch { /* 30-min guard */ }
-          const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
-          const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
-          try {
-            await saveProgress(runId!, {
-              stage: 'done',
-              text: `${isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · diagnostics ${diagnosticsStatus} · GitHub snapshot ${snapshotStatus}`,
-              counts: result?.counts ?? {},
-              log,
-            });
-            clearRunCancel(runId!);
-          } catch { /* progress is best-effort; snapshot is already handled */ }
-        })();
+                // Scheduled work is also consumed by the durable PostgreSQL worker.
+
       } catch (e) {
         console.warn(JSON.stringify({ type: 'immofinder_schedule_tick', trigger: 'internal', error: String((e as Error)?.message || e).slice(0, 160) }));
       }

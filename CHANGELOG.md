@@ -1,3 +1,5 @@
+## P130.17d — Durable ImmoFinder worker
+- Queue runs in PostgreSQL with expiring leases, persisted settings, cross-instance cancellation and deploy-time recovery.
 ## P130.17c — Restore ImmoFinder CI
 - Updated evidence-backed rental fixtures, repair-rule stamp derivation, copy fragments and already-rented rejection; preserved mandatory listing gates.
 ## P130.17b — Fix trust admission type narrowing

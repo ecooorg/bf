@@ -83,6 +83,27 @@ test('P130.17 repair automation preserves current patch and append-only history'
   assert.doesNotMatch(ciRepairScript, /pkg\.patch\s*=|REPAIR_RULES_VERSION/);
 });
 
+test('P130.17d ImmoFinder runs use durable PostgreSQL leases and recover after process replacement', () => {
+  const store = read('server/immofinderStore.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  const migration = read('migrations/029_immofinder_durable_worker.sql');
+  const server = read('server.ts');
+  assert.match(migration, /lease_owner/);
+  assert.match(migration, /lease_until/);
+  assert.match(migration, /cancel_requested/);
+  assert.match(migration, /recoveredFromLegacy/);
+  assert.match(store, /FOR UPDATE SKIP LOCKED/);
+  assert.match(store, /lease_until/);
+  assert.match(store, /settingsSnapshot/);
+  assert.match(store, /cancel_requested = true/);
+  assert.match(routes, /claimNextRun\(workerId\)/);
+  assert.match(routes, /executeQueuedRun/);
+  assert.match(routes, /await requestRunCancel/);
+  assert.match(routes, /releaseRunForRetry/);
+  assert.doesNotMatch(routes.slice(routes.indexOf("app.post('/api/immofinder/run'"), routes.indexOf('// --- In-process schedule')), /void \(async \(\) => \{/);
+  assert.match(server, /stopImmoFinderWorker/);
+});
+
 test('immofinder core exports plausible contact helpers', () => {
   const core = read('server/immofinderCore.ts');
   assert.match(core, /export function isPlausibleSwissPhone/);

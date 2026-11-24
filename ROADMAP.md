@@ -1,3 +1,6 @@
+## P130.17d — Durable ImmoFinder execution
+- Implemented: PostgreSQL-backed queue/lease recovery, persisted run settings, cross-instance cancellation and graceful shutdown; live recovery acceptance remains NOT_VERIFIED.
+
 ## P129.50 — ImmoFinder encrypted DB backup and short-stay support
 
 - Implemented: CI scope fix; full encrypted GitHub snapshot after manual/scheduled searches; physical-address extraction/storage/card display; seasonal/nightly/weekly offers admitted only with explicit period, exact detail URL, fetched page and verified direct contact. **Pending:** configure runtime GitHub write token/repository, run hosted CI, apply migration and verify production snapshot + all delivery channels.

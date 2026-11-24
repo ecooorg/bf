@@ -1,3 +1,7 @@
+## P130.17d — Durable ImmoFinder execution
+- **OBSERVED:** production run `7c91fdb1` stopped at query 19/68 when Render replaced its process; manual stop overwrote progress counters.
+- **CHANGE:** PostgreSQL queue/leases, boot recovery, persisted cancellation and graceful worker drain; patch `130.17d`.
+- **NOT_RUN:** hosted CI, recovery-after-deploy acceptance, live listing yield and user outcome pending.
 ## P130.17c — CI follow-up
 - **OBSERVED:** Core CI `45454081551` failed `lint:copy` and 11 `test:core` assertions; Render deploy is live.
 - **CHANGE:** Aligned fixtures with direct-page evidence, derived repair-rule stamp from package patch, and reject explicit already-rented notices.

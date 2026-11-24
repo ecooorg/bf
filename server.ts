@@ -42,7 +42,7 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
-import { registerImmoFinderRoutes, isImmoCronCall, isImmoDiagnosticsCall } from './server/immofinderRoutes.ts';
+import { registerImmoFinderRoutes, isImmoCronCall, isImmoDiagnosticsCall, stopImmoFinderWorker } from './server/immofinderRoutes.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
@@ -2807,7 +2807,8 @@ async function start() {
     stopKeepAlive?.();
     const force = setTimeout(() => process.exit(0), 10_000);
     force.unref();
-    try { if (projectWorker) await projectWorker.stop(); } catch (e) { console.error('Worker stop failed', e); }
+    try { await stopImmoFinderWorker(); } catch (e) { console.error('ImmoFinder worker stop failed', e); }
+    try { if (projectWorker) await projectWorker.stop(); } catch (e) { console.error('Project worker stop failed', e); }
     try { await closeDatabase(); } catch { /* best effort */ }
     await new Promise<void>((resolve) => { if (httpServer) { httpServer.close(() => resolve()); (httpServer as any).closeAllConnections?.(); } else resolve(); });
     process.exit(0);
