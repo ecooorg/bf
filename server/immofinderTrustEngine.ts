@@ -45,7 +45,8 @@ export type TrustRejectReason =
   | 'trust_publication_date_future'
   | 'trust_listing_stale'
   | 'trust_contact_missing'
-  | 'trust_contact_not_page_attributed';
+  | 'trust_contact_not_page_attributed'
+  | 'trust_contact_not_advertiser';
 
 export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: number; listedAt: string; contact: 'phone' | 'email' } | { accepted: false; reason: TrustRejectReason };
 
@@ -54,6 +55,21 @@ export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: nu
  * values are never evidence here: every required fact must be present on the one
  * identity-matched detail page fetched for this candidate.
  */
+function hasAdvertiserContactContext(text: string, value: string, kind: 'phone' | 'email'): boolean {
+  const labels = /(kontakt|vermieter|anbieter|kontaktperson|ansprechpartner|ansprechperson|contact|e-?mail|propri[eé]taire|annonceur|telefon|tel\.?|tél\.?|mobile|phone|landlord|owner|advertiser)/i;
+  if (kind === 'email') {
+    const index = text.toLowerCase().indexOf(value.toLowerCase());
+    if (index < 0) return false;
+    return labels.test(text.slice(Math.max(0, index - 120), Math.min(text.length, index + value.length + 120)));
+  }
+  const digits = value.replace(/\D/g, '').slice(-9);
+  if (digits.length !== 9) return false;
+  const phonePattern = new RegExp(digits.split('').join('\\D*'));
+  const match = phonePattern.exec(text);
+  if (!match) return false;
+  return labels.test(text.slice(Math.max(0, match.index - 120), Math.min(text.length, match.index + match[0].length + 100)));
+}
+
 export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmission {
   const reject = (reason: TrustRejectReason): TrustAdmission => ({ accepted: false, reason });
   const text = String(input.pageText || '').trim();
@@ -84,13 +100,14 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   if (!Number.isFinite(published.getTime())) return reject('trust_publication_date_missing');
   const now = input.nowMs ?? Date.now();
   if (published.getTime() > now + 24 * 60 * 60 * 1000) return reject('trust_publication_date_future');
-  if (now - published.getTime() > Math.max(1, input.maxAgeDays) * 86400000) return reject('trust_listing_stale');
+  if (now - published.getTime() > (input.maxAgeDays > 0 ? input.maxAgeDays : 180) * 86400000) return reject('trust_listing_stale');
 
   const phone = input.phone ? normPhone(input.phone) : null;
   const validPhone = Boolean(phone && isPlausibleSwissPhone(phone));
   const email = input.email ? input.email.trim().toLowerCase() : null;
   const validEmail = Boolean(email && isPlausibleEmail(email));
   if (!validPhone && !validEmail) return reject('trust_contact_missing');
+  if (!(validPhone && phone && hasAdvertiserContactContext(text, phone, 'phone')) && !(validEmail && email && hasAdvertiserContactContext(text, email, 'email'))) return reject('trust_contact_not_advertiser');
   const pageUrl = input.finalUrl;
   const attributed = input.contactEvidenceUrls.some((url) => {
     try {
