@@ -60,6 +60,7 @@ try {
 }
 
 for (const script of [
+  'scripts/p13016-core-restore.mjs',
   'scripts/immofinder-p0-feed-hygiene.mjs',
   'scripts/immofinder-recheck-feed.mjs',
   'scripts/fix-agents-contract.mjs',
@@ -72,6 +73,5 @@ for (const script of [
   const r = spawnSync(process.execPath, [join(root, script)], { encoding: 'utf8' });
   if (r.stdout) process.stdout.write(r.stdout);
   if (r.stderr) process.stderr.write(r.stderr);
-  // only fail hard on recheck/agents/ci-scripts
   if (r.status && /recheck-feed|fix-agents|fix-ci/.test(script)) process.exit(r.status || 1);
 }
