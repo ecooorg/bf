@@ -558,8 +558,8 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <label style={labelBlock}>
               <input
                 type="checkbox"
-                checked={s.search.rejectSeekerPosts !== false}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectSeekerPosts: e.target.checked } }))}
+                checked={true}
+                disabled
               />{' '}
               Reject “looking for a flat” seeker posts
             </label>
@@ -583,7 +583,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               Reject night / week / season-only prices (mandatory)
             </label>
             <label style={labelBlock}>
-              Max listing age (days, 0 = no limit){' '}
+              Max listing age (days, 0 = use 180-day default){' '}
               <input
                 type="number"
                 min={0}
