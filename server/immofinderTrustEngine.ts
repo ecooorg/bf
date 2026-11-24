@@ -138,9 +138,10 @@ export function buildTrustSearchPlan(
   const portalTemplates = portalHosts.map((host) => (place: string) =>
     `site:${host} "${place}" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen`);
   const out: string[] = [];
-  for (const place of communes) {
-    if (families.includes('private')) for (const make of privateTemplates) out.push(make(place));
-    if (families.includes('portals')) for (const make of portalTemplates) out.push(make(place));
+  const slots = Math.max(families.includes('private') ? privateTemplates.length : 0, families.includes('portals') ? portalTemplates.length : 0);
+  for (let slot = 0; slot < slots; slot++) {
+    if (families.includes('private') && privateTemplates[slot]) for (const place of communes) out.push(privateTemplates[slot](place));
+    if (families.includes('portals') && portalTemplates[slot]) for (const place of communes) out.push(portalTemplates[slot](place));
   }
   return out;
 }
