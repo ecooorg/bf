@@ -46,6 +46,7 @@ const ALLOW = new Set([
   'docs-reference-integrity.mjs',
   'docsCheckInventories.mjs',
   'docsGenerateInventories.mjs',
+  'ensure-repair.mjs',
   'evidence-collect.mjs',
   'evidence-to-markdown.mjs',
   'evidenceLib.mjs',
