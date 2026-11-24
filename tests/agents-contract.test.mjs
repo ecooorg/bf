@@ -203,12 +203,12 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
 
 test('P128.4 pipeline reports live progress with stage, text and counters', async () => {
   const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['q {commune}'] }, sources: [{ id: 'h', url: 'https://h.example/area/', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
-  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer. Mietzins CHF 1\'100 pro Monat.</p>') };
+  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer Wohnung zu vermieten. Inseriert am: 20.11.2026. Mietzins CHF 1\\'100 pro Monat. Kontakt +41 79 123 45 67. Helle Räume mit Balkon, Küche, Bad, Kellerabteil und guter Verkehrsanbindung.</p>') };
   const ev = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
-  await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm: null, store, search: async () => [], onProgress: (e) => { ev.push(e); if (ev.length === 2) throw new Error('progress must not break runs'); } }, { dryRun: true });
+  await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 404, body: '' }), llm: null, store, search: async () => [], onProgress: (e) => { ev.push(e); if (ev.length === 2) throw new Error('progress must not break runs'); } }, { dryRun: true });
   assert.ok(ev.some((e) => e.stage === 'catalogue' && /reading 1\/1/.test(e.text)));
-  assert.ok(ev.some((e) => e.stage === 'search' && /Searching: q Chur/.test(e.text)));
+  assert.ok(ev.some((e) => e.stage === 'search' && /Searching: .*Chur.*Wohnung/.test(e.text)));
   assert.ok(ev.some((e) => /match: Chesa A/.test(e.text)) && ev.at(-1).counts.kept === 1);
 });
 
@@ -231,11 +231,11 @@ test('P129.48 settings: invalid input falls back to new defaults, scope applies,
   assert.equal(isDue(daily, new Date('2026-11-15T05:10:00Z'), new Date('2026-11-16T05:07:00Z')), true, '06:07 Swiss time, last run yesterday');
   assert.equal(isDue(daily, new Date('2026-11-16T05:10:00Z'), new Date('2026-11-16T09:00:00Z')), false, 'already ran today after 06:00');
   const cap = []; const pages = { 'https://c.example/a': '<a href="/ferienwohnung/1">1</a><a href="/ferienwohnung/2">2</a><a href="/ferienwohnung/3">3</a>', 'https://c.example/ferienwohnung/1': immoPage('A Chur', '<p>A in Chur 4 Zimmer. CHF 900 pro Monat</p>'), 'https://c.example/ferienwohnung/2': immoPage('B Chur', '<p>B in Chur 4 Zimmer. CHF 950 pro Monat</p>'), 'https://c.example/ferienwohnung/3': immoPage('C Chur', '<p>C in Chur 4 Zimmer. CHF 1\'000 pro Monat</p>') };
-  const llm = async () => { cap.push(1); return { single_property: true, property_name: null, municipality_quote: null, rooms_quote: null, owner_name: null, owner_name_quote: null, is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: '', title_ru: '', summary_ru: '' }; };
+  const llm = async () => { cap.push(1); return null; };
   const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, enabled: false }, sources: [{ id: 'c', url: 'https://c.example/a', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
-  const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm, store, maxLlmCalls: 2 }, { dryRun: false });
-  assert.equal(cap.length, 2); assert.ok(res.errors.some((e) => e.code === 'ai_budget_reached'));
+  const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 404, body: '' }), llm, store, maxLlmCalls: 2 }, { dryRun: false });
+  assert.equal(cap.length, 0, 'listing fact extraction does not call the model'); assert.equal(res.counts.llm_calls, 0); assert.equal(res.counts.kept, 0); assert.ok(res.filtered.trust_page_too_short >= 1);
   assert.ok(res.counts.kept >= 1 && res.counts.kept <= 3, 'kept listings within catalogue pages');
 });
 
