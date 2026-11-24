@@ -3,8 +3,9 @@
  * contacts, and, where a card still has neither phone nor email, run the public contact search. Dependencies are injected,
  * so it runs against fakes in tests. Rows are only ever completed, never emptied: a missing date or contact on the page
  * keeps what is stored.
+ * P130.16 L2: after page fetch, re-verify with verifyListingFromPageText and hide sale/mismatch objects.
  */
-import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet, isListingUnavailable } from './immofinderCore.ts';
+import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet, isListingUnavailable, verifyListingFromPageText, parsePrice } from './immofinderCore.ts';
 import { applyEnrichmentToRecord, type EnrichmentInput, type EnrichmentResult } from './immofinderContactEnrichment.ts';
 import { cardFields, completenessSummary, safeUrlSample } from './immofinderDiag.ts';
 
@@ -32,7 +33,7 @@ export interface RefreshDeps {
   shouldStop?: () => boolean;
 }
 
-interface Parsed { id: string; row: any; http: number; fetched: boolean; date: Date | null; dateSource: 'declared' | 'text' | 'none'; phones: string[]; emails: string[]; error?: string; dateHint: string | null; unavailable?: boolean }
+interface Parsed { id: string; row: any; http: number; fetched: boolean; date: Date | null; dateSource: 'declared' | 'text' | 'none'; phones: string[]; emails: string[]; error?: string; dateHint: string | null; unavailable?: boolean; pageText?: string; pageTitle?: string }
 
 const obj = (v: unknown): Record<string, any> => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Record<string, any>) } : {});
 const hostOf = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
@@ -48,6 +49,8 @@ async function readPage(row: any, deps: RefreshDeps): Promise<Parsed> {
     out.fetched = true;
     const text = htmlToText(pg.body); const meta = pageMeta(pg.body, url);
     const hay = `${meta.title}\n${text.slice(0, 12000)}`;
+    out.pageText = hay;
+    out.pageTitle = meta.title || String(row.property_name || '');
     const d = parseListedAtDetailed(hay, url, meta.published);
     out.date = d.date; out.dateSource = d.source;
     if (!d.date) out.dateHint = dateDiagSnippet(text);
@@ -112,6 +115,41 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
           hasContact: Boolean(row.direct_phone || row.direct_email), enrich: 'skipped_unavailable', enrichSearches: status.contactSearches,
         });
         continue;
+      }
+      // P130.16 L2: full-page re-verify — hide sale / price-sale-mismatch objects that slipped in as rent
+      if (p.fetched && p.pageText) {
+        const storedPrice = row.price_amount != null ? { amount: Number(row.price_amount), unit: String(row.price_unit || 'month'), currency: 'CHF', quote: String(row.price_quote || '') } : null;
+        const pagePrice = parsePrice(p.pageText) || storedPrice;
+        const reason = verifyListingFromPageText({
+          title: p.pageTitle || String(row.property_name || ''),
+          url: String(row.listing_url || ''),
+          pageText: p.pageText,
+          municipality: row.municipality || null,
+          roomsEstimated: row.rooms != null ? Number(row.rooms) : null,
+          price: pagePrice || storedPrice,
+        });
+        if (reason === 'for_sale' || reason === 'price_sale_mismatch') {
+          raw.verify_l2 = { at: now().toISOString(), reason, evidence_kind: 'page_text' };
+          status.unavailableHidden++;
+          await deps.update(p.id, {
+            direct_phone: row.direct_phone || null,
+            direct_email: row.direct_email || null,
+            contact_evidence: row.contact_evidence ?? [],
+            contact_status: row.contact_status || 'platform_only',
+            contact_advice: String(row.contact_advice || ''),
+            raw,
+            hidden: true,
+            hide_reason: reason,
+          } as any);
+          after.push({ ...row, hidden: true, hide_reason: reason, raw });
+          deps.log('info', 'recheck_refresh_item', {
+            index: i, total: parsed.length, id: String(row.id).slice(0, 8), host, source: cardFields(row).source,
+            http: p.http, fetched: p.fetched, hidden: true, date: 'sale_verify', dateSource: p.dateSource,
+            pagePhones: p.phones.length, pageEmails: p.emails.length, hadContact: Boolean(row.direct_phone || row.direct_email),
+            hasContact: Boolean(row.direct_phone || row.direct_email), enrich: `skipped_${reason}`, enrichSearches: status.contactSearches,
+          });
+          continue;
+        }
       }
       let dateNote = 'kept';
       if (p.date) {
