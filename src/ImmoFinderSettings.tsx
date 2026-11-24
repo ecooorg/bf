@@ -388,7 +388,9 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Search targets</strong>
         <p style={hint}>
-          Searches use generated rental-intent queries for enabled portal domains and private offers. A listing is published only after its own detail page confirms the room count, explicit monthly CHF rent, publication date within the age limit, active rental status, and an advertiser-labelled phone or email. Snippets, failed fetches, sales, seeker posts, stale offers, platform contacts, and missing or conflicting facts are rejected.
+          <span>Searches use generated rental-intent queries for enabled portals and private offers.</span>{' '}
+          <span>Detail pages must verify rooms, monthly CHF rent, publication date, active status, and advertiser contact.</span>{' '}
+          <span>Snippets, failed fetches, sales, seeker posts, stale offers, platform contacts, and conflicting facts are rejected.</span>
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
@@ -572,7 +574,8 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               Require direct advertiser phone or email (mandatory)
             </label>
             <div style={{ marginTop: 6, fontSize: 13, opacity: 0.8 }}>
-              An explicit monthly CHF rent and a direct contact labelled as belonging to the advertiser are mandatory. A missing publication date or unknown status is not treated as current.
+              <span>An explicit monthly CHF rent and an advertiser-labelled direct contact are mandatory.</span>{' '}
+              <span>Missing publication dates and unknown listing status never count as current.</span>
             </div>
             <label style={labelBlock}>
               <input

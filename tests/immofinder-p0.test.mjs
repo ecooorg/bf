@@ -230,9 +230,10 @@ test('duplicate top SERP hits do not consume the per-query candidate cap', async
   const localCfg = leanCfg({ communesPerRun: 1, queries: ['A {commune}', 'B {commune}'], portalQueries: [], maxPagesPerRun: 80 });
   const fetched = [];
   const hit = (id) => ({ title: `3.5 Zimmer Wohnung in Chur ${id}`, link: `https://example.com/listing/${100000 + id}`, snippet: 'Wohnung zu vermieten' });
+  let queryIndex = 0;
   const result = await runPipeline({
     config: localCfg, fetchPage: async (url) => { fetched.push(url); return { ok: false, status: 403, body: '' }; },
-    llm: null, store: memStore(), search: async (q) => q.startsWith('A') ? [hit(1), hit(2), hit(3)] : [hit(1), hit(2), hit(4), hit(5), hit(6)], cycle: 0,
+    llm: null, store: memStore(), search: async () => queryIndex++ === 0 ? [hit(1), hit(2), hit(3)] : [hit(1), hit(2), hit(4), hit(5), hit(6)], cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
   assert.equal(result.counts.candidates, 6, 'duplicate URLs are removed before the four-candidate cap is applied');
   assert.equal(fetched.length, 6);
@@ -365,7 +366,7 @@ test('P130.17 a failed portal fetch cannot fall back to a SERP-evidence listing'
 
 test('P130.17 direct detail admission requires identity-matched URL and complete page facts', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
-  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
+  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Inseriert am: 20.11.2026. Kontakt Vermieter: +41 79 123 45 67. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
   const saved = [];
   const good = await runPipeline({
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }),
@@ -405,7 +406,7 @@ test('P130.17 direct detail admission requires identity-matched URL and complete
 
 test('Google SERP crawl date is not treated as the listing publication date', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
-  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title></head><body><p>3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat. Helle Wohnung mit Balkon und Küche, Bezug ab sofort möglich.</p></body></html>`;
+  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title></head><body><p>3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat. Kontakt Vermieter: +41 79 123 45 67. Helle Wohnung mit Balkon und Küche, Bezug ab sofort möglich.</p></body></html>`;
   const saved = [];
   const result = await runPipeline({
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }), llm: null, store: memStore(saved),

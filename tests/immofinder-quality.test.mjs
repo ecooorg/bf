@@ -77,10 +77,10 @@ test('P130.17 repair automation preserves current patch and append-only history'
   assert.doesNotMatch(versionScript, /pkgPath|pkg\.patch\s*=/);
   assert.match(versionScript, /REPAIR_RULES_VERSION/);
   const repairScript = read('scripts/immofinder-recheck-feed.mjs');
-  assert.match(repairScript, /!cl\\.includes\\('## P130\\.11'\\)/);
-  assert.match(repairScript, /!tr\\.includes\\('## P130\\.11'\\)/);
+  assert.match(repairScript, /!cl\.includes\('## P130\.11'\)/);
+  assert.match(repairScript, /!tr\.includes\('## P130\.11'\)/);
   const ciRepairScript = read('scripts/fix-ci-scripts.mjs');
-  assert.doesNotMatch(ciRepairScript, /pkg\\.patch\\s*=|REPAIR_RULES_VERSION/);
+  assert.doesNotMatch(ciRepairScript, /pkg\.patch\s*=|REPAIR_RULES_VERSION/);
 });
 
 test('immofinder core exports plausible contact helpers', () => {

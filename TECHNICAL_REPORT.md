@@ -1,3 +1,7 @@
+## P130.17c — CI follow-up
+- **OBSERVED:** Core CI `45454081551` failed `lint:copy` and 11 `test:core` assertions; Render deploy is live.
+- **CHANGE:** Aligned fixtures with direct-page evidence, derived repair-rule stamp from package patch, and reject explicit already-rented notices.
+- **NOT_RUN:** local checks; hosted verification pending.
 ## P130.17b — Render TypeScript follow-up
 - **OBSERVED:** deploy `dep-dc2sv6k9v7es73bl625g` passed Vite but failed server type-check at `trust.reason`.
 - **CHANGE:** Narrow rejection via `'reason' in trust`; patch metadata is `130.17b`.

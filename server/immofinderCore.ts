@@ -970,7 +970,7 @@ export function isListingUnavailable(title: string, text: string): boolean {
   if (/inserat (ist )?nicht mehr verfügbar/.test(h)) return true;
   if (/anzeige (wurde )?(wurde )?gelöscht|anzeige nicht (mehr )?verfügbar/.test(h)) return true;
   if (/nicht mehr online|nicht mehr aktiv|inserat abgelaufen|inserat beendet/.test(h)) return true;
-  if (/wohnung (ist )?(leider )?(schon )?vermietet|bereits vermietet|schon vergeben/.test(h) && /nicht verfügbar|nicht mehr/.test(h)) return true;
+  if (/wohnung (ist )?(leider )?(schon )?vermietet|bereits vermietet|schon vergeben/.test(h)) return true;
   // English
   if (/this (listing|ad|property|object) is (no longer|not) available/.test(h)) return true;
   if (/listing (has been )?(removed|deleted|expired)/.test(h)) return true;

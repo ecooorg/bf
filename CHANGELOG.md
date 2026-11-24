@@ -1,3 +1,5 @@
+## P130.17c — Restore ImmoFinder CI
+- Updated evidence-backed rental fixtures, repair-rule stamp derivation, copy fragments and already-rented rejection; preserved mandatory listing gates.
 ## P130.17b — Fix trust admission type narrowing
 - Use a property-presence guard for rejected trust results so the server TypeScript build can narrow the admission union.
 ## P130.17a — Restore ImmoFinder build
