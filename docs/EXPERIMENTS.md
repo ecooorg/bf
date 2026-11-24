@@ -1,3 +1,9 @@
+## P130.17 — ImmoFinder page-evidence gate
+- **PROBLEM:** Prior diagnostics showed snippet-only and weakly attributed facts in visible results.
+- **HYPOTHESIS:** Generated rental-intent queries plus deterministic extraction and fail-closed page admission reduce false listings.
+- **METRIC:** admitted candidates must have matching detail URL, rooms, CHF/month rent, publication date, active rental status and advertiser-labelled contact; snippet-only admitted count = 0.
+- **BASELINE / POST:** baseline evidence from P129.49/P129.51; post-change live run **NOT_RUN**.
+- **SCOPE / ROLLBACK:** ImmoFinder pipeline, trust engine, settings and category tests; revert if a negative fixture is admitted or complete page evidence is rejected.
 ## P130.17 — ImmoFinder evidence-first trust engine
 
 - **PROBLEM / BASELINE:** P129.49 observed 29/30 visible rows with snippet or missing page evidence; P129.51 supplied diagnostics still counted snippet-only candidates as kept. Existing pipeline also permits inferred dates, optional price/contact, and contact enrichment that never drops a row.
