@@ -401,7 +401,7 @@ export async function updateListingContacts(
        contact_advice = $6,
        raw = CASE WHEN $7::jsonb IS NULL THEN raw ELSE $7::jsonb END,
        hidden = CASE WHEN $8::boolean IS NULL THEN hidden ELSE $8::boolean END,
-       hide_reason = CASE WHEN $8::boolean IS NULL THEN hide_reason ELSE COALESCE($9, '') END,
+       hide_reason = CASE WHEN $8::boolean IS TRUE THEN COALESCE($9, hide_reason) WHEN $8::boolean IS FALSE THEN NULL ELSE hide_reason END,
        updated_at = now()
      WHERE id = $1`,
     [
@@ -410,60 +410,39 @@ export async function updateListingContacts(
       fields.direct_email,
       JSON.stringify(fields.contact_evidence ?? []),
       fields.contact_status,
-      fields.contact_advice,
+      fields.contact_advice ?? '',
       fields.raw != null ? JSON.stringify(fields.raw) : null,
-      fields.hidden === undefined ? null : Boolean(fields.hidden),
+      fields.hidden == null ? null : Boolean(fields.hidden),
       fields.hide_reason ?? null,
     ],
   );
 }
 
-export async function startRun(trigger: string, dryRun: boolean): Promise<string> {
+export async function startRun(trigger: string, dryRun: boolean): Promise<string | null> {
   const p = await getPool();
   const client = await p.connect();
   try {
     await client.query('BEGIN');
-    // One active non-dry run at a time (advisory lock prevents concurrent starts).
-    if (!dryRun) {
-      const lock = await client.query("SELECT pg_try_advisory_xact_lock(hashtext('immofinder_run')) AS ok");
-      if (!lock.rows[0]?.ok) {
-        await client.query('ROLLBACK');
-        throw new Error('Another ImmoFinder run is already active');
-      }
-      const open = await client.query("SELECT id FROM immofinder_runs WHERE finished_at IS NULL AND dry_run = false LIMIT 1");
-      if (open.rows[0]) {
-        await client.query('ROLLBACK');
-        throw new Error('Another ImmoFinder run is already active');
-      }
-    }
+    // Serialize starts across app instances; the run itself can last 45 minutes.
+    await client.query('SELECT pg_advisory_xact_lock($1)', [8147339201]);
+    const busy = await client.query(`SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL AND started_at > now() - interval '50 minutes' LIMIT 1`);
+    if (busy.rows[0]) { await client.query('ROLLBACK'); return null; }
     const r = await client.query('INSERT INTO immofinder_runs (trigger, dry_run) VALUES ($1, $2) RETURNING id', [trigger, dryRun]);
     await client.query('COMMIT');
-    return String(r.rows[0].id);
-  } catch (e) {
-    try { await client.query('ROLLBACK'); } catch { /* */ }
-    throw e;
-  } finally {
-    client.release();
-  }
+    return r.rows[0]?.id ?? null;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch { /* transaction already closed */ }
+    throw error;
+  } finally { client.release(); }
 }
-
-export async function finishRun(id: string, result: RunResult | null, errors: unknown[], delivery: Record<string, string>) {
+export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown) {
   const p = await getPool();
-  await p.query(
-    `UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, delivery = $4::jsonb, progress = $5::jsonb WHERE id = $1 AND finished_at IS NULL`,
-    [id, JSON.stringify(result?.counts || {}), JSON.stringify(errors || []), JSON.stringify(delivery || {}), JSON.stringify({ stage: 'done', text: 'Finished', counts: result?.counts || {} })],
-  );
+  await p.query('UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, est_cost_usd = $4, delivery = $5::jsonb, sources = $6::jsonb WHERE id = $1',
+    [id, j({ ...(res?.counts ?? {}), filtered: res?.filtered ?? {} }), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 200) ?? [])]);
 }
-
-export async function saveProgress(id: string, progress: Record<string, unknown>) {
-  const p = await getPool();
-  await p.query('UPDATE immofinder_runs SET progress = $2::jsonb WHERE id = $1 AND finished_at IS NULL', [id, JSON.stringify(progress)]);
-}
-
 export async function latestRun() {
   const p = await getPool();
-  const r = await p.query('SELECT * FROM immofinder_runs ORDER BY started_at DESC LIMIT 1');
-  return r.rows[0] || null;
+  return (await p.query('SELECT * FROM immofinder_runs ORDER BY started_at DESC LIMIT 1')).rows[0] ?? null;
 }
 
 export async function realRunCount(): Promise<number> {
@@ -471,6 +450,20 @@ export async function realRunCount(): Promise<number> {
   return Number((await p.query('SELECT count(*)::int AS n FROM immofinder_runs WHERE dry_run = false')).rows[0]?.n ?? 0);
 }
 
+export async function saveProgress(id: string, progress: unknown) {
+  const p = await getPool();
+  await p.query('UPDATE immofinder_runs SET progress = $2::jsonb WHERE id = $1', [id, JSON.stringify(progress ?? {})]);
+}
+
+export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
+  const p = await getPool(); const r = await p.query("SELECT data FROM immofinder_settings WHERE id = 'main'");
+  return r.rows[0] ? sanitizeSettings(r.rows[0].data, cfg) : defaultSettings(cfg);
+}
+export async function saveSettings(cfg: ImmoConfig, input: unknown): Promise<ImmoSettings> {
+  const s = sanitizeSettings(input, cfg); const p = await getPool();
+  await p.query("INSERT INTO immofinder_settings (id, data) VALUES ('main', $1::jsonb) ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = now()", [JSON.stringify(s)]);
+  return s;
+}
 export async function lastRealRunAt(): Promise<Date | null> {
   const p = await getPool(); const r = await p.query('SELECT max(started_at) AS t FROM immofinder_runs WHERE dry_run = false');
   return r.rows[0]?.t ? new Date(r.rows[0].t) : null;
