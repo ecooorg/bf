@@ -1,3 +1,10 @@
+# P130.17 — ImmoFinder evidence-first search (2026-11-24)
+
+- **OBSERVED:** P129.49 reported 29/30 visible rows with snippet or missing page evidence; P129.51 diagnostics still counted snippet-only outcomes as kept.
+- **IMPLEMENTED:** New query planner ignores legacy query wording; deterministic extraction replaces the LLM prompt; the trust gate requires matching fetched detail page, explicit rental intent, page-confirmed rooms, monthly CHF rent, publication date <= configured age, active status, and direct page-attributed phone/email.
+- **INFERRED:** This should sharply reduce false-positive cards but may produce few or zero visible listings when sources omit dates, monthly rent, direct contacts, or block page fetches.
+- **NOT_RUN:** local/hosted checks, live search yield, production deployment, current feed audit and user-visible task completion.
+
 # P129.53 — CI and legacy seen-cache cleanup (2026-11-21)
 
 - **OBSERVED:** P129.52 lock metadata violates the existing package-mode contract (`package-lock.json.packages[""].patch=129.51`, expected `129.52`). Owner requested removal of all 2,483 legacy `immofinder_seen` records.
