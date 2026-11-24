@@ -23,7 +23,8 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add server/immofinderRepair.ts server/immofinderStore.ts package-lock.json package.json \
             src/ImmoFinder.tsx server/immofinderRoutes.ts CHANGELOG.md TECHNICAL_REPORT.md \
-            tests/agents-contract.test.mjs tests/immofinder-quality.test.mjs scripts/fix-agents-contract.mjs
+            tests/agents-contract.test.mjs tests/immofinder-quality.test.mjs scripts/fix-agents-contract.mjs \
+            server/immofinderCore.ts scripts/immofinder-p0-feed-hygiene.mjs server/immofinderCore.ts.zlib.b64.p00 server/immofinderCore.ts.zlib.b64.p01 server/immofinderCore.ts.zlib.b64.p02 server/immofinderCore.ts.zlib.b64.p03 server/immofinderCore.ts.zlib.b64.p04
           if git diff --staged --quiet; then
             echo 'No changes'
           else
