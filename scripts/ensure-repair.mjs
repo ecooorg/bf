@@ -88,6 +88,13 @@ try {
   console.warn('package-lock patch sync skipped:', e && e.message ? e.message : e);
 }
 
+// P130.12 P0 feed hygiene
+{
+  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p0-feed-hygiene.mjs')], { encoding: 'utf8' });
+  if (r.stdout) process.stdout.write(r.stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
+}
+
 // P130.11 single Recheck feed (idempotent UI + routes merge)
 {
   const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-recheck-feed.mjs')], { encoding: 'utf8' });
