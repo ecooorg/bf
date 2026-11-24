@@ -3,6 +3,7 @@ import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, ty
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
+import { verifyListingAdmission } from './immofinderTrustEngine.ts';
 
 export interface ListingRecord {
   listing_type: ListingType; canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
@@ -249,7 +250,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     st.candidates += items.length;
     const isDiscoverySource = src.id === 'search' || src.id.startsWith('portal-');
     const stage: ProgressEvent['stage'] = isDiscoverySource ? 'search' : 'catalogue'; let idx = 0;
-    const pages: { url: string; evidenceUrl: string; fetchMode?: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; hitDate?: string | null; knownAutoHidden: boolean; provisional: boolean }[] = [];
+    const pages: { url: string; evidenceUrl: string; finalUrl: string | null; fetchMode?: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; hitDate?: string | null; knownAutoHidden: boolean; provisional: boolean }[] = [];
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
@@ -270,7 +271,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (seen) {
         // Soft quality rejects (rooms/price/municipality/seeker) recheck after 6h so new evidence can be tried;
         // hard rejects (list pages, for_sale, agency, non-listing) keep full recheckAfterDays.
-        const soft = /^(rooms_|price_|municipality_|seeker_|min_rooms|detail_page_|not_single_listing)/i.test(seen.reason || '') || seen.decision === 'filtered' && /^(rooms|price|municipality|seeker)/i.test(seen.reason || '');
+        const soft = /^(rooms_|price_|municipality_|seeker_|min_rooms|detail_page_|not_single_listing|trust_)/i.test(seen.reason || '') || seen.decision === 'filtered' && /^(rooms|price|municipality|seeker)/i.test(seen.reason || '');
         const ttlMs = soft ? 6 * 60 * 60 * 1000 : cfg.limits.recheckAfterDays * 86400000;
         const isFresh = now() - new Date(seen.checked_at).getTime() < ttlMs;
         if (isFresh && !known?.autoHidden) {
@@ -452,7 +453,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       diag('candidate_extracted', { source: src.id, url: safeDiagUrl(it.url), title: safeDiagText(meta!.title, 180), textChars: text.length, llmUsed: ex.llm, llmCalls, extractionDurationMs: now() - extractionStartedAt, llmError: err || null, single: ex.single, agencyDetected: Boolean(ex.agency), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceQuotePresent: Boolean(ex.priceQuote), listedAtQuotePresent: Boolean(ex.listedAtQuote), ownerVerified: Boolean(ex.owner), regForbidden: ex.regForbidden });
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
-      pages.push({ url: it.url, evidenceUrl, fetchMode: pg.fetchMode, host, meta: meta!, text, ex, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null, knownAutoHidden: Boolean(known?.autoHidden), provisional: snippetEvidence });
+      pages.push({ url: it.url, evidenceUrl, finalUrl: pg.finalUrl || null, fetchMode: pg.fetchMode, host, meta: meta!, text, ex, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null, knownAutoHidden: Boolean(known?.autoHidden), provisional: snippetEvidence });
     }
     // Phones repeated on several pages of one host belong to the platform, not to an owner.
     const phoneUse = new Map<string, number>();
@@ -582,8 +583,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         : evidenceText.split('\n').slice(0, 6).join(' ').replace(/\s+/g, ' ').trim();
       const descriptionDe = dedupeSnippetText(ex.name || meta.title || '', rawAbout).slice(0, 500);
       const contactEvidence = [
-        ...(phone0 ? [{ type: 'phone' as const, value: phone0, url }] : []),
-        ...(email0 ? [{ type: 'email' as const, value: email0, url }] : []),
+        ...(phone0 ? [{ type: 'phone' as const, value: phone0, url: pages[i].finalUrl || evidenceUrl }] : []),
+        ...(email0 ? [{ type: 'email' as const, value: email0, url: pages[i].finalUrl || evidenceUrl }] : []),
       ];
       const rec: ListingRecord = {
         listing_type: type, canonical_key: canonicalKey(ex.name, ex.municipality, hostOf(url)), listing_url: url, source_urls: [url], source_ids: [src.id], photo_urls: meta.photos, municipality: ex.municipality, property_name: ex.name,
@@ -592,6 +593,24 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
         contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms?.rooms ?? null }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, evidence_confidence: snippetEvidence ? 'low' : 'verified_page', provisional: snippetEvidence, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
+      const trust = verifyListingAdmission({
+        requestedUrl: url,
+        finalUrl: pages[i].finalUrl,
+        title: meta.title,
+        pageText,
+        provisional: snippetEvidence,
+        rooms: ex.rooms?.rooms ?? null,
+        priceMonthlyChf: price?.monthlyChf ?? null,
+        priceUnit: price?.unit ?? null,
+        priceQuote: price?.quote ?? null,
+        listedAt: listedAt?.toISOString() ?? null,
+        maxAgeDays: quality.maxListingAgeDays ?? 180,
+        phone: phone0,
+        email: email0,
+        contactEvidenceUrls: contactEvidence.map((item) => item.url),
+        nowMs: now(),
+      });
+      if (!trust.accepted) { await deny(trust.reason, 'strict_trust_admission'); continue; }
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
         if (dryChecked.hardReason) { await deny(dryChecked.hardReason, 'write_gate'); continue; }
