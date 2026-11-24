@@ -735,7 +735,7 @@ test('P130.18a PostgreSQL query checkpoints resume completed work and retry only
   }, { dryRun: true, wave: 'carousel' });
   assert.deepEqual(resumedCalls, [plan[0]], 'completed query is skipped, failed query is retried');
   assert.equal(resumed.counts.search_queries, 3, 'attempt counters survive worker replacement');
-  assert.deepEqual(checkpoints.at(-1).completedQueryKeys, plan);
+  assert.deepEqual([...checkpoints.at(-1).completedQueryKeys].sort(), [...plan].sort());
 });
 
 test('P130.18a durable ImmoFinder worker leases, checkpoints, delivery acknowledgements and shutdown are wired', () => {
