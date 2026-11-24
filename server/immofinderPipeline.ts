@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
+import { hostOf, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
-import { verifyListingAdmission } from './immofinderTrustEngine.ts';
+import { verifyListingAdmission, buildTrustSearchPlan } from './immofinderTrustEngine.ts';
 
 export interface ListingRecord {
   listing_type: ListingType; canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
@@ -794,7 +794,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const families: ('private' | 'portals')[] = [];
     if ((cfg.discovery?.queries || []).length) families.push('private');
     if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
-    const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
+    const qs = buildTrustSearchPlan({ municipalities: cfg.municipalities, communeLimit: cfg.discovery?.communesPerRun ?? 2, privateTemplateCount: cfg.discovery?.queries?.length ?? 0, portalQueryTemplates: cfg.discovery?.portalQueries ?? [] }, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
     const slice = finishAll || maxQueries == null
       ? qs.slice(discoveryQueryOffset)
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
