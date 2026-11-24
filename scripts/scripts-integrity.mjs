@@ -50,6 +50,7 @@ const ALLOW = new Set([
   'evidence-collect.mjs',
   'evidence-to-markdown.mjs',
   'evidenceLib.mjs',
+  'fix-agents-contract.mjs',
   'gate-eval.mjs',
   'golden-eval.mjs',
   'golden-tasks.json',
