@@ -604,7 +604,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>{' '}
-              pages with AI per search
+              pages per search (AI extraction is disabled; facts come from fetched pages)
             </label>
             <label style={labelBlock}>
               Private-search queries per commune{' '}
