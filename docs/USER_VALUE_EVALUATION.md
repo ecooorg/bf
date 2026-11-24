@@ -1,3 +1,7 @@
+# P130.17 — ImmoFinder evidence-first search
+- **OBSERVED:** Main-branch source now rejects snippet-only and incomplete candidates at the final trust gate; no post-change live-feed audit has run.
+- **INFERRED:** False positives should fall; visible listing volume may fall sharply when portals omit dates, monthly prices or advertiser contacts.
+- **NOT_RUN:** hosted CI, live search yield, production behavior and user task outcome.
 # P129.53 — CI and legacy seen-cache cleanup (2026-11-21)
 
 - **OBSERVED:** P129.52 lock metadata violates the existing package-mode contract (`package-lock.json.packages[""].patch=129.51`, expected `129.52`). Owner requested removal of all 2,483 legacy `immofinder_seen` records.
