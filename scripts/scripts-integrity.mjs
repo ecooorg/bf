@@ -24,7 +24,7 @@ const ALLOW = new Set([
   'fix-agents-contract.mjs', 'fix-ci-scripts.mjs', 'gate-eval.mjs', 'golden-eval.mjs', 'golden-tasks.json',
   'immofinder-health-check.mjs', 'immofinder-recheck-feed.mjs',
   'immofinder-p0-feed-hygiene.mjs', 'immofinder-p1-rooms-hygiene.mjs', 'immofinder-p13016-verify-hygiene.mjs',
-  'immofinder-p2-junk-hosts.mjs', 'immofinder-p3-version.mjs',
+  'immofinder-p2-junk-hosts.mjs', 'immofinder-p3-version.mjs', 'p13016-core-restore.mjs',
   'lint-copy.mjs', 'migrate.mjs', 'monitor-connections.mjs', 'pack-simple.mjs', 'patch-pack.mjs',
   'patch-quality-report.mjs', 'patch-tools.mjs', 'project-user-value-eval.mjs', 'project-user-value-live.mjs',
   'run-dag.mjs', 'schemaValidate.mjs', 'scripts-integrity.mjs', 'statusGraph.mjs', 'verify-connections.mjs',
