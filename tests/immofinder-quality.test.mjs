@@ -65,6 +65,8 @@ test('P130.17 search planner ignores legacy query wording and generates rental-i
   }, 0, { allCommunes: false });
   assert.equal(plan.length, 6);
   assert.match(plan[0], /Wohnung zu vermieten/);
+  assert.ok(plan[0].includes('"Town A"'));
+  assert.ok(plan[2].includes('"Town A"'));
   assert.match(plan[2], /site:flatfox\.ch/);
   assert.ok(plan.every((query) => !/obsolete wording/.test(query)));
   assert.ok(plan.every((query) => !/Town C/.test(query)));

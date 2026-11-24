@@ -1,3 +1,7 @@
+## P130.17a — Render build repair
+- **OBSERVED:** Render deploy `dep-dc2smm8m7kps73dbjuv0` failed on TypeScript syntax errors in `server/immofinderTrustEngine.ts`.
+- **CHANGE:** Restored valid query templates and portal-host matching; patch metadata is `130.17a`.
+- **NOT_RUN:** local build/tests; hosted verification pending.
 ## P130.17 — ImmoFinder trust engine
 - **CHANGE:** Direct-main commits `31439cb`–`38e1fed` repair admission regexes, remove LLM extraction, add generated rental queries, and require page-confirmed rent, date, rooms, status and advertiser contact.
 - **NOT_RUN:** hosted CI, local build/tests, live Serper yield, deployment and user-visible outcome.

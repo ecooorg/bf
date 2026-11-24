@@ -1,3 +1,5 @@
+## P130.17a — Restore ImmoFinder build
+- Fixed malformed rental-search template literals and portal-host matching so the ImmoFinder trust planner compiles and interpolates locations.
 ## P130.17 — ImmoFinder evidence-first admission
 - Rebuilt rental discovery and page-only fact extraction; publication requires matching detail-page evidence, rooms, monthly CHF rent, freshness, active rental status and advertiser-labelled contact.
 ## P130.17 — ImmoFinder evidence-first admission

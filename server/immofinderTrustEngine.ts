@@ -143,14 +143,14 @@ export function buildTrustSearchPlan(config: TrustSearchPlanInput, cycle: number
   const communes = Array.from({ length: count }, (_, index) => municipalities[(start + index) % municipalities.length]);
   const families = options.families || ['private', 'portals'];
   const privateTemplates = [
-    (place: string) => \`"\${place}" ("Wohnung zu vermieten" OR "Mietwohnung" OR "Wohnung mieten") -kaufen -verkaufen\`,
-    (place: string) => \`"\${place}" ("3 Zimmer" OR "3.5 Zimmer" OR "4 Zimmer" OR "4.5 Zimmer") (Miete OR Mietzins) -kaufen -verkaufen\`,
-    (place: string) => \`"\${place}" (Privat OR Eigentümer OR "von privat") (Wohnung OR Haus) mieten -kaufen -verkaufen\`,
-    (place: string) => \`"\${place}" ("à louer" OR affitto OR "for rent") (appartement OR Wohnung) -vente -kaufen\`,
+    (place: string) => `"${place}" ("Wohnung zu vermieten" OR "Mietwohnung" OR "Wohnung mieten") -kaufen -verkaufen`,
+    (place: string) => `"${place}" ("3 Zimmer" OR "3.5 Zimmer" OR "4 Zimmer" OR "4.5 Zimmer") (Miete OR Mietzins) -kaufen -verkaufen`,
+    (place: string) => `"${place}" (Privat OR Eigentümer OR "von privat") (Wohnung OR Haus) mieten -kaufen -verkaufen`,
+    (place: string) => `"${place}" ("à louer" OR affitto OR "for rent") (appartement OR Wohnung) -vente -kaufen`,
   ].slice(0, Math.max(0, Math.min(4, config.privateTemplateCount)));
-  const portalHosts = [...new Set((config.portalQueryTemplates || []).map((query) => /site:([a-z0-9.-]+)/i.exec(query)?.[1]?.replace(/^www\\./i, '').toLowerCase()).filter((host): host is string => Boolean(host)))];
+  const portalHosts = [...new Set((config.portalQueryTemplates || []).map((query) => /site:([a-z0-9.-]+)/i.exec(query)?.[1]?.replace(/^www\./i, '').toLowerCase()).filter((host): host is string => Boolean(host)))];
   const portalTemplates = portalHosts.map((host) => (place: string) =>
-    \`site:\${host} "\${place}" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen\`);
+    `site:${host} "${place}" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen`);
   const out: string[] = [];
   const slots = Math.max(families.includes('private') ? privateTemplates.length : 0, families.includes('portals') ? portalTemplates.length : 0);
   for (let slot = 0; slot < slots; slot++) {
