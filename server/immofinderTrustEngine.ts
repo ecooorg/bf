@@ -63,7 +63,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   if (isForSaleListing(input.title, text, input.requestedUrl)) return reject('trust_for_sale');
   if (isSeekerPost(input.title, text)) return reject('trust_seeker_post');
   if (isListingUnavailable(input.title, text)) return reject('trust_listing_unavailable');
-  if (!/(mieten|vermieten|mietwohnung|zur\\s+miete|zu\\s+vermieten|loyer|à\\s+louer|louer|affitto|in\\s+affitto|for\\s+rent|rent\\s+out|to\\s+let)/i.test(`${input.title}\\n${text}`)) return reject('trust_not_rental');
+  if (!/(mieten|vermieten|mietwohnung|zur\s+miete|zu\s+vermieten|loyer|à\s+louer|louer|affitto|in\s+affitto|for\s+rent|rent\s+out|to\s+let)/i.test(input.title + '\n' + text)) return reject('trust_not_rental');
 
   const pageRooms = parseRooms(text);
   if (!pageRooms || !(pageRooms.rooms > 0)) return reject('trust_rooms_missing');
@@ -73,7 +73,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   const quote = String(input.priceQuote || '').trim();
   if (!quote || !text.includes(quote)) return reject('trust_price_quote_missing');
   if (input.priceUnit !== 'month' || !/(?:CHF|Fr\\.?|SFr\\.?)/i.test(quote) ||
-      !/(?:\b(?:pro\s+Monat|im\s+Monat|monatlich|Monatsmiete|Mietzins|Nettomiete|Bruttomiete|mtl\.?|\/\s*(?:Monat|Mt\.?|month)|per\s+month|par\s+mois)\b)/i.test(quote)) {
+      !/(?:pro\s+Monat|im\s+Monat|monatlich|Monatsmiete|Mietzins|Nettomiete|Bruttomiete|mtl\.?|\/\s*(?:Monat|Mt\.?|month)|per\s+month|par\s+mois)/i.test(quote)) {
     return reject('trust_price_not_monthly_chf');
   }
   const parsedPrice = parsePrice(quote);
