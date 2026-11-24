@@ -1,3 +1,6 @@
+## P130.18 — Hosted verification
+- **OBSERVED:** Core CI `45468379261` passed on `7c245d5`; Render deploy `dep-dc2u4sijnfac73d5mogg` is live. Migration `029` is applied and the durable worker started; no worker poll errors were observed.
+- **NOT_RUN:** a live search using `/resolve` and Playwright fallback, recovery of an actively running search during deploy, and user-visible listing outcome.
 ## P130.18 — Search evidence retrieval
 - **OBSERVED:** baseline run `7c91fdb1` had 162/190 Google `/goto` links and direct fetches with HTTP 403 or zero extracted text.
 - **CHANGE:** Added zero-credit Serper URL resolution and bounded Playwright detail-page rendering; monthly rent, rooms, date, status and advertiser-contact gates remain fail-closed.
