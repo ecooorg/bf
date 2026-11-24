@@ -1,4 +1,5 @@
 import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink, isPortalDetailUrl } from './immofinderCore.ts';
+import { isJunkDiscoveryTarget, shouldExpandIndexUrl, isSerperCreditsError, markSerperCreditsExhausted, isSerperCreditsExhausted } from './immofinderSearchGuards.ts';
 
 export interface SearchHit { title: string; link: string; snippet: string; /** Serper/organic date string when present, e.g. "2 days ago" or "15.11.2026". */ date?: string | null }
 export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean; expandableIndex?: boolean }
@@ -77,8 +78,9 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (deci
     if (isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) { decide(false, 'agency_host'); continue; }
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
     const nonListing = nonListingReason(h.title || '', h.link, portalHosts);
-    // Homegate trefferliste returns HTTP 403 from our fetchers — do not queue for expansion (SERP detail links still accepted).
-    const expandableIndex = /immoscout24\.ch/i.test(host) && /trefferliste|\/liste(\/|$)/i.test(h.link);
+    // Homegate trefferliste → 403 in our fetchers; only ImmoScout list pages remain expandable.
+    const expandableIndex = shouldExpandIndexUrl(h.link);
+    if (isJunkDiscoveryTarget(h.title || '', h.link)) { decide(false, 'non_listing:service_or_aggregator'); continue; }
     if (nonListing && !expandableIndex) { decide(false, `non_listing:${nonListing}`); continue; }
     // Social feeds may expose ads only through snippets; retain them as provisional leads.
     const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
@@ -137,6 +139,7 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
   const n = Math.max(1, Math.min(10, Number(num) || 10));
   return async function search(q: string, options?: { tbs?: string }): Promise<SearchHit[]> {
     const key = String(process.env.SERPER_API_KEY || '').trim(); if (!key) throw new Error('SERPER_API_KEY not set');
+    if (isSerperCreditsExhausted()) throw new Error('Serper HTTP 400: {"message":"Not enough credits","statusCode":400}');
     const query = sanitizeSerperQuery(q);
     if (!query) return [];
     const r = await fetchImpl('https://google.serper.dev/search', {
@@ -147,7 +150,9 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
     if (!r.ok) {
       let detail = '';
       try { detail = (await r.text()).slice(0, 180); } catch { /* ignore */ }
-      throw new Error(`Serper HTTP ${r.status}${detail ? `: ${detail}` : ''}`);
+      const msg = `Serper HTTP ${r.status}${detail ? `: ${detail}` : ''}`;
+      if (isSerperCreditsError(msg)) markSerperCreditsExhausted();
+      throw new Error(msg);
     }
     const d: any = await r.json();
     return (d.organic || []).map((o: any) => ({
