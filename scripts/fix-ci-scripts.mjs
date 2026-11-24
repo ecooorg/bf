@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Restore critical npm scripts missing from truncated package.json; sync REPAIR_RULES_VERSION. */
+/** Restore critical npm scripts missing from truncated package.json without changing release metadata. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +24,6 @@ let changed = false;
 for (const [k, v] of Object.entries(required)) {
   if (scripts[k] !== v) { scripts[k] = v; changed = true; console.log('script', k); }
 }
-if (pkg.patch !== '130.11') { pkg.patch = '130.11'; changed = true; }
 if (changed) {
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
   console.log('package.json scripts restored');
@@ -32,16 +31,3 @@ if (changed) {
   console.log('package.json scripts ok');
 }
 
-const repairPath = join(root, 'server/immofinderRepair.ts');
-const want = `${pkg.patch}.5`;
-let rt = readFileSync(repairPath, 'utf8');
-const next = rt.replace(/export const REPAIR_RULES_VERSION = '[^']+';/, `export const REPAIR_RULES_VERSION = '${want}';`);
-if (next !== rt) {
-  writeFileSync(repairPath, next);
-  console.log('REPAIR_RULES_VERSION ->', want);
-} else if (!rt.includes(`'${want}'`)) {
-  console.error('could not set REPAIR_RULES_VERSION');
-  process.exit(1);
-} else {
-  console.log('REPAIR_RULES_VERSION already', want);
-}
