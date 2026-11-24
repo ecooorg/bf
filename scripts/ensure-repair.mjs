@@ -95,6 +95,13 @@ try {
   if (r.stderr) process.stderr.write(r.stderr);
 }
 
+// P130.13 P1 rooms_too_many + version
+{
+  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-p1-rooms-hygiene.mjs')], { encoding: 'utf8' });
+  if (r.stdout) process.stdout.write(r.stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
+}
+
 // P130.11 single Recheck feed (idempotent UI + routes merge)
 {
   const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-recheck-feed.mjs')], { encoding: 'utf8' });
