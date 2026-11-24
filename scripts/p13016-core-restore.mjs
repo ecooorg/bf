@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'server');
 let b64 = '';
-for (let i = 0; i < 8; i++) {
+for (let i = 0; i < 16; i++) {
   const p = join(dir, 'immofinderCore.ts.p13016.b64.' + i);
   if (!existsSync(p)) break;
   b64 += readFileSync(p, 'utf8').trim();
