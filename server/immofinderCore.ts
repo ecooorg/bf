@@ -947,11 +947,11 @@ export interface QualitySettings {
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
-  // Optional gate; default is off so a verified listing with undisclosed rent can still be useful.
-  requirePrice: false,
-  rejectNonMonthly: false,
+  // Trust-engine contract: visible listings require explicit monthly rent and direct contact.
+  requirePrice: true,
+  rejectNonMonthly: true,
   rejectSeekerPosts: true,
-  requireContact: false,
+  requireContact: true,
 };
 
 /** Returns a filter reason or null if the listing may be kept.
