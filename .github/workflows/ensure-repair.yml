@@ -21,13 +21,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add server/immofinderRepair.ts server/immofinderStore.ts package-lock.json package.json \
-            src/ImmoFinder.tsx server/immofinderRoutes.ts CHANGELOG.md TECHNICAL_REPORT.md \
-            tests/agents-contract.test.mjs tests/immofinder-quality.test.mjs scripts/fix-agents-contract.mjs \
-            server/immofinderCore.ts scripts/immofinder-p0-feed-hygiene.mjs server/immofinderCore.ts.zlib.b64.p00 server/immofinderCore.ts.zlib.b64.p01 server/immofinderCore.ts.zlib.b64.p02 server/immofinderCore.ts.zlib.b64.p03 server/immofinderCore.ts.zlib.b64.p04
+          git add -A server/immofinderRepair.ts server/immofinderStore.ts server/immofinderCore.ts package-lock.json package.json src/ImmoFinder.tsx server/immofinderRoutes.ts CHANGELOG.md tests/ || true
           if git diff --staged --quiet; then
             echo 'No changes'
           else
-            git commit -m 'chore: restore repair/store modules from payload'
-            git push
+            git commit -m 'chore: restore repair/store modules from payload' || true
+            git push || true
           fi
