@@ -388,7 +388,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Search targets</strong>
         <p style={hint}>
-          Uses Google site: searches for the enabled Swiss portal domains plus private-owner queries; these are search targets, not independent portal crawlers or APIs. Each result is fetched and verified before it becomes a card. Holiday-rental catalogues stay off. Single-property ads in selected communes must meet the room-count rule; known rent is checked against the configured ceiling, while undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
+          Uses generated rental-intent searches for the enabled Swiss portal domains and private offers. A listing is published only after its original detail page is fetched and verified: page-sourced rooms, explicit monthly CHF rent, a recent publication date, active rental status, and a direct phone or email on that same page. Search snippets, failed fetches, redirects to another listing, sales, seeker posts, and missing or conflicting facts are rejected.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
@@ -569,10 +569,10 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 checked={!!s.search.requireContact}
                 onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))}
               />{' '}
-              Require phone or email (drops Messenger-only posts)
+              Require page-attributed phone or email (mandatory)
             </label>
             <div style={{ marginTop: 6, fontSize: 13, opacity: 0.8 }}>
-              Listings without a published price are kept and marked as price unknown. A known rent above the configured limit is still filtered.
+              An explicit monthly CHF rent is mandatory. Prices without a monthly period, and listings without a page publication date, are not published.
             </div>
             <label style={labelBlock}>
               <input
@@ -580,10 +580,10 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 checked={!!s.search.rejectNonMonthly}
                 onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectNonMonthly: e.target.checked } }))}
               />{' '}
-              Reject night / week / season prices only
+              Reject night / week / season-only prices (mandatory)
             </label>
             <label style={labelBlock}>
-              Max listing age (days, 0 = no limit){' '}
+              Max listing age (days, 0 = use 180-day default){' '}
               <input
                 type="number"
                 min={0}
