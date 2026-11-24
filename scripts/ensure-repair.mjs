@@ -30,17 +30,47 @@ if (needsRestore) {
   console.log('Restored server/immofinderRepair.ts (%d bytes from %d parts)', buf.length, parts.length);
 }
 
-// Quality gate: require rooms on verified cards only; provisional/snippet cards may lack a parseable room count.
-const before = text;
-text = text.replace(
-  /if \(!why && \(!Number\.isFinite\(rooms\) \|\| rooms <= 0\)\) why = 'rooms_unknown';/,
-  "if (!why && !row.provisional && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';",
-);
-if (text !== before) {
+// Rooms gate: use provisionalSnippet (raw.provisional + evidence_kind snippet), not row.provisional.
+// Verified page cards without rooms are rejected; provisional social/SERP snippets may omit rooms.
+const roomsPatterns = [
+  [
+    /if \(!why && !row\.provisional && \(!Number\.isFinite\(rooms\) \|\| rooms <= 0\)\) why = 'rooms_unknown';/,
+    "if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';",
+  ],
+  [
+    /if \(!why && \(!Number\.isFinite\(rooms\) \|\| rooms <= 0\)\) why = 'rooms_unknown';/,
+    "if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';",
+  ],
+];
+let roomsPatched = false;
+for (const [from, to] of roomsPatterns) {
+  if (from.test(text)) {
+    text = text.replace(from, to);
+    roomsPatched = true;
+    break;
+  }
+}
+if (roomsPatched) {
   writeFileSync(target, text);
-  console.log('Applied provisional exemption for rooms_unknown');
-} else if (text.includes("!row.provisional && (!Number.isFinite(rooms)")) {
-  console.log('provisional rooms_unknown exemption already present');
+  console.log('Applied rooms_unknown provisionalSnippet exemption');
+} else if (text.includes('!provisionalSnippet && (!Number.isFinite(rooms)')) {
+  console.log('provisionalSnippet rooms_unknown exemption already present');
 } else {
   console.log('rooms_unknown pattern not found (ok if rules already differ)');
+}
+
+// Keep package-lock patch in sync with package.json (test:project P127.11).
+try {
+  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  const lockPath = join(root, 'package-lock.json');
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+  const want = String(pkg.patch || '');
+  if (want && (lock.patch !== want || lock.packages?.['']?.patch !== want)) {
+    lock.patch = want;
+    if (lock.packages && lock.packages['']) lock.packages[''].patch = want;
+    writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+    console.log('Synced package-lock patch to', want);
+  }
+} catch (e) {
+  console.warn('package-lock patch sync skipped:', e && e.message ? e.message : e);
 }
