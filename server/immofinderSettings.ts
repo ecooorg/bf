@@ -226,7 +226,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,
-      requirePrice: false,
+      requirePrice: true,
       rejectNonMonthly: true,
       rejectSeekerPosts: s.search.rejectSeekerPosts,
       requireContact: true,
