@@ -187,7 +187,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   const pages = { 'https://chesa-mia.example/listing/123456': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example. Die Wohnung verfügt über Balkon, Küche, Bad und gute Verkehrsanbindung.</p>') };
   const saved = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
-  const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 403, body: '' });
+  const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 403, body: '' });
   const search = async () => hits;
   // Priority wave only: one commune from cycle (not full allCommunes).
   const res = await runPipeline({ config: cfg, fetchPage, llm: null, store, search, cycle: 0 }, { dryRun: false, wave: 'priority' });
@@ -236,7 +236,6 @@ test('P129.48 settings: invalid input falls back to new defaults, scope applies,
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
   const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u], finalUrl: u } : { ok: false, status: 404, body: '' }), llm, store, maxLlmCalls: 2 }, { dryRun: false });
   assert.equal(cap.length, 0, 'listing fact extraction does not call the model'); assert.equal(res.counts.llm_calls, 0); assert.equal(res.counts.kept, 0); assert.ok(res.filtered.trust_page_too_short >= 1);
-  assert.ok(res.counts.kept >= 1 && res.counts.kept <= 3, 'kept listings within catalogue pages');
 });
 
 test('P128.6 email content mode, found date/time, Drive folder id, Drive writes existing Sheet/Doc only, header menu', async () => {
