@@ -693,14 +693,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     try { runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() }); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
     if (!runId) {
       console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
-      return res.status(409).json({ suc      // The durable PostgreSQL worker claims and executes this queued run.
- GitHub diagnostics ${diagnosticsStatus} · snapshot ${snapshotStatus}`,
-          counts: result?.counts ?? {},
-          log,
-        });
-        clearRunCancel(runId!);
-      } catch { /* progress is best-effort; snapshot is already handled */ }
-    })();
+      return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
+    }
+    console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun, wave }));
+    res.status(202).json({ success: true, runId, dryRun, wave });
+    // The durable PostgreSQL worker claims and executes this queued run.
   });
 
     const executeQueuedRun = async (job: any, workerId: string, leaseLost: () => boolean) => {
@@ -835,8 +832,9 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         });
         clearRunCancel(runId!);
       } catch { /* progress is best-effort; snapshot is already handled */ }
-    
+
   };
+  // PostgreSQL-backed queue consumer; expired leases are recovered by the next app process.
   const workerDisabled = process.env.NODE_ENV === 'test' || Boolean(process.env.NODE_TEST_CONTEXT) || process.env.IMMOFINDER_DISABLE_WORKER === '1';
   if (!workerDisabled && !stopImmoFinderWorkerImpl) {
     let active: Promise<void> | null = null;
@@ -927,8 +925,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         }
         console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger: 'internal', runId, dryRun, wave }));
 
-                // Scheduled work is also consumed by the durable PostgreSQL worker.
-
+        // Scheduled runs are consumed by the same durable PostgreSQL worker.
       } catch (e) {
         console.warn(JSON.stringify({ type: 'immofinder_schedule_tick', trigger: 'internal', error: String((e as Error)?.message || e).slice(0, 160) }));
       }
