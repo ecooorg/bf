@@ -1,3 +1,6 @@
+## ImmoFinder evidence-first admission
+- Search queries are generated from rental intent; listing facts come only from the fetched detail page, not SERP snippets or an LLM.
+- The final gate requires matching URL, rental status, page-sourced rooms, CHF/month rent, fresh publication date and advertiser-labelled direct contact; unknown evidence fails closed.
 # Architecture and Component Boundaries
 
 **Authority:** Product and behavior requirements are in `../TECHNICAL_SPECIFICATION.md`. This file records architectural constraints and implementation landmarks; it must not redefine user-facing behavior.
