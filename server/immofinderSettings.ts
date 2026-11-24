@@ -150,8 +150,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       limitPrice: bool(se.limitPrice, d.search.limitPrice),
       maxMonthlyRentChf: clampInt(se.maxMonthlyRentChf, 200, 10000, d.search.maxMonthlyRentChf),
       maxListingAgeDays: clampInt(se.maxListingAgeDays, 0, 3650, d.search.maxListingAgeDays),
-      // Unknown portal prices are common; keep the listing and show price as unverified.
-      requirePrice: false,
+      requirePrice: true,
       rejectNonMonthly: true,
       rejectSeekerPosts: bool(se.rejectSeekerPosts, d.search.rejectSeekerPosts),
       requireContact: true,
@@ -226,10 +225,10 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,
-      requirePrice: false,
-      rejectNonMonthly: s.search.rejectNonMonthly,
+      requirePrice: true,
+      rejectNonMonthly: true,
       rejectSeekerPosts: s.search.rejectSeekerPosts,
-      requireContact: s.search.requireContact,
+      requireContact: true,
     },
   };
 }
