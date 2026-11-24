@@ -183,7 +183,7 @@ test('discovery interleaves communes so a bounded run cannot starve later locati
 });
 
 test('each discovery query processes at most four detail candidates and interleaves commune coverage', async () => {
-  const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['C {commune}'], maxPagesPerRun: 80 });
+  const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['site:flatfox.ch C {commune}'], maxPagesPerRun: 80 });
   const queried = []; const fetched = []; let serial = 0;
   const result = await runPipeline({
     config: localCfg,
@@ -194,7 +194,14 @@ test('each discovery query processes at most four detail candidates and interlea
   }, { dryRun: true, wave: 'carousel' });
   assert.equal(fetched.length, 24, 'four candidates are fetched from each of six commune/template queries');
   assert.equal(queried.length, 6, 'every interleaved commune/template query is attempted');
-  assert.deepEqual(queried, ['A Chur', 'A Zizers', 'C Chur', 'C Zizers', 'B Chur', 'B Zizers']);
+  assert.deepEqual(queried, [
+    '"Chur" ("Wohnung zu vermieten" OR "Mietwohnung" OR "Wohnung mieten") -kaufen -verkaufen',
+    '"Zizers" ("Wohnung zu vermieten" OR "Mietwohnung" OR "Wohnung mieten") -kaufen -verkaufen',
+    'site:flatfox.ch "Chur" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen',
+    'site:flatfox.ch "Zizers" (Wohnung OR Appartement) (mieten OR vermieten OR "à louer") -kaufen -verkaufen',
+    '"Chur" ("3 Zimmer" OR "3.5 Zimmer" OR "4 Zimmer" OR "4.5 Zimmer") (Miete OR Mietzins) -kaufen -verkaufen',
+    '"Zizers" ("3 Zimmer" OR "3.5 Zimmer" OR "4 Zimmer" OR "4.5 Zimmer") (Miete OR Mietzins) -kaufen -verkaufen',
+  ]);
   assert.equal(result.counts.candidates, 24);
 });
 test('portal SERP sources do not early-stop after the catalogue bad-streak threshold', async () => {
