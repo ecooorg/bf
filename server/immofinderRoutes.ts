@@ -482,7 +482,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     res.json({ success: true, job: { ...refreshStatus } });
   });
 
-  /** Recheck dates and contact details on every stored listing, including hidden rows. */
+  /** Recheck feed: re-fetch pages, hide delisted, refresh dates/contacts, then apply local quality filters. */
   app.post('/api/immofinder/recheck-list', json, async (_req, res) => {
     if (refreshStatus.running) return res.status(409).json({ success: false, error: 'Recheck list is already running', code: 'RECHECK_IN_PROGRESS' });
     try {
@@ -504,7 +504,25 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         }) : undefined,
         update: updateListingContacts,
         log: (level, event, details) => immoLog(level, event, details),
-      }, refreshStatus).catch((e) => {
+      }, refreshStatus).then(async () => {
+        refreshStatus.running = true;
+        refreshStatus.phase = 'searching';
+        refreshStatus.message = `${String(refreshStatus.message || '').trim()} · applying quality filters…`;
+        try {
+          const fr = await recheckStored();
+          const base = String(refreshStatus.message || '').replace(/\s· applying quality filters…$/, '').trim();
+          refreshStatus.message = `${base}${base ? ' · ' : ''}filters: hid ${fr.hidden}, price fixed ${fr.priceFixed}`;
+          immoLog('info', 'immofinder_recheck_filters_after_refresh', { checked: fr.checked, hidden: fr.hidden, priceFixed: fr.priceFixed });
+        } catch (fe) {
+          const detail = String((fe as Error)?.message || fe).slice(0, 120);
+          refreshStatus.message = `${String(refreshStatus.message || '').trim()} · filters error: ${detail}`;
+          immoLog('warn', 'immofinder_recheck_filters_after_refresh_failed', { error: detail });
+        } finally {
+          refreshStatus.running = false;
+          refreshStatus.phase = 'done';
+          refreshStatus.finishedAt = Date.now();
+        }
+      }).catch((e) => {
         refreshStatus.running = false; refreshStatus.phase = 'done'; refreshStatus.finishedAt = Date.now();
         refreshStatus.errors++; refreshStatus.message = `Recheck failed: ${String((e as Error)?.message || e).slice(0, 120)}`;
         console.error(JSON.stringify({ type: 'immofinder_recheck_list_fatal', error: refreshStatus.message }));

@@ -56,8 +56,6 @@ export default function ImmoFinder() {
   const [items, setItems] = useState<Listing[]>([]);
   const [run, setRun] = useState<Run>(null);
   const [view, setView] = useState<'current' | 'hidden' | 'all'>('current');
-  const [recheckBusy, setRecheckBusy] = useState(false);
-  const [recheckInfo, setRecheckInfo] = useState('');
   const [listRefreshBusy, setListRefreshBusy] = useState(false);
   const [listRefreshInfo, setListRefreshInfo] = useState('');
   const [msg, setMsg] = useState('');
@@ -122,32 +120,13 @@ export default function ImmoFinder() {
       await load();
     } catch (e) { setMsg((e as Error).message); }
   };
-  const recheck = async () => {
-    if (recheckBusy) return;
-    setRecheckBusy(true);
-    setRecheckInfo('Rechecking… applying current filters and re-parsing prices');
-    setMsg('');
-    try {
-      const r = await api('/api/immofinder/recheck', { method: 'POST', body: '{}' });
-      const info = `Done: checked ${r.checked}, hid ${r.hidden}, price fixed ${r.priceFixed}.` +
-        (r.hidden > 0 ? ' Open Show → hidden to see removed items.' : ' No extra rows needed hiding.');
-      setRecheckInfo(info);
-      setMsg(info);
-      await loadList();
-    } catch (e) {
-      const err = (e as Error).message;
-      setRecheckInfo(`Recheck failed: ${err}`);
-      setMsg(err);
-    } finally {
-      setRecheckBusy(false);
-    }
-  };
   const recheckList = async () => {
     if (listRefreshBusy) return;
-    setListRefreshBusy(true); setListRefreshInfo('Rechecking dates and contacts for all saved listings…');
+    setListRefreshBusy(true); setListRefreshInfo('Rechecking feed… verifying active listings, dates and contacts…');
+    setMsg('');
     try {
       const start = await api('/api/immofinder/recheck-list', { method: 'POST', body: '{}' });
-      setListRefreshInfo(`Queued ${start.queued} listings. Refreshing dates and contacts…`);
+      setListRefreshInfo(`Queued ${start.queued} listings. Checking pages…`);
       let finished = false;
       while (!finished) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -155,11 +134,13 @@ export default function ImmoFinder() {
         const job = s.job || {};
         setListRefreshInfo(job.message || `Checked ${job.checked || 0}/${job.queued || start.queued}…`);
         finished = !job.running && Boolean(job.finishedAt);
-        if (finished) setListRefreshInfo(job.message || 'Recheck list complete.');
+        if (finished) setListRefreshInfo(job.message || 'Recheck feed complete.');
       }
       await loadList();
     } catch (e) {
-      setListRefreshInfo(`Recheck list failed: ${(e as Error).message}`);
+      const err = (e as Error).message;
+      setListRefreshInfo(`Recheck feed failed: ${err}`);
+      setMsg(err);
     } finally { setListRefreshBusy(false); }
   };
   const deleteCard = async (id: string) => {
@@ -336,21 +317,17 @@ export default function ImmoFinder() {
         <button
           type="button"
           className="immo-btn small"
-          data-testid="immofinder-recheck-filters"
-          onClick={() => void recheck()}
+          data-testid="immofinder-recheck-list"
+          onClick={() => void recheckList()}
           style={{ fontSize: 13 }}
-          disabled={busy || recheckBusy}
+          disabled={busy || listRefreshBusy}
+          title="Re-fetch each listing page, hide delisted ads, refresh dates/contacts, then apply quality filters"
         >
-          {recheckBusy ? 'Rechecking…' : 'Recheck filters'}
+          {listRefreshBusy ? 'Rechecking feed…' : 'Recheck feed'}
         </button>
-        <button type="button" className="immo-btn small" data-testid="immofinder-recheck-list"
-          onClick={() => void recheckList()} style={{ fontSize: 13 }} disabled={busy || listRefreshBusy}>
-          {listRefreshBusy ? 'Rechecking list…' : 'Recheck list'}
-        </button>
-        {listRefreshInfo && <span data-testid="immofinder-recheck-list-status" style={{ fontSize: 13, color: listRefreshBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 420 }}>{listRefreshInfo}</span>}
-        {recheckInfo && (
-          <span data-testid="immofinder-recheck-status" style={{ fontSize: 13, color: recheckBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 420 }}>
-            {recheckInfo}
+        {listRefreshInfo && (
+          <span data-testid="immofinder-recheck-list-status" style={{ fontSize: 13, color: listRefreshBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 520 }}>
+            {listRefreshInfo}
           </span>
         )}
       </div>

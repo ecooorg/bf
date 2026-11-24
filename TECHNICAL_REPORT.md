@@ -1,3 +1,8 @@
+## P130.11 — Single Recheck feed (2026-11-24)
+
+- **CHANGE:** UI exposes one **Recheck feed** button. `POST /api/immofinder/recheck-list` still runs page refresh + `listing_unavailable` hide, then chains `recheckStored()` (local filters / price fix) before the job is marked finished.
+- **NOT_RUN:** production click-through after deploy; delist patterns for every portal beyond existing `isListingUnavailable`.
+
 ## P130.5a — Core CI repair (2026-11-22)
 
 - **OBSERVED:** run 44992823490 at 7cc8716: 8 failing tests in `test:app-builder`, `test:project`, `test:project-diagnostics`; all explained by the two causes above. The ImmoFinder health run was red only because it reads CI on main; its live GitHub App probe was OK and the latest run was archived.
