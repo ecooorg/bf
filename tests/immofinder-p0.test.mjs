@@ -365,7 +365,7 @@ test('P130.17 a failed portal fetch cannot fall back to a SERP-evidence listing'
 
 test('P130.17 direct detail admission requires identity-matched URL and complete page facts', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
-  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
+  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Inseriert am: 20.11.2026. Kontakt +41 79 123 45 67. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
   const saved = [];
   const good = await runPipeline({
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }),
