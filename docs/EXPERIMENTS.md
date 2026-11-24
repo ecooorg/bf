@@ -1,3 +1,11 @@
+## P130.18a — Durable query-level recovery
+- **PROBLEM / BASELINE:** P130.17d persists a PostgreSQL run queue and leases, but a recovered worker replays the query plan from the beginning; a process replacement can also interrupt a query before its candidates are committed.
+- **HYPOTHESIS:** Persisting exact completed-query keys, cumulative counters and delivery acknowledgements after each fully processed query will let a new worker skip completed work, retry only incomplete queries and avoid duplicate wave notifications.
+- **METRICS:** completed/skipped/retried queries, lease owner/loss, resumed run attempts, listing rows created per run, delivery acknowledgements, cancellation counts and CI.
+- **ACCEPTANCE:** successful queries are skipped after recovery; failed/interrupted queries retry; counts/filters/source stats survive; no concurrent lease owners; completed channel deliveries are not repeated; manual cancellation preserves progress; SIGTERM drains or releases the lease.
+- **SCOPE:** existing ImmoFinder pipeline, PostgreSQL worker/store/routes, shutdown hook and existing category tests. Preserve P130.18 Serper redirect resolution and browser-rendered fetching. No new service or relaxed admission gate.
+- **ROLLBACK:** revert query checkpoint/resume and delivery acknowledgements independently if a query is skipped without success, duplicate rows/notifications occur, or cancellation loses its final counters.
+- **CLASSIFICATION:** RELIABILITY. **NOT_RUN:** hosted recovery during a real deploy, live search yield and user outcome pending.
 ## P130.17e — Query-level recovery and search-result URL normalization
 - **PROBLEM / BASELINE:** P130.17d adds a PostgreSQL run queue, but retries currently restart the 68-query search from its beginning; the prior run also discarded 162/190 Serper results because their links were Google redirect URLs.
 - **HYPOTHESIS:** Persisting completed query keys and cumulative counters after each fully processed query will resume after process replacement without replaying completed work; unwrapping supported Google redirect parameters before host filtering will recover original listing URLs without admitting Google pages.
