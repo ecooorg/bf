@@ -299,10 +299,10 @@
   "quality": {
     "maxMonthlyRentChf": 3500,
     "maxListingAgeDays": 180,
-    "requirePrice": false,
-    "rejectNonMonthly": false,
+    "requirePrice": true,
+    "rejectNonMonthly": true,
     "rejectSeekerPosts": true,
-    "requireContact": false
+    "requireContact": true
   },
   "runMaxDurationMs": 2700000,
   "contactEnrichment": {
