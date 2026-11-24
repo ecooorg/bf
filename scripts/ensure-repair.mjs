@@ -111,9 +111,11 @@ try {
     t = r.stdout;
     console.log('Restored tests/agents-contract.test.mjs from 28fdc70c (%d bytes)', t.length);
   }
-  if (t.includes('assert.match(ui, /Recheck list/)')) {
-    t = t.replace('assert.match(ui, /Recheck list/);', 'assert.match(ui, /Recheck feed/);');
-    console.log('agents-contract: Recheck list -> Recheck feed');
+  const next = t.replace(/assert\.match\(ui, \/Recheck list\/\);/g, 'assert.match(ui, /Recheck feed/);');
+  if (next !== t) console.log('agents-contract: Recheck list -> Recheck feed');
+  writeFileSync(path, next);
+  if (!next.includes('Recheck feed') || next.includes('Recheck list')) {
+    console.error('agents-contract still has Recheck list or missing Recheck feed');
+    process.exit(1);
   }
-  writeFileSync(path, t);
 }
