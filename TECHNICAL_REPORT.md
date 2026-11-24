@@ -1,3 +1,6 @@
+## P130.17 — ImmoFinder trust engine
+- **CHANGE:** Direct-main commits `31439cb`–`38e1fed` repair admission regexes, remove LLM extraction, add generated rental queries, and require page-confirmed rent, date, rooms, status and advertiser contact.
+- **NOT_RUN:** hosted CI, local build/tests, live Serper yield, deployment and user-visible outcome.
 ## P130.11 — Single Recheck feed (2026-11-24)
 
 - **CHANGE:** UI exposes one **Recheck feed** button. `POST /api/immofinder/recheck-list` still runs page refresh + `listing_unavailable` hide, then chains `recheckStored()` (local filters / price fix) before the job is marked finished.
