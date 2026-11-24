@@ -1,4 +1,4 @@
-/** P130.10i — shared ImmoFinder search quality guards (Serper budget, junk hosts, list noise). */
+/** P130.10j — shared ImmoFinder search quality guards (Serper budget, junk hosts, list noise). */
 /** Module-level: once Serper reports no credits, further calls fail immediately without network. */
 let serperCreditsExhausted = false;
 
@@ -20,7 +20,7 @@ export function isSerperCreditsError(message: string): boolean {
 }
 
 /**
- * Hosts / paths that are aggregators, holiday catalogues, news, or district indexes —
+ * Hosts / paths that are aggregators, holiday catalogues, news, hotels, or district indexes —
  * never a single long-term rental detail page for GR discovery.
  */
 export function isJunkDiscoveryTarget(title: string, url: string): boolean {
@@ -32,13 +32,23 @@ export function isJunkDiscoveryTarget(title: string, url: string): boolean {
   } catch {
     return false;
   }
-  if (/(^|\.)(trovit\.|feriwa\.com|gites\.fr|marloo\.swiss)$/i.test(host)) return true;
-  if (/acheter-louer\.ch/i.test(host) && /\/district-/i.test(u)) return true;
+  // Aggregators / SEO mirrors / holiday catalogs
+  if (/(^|\.)(trovit\.|feriwa\.com|gites\.fr|marloo\.swiss|rentola\.ch|rentumo\.ch|properstar\.|homematch\.|moving24\.|roomlala\.|bedandbreakfast\.eu)$/i.test(host)) return true;
+  // Google Hotels / Travel entities are not long-term rentals
+  if (/^google\./i.test(host) && /\/travel\/hotels\b/i.test(u)) return true;
+  // Acheter-louer: district indexes, "à vendre", commercial
+  if (/acheter-louer\.ch/i.test(host)) {
+    if (/\/district-|\/quartier-|\/acheter\/|a-vendre|commerciaux/i.test(u)) return true;
+    if (/\b(tous les|à vendre|verkauf|kaufen)\b/i.test(t)) return true;
+  }
   if (/\/news\/?$/i.test(u) || /\/urlaub\//i.test(u)) return true;
-  if (/\btrovit\.|feriwa\.|gites\.fr\b/i.test(u)) return true;
-  // Aggregate SERP titles: "339 häuser mieten", "2'156 immobilien mieten"
+  if (/\btrovit\.|feriwa\.|gites\.fr|rentola\.ch\b/i.test(u)) return true;
+  // Aggregate SERP titles
   if (/\b\d+[’']?\d*\s+(h[aä]user|wohnungen|immobilien|angebote|inserate)\s+mieten\b/i.test(t)) return true;
   if (/^(alle inserate|tous les biens|page\s+\d+)\b/i.test(t)) return true;
+  if (/\b(inserate|wohnungen)\s+mieten\s+in\b/i.test(t) && /\b\d+\s+inserate\b/i.test(t)) return true;
+  // Sale titles that leak into rental SERP
+  if (/\b(kaufpreis|zu verkaufen|zum verkauf|à vendre|for sale)\b/i.test(t) && !/\b(mieten|zu vermieten|à louer)\b/i.test(t)) return true;
   return false;
 }
 
