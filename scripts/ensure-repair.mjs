@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Restore server/immofinderRepair.ts and immofinderStore.ts from payloads; apply quality patches. */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { inflateSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -85,4 +86,12 @@ try {
   }
 } catch (e) {
   console.warn('package-lock patch sync skipped:', e && e.message ? e.message : e);
+}
+
+// P130.11 single Recheck feed (idempotent UI + routes merge)
+{
+  const r = spawnSync(process.execPath, [join(root, 'scripts/immofinder-recheck-feed.mjs')], { encoding: 'utf8' });
+  if (r.stdout) process.stdout.write(r.stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
+  if (r.status) process.exit(r.status || 1);
 }
