@@ -33,6 +33,13 @@ jobs:
             exit 1
           fi
           BASE="${BASE_URL%/}"
+          profile_code=$(curl -sS -o /tmp/profile.json -w '%{http_code}' -X POST "$BASE/api/immofinder/settings/prepare-chur-test" \
+            -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' -d '{}')
+          if [ "$profile_code" != "200" ]; then
+            cat /tmp/profile.json
+            echo "Could not apply Chur-only all-source user settings profile: HTTP $profile_code" >&2
+            exit 1
+          fi
           before=$(curl -sS -o /tmp/before.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
           before_id=""
           if [ "$before" = "200" ]; then before_id=$(jq -r '.report.runId // empty' /tmp/before.json); fi
