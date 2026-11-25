@@ -1,3 +1,7 @@
+## P131.3 — Evidence-bound L3 letter generation
+- Added same-page owner/contact verification before L3; removed unsupported personal financial claims from drafts.
+- L1/L2 remain visible without drafts; no automatic sending.
+
 ## P131.2a — Run full Core CI for pull requests
 - Added pull_request trigger to Core CI so full verification runs before merge, not only after push to main.
 - Kept diagnostics-only data commits excluded from the verification DAG.
