@@ -61,23 +61,22 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       communes: [...cfg.municipalities],
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
-        ...SOURCE_IDS.map((s) => [s, true] as const),
-        // Catalogue source ids (if present in config) default off — discovery portals are the product surface.
-        ...(cfg.sources || []).map((src) => [src.id, false] as const),
+        ...SOURCE_IDS.map((s) => [s, ['search', 'portal-homegate', 'portal-tutti'].includes(s)] as const),
+        ...(cfg.sources || []).map((src) => [src.id, src.id === 'happyholiday'] as const),
       ]),
-      maxAiPages: 100,
-      limitPrice: true,
+      maxAiPages: 40,
+      limitPrice: false,
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
-      maxListingAgeDays: q.maxListingAgeDays,
-      requirePrice: true,
-      rejectNonMonthly: true,
+      maxListingAgeDays: 0,
+      requirePrice: false,
+      rejectNonMonthly: false,
       rejectSeekerPosts: true,
-      requireContact: true,
-      defaultWave: 'carousel',
-      profile: 'carousel',
+      requireContact: false,
+      defaultWave: 'full',
+      profile: 'burst',
       carouselCommunesPerRun: 12,
-      privateQueryTemplates: 4,
-      enrichSearchesPerRun: 12,
+      privateQueryTemplates: 2,
+      enrichSearchesPerRun: 0,
       recheckContactSearch: false,
     },
   };
@@ -115,9 +114,8 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const allIds = Array.from(new Set<string>([...SOURCE_IDS, ...catalogueIds, ...Object.keys(srcIn)]));
   const sources: Record<string, boolean> = {};
   for (const id of allIds) {
-    if (Object.prototype.hasOwnProperty.call(srcIn, id)) sources[id] = bool(srcIn[id], true);
-    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = true;
-    else sources[id] = false; // catalogue defaults off
+    const defaultEnabled = d.search.sources[id] ?? false;
+    sources[id] = Object.prototype.hasOwnProperty.call(srcIn, id) ? bool(srcIn[id], defaultEnabled) : defaultEnabled;
   }
   // Legacy master toggle: swiss-portals on/off → every portal-* source
   if (Object.prototype.hasOwnProperty.call(srcIn, 'swiss-portals')) {
@@ -151,12 +149,12 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       maxMonthlyRentChf: clampInt(se.maxMonthlyRentChf, 200, 10000, d.search.maxMonthlyRentChf),
       maxListingAgeDays: clampInt(se.maxListingAgeDays, 0, 3650, d.search.maxListingAgeDays),
       // Unknown portal prices are common; keep the listing and show price as unverified.
-      requirePrice: true,
-      rejectNonMonthly: true,
+      requirePrice: bool(se.requirePrice, d.search.requirePrice),
+      rejectNonMonthly: bool(se.rejectNonMonthly, d.search.rejectNonMonthly),
       rejectSeekerPosts: bool(se.rejectSeekerPosts, d.search.rejectSeekerPosts),
-      requireContact: true,
-      defaultWave: se.defaultWave === 'full' ? 'full' : 'carousel',
-      profile: se.profile === 'burst' ? 'burst' : 'carousel',
+      requireContact: bool(se.requireContact, d.search.requireContact),
+      defaultWave: se.defaultWave === 'carousel' ? 'carousel' : 'full',
+      profile: se.profile === 'carousel' ? 'carousel' : 'burst',
       carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 4, 12, Math.max(4, d.search.carouselCommunesPerRun)),
       privateQueryTemplates: clampInt(se.privateQueryTemplates, 1, 4, d.search.privateQueryTemplates),
       enrichSearchesPerRun: clampInt(se.enrichSearchesPerRun, 0, 35, d.search.enrichSearchesPerRun),
@@ -212,8 +210,8 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
             : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
         queries: wantPrivate ? (cfg.discovery.queries || []).slice(0, s.search.privateQueryTemplates) : [],
         portalQueries,
-        // Keep the full configured portal pool for a quality fallback when selected sources yield too few verified ads.
-        fallbackPortalQueries: cfg.discovery.portalQueries || [],
+        // R9: never widen into unmeasured sources as an automatic fallback.
+        fallbackPortalQueries: portalQueries,
       }
     : cfg.discovery;
   return {
@@ -226,10 +224,10 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,
-      requirePrice: true,
-      rejectNonMonthly: true,
+      requirePrice: s.search.requirePrice,
+      rejectNonMonthly: s.search.rejectNonMonthly,
       rejectSeekerPosts: s.search.rejectSeekerPosts,
-      requireContact: true,
+      requireContact: s.search.requireContact,
     },
   };
 }
