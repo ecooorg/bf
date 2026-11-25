@@ -1,20 +1,20 @@
 {
-  "runId": "62b1b7a6-a1f3-4a71-8705-4623679548d2",
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-25T19:41:13.155Z",
+  "runId": "90659410-9c72-4727-8b38-93c308b9a0d5",
+  "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
+  "eventCount": 23,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
   "events": [
     {
-      "at": "2026-11-25T16:59:38.376Z",
       "type": "immofinder_trace",
-      "wave": "carousel",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "run_started",
-      "dryRun": false,
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "minRooms": 3,
+      "at": "2026-11-25T19:39:38.455Z",
       "elapsedMs": 0,
-      "pageLimit": 420,
-      "llmEnabled": true,
-      "maxLlmCalls": 100,
-      "sourceCount": 0,
-      "searchEnabled": true,
+      "wave": "carousel",
+      "dryRun": false,
       "municipalities": [
         "Chur",
         "Haldenstein",
@@ -61,668 +61,668 @@
         "St. Peter-Molinis",
         "Peist"
       ],
+      "minRooms": 3,
       "discoveryEnabled": true,
-      "runMaxDurationMs": 2700000,
+      "privateQueryTemplates": 4,
       "portalQueryTemplates": 13,
       "maxCandidatesPerQuery": 8,
-      "privateQueryTemplates": 4
+      "pageLimit": 420,
+      "runMaxDurationMs": 2700000,
+      "llmEnabled": true,
+      "searchEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0
     },
     {
-      "at": "2026-11-25T16:59:38.376Z",
       "type": "immofinder_trace",
-      "wave": "carousel",
-      "cycle": 225,
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "discovery_plan",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 0,
+      "at": "2026-11-25T19:39:38.456Z",
+      "elapsedMs": 1,
+      "wave": "carousel",
       "finishAll": true,
-      "pageLimit": 420,
+      "coverAllCommunes": false,
+      "cycle": 226,
+      "selectedCommunes": [
+        "Bonaduz",
+        "Rhäzüns",
+        "Rothenbrunnen",
+        "Rodels"
+      ],
+      "queryCountTotal": 68,
       "queryOffset": 0,
+      "queryCountThisWave": 68,
+      "maxCandidatesPerQuery": 6,
+      "pageLimit": 420,
+      "resultsPerQuery": 10,
+      "serperMinIntervalMs": 1500,
+      "serperMaxPerMinute": 40,
       "queryFamilies": [
         "private",
         "portals"
-      ],
-      "queryCountTotal": 68,
-      "resultsPerQuery": 10,
-      "coverAllCommunes": false,
-      "selectedCommunes": [
-        "Versam",
-        "Valendas",
-        "Castrisch",
-        "Ilanz"
-      ],
-      "queryCountThisWave": 68,
-      "serperMaxPerMinute": 40,
-      "serperMinIntervalMs": 1500,
-      "maxCandidatesPerQuery": 6
+      ]
     },
     {
-      "at": "2026-11-25T16:59:38.477Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Versam\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "at": "2026-11-25T19:39:38.567Z",
+      "elapsedMs": 112,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 101,
-      "errorName": "Error",
       "queryIndex": 1,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Bonaduz\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T16:59:43.078Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Valendas\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "at": "2026-11-25T19:39:43.168Z",
+      "elapsedMs": 4713,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 4702,
-      "errorName": "Error",
       "queryIndex": 2,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rhäzüns\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T16:59:47.679Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Castrisch\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "at": "2026-11-25T19:39:47.779Z",
+      "elapsedMs": 9324,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 9303,
-      "errorName": "Error",
       "queryIndex": 3,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rothenbrunnen\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T16:59:52.277Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Ilanz\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "at": "2026-11-25T19:39:52.380Z",
+      "elapsedMs": 13925,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 13901,
-      "errorName": "Error",
       "queryIndex": 4,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rodels\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T16:59:56.875Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:homegate.ch \"Versam\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "at": "2026-11-25T19:39:56.986Z",
+      "elapsedMs": 18531,
       "source": "portal-homegate",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 18499,
-      "errorName": "Error",
       "queryIndex": 5,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Bonaduz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:01.486Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:homegate.ch \"Valendas\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "at": "2026-11-25T19:40:01.594Z",
+      "elapsedMs": 23139,
       "source": "portal-homegate",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 23110,
-      "errorName": "Error",
       "queryIndex": 6,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Rhäzüns\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:06.091Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:homegate.ch \"Castrisch\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "at": "2026-11-25T19:40:06.190Z",
+      "elapsedMs": 27735,
       "source": "portal-homegate",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 27715,
-      "errorName": "Error",
       "queryIndex": 7,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Rothenbrunnen\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:10.692Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:homegate.ch \"Ilanz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "at": "2026-11-25T19:40:10.797Z",
+      "elapsedMs": 32342,
       "source": "portal-homegate",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 32316,
-      "errorName": "Error",
       "queryIndex": 8,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Rodels\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:15.294Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Versam\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "at": "2026-11-25T19:40:15.400Z",
+      "elapsedMs": 36945,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 36918,
-      "errorName": "Error",
       "queryIndex": 9,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Bonaduz\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:19.895Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Valendas\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "at": "2026-11-25T19:40:20.006Z",
+      "elapsedMs": 41551,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 41519,
-      "errorName": "Error",
       "queryIndex": 10,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rhäzüns\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:24.495Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Castrisch\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "at": "2026-11-25T19:40:24.611Z",
+      "elapsedMs": 46156,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 46119,
-      "errorName": "Error",
       "queryIndex": 11,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rothenbrunnen\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:29.096Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Ilanz\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "at": "2026-11-25T19:40:29.219Z",
+      "elapsedMs": 50764,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 50720,
-      "errorName": "Error",
       "queryIndex": 12,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rodels\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:33.704Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:immoscout24.ch \"Versam\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "at": "2026-11-25T19:40:33.828Z",
+      "elapsedMs": 55373,
       "source": "portal-immoscout24",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 55328,
-      "errorName": "Error",
       "queryIndex": 13,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Bonaduz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:38.305Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:immoscout24.ch \"Valendas\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "at": "2026-11-25T19:40:38.432Z",
+      "elapsedMs": 59977,
       "source": "portal-immoscout24",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 59929,
-      "errorName": "Error",
       "queryIndex": 14,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Rhäzüns\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:42.904Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:immoscout24.ch \"Castrisch\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "at": "2026-11-25T19:40:43.038Z",
+      "elapsedMs": 64583,
       "source": "portal-immoscout24",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 64528,
-      "errorName": "Error",
       "queryIndex": 15,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Rothenbrunnen\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:47.515Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "site:immoscout24.ch \"Ilanz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "at": "2026-11-25T19:40:47.639Z",
+      "elapsedMs": 69184,
       "source": "portal-immoscout24",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 69139,
-      "errorName": "Error",
       "queryIndex": 16,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Rodels\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:52.135Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Versam\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "at": "2026-11-25T19:40:52.250Z",
+      "elapsedMs": 73795,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 73759,
-      "errorName": "Error",
       "queryIndex": 17,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Bonaduz\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:00:56.742Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Valendas\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "at": "2026-11-25T19:40:56.858Z",
+      "elapsedMs": 78403,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 78366,
-      "errorName": "Error",
       "queryIndex": 18,
-      "queryTotal": 68
+      "queryTotal": 68,
+      "query": "\"Rhäzüns\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:01:01.346Z",
       "type": "immofinder_trace",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "serper_query_failed",
-      "query": "\"Castrisch\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "at": "2026-11-25T19:41:01.462Z",
+      "elapsedMs": 83007,
       "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 82970,
-      "errorName": "Error",
       "queryIndex": 19,
-      "queryTotal": 68
-    },
-    {
-      "at": "2026-11-25T17:01:05.951Z",
-      "type": "immofinder_trace",
+      "queryTotal": 68,
+      "query": "\"Rothenbrunnen\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
       "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "event": "serper_query_failed",
-      "query": "\"Ilanz\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
-      "source": "search",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "elapsedMs": 87575,
-      "errorName": "Error",
-      "queryIndex": 20,
-      "queryTotal": 68
+      "errorName": "Error"
     },
     {
-      "at": "2026-11-25T17:01:12.753Z",
       "type": "immofinder_trace",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
+      "event": "serper_query_failed",
+      "at": "2026-11-25T19:41:06.067Z",
+      "elapsedMs": 87612,
+      "source": "search",
+      "queryIndex": 20,
+      "queryTotal": 68,
+      "query": "\"Rodels\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "ddaf414a-6166-4ca5-9ff4-21b0c6d8c9f5",
       "event": "run_completed",
+      "at": "2026-11-25T19:41:12.748Z",
+      "elapsedMs": 94293,
+      "durationMs": 94293,
       "counts": {
-        "new": 0,
-        "kept": 0,
-        "fetched": 0,
         "sources": 0,
-        "updated": 0,
-        "enriched": 0,
-        "llm_calls": 0,
-        "candidates": 0,
         "index_pages": 0,
-        "skipped_geo": 0,
-        "serper_calls": 20,
-        "skipped_seen": 0,
+        "candidates": 0,
+        "fetched": 0,
         "snippet_only": 0,
         "skipped_known": 0,
+        "skipped_seen": 0,
+        "skipped_geo": 0,
         "search_queries": 20,
+        "serper_calls": 20,
         "serper_fallback": 0,
-        "llm_skipped_no_rooms": 0
+        "llm_skipped_no_rooms": 0,
+        "kept": 0,
+        "new": 0,
+        "updated": 0,
+        "llm_calls": 0,
+        "enriched": 0
       },
+      "filtered": {},
       "errors": [
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-homegate",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-homegate"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-homegate",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-homegate"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-homegate",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-homegate"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-homegate",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-homegate"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-immoscout24",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-immoscout24"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-immoscout24",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-immoscout24"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-immoscout24",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-immoscout24"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "portal-immoscout24",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "portal-immoscout24"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-          "source": "search"
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
         },
         {
+          "source": "search",
           "code": "search_abort",
-          "detail": "20 consecutive Serper failures",
-          "source": "search"
+          "detail": "20 consecutive Serper failures"
         }
       ],
-      "preview": [],
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "filtered": {},
-      "wavesRun": [
-        "carousel"
-      ],
-      "elapsedMs": 94377,
-      "durationMs": 94377,
       "sourceStats": [
         {
           "id": "search",
-          "geo": 0,
-          "llm": 0,
-          "new": 0,
-          "hits": 0,
-          "junk": 0,
-          "kept": 0,
-          "fetched": 0,
           "queries": 12,
-          "agencies": 0,
+          "hits": 0,
           "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
           "consecutiveBad": 0
         },
         {
           "id": "portal-homegate",
-          "geo": 0,
-          "llm": 0,
-          "new": 0,
-          "hits": 0,
-          "junk": 0,
-          "kept": 0,
-          "fetched": 0,
           "queries": 4,
-          "agencies": 0,
+          "hits": 0,
           "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
           "consecutiveBad": 0
         },
         {
           "id": "portal-immoscout24",
-          "geo": 0,
-          "llm": 0,
-          "new": 0,
-          "hits": 0,
-          "junk": 0,
-          "kept": 0,
-          "fetched": 0,
           "queries": 4,
-          "agencies": 0,
+          "hits": 0,
           "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
           "consecutiveBad": 0
         }
       ],
+      "wavesRun": [
+        "carousel"
+      ],
       "previewCount": 0,
+      "preview": [],
       "estimatedCostUsd": 0.02
     }
   ],
   "result": {
     "counts": {
-      "new": 0,
-      "kept": 0,
-      "fetched": 0,
       "sources": 0,
-      "updated": 0,
-      "enriched": 0,
-      "llm_calls": 0,
-      "candidates": 0,
       "index_pages": 0,
-      "skipped_geo": 0,
-      "serper_calls": 20,
-      "skipped_seen": 0,
+      "candidates": 0,
+      "fetched": 0,
       "snippet_only": 0,
       "skipped_known": 0,
+      "skipped_seen": 0,
+      "skipped_geo": 0,
       "search_queries": 20,
+      "serper_calls": 20,
       "serper_fallback": 0,
-      "llm_skipped_no_rooms": 0
+      "llm_skipped_no_rooms": 0,
+      "kept": 0,
+      "new": 0,
+      "updated": 0,
+      "llm_calls": 0,
+      "enriched": 0
     },
+    "filtered": {},
     "errors": [
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-homegate",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-homegate"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-homegate",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-homegate"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-homegate",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-homegate"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-homegate",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-homegate"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-immoscout24",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-immoscout24"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-immoscout24",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-immoscout24"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-immoscout24",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-immoscout24"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "portal-immoscout24",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "portal-immoscout24"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-        "source": "search"
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
       },
       {
+        "source": "search",
         "code": "search_abort",
-        "detail": "20 consecutive Serper failures",
-        "source": "search"
+        "detail": "20 consecutive Serper failures"
       }
-    ],
-    "preview": [],
-    "filtered": {},
-    "wavesRun": [
-      "carousel"
     ],
     "sourceStats": [
       {
         "id": "search",
-        "geo": 0,
-        "llm": 0,
-        "new": 0,
-        "hits": 0,
-        "junk": 0,
-        "kept": 0,
-        "fetched": 0,
         "queries": 12,
-        "agencies": 0,
+        "hits": 0,
         "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
         "consecutiveBad": 0
       },
       {
         "id": "portal-homegate",
-        "geo": 0,
-        "llm": 0,
-        "new": 0,
-        "hits": 0,
-        "junk": 0,
-        "kept": 0,
-        "fetched": 0,
         "queries": 4,
-        "agencies": 0,
+        "hits": 0,
         "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
         "consecutiveBad": 0
       },
       {
         "id": "portal-immoscout24",
-        "geo": 0,
-        "llm": 0,
-        "new": 0,
-        "hits": 0,
-        "junk": 0,
-        "kept": 0,
-        "fetched": 0,
         "queries": 4,
-        "agencies": 0,
+        "hits": 0,
         "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
         "consecutiveBad": 0
       }
-    ]
-  },
-  "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-  "logSource": "process_trace_buffer",
-  "eventCount": 23,
-  "generatedAt": "2026-11-25T17:01:12.947Z",
-  "schemaVersion": 1,
-  "databaseLogWriteFailures": null
+    ],
+    "wavesRun": [
+      "carousel"
+    ],
+    "preview": []
+  }
 }
