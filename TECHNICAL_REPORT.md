@@ -1,3 +1,8 @@
+## P131.5 — Honest infrastructure status
+- **OBSERVED:** Recent production carousel runs had 20/20 Serper HTTP 400 credit failures, 0 candidates and 0 fetched pages; UI previously presented an ordinary zero-result summary.
+- **CHANGE:** Classify all-provider-failure runs as `INFRA_FAIL`, persist the status and display it in the run summary; successful empty searches remain `COMPLETED`.
+- **NOT_RUN:** Hosted CI, deployed runtime verification, configured-fetcher pilot and WP6 full runs.
+
 ## P131.4a — Hosted verification and backup evidence
 - **PASS:** Core CI `45633920254`: 18/18 DAG checks; Answer Quality `45633920285` passed; live smoke skipped.
 - **OBSERVED:** Encrypted snapshot commit `a1ce09e` exists at 14:21 UTC; restore integrity is unverified. Latest run `c9912bcf` was carousel `INFRA_FAIL`: 20/20 Serper calls returned HTTP 400 `Not enough credits`, 0 candidates/fetches/L1; direct sources were skipped by mode.
