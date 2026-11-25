@@ -1,3 +1,8 @@
+## P131.5b implementation status — 2026-11-25
+- ImmoFinder code/config/patch pushes to `main` trigger the existing read-only Render/GitHub health check; no deploy action or DB mutation is performed.
+- The probe will record deployed commit identity, runtime health and latest-run status after release.
+- Hosted CI pending; configured-fetcher pilot, WP5 restore, WP6 full runs and conditional WP7 remain open/NOT_RUN.
+
 ## P131.5 implementation status — 2026-11-25
 - All-Serper-failure runs with zero candidates/pages are classified `INFRA_FAIL`, persisted in run counts and shown as an infrastructure status rather than a quality result.
 - Core CI `45636126675` passed 18/18 DAG checks and Answer Quality `45636126454` passed; successful empty searches remain `COMPLETED`.
