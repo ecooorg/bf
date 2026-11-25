@@ -109,6 +109,10 @@ Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,
 
 ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune queries (rotation by finished real runs), picks hits (host policy) and feeds them to the same extraction/filter/persist function as catalogue sources. Product quality contract: see **ImmoFinder search result quality** below.
 
+## C131 ImmoFinder search constitution
+
+The current product objective, L0–L3 result levels, per-field provenance, reject taxonomy, source admission, budgets, letter rules and change control are defined by R1–R14 in `TECHNICAL_SPECIFICATION.md`. This is a pointer, not a second policy source. Existing P128–P130 runtime code is transitional until WP1/WP2 baselines and subsequent implementation packages are complete; its behavior is not evidence of C131 compliance.
+
 ## Historical: ImmoFinder search result quality (superseded by C131)
 
 **Status:** Historical P129–P130 contract; its “current long-term rental listings” objective and mandatory price/contact/date admission rules are superseded by the owner-approved C131 R1–R14 constitution in `TECHNICAL_SPECIFICATION.md`. Do not use this section as current policy.
