@@ -1,4 +1,9 @@
 ## P131.5 implementation status — 2026-11-25
+- All-Serper-failure runs with zero candidates/pages are classified `INFRA_FAIL`, persisted in run counts and shown as an infrastructure status rather than a quality result.
+- Core CI `45636126675` passed 18/18 DAG checks and Answer Quality `45636126454` passed; successful empty searches remain `COMPLETED`.
+- Production deploy identity, configured-fetcher pilot, WP5 restore/legacy retirement, WP6 full runs and conditional WP7 remain open/NOT_RUN.
+
+## P131.5 implementation status — 2026-11-25
 - All-Serper-failure runs with zero candidates/pages are now classified `INFRA_FAIL`, persisted in run counts and shown as an infrastructure status rather than a quality result.
 - Successful empty searches remain `COMPLETED`; search budgets and L1 admission rules are unchanged.
 - Hosted CI pending; production deploy identity, configured-fetcher pilot, WP5 restore, WP6 full runs and conditional WP7 remain open/NOT_RUN.
