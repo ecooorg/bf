@@ -36,9 +36,9 @@ jobs:
           before=$(curl -sS -o /tmp/before.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
           before_id=""
           if [ "$before" = "200" ]; then before_id=$(jq -r '.report.runId // empty' /tmp/before.json); fi
-          code=$(curl -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run" \
+          code=$(curl -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run?testMode=true&dryRun=true" \
             -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' \
-            -d '{"dryRun":true,"wave":"carousel","testMode":true}')
+            -d '{"wave":"full"}')
           if [ "$code" = "409" ]; then
             gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Short ImmoFinder test was not started: another search is already running. No production data was changed."
             exit 0
