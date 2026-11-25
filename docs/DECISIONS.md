@@ -1,3 +1,13 @@
+## D-2026-11-25-02 — Navigator delegation for C131 execution
+
+**Decision authority:** Navigator explicitly delegated all intermediate WP0–WP7 decisions to the coding session and stated the target outcome: after deployment, a manual ImmoFinder search should return at least several real, high-quality listings. This authorizes resolving the previously open C131 choices for implementation, without fabricating owner labels or claiming production evidence.
+
+**Working decisions:** Prioritize `tourist_owner` then `direct_offer`; keep `rooms_unknown` out of L1 (no bedroom-count estimate); use a three-source bounded pilot (HappyHoliday, Tutti, Homegate); target three L2 records per run as a planning target; retain Serper only as secondary discovery capped at 20 queries/run; disable repeated contact enrichment by default. Platform message forms are contact routes, not proof that the advertiser is a private owner. Keep existing agency/aggregator exclusions, but do not reject direct-host platforms as a class.
+
+**Evidence boundary:** These decisions do not create Gold Set labels. R9 tier-1 admission still requires ≥5 saved real page fixtures and a measured fetcher pilot per source. Live acceptance requires deployment and owner review of real results; code CI is not user-value proof.
+
+---
+
 ## D-2026-11-25-01 — C131 ImmoFinder search constitution
 
 **Owner decision (2026-11-25):** Navigator explicitly approved R1–R14 in `ROADMAP.md`. This supersedes conflicting P129–P130 “current long-term listing” and mandatory price/month/date/contact admission wording. The canonical constitution and acceptance thresholds are in `TECHNICAL_SPECIFICATION.md`; `docs/ARCHITECTURE.md` points to that source.
