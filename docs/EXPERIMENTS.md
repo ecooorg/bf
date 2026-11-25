@@ -1,3 +1,13 @@
+## P131.5e — Prevent stale payload from overwriting the current ImmoFinder core (BUGFIX)
+
+- **OBSERVED / BASELINE:** The main-push `ensure-repair.yml` workflow invokes `immofinder-core-restore.mjs`, which unconditionally writes the P130.16 payload over the current core whenever payload fragments exist.
+- **HYPOTHESIS:** Preserve an existing core by default; allow restoration only when the target is absent or an explicit force-restore environment flag is set.
+- **METRICS:** Existing ImmoFinder category suite and hosted Core CI; regression assertion for the default-preserve and explicit-force contract.
+- **ACCEPTANCE:** Ordinary main pushes cannot replace the current core with a stale payload; deliberate recovery remains possible; no payload or legacy file is deleted.
+- **SCOPE:** Core restore script, existing ImmoFinder quality category test, version metadata and concise history. No database, production or source-tier mutation.
+- **ROLLBACK:** Revert if a documented recovery workflow requires unconditional overwrite; use the explicit force flag for intentional restoration.
+- **CLASSIFICATION:** BUGFIX; hosted verification required before merge.
+
 ## P131.5 — Surface provider-wide search failure as INFRA_FAIL (BUGFIX / USER_VALUE)
 
 - **OBSERVED / BASELINE:** Production diagnostics `c9912bcf`, `98790669` and `85549585` show all Serper calls failing with HTTP 400 `Not enough credits`, 0 candidates and 0 fetched pages; the run is persisted and rendered as an ordinary zero-result run.
