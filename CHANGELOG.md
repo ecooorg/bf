@@ -1,3 +1,6 @@
+## P131.6a — Align repair-rule stamp and settings copy with CI contracts
+- Sync the deterministic repair version to package patch `131.6a.5`; shorten the settings explanation to the repository copy limit.
+
 ## P131.6 — Repair ImmoFinder settings and Chur test setup
 - Make optional price/contact filters editable, expose all configured sources, and add a one-action reset + Chur-only/all-source test profile.
 
