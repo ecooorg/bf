@@ -1,3 +1,7 @@
+## P131.5e — Preserve the current ImmoFinder core during repair
+- Prevented automatic main-push repair from overwriting the current core with the stale P130.16 payload; explicit force restore remains available.
+- Added a regression contract test; WP5 restore drill and legacy retirement remain NOT_RUN.
+
 ## P131.5d — Refresh health snapshots when deployment details change
 - Fixed health-snapshot deduplication to compare each check's detail as well as status/verdict, so a changing deployed-commit gap is not hidden for 24 hours.
 - Added regression coverage; no deploy or search action is performed by the health probe.
