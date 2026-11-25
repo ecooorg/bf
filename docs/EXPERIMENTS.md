@@ -1,3 +1,8 @@
+## P131.7a — Give all-source Chur discovery enough bounded time
+- **OBSERVED:** run `2acc4c0e-e085-4945-8c96-a8ff17fb59c5`: 91 candidates, 8/17 Serper queries, 5 index pages, 1 fetched detail page, 0 kept, 14 out-of-commune rejects, 7 snippet-only rejects, 1 shared-flat seeker rejected, Homegate/Tutti HTTP 403, 9 queries left at the 120-second test cap; USD 0.008.
+- **HYPOTHESIS:** raise only the test duration ceiling to 180 seconds. The pipeline reserves 45 seconds for later stages, leaving up to 135 seconds for all 17 queries; retain one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders, no contact enrichment and dry-run/no writes.
+- **ACCEPTANCE:** all 17 queries complete or a typed provider/source failure is recorded; duration <=180s; no snippet-only or seeker L1; no listing/cache writes.
+
 ## P131.7 — Reject shared-flat seeker posts before L1 admission
 - **OBSERVED:** dry-run `daab22a7-7e7f-4a87-9418-9754a85095d5`: 179 candidates, 15 Serper calls, 5 fetched detail pages, 1 L1 admission from Flatfox, 0 L2, USD 0.015. The admitted page described a WG/flatshare seeking new people; owner was not verified. This is a seeker/roommate request, not a private rental offer. No listing/cache writes.
 - **HYPOTHESIS:** extend the generic seeker classifier to detect a shared-flat/household seeking roommates, even when the title itself looks like a rental offer in another language.
