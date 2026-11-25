@@ -1,3 +1,10 @@
+## P131.1a — Corrective verification of the C131 L1 contract (CORRECTIVE)
+- **OBSERVED:** The first post-merge Core CI run found 14 test failures; most were legacy assertions for mandatory price/date/contact and all-portal fallback, not implementation failures. A separate mismatch could classify a weekly quote as monthly if the caller's unit disagreed with the page quote.
+- **HYPOTHESIS:** Updating tests to the already-approved R2 semantics and requiring source-unit agreement for monthly price metadata will restore a trustworthy green baseline without relaxing any C131 admission gate.
+- **PRIMARY CORRECTION:** Preserve L1 admission with unknown/weekly/seasonal price and platform-only contact; keep explicit detail URL, locality, residential type, ≥3 Zimmer and reject conditions mandatory. Update old test fixtures with explicit `rooms_basis: 'zimmer'`.
+- **ACCEPTANCE:** Core CI passes all existing category suites; no stale test may reintroduce a price/date/contact gate or unbounded source fallback.
+- **LIMIT:** No Gold labels, production fetcher run, or user-value result is inferred from synthetic tests.
+
 ## P131.1 — Restore C131 L1 admission and make manual run source-first (EXPERIMENT)
 
 - **PROBLEM / OBSERVED BASELINE:** WP0 policy is present in config/spec, but runtime still rejects a fetched listing unless it has a monthly CHF price, publication date and direct phone/email. Short-stay admission separately requires explicit price period and direct contact. Settings also force those gates on; default manual run is Carousel, which skips catalogues. A fresh public-page inspection found a directly fetchable Tutti GR rental index with 209 listings, including current 4.5-room offers in target communes, and a Homegate GR rental index with 236 results; Serper credits remain exhausted.
