@@ -1,5 +1,13 @@
 name: ImmoFinder health
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/immofinder*.ts'
+      - 'config/immofinder.json'
+      - 'src/ImmoFinder.tsx'
+      - 'package.json'
+      - 'package-lock.json'
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
