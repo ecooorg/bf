@@ -1,3 +1,7 @@
+## P131.6a — Verification follow-up after repair-module restore
+- **OBSERVED:** Core CI run `45679081711` tested merge commit `cb93651` and failed because `REPAIR_RULES_VERSION` was `131.6.5` while package patch was `131.6a`; `lint:copy` and the P131.6 UI regression passed.
+- **CHANGE:** main's subsequent repair restore commit `2dc5e64` now carries `131.6a.5`; exact-head Core CI remains **NOT_RUN**.
+
 ## P131.6a — CI follow-up for settings repair
 - **OBSERVED:** P131.6 Core CI caught stale repair stamp `131.5j.5` and one overlong UI string; new settings regression passed.
 - **CHANGE:** align stamp to `131.6a.5` and shorten copy. **NOT_RUN:** follow-up hosted CI and deploy.
