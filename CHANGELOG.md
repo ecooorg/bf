@@ -1,3 +1,6 @@
+## P131.6 — Repair ImmoFinder settings and Chur test setup
+- Make optional price/contact filters editable, expose all configured sources, and add a one-action reset + Chur-only/all-source test profile.
+
 ## P131.5j — PipelineOptions contract correction
 - Pass bounded `testMode` through the declared `PipelineOptions` argument, not the `PipelineDeps` object.
 
