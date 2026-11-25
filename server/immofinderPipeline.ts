@@ -94,7 +94,8 @@ interface Extract { name: string; municipality: string | null; streetAddress: st
 async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof pageMeta>, host: string): Promise<{ ex: Extract; llmCalls: number }> {
   const cfg = deps.config;
   const pageLead = meta.title + '\n' + text.slice(0, 5000);
-  const rooms = parseRooms(pageLead);
+  const parsedRooms = parseRooms(pageLead);
+  const rooms = parsedRooms?.basis === 'zimmer' ? parsedRooms : null;
   const price = parsePrice(pageLead);
   const listedAt = parseListedAt(text, undefined, meta.published);
   const municipality = matchMunicipality(meta.title + '\n' + text.slice(0, 3000), cfg.municipalities);
@@ -600,11 +601,31 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (trust.contact === 'phone') {
         rec.direct_email = null;
         rec.contact_evidence = rec.contact_evidence.filter((item) => item.type === 'phone');
-      } else {
+        rec.contact_status = 'found';
+      } else if (trust.contact === 'email') {
         rec.direct_phone = null;
         rec.contact_evidence = rec.contact_evidence.filter((item) => item.type === 'email');
+        rec.contact_status = 'found';
+      } else {
+        rec.direct_phone = null;
+        rec.direct_email = null;
+        rec.contact_evidence = [];
+        rec.contact_status = 'platform_only';
+        rec.contact_advice = contactAdvice(url, type);
       }
-      rec.contact_status = 'found';
+      const ownerEvidenceMatch = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i.exec(evidenceText);
+      const ownerReachable = Boolean(ownerEvidenceMatch && rec.contact_advice !== '');
+      rec.raw = {
+        ...rec.raw,
+        c131_policy: 'C131-R1-R14',
+        c131_result_type: type === 'holiday_owner' ? 'tourist_owner' : 'direct_offer',
+        c131_quality_level: ownerReachable ? 'L2' : 'L1',
+        c131_owner_evidence_quote: ownerEvidenceMatch?.[0] ?? null,
+        c131_owner_evidence_url: ownerEvidenceMatch ? url : null,
+        c131_owner_evidence_fetched_at: ownerEvidenceMatch ? new Date(now()).toISOString() : null,
+        c131_contact_route: trust.contact === 'platform_only' ? (rec.contact_advice ? 'platform_message' : 'none') : 'direct',
+      };
+      if (!ownerReachable) rec.draft_message_de = '';
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
         if (dryChecked.hardReason) { await deny(dryChecked.hardReason, 'write_gate'); continue; }
