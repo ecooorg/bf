@@ -1,3 +1,7 @@
+## P131.3a — No-label invariant replay
+- Removed synthetic owner labels and precision/recall claims; replay now reports only admission, infrastructure and provenance invariants.
+- Platform contact route requires a structured message form; no language-specific phrase heuristics.
+
 ## P131.3 — Evidence-bound L3 letter generation
 - Added same-page owner/contact verification before L3; removed unsupported personal financial claims from drafts.
 - L1/L2 remain visible without drafts; no automatic sending.
