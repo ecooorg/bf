@@ -98,7 +98,7 @@ async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof
   const rooms = parsedRooms?.basis === 'zimmer' ? parsedRooms : null;
   const price = parsePrice(pageLead);
   const listedAt = parseListedAt(text, undefined, meta.published);
-  const municipality = matchMunicipality(meta.title + '\n' + text.slice(0, 3000), cfg.municipalities);
+  const municipality = matchMunicipality(meta.title + '\n' + text, cfg.municipalities);
   return {
     llmCalls: 0,
     ex: {
@@ -421,8 +421,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const extractionStartedAt = now();
       const { ex, llmCalls } = await extract(deps, text, meta!, host);
       if (snippetEvidence && !ex.municipality && it.municipalityHint) {
-        ex.municipality = it.municipalityHint;
-        ex.signals.push('municipality_from_search_query');
+        ex.signals.push('municipality_search_hint_not_evidence');
       }
       if (snippetEvidence && !ex.rooms) {
         // Leave rooms null — inventing 0 previously bypassed minRooms and produced garbage cards.
@@ -463,15 +462,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (!ex.single) { await deny('not_single_listing'); continue; }
       if (ex.agency) { await deny('agency', ex.agency); continue; }
       if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }
-      if (!ex.municipality) {
-        const fromUrl = placeFromUrl(url, cfg.municipalities);
-        if (fromUrl.matched) ex.municipality = fromUrl.matched;
-        else {
-          const pathMuni = matchMunicipality(String(url).replace(/[-_/]/g, ' '), cfg.municipalities);
-          if (pathMuni) ex.municipality = pathMuni;
-        }
-      }
-      if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
+      if (!ex.municipality) { await deny('municipality_not_whitelisted', 'no_page_locality_evidence'); continue; }
       const geoPre = placeFromTitleOrSnippet(meta.title, pages[i].text.slice(0, 600), cfg.municipalities);
       if (geoPre.outside && !ex.municipality) { await deny('municipality_not_whitelisted', 'outside:' + (geoPre.hint || '')); continue; }
       if (!snippetEvidence && (!ex.rooms || !(ex.rooms.rooms > 0))) { await deny('rooms_unknown'); continue; }
@@ -488,9 +479,6 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         ex.signals.push('generic_link');
       }
       if (clearOutOfCantonRegion(pages[i].text)) { await deny('municipality_not_whitelisted', 'foreign_region_markers'); continue; }
-      // The commune named in the URL or title wins over one guessed from a snippet.
-      const urlMuni = matchMunicipality(`${decodeURIComponent(url).replace(/[-_/.?=&]/g, ' ')} ${meta.title}`, cfg.municipalities);
-      if (urlMuni && urlMuni !== ex.municipality) { ex.municipality = urlMuni; ex.signals.push('municipality_from_url'); }
       const type = classifyType(meta.title, url, pages[i].text);
       if (LONG_TERM_HINT.test(pages[i].text.slice(0, 6000))) ex.signals.push('long_term_possible');
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
@@ -598,6 +586,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         finalUrl: pages[i].finalUrl,
         title: meta.title,
         pageText,
+        municipality: ex.municipality,
+        municipalities: cfg.municipalities,
         provisional: snippetEvidence,
         rooms: ex.rooms?.rooms ?? null,
         priceMonthlyChf: price?.monthlyChf ?? null,
