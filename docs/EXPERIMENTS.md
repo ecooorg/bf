@@ -1,4 +1,13 @@
 ## P131.5j — Place bounded testMode in PipelineOptions (BUGFIX)
+- **OBSERVED / BASELINE:** PR #89 Core CI failed `typecheck`/`build` with TS2353 at `server/immofinderRoutes.ts:851`: `testMode` was placed on `PipelineDeps`. `PipelineOptions` declares `testMode?: boolean` and `runPipeline` uses `opts.testMode` to cap discovery pages. Render build for merge commit `6e3beb2` failed; previous successful deployment remained live.
+- **HYPOTHESIS:** Move the flag from the first `runPipeline` argument (`PipelineDeps`) to the second (`PipelineOptions`); retain the bounded page cap and dry-run semantics.
+- **METRICS:** Core CI typecheck/build, category test for call-site placement, successful Render build/deploy; test runner capped at 3 sources, 1 commune, 3 discovery pages, 2 detail pages/source, 90 seconds.
+- **ACCEPTANCE:** `testMode` absent from dependency object and present in options object; pipeline cap test passes; no change to normal Full runs or listing admission.
+- **SCOPE:** One route argument correction, one regression assertion, patch metadata and history.
+- **ROLLBACK:** Revert only the argument move if pipeline option semantics change; preserve test-mode dry-run and all side-effect guards.
+- **CLASSIFICATION:** BUGFIX; no USER_VALUE claim.
+
+## P131.5j — Place bounded testMode in PipelineOptions (BUGFIX)
 - **OBSERVED / BASELINE:** PR #89 Core CI failed `typecheck`/`build` with TS2353 at `server/immofinderRoutes.ts:851`: `testMode` was placed on `PipelineDeps`. `PipelineOptions` explicitly declares `testMode?: boolean` and `runPipeline` uses `opts.testMode` to cap discovery pages. Render build for merge commit `6e3beb2` failed; previous successful deployment remained live.
 - **HYPOTHESIS:** Move the flag from the first `runPipeline` argument (`PipelineDeps`) to the second (`PipelineOptions`); retain the bounded page cap and dry-run semantics.
 - **METRICS:** Core CI typecheck/build, category test for call-site placement, successful Render build/deploy; test runner still capped at 3 sources, 1 commune, 3 discovery pages, 2 detail pages/source, 90 seconds.
