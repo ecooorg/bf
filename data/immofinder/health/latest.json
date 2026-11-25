@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-25T17:11:51.224Z",
+  "generatedAt": "2026-11-25T17:20:48.111Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at 6be29f7, 2 still running"
+      "detail": "3 checks at be1c0f2, 2 still running"
     },
     {
       "group": "GITHUB",
@@ -30,18 +30,13 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 520 commit(s) behind main with 87 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
+      "detail": "production is 522 commit(s) behind main with 87 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 0, SSL warnings 0, 5xx 3 in collected Render logs",
-      "data": {
-        "geminiTimeouts": 0,
-        "sslWarnings": 0,
-        "http5xx": 3
-      }
+      "detail": "Render log collection failed: HTTP 403 from /v1/logs; publisher errors and runtime signals are unchecked"
     },
     {
       "group": "PUBLISHING",
@@ -52,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-25T17:11:50.088Z",
+        "checkedAt": "2026-11-25T17:20:47.094Z",
         "steps": [
           {
             "step": "app",
@@ -114,14 +109,14 @@
     {
       "group": "PUBLISHING",
       "name": "GitHub publishers",
-      "status": "OK",
-      "detail": "no GitHub publisher errors in the collected window"
+      "status": "SKIP",
+      "detail": "no runtime logs to inspect"
     },
     {
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "62b1b7a6-a1f3-4a71-8705-4623679548d2, 0.2 h old"
+      "detail": "62b1b7a6-a1f3-4a71-8705-4623679548d2, 0.3 h old"
     },
     {
       "group": "SEARCH",
