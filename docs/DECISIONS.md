@@ -1,6 +1,6 @@
 ## D-2026-11-25-01 — C131 ImmoFinder search constitution
 
-**Owner decision (2026-11-25):** Navigator explicitly approved R1–R14 in `docs/ROADMAP_C131.md`. This supersedes conflicting P129–P130 “current long-term listing” and mandatory price/month/date/contact admission wording. The canonical constitution and acceptance thresholds are in `TECHNICAL_SPECIFICATION.md`; `docs/ARCHITECTURE.md` points to that source.
+**Owner decision (2026-11-25):** Navigator explicitly approved R1–R14 in `ROADMAP.md`. This supersedes conflicting P129–P130 “current long-term listing” and mandatory price/month/date/contact admission wording. The canonical constitution and acceptance thresholds are in `TECHNICAL_SPECIFICATION.md`; `docs/ARCHITECTURE.md` points to that source.
 
 **Boundaries:** approval does not label the ≥60-record holdout, choose source tiers or volume/cost targets, resolve the five open questions in the roadmap, authorize automatic letter sending, or establish production/live acceptance. Existing stop-list and runtime behavior remain unchanged pending measured WP1/WP2 and explicit resolution of open inputs.
 

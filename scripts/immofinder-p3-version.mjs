@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const packagePath = join(root, 'package.json');
 const patch = String(JSON.parse(readFileSync(packagePath, 'utf8')).patch || '');
-if (!/^130\.\d+[a-z]?$/.test(patch)) throw new Error('Invalid package patch version for repair-rule stamp');
+if (!/^\d+\.\d+[a-z]?$/.test(patch)) throw new Error('Invalid package patch version for repair-rule stamp');
 const repairVersion = `${patch}.5`;
 const repairPath = join(root, 'server/immofinderRepair.ts');
 if (existsSync(repairPath)) {

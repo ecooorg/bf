@@ -1,3 +1,5 @@
+## P131.0b — Fix cycle-aware repair stamp and canonical roadmap
+- Made repair-rule versioning cycle-neutral, moved C131 into the canonical root roadmap, and recorded WP1 dependency tracing; admission logic unchanged.
 ## P131.0a — Record C131 owner constitution
 - Recorded approved R1–R14, superseded conflicting ImmoFinder policy text, and added C131 measurement plans; runtime behavior unchanged.
 ## P130.18b — Correct recovery test ordering
