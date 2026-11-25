@@ -984,6 +984,9 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   assert.match(route, /progress\.testMode === true \? applyImmoFinderTestBudget\(baseCfg\)/);
   assert.match(route, /testMode \? 'full'/);
   assert.match(route, /\}, \{ dryRun, wave, testMode: progress\.testMode === true \}\);/);
+  const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
+  const depsArgument = runCall.slice(0, runCall.indexOf('}, { dryRun, wave'));
+  assert.doesNotMatch(depsArgument, /testMode:/);
   assert.doesNotMatch(route, /cycle: Number\(progress\.cycle \?\? 0\),\s*testMode:/);
   assert.match(route, /progress\.testMode === true \? 'skipped:test_mode' : await publishGitHubSnapshotAfterRun/);
   const pipeline = read('server/immofinderPipeline.ts');
