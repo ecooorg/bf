@@ -1,3 +1,8 @@
+## P131.5h — Correct production target for agent tests and health checks
+- The first automated smoke attempt reached the stale URL stored in IMMOFINDER_BASE_URL and was handled by the old version (HTTP 200 skipped:not_due). It did not start a search.
+- Pin the agent test workflow to the confirmed My Workspace production URL and correct the health monitor's Render workspace/service/Postgres IDs.
+- Bump patch to 131.5h; no application listing logic changed.
+
 ## P131.5g — Accessible settings and agent-operated short search
 - Replaced native Settings disclosure with an explicit accessible button/panel state.
 - Added secret-gated dry-run test mode capped at 3 sources, 1 commune, 3 result pages, 2 detail pages per source and 90 seconds; listing cleanup and contact enrichment are disabled.
