@@ -1,3 +1,8 @@
+## P131.5f implementation status — 2026-11-25
+- Corrected the P131.5e CI version-stamp mismatch by aligning `REPAIR_RULES_VERSION` with package patch `131.5f`.
+- Core CI failure evidence was a stale `131.5d.5` repair stamp; no product-search logic changed.
+- Hosted verification on this exact head and all live WP2/WP5/WP6 evidence remain NOT_RUN.
+
 ## P131.5e implementation status — 2026-11-25
 - Main-push repair now preserves the current core; stale P130.16 payload restoration requires explicit `FORCE_IMMOFINDER_CORE_RESTORE=1`.
 - Added a regression contract assertion and advanced patch metadata to `131.5e`.
