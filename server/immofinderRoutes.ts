@@ -70,7 +70,7 @@ function secretOk(req: Request): boolean {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-/** Cron call shape (POST /api/immofinder/run with X-Immofinder-Secret). Lets it past the global session gate only; the secret itself is verified in registerImmoFinderRoutes. */
+/** Secret automation call shapes. This only bypasses the global session gate; every route verifies the timing-safe secret again. */
 export function isImmoCronCall(req: Request): boolean {
   return req.method === 'POST' && ['/api/immofinder/run', '/api/immofinder/settings/prepare-chur-test'].includes(req.path) && Boolean(req.get('x-immofinder-secret'));
 }
