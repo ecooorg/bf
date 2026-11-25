@@ -166,8 +166,14 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         } catch { await route.abort().catch(() => {}); }
       });
       const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 9_000 });
-      await page.waitForLoadState('networkidle', { timeout: 1_500 }).catch(() => {});
-      await page.waitForTimeout(500);
+      const targetHost = (() => { try { return new URL(target).hostname.replace(/^www\\./i, '').toLowerCase(); } catch { return ''; } })();
+      const jsShellHost = (cfg.fetch.browserRenderHosts ?? []).some((host) => targetHost === host.replace(/^www\\./i, '').toLowerCase());
+      await page.waitForLoadState('networkidle', { timeout: jsShellHost ? 5_000 : 1_500 }).catch(() => {});
+      if (jsShellHost) {
+        await page.waitForFunction(() => (document.body?.innerText || '').trim().length >= 300, { timeout: 4_000 }).catch(() => {});
+      } else {
+        await page.waitForTimeout(500);
+      }
       const visible = String(await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '')).trim();
       const title = String(await page.title().catch(() => new URL(target).hostname)).trim();
       const finalUrl = page.url();
