@@ -1,3 +1,7 @@
+## P131.7 — Exact-main CI follow-up
+- **OBSERVED:** PR #112 Core CI run `45684715815` failed in `tests/project-mode-contract.test.mjs` because its branch snapshot expected patch `131.6a`; current main has the dynamic patch-version contract. The shared-flat classifier and new quality regression were included in that run.
+- **STATUS:** P131.7 is merged on main; exact-main Core CI is **NOT_RUN** and is being triggered by this documentation-only PR.
+
 ## P131.7 — Shared-flat seeker false-positive correction
 - **OBSERVED:** the Chur dry-run admitted one Flatfox 4-room page as L1 even though its text described a WG seeking people; the record had no owner verification. This is a seeker post, not a private rental offer.
 - **CHANGE:** generic WG/Wohngemeinschaft + seeking-verb classification now rejects the page as `trust_seeker_post` before L1; ordinary rental offers remain eligible.
