@@ -1,3 +1,13 @@
+## P131.3a — Replace synthetic Gold scorer with no-label invariant replay (MAINTENANCE)
+
+- **PROBLEM / OBSERVED:** Existing provider-free test fabricates labels such as good-owner/agency and reports precision/recall, contradicting D-2026-11-25-03; the fixture also omitted required page-grounded locality and failed admission.
+- **HYPOTHESIS:** A no-label invariant replay will report only fetchability, admission/reject reasons, snippet admission and same-page provenance, with no owner-quality labels or precision/recall.
+- **METRICS:** Core CI; admitted L1; infrastructure failures; reject taxonomy; cross-URL, mismatched-source and unverifiable-quote counts.
+- **ACCEPTANCE:** No synthetic owner labels or precision/recall outputs; deterministic tests cover page-locality, fetchability and provenance; Core CI green.
+- **SCOPE:** TrustEngine replay helper and existing ImmoFinder category test only. No runtime admission behavior change.
+- **ROLLBACK:** Restore prior helper only if a real consumer is found; none is currently referenced outside its test.
+- **CLASSIFICATION:** MAINTENANCE.
+
 ## P131.3 — Evidence-bound L3 letter generation (USER_VALUE / BUGFIX)
 
 - **PROBLEM / BASELINE:** Current pipeline creates drafts from a free-form owner name and sets L2 using a broad phrase plus generic contact advice; it has no separate L3 verifier. The existing draft also asserts personal financial/insurance facts not supplied by the user. No owner-labelled precision/recall is available; baseline is deterministic TrustEngine and existing sanitized page fixtures.
