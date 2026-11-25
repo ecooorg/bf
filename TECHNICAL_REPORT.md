@@ -1,3 +1,8 @@
+## P131.0a — C131 WP0 decision and measurement gates
+- **OBSERVED:** Owner approved R1–R14; the audit baseline is historical and the ≥60-record owner-labelled gold set is absent.
+- **CHANGE:** Recorded the constitution, transitional config policy and WP1/WP2 plans; no runtime code changed.
+- **NOT_RUN:** Gold replay, source scorecard, hosted CI, live runs and user outcome.
+
 ## P130.18b — CI corrective follow-up
 - **OBSERVED:** Core CI `45469253660` exposed two test-contract mismatches; 175/177 core tests passed.
 - **CHANGE:** Assert planned queries independent of order and require the checkpoint immediately after a successful batch; no runtime behavior changed.
