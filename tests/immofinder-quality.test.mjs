@@ -1006,7 +1006,7 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   assert.equal(bounded.sources.every((source) => source.maxDetailPages <= 2), true);
   assert.equal(bounded.fetch.maxBrowserRendersPerRun, 2);
   assert.equal(bounded.contactEnrichment?.enabled, false);
-  assert.equal(bounded.runMaxDurationMs, 120_000);
+  assert.equal(bounded.runMaxDurationMs, 180_000);
   assert.ok((bounded.priorityWaveMs ?? 999999) <= 45_000);
   assert.equal(original.sources.length >= bounded.sources.length, true);
   const route = read('server/immofinderRoutes.ts');
