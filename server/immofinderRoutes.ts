@@ -647,7 +647,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/run', json, async (req, res) => {
     const testMode = req.body?.testMode === true;
-    if (testMode && (!cron || req.body?.dryRun !== true)) return res.status(403).json({ success: false, error: 'Bounded test runs require the run secret and dryRun=true', code: 'TEST_RUN_FORBIDDEN' });
+    if (testMode && (!(req as any).immoCron || req.body?.dryRun !== true)) return res.status(403).json({ success: false, error: 'Bounded test runs require the run secret and dryRun=true', code: 'TEST_RUN_FORBIDDEN' });
     const dryRun = testMode || req.body?.dryRun === true;
     // C131 manual run is outcome-first: the source-first full pass is the safe default.
     // Users can still explicitly request { wave: 'carousel' } for a rotating slice.
@@ -689,7 +689,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       console.info(JSON.stringify({ type: 'immofinder_run_start', trigger: 'manual', dryRun }));
     }
     let runId: string | null;
-    try { runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount(), testMode }); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
+    try {
+      if (testMode) runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount(), testMode });
+      else runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() });
+    } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
     if (!runId) {
       console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
       return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
