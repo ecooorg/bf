@@ -1,6 +1,9 @@
 ## P131.5j — PipelineOptions contract correction
 - Pass bounded `testMode` through the declared `PipelineOptions` argument, not the `PipelineDeps` object.
 
+## P131.5j — PipelineOptions contract correction
+- Pass bounded `testMode` through the declared `PipelineOptions` argument, not the `PipelineDeps` object.
+
 ## P131.5j — PipelineDeps type correction
 - Remove the unused `testMode` field from the `runPipeline` dependency object; retain queued test-mode behavior.
 
