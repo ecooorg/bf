@@ -1101,7 +1101,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
   const serperCalls = Number(res.counts.serper_calls || 0);
   const serperFailures = res.errors.filter((error) => error.code === 'search_failed' || error.code === 'step_timeout').length;
-  res.status = serperCalls > 0 && serperFailures >= serperCalls && Number(res.counts.candidates || 0) === 0 && Number(res.counts.fetched || 0) === 0
+  res.status = serperCalls > 0 && serperFailures >= serperCalls && Number(res.counts.candidates || 0) === 0 && Number(res.counts.fetched || 0) === 0 && Number(res.counts.index_pages || 0) === 0
     ? 'INFRA_FAIL'
     : 'COMPLETED';
   diag('run_completed', { status: res.status, durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
