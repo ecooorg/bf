@@ -580,6 +580,19 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
         contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms?.rooms ?? null }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, evidence_confidence: snippetEvidence ? 'low' : 'verified_page', provisional: snippetEvidence, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
+      const fetchedAt = new Date(now()).toISOString();
+      const municipalityIndex = ex.municipality ? pageText.toLowerCase().indexOf(ex.municipality.toLowerCase()) : -1;
+      const municipalityQuote = municipalityIndex >= 0 ? pageText.slice(municipalityIndex, municipalityIndex + String(ex.municipality).length) : null;
+      const roomQuote = /(?:\d{1,2}(?:[.,]\d)?\s*(?:[- ]?Zimmer|Zi\.?|rooms?|pi[eè]ces?)|(?:Zimmer|rooms?|pi[eè]ces?)\s*[:=]?\s*\d{1,2}(?:[.,]\d)?)/i.exec(pageText)?.[0] || null;
+      const fieldEvidence = [
+        { field: 'property_name', value: ex.name, verbatim_quote: meta.title, source_url: url, fetched_at: fetchedAt },
+        ...(municipalityQuote ? [{ field: 'municipality', value: ex.municipality, verbatim_quote: municipalityQuote, source_url: url, fetched_at: fetchedAt }] : []),
+        ...(roomQuote && ex.rooms ? [{ field: 'rooms', value: ex.rooms.rooms, verbatim_quote: roomQuote, source_url: url, fetched_at: fetchedAt }] : []),
+        ...(price?.quote && pageText.includes(price.quote) ? [{ field: 'price', value: price.amount, verbatim_quote: price.quote, source_url: url, fetched_at: fetchedAt }] : []),
+        ...contactEvidence.map((item) => ({ field: item.type, value: item.value, verbatim_quote: item.value, source_url: item.url, fetched_at: fetchedAt })),
+        ...(descriptionDe && pageText.includes(descriptionDe) ? [{ field: 'description', value: descriptionDe, verbatim_quote: descriptionDe, source_url: url, fetched_at: fetchedAt }] : []),
+      ];
+      rec.raw = { ...rec.raw, fetched_at: fetchedAt, field_evidence: fieldEvidence };
       const trust = verifyListingAdmission({
         requestedUrl: url,
         finalUrl: pages[i].finalUrl,
@@ -614,7 +627,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rec.contact_advice = contactAdvice(url, type);
       }
       const ownerEvidenceMatch = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i.exec(evidenceText);
-      const ownerReachable = Boolean(ownerEvidenceMatch && rec.contact_advice !== '');
+      const ownerReachable = Boolean(ownerEvidenceMatch && (trust.contact !== 'platform_only' || rec.contact_advice !== ''));
       rec.raw = {
         ...rec.raw,
         c131_policy: 'C131-R1-R14',
