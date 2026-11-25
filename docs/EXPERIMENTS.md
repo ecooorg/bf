@@ -1,3 +1,8 @@
+## P131.6a — All-source bounded dry-run coverage
+- **OBSERVED:** the fixed Chur test profile enabled every source flag, but the test-budget helper still truncated adapters to three and portal queries to one.
+- **HYPOTHESIS:** retain all configured source adapters and portal queries while keeping hard caps of one commune, 3 result pages, 1 detail page per source, 1 browser render, no enrichment and 60 seconds.
+- **ACCEPTANCE:** tests assert all configured adapters/portal queries remain eligible; page/detail/time budgets remain bounded; no listing/cache writes; C131 quality gates unchanged.
+
 ## P131.6a — Secret-gated reset to the Chur all-source test profile
 - **OBSERVED:** production settings are persisted in Postgres and the reset endpoint requires a browser session; the owner-only agent workflow has a separate timing-safe run secret.
 - **HYPOTHESIS:** expose one fixed-profile endpoint behind that same secret and make the owner-only dry-run workflow apply it before searching.
