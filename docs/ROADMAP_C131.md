@@ -1,3 +1,8 @@
+## P131.5h implementation status — 2026-11-25
+- The agent-runner's first invocation reached the stale URL from the repository secret and received skipped:not_due from v130; no test search occurred.
+- Corrected the test runner to the confirmed My Workspace production URL and aligned health-monitor workspace/service/Postgres identifiers.
+- No production search, listing write or listing-quality threshold change in this patch.
+
 ## P131.5g implementation status — 2026-11-25
 - Settings disclosure is changed to an explicit accessible React button/panel; regression contract added.
 - Agent-operated test search is a secret-gated, forced dry-run with hard limits (3 sources, 1 commune, 3 result pages, 2 detail pages/source, 90 seconds); no listing/cache writes.
