@@ -823,3 +823,58 @@ test('ImmoFinder expands to all configured portals when selected portals yield f
   assert.match(read('server/immofinderPipeline.ts'), /discovery_target_reached/);
   assert.match(read('server/immofinderPipeline.ts'), /stopAtKept: 10/);
 });
+
+test('C131 gold replay scorer is provider-free and reports owner labels, infrastructure, levels and provenance', async () => {
+  const { scoreC131GoldReplay } = await import('../server/immofinderTrustEngine.ts');
+  const url = 'https://example.test/property/one';
+  const quote = "CHF 1'450.– pro Monat";
+  const pageText = [
+    '3.5 Zimmer Wohnung zu vermieten',
+    'Inseriert am: 20.11.2026',
+    'Helle Wohnung mit Balkon und eigener Küche. Ruhige Lage und gute Verkehrsanbindung.',
+    quote,
+    'Kontakt Vermieter: +41 79 123 45 67',
+    'Weitere Angaben zur Wohnung: Kellerabteil, Waschküche und ein zusätzlicher Abstellraum.',
+  ].join('\\n');
+  const input = {
+    requestedUrl: url, finalUrl: url, title: '3.5 Zimmer Wohnung zu vermieten', pageText,
+    provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: quote,
+    listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
+    contactEvidenceUrls: [url], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
+  };
+  const result = scoreC131GoldReplay([
+    {
+      id: 'synthetic-good', label: 'good_tourist_owner', fetchable: true, input,
+      ownerReachable: true, letterReady: true,
+      fieldEvidence: [{ field: 'rooms', sourceUrl: url, verbatimQuote: '3.5 Zimmer Wohnung zu vermieten' }],
+    },
+    {
+      id: 'synthetic-agency', label: 'agency', fetchable: true, input,
+      fieldEvidence: [
+        { field: 'rooms', sourceUrl: url, verbatimQuote: '3.5 Zimmer Wohnung zu vermieten' },
+        { field: 'rent', sourceUrl: 'https://example.test/other', verbatimQuote: quote },
+      ],
+    },
+    {
+      id: 'synthetic-infra', label: 'good_direct_offer', fetchable: false,
+      input: { ...input, pageText: '', phone: null, provisional: false },
+    },
+  ]);
+  assert.equal(result.total, 3);
+  assert.equal(result.fetchable, 2);
+  assert.equal(result.infrastructureFailures, 1);
+  assert.equal(result.admittedL1, 2);
+  assert.equal(result.ownerReachableL2, 1);
+  assert.equal(result.letterReadyL3, 1);
+  assert.equal(result.precision, 0.5);
+  assert.equal(result.fetchableGoodRecall, 1);
+  assert.equal(result.wrongObjectAgencyWrongLocalityRate, 0.5);
+  assert.equal(result.provenance.crossUrlFieldMergeCount, 1);
+  assert.equal(result.provenance.missingFieldEvidenceCount, 1);
+  assert.equal(result.snippetOnlyAdmitted, 0);
+  assert.equal(result.perLabel.agency.falsePositive, 1);
+  assert.equal(result.perLabel.good_direct_offer.falseNegative, 0);
+  assert.deepEqual(result.rejectReasons, { trust_page_too_short: 1 });
+  assert.throws(() => scoreC131GoldReplay([{ id: 'bad', label: 'unknown', fetchable: true, input }]), /label_invalid/);
+});
+
