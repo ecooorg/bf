@@ -1,3 +1,8 @@
+## P131.2 implementation status — 2026-11-25
+- Page-grounded locality is a final TrustEngine requirement; URL/query hints are discovery-only.
+- Contact enrichment is explicit opt-in and disabled by default with zero budget.
+- Hosted CI pending; configured-fetcher pilot and WP6 live runs NOT_RUN.
+
 # C131 owner amendment — 2026-11-25 (D-2026-11-25-03)
 
 The Navigator has confirmed that no 60-record owner-labelled Gold Set or further owner labels will be supplied. This is not a project blocker. WP1 uses existing run/event diagnostics, sanitized public-page evidence in the repository and deterministic provider-free invariant tests. No labels are fabricated and no precision/recall claims are made without independent labels. WP3/WP4 may proceed after this no-label baseline and the existing WP2 public scorecard; configured-fetcher pilot measurements remain required before source-tier promotion. WP6 live runs remain distinct from CI. WP7 is conditional on an observed live recall gap.
