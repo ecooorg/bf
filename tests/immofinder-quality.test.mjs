@@ -1015,7 +1015,10 @@ test('P131.5i carousel test mode enforces the candidate cap and durable retry SQ
   assert.match(pipeline, /opts\.testMode \? Math\.min\(cfg\.discovery\?\.maxPagesPerRun \?\? 3, 3\)/);
   assert.match(pipeline, /if \(processedItems >= pageLimit\)/);
   const route = read('server/immofinderRoutes.ts');
-  assert.match(route, /testMode: progress\.testMode === true/);
+  assert.match(route, /\}, \{ dryRun, wave, testMode: progress\.testMode === true \}\);/);
+  const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
+  const depsArgument = runCall.slice(0, runCall.indexOf('}, { dryRun, wave'));
+  assert.doesNotMatch(depsArgument, /testMode:/);
   const store = read('server/immofinderStore.ts');
   assert.match(store, /jsonb_build_object\('state','queued','text',\$3::text,'releasedAt',now\(\)\)/);
 });
