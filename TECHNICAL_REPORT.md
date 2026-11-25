@@ -1,3 +1,8 @@
+## P131.5h — Production endpoint targeting
+- **OBSERVED:** First agent workflow invocation used the legacy IMMOFINDER_BASE_URL repository secret, which pointed to the old Render deployment (v130 / commit 2ee99cb); response was 200 skipped:not_due. No test run was started.
+- **CHANGE:** Agent smoke workflow now targets the confirmed My Workspace app URL. Health workflow uses the confirmed Render workspace, service and Postgres IDs.
+- **NOT_RUN:** Smoke workflow retry against the corrected target; awaiting hosted CI and merge.
+
 ## P131.5g — Settings disclosure and agent-operated short search
 - **CHANGE:** Explicit React disclosure button with accessible expanded state; bounded agent smoke-run path is secret-gated and forces dry-run.
 - **BUDGET:** At most 3 configured sources, 1 commune, 2 private + 2 portal query templates, 3 result pages, 2 detail pages per source and 90 seconds; contact enrichment and cleanup are disabled.
