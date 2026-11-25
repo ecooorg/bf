@@ -313,7 +313,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         res.preview.push({ url: it.url, title, source: src.id, municipality: null, rooms: null, kept: false, reason, detail: detail.slice(0, 120) });
         diag('candidate_rejected_before_extraction', { source: src.id, url: safeDiagUrl(it.url), host: hostOf(it.url), title: safeDiagText(title, 180), reason, detail: safeDiagText(detail, 240) });
         try { console.info(JSON.stringify({ type: 'immofinder_candidate_rejected', source: src.id, host: hostOf(it.url), title, reason, detail: detail.slice(0, 120) })); } catch { /* diagnostics only */ }
-        try { await deps.store.markSeen(it.url, src.id, 'filtered', reason); } catch { /* cache is advisory; do not abort discovery */ }
+        if (!opts.dryRun) {
+          try { await deps.store.markSeen(it.url, src.id, 'filtered', reason); } catch { /* cache is advisory; do not abort discovery */ }
+        }
         say(stage, `✖ ${reason}: ${title.slice(0, 60)}`);
       };
       // Social feeds may expose an ad only as a post/snippet. Preserve it as provisional evidence.

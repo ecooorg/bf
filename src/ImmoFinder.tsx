@@ -82,6 +82,7 @@ export default function ImmoFinder() {
   const load = useCallback(async () => { await Promise.all([loadList(), loadRun()]); }, [loadList, loadRun]);
   const wasRunning = useRef(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   useEffect(() => { void load(); }, [load]);
   // While a search runs only the small status call is polled; the list reloads once when the run ends.
@@ -214,10 +215,21 @@ export default function ImmoFinder() {
         {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Carousel: next commune slice × all selected sources. Full: all enabled communes × all selected sources. Both run to completion.</p>}
       </section>
 
-      <details style={card}>
-        <summary style={{ cursor: 'pointer' }}><strong>⚙ Settings</strong> <span style={{ color: '#8fa6c2', fontSize: 13 }}>{summary}</span></summary>
-        <div style={{ marginTop: 12 }}><ImmoFinderSettings onChanged={onSettings} /></div>
-      </details>
+      <section style={card} data-testid="immofinder-settings-section">
+        <button
+          type="button"
+          data-testid="immofinder-settings-toggle"
+          aria-expanded={settingsOpen}
+          aria-controls="immofinder-settings-panel"
+          onClick={() => setSettingsOpen((open) => !open)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', cursor: 'pointer', color: 'inherit', background: 'transparent', border: 0, padding: 0, font: 'inherit' }}
+        >
+          <strong>⚙ Settings</strong>
+          <span aria-hidden="true">{settingsOpen ? '▾' : '▸'}</span>
+          <span style={{ color: '#8fa6c2', fontSize: 13 }}>{summary}</span>
+        </button>
+        {settingsOpen && <div id="immofinder-settings-panel" data-testid="immofinder-settings-panel" style={{ marginTop: 12 }}><ImmoFinderSettings onChanged={onSettings} /></div>}
+      </section>
 
       {msg && <p role="status" data-testid="immofinder-message" style={{ color: '#ffd28a' }}>{msg} {/sign in/i.test(msg) && <a href="/" className="immo-btn small">Sign in</a>}</p>}
 

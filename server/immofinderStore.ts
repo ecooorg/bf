@@ -418,7 +418,7 @@ export async function updateListingContacts(
   );
 }
 
-export async function startRun(trigger: string, dryRun: boolean, payload?: { settings?: ImmoSettings; wave?: 'carousel' | 'full'; cycle?: number }): Promise<string | null> {
+export async function startRun(trigger: string, dryRun: boolean, payload?: { settings?: ImmoSettings; wave?: 'carousel' | 'full'; cycle?: number; testMode?: boolean }): Promise<string | null> {
   const p = await getPool();
   const client = await p.connect();
   try {
@@ -426,7 +426,7 @@ export async function startRun(trigger: string, dryRun: boolean, payload?: { set
     await client.query('SELECT pg_advisory_xact_lock($1)', [8147339201]);
     const busy = await client.query('SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL LIMIT 1');
     if (busy.rows[0]) { await client.query('ROLLBACK'); return null; }
-    const progress = { state: 'queued', settingsSnapshot: payload?.settings ?? null, wave: payload?.wave ?? 'carousel', cycle: Number.isInteger(payload?.cycle) ? payload!.cycle : 0, attempts: 0, queuedAt: new Date().toISOString() };
+    const progress = { state: 'queued', settingsSnapshot: payload?.settings ?? null, wave: payload?.wave ?? 'carousel', cycle: Number.isInteger(payload?.cycle) ? payload!.cycle : 0, testMode: payload?.testMode === true, attempts: 0, queuedAt: new Date().toISOString() };
     const r = await client.query('INSERT INTO immofinder_runs (trigger, dry_run, progress) VALUES ($1, $2, $3::jsonb) RETURNING id', [trigger, dryRun, JSON.stringify(progress)]);
     await client.query('COMMIT');
     return r.rows[0]?.id ?? null;

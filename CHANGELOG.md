@@ -1,3 +1,9 @@
+## P131.5g — Accessible settings and agent-operated short search
+- Replaced native Settings disclosure with an explicit accessible button/panel state.
+- Added secret-gated dry-run test mode capped at 3 sources, 1 commune, 3 result pages, 2 detail pages per source and 90 seconds; listing cleanup and contact enrichment are disabled.
+- Added an owner-only GitHub issue-comment trigger for repeatable short production fetcher smoke tests; reports are uploaded as workflow artifacts and commented back.
+- Listing admission gates are unchanged; smoke runs do not count as WP6 Full runs.
+
 ## P131.5f — Align repair-rule stamp before CI verification
 - Synchronized the repair-rule stamp with package patch `131.5f`, preventing the P131.5e pre-merge version assertion failure from recurring.
 - Core CI and Answer Quality are rerun on this exact patch; no search or production data operation is performed.

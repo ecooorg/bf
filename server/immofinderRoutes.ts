@@ -3,6 +3,7 @@ import express, { type Express, type Request } from 'express';
 import { isSameOrigin } from './security.ts';
 import { createPoliteFetch } from './immofinderFetcher.ts';
 import { runPipeline } from './immofinderPipeline.ts';
+import { applyImmoFinderTestBudget } from './immofinderTestMode.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 
 let stopImmoFinderWorkerImpl: (() => Promise<void>) | null = null;
@@ -120,7 +121,7 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
       eventCount: events.length, logSource: 'process_trace_buffer', databaseLogWriteFailures: null,
       events,
       result: {
-        counts: result?.counts || {}, filtered: result?.filtered || {}, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
+        counts: result?.counts || {}, filtered: result?.filtered || {}, estCostUsd: result?.estCostUsd ?? null, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
         sourceStats: result?.sourceStats || [], wavesRun: result?.wavesRun || [],
         preview: (result?.preview || []).slice(0, 120).map((p: any) => ({ url: cleanUrl(p.url), title: cleanText(p.title, 160), source: cleanText(p.source, 80), municipality: p.municipality || null, rooms: p.rooms ?? null, kept: Boolean(p.kept), reason: p.reason || null, detail: cleanText(p.detail, 180) })),
       },
@@ -645,17 +646,19 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
   app.post('/api/immofinder/run', json, async (req, res) => {
-    const dryRun = req.body?.dryRun === true;
+    const testMode = req.body?.testMode === true;
+    if (testMode && (!(req as any).immoCron || req.body?.dryRun !== true)) return res.status(403).json({ success: false, error: 'Bounded test runs require the run secret and dryRun=true', code: 'TEST_RUN_FORBIDDEN' });
+    const dryRun = testMode || req.body?.dryRun === true;
     // C131 manual run is outcome-first: the source-first full pass is the safe default.
     // Users can still explicitly request { wave: 'carousel' } for a rotating slice.
     const defaultWave: 'carousel' | 'full' = 'full';
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     // Product modes: carousel | full. Legacy priority→carousel, extended→full.
     const wave: 'carousel' | 'full' =
-      waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
+      testMode ? 'carousel' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
       waveRaw === 'full' || waveRaw === 'extended' ? 'full' :
       defaultWave;
-    const trigger = (req as any).immoCron ? 'schedule' : 'manual';
+    const trigger = testMode ? 'manual' : (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
     if (trigger === 'schedule') {
       let lastAt: Date | null = null;
@@ -686,7 +689,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       console.info(JSON.stringify({ type: 'immofinder_run_start', trigger: 'manual', dryRun }));
     }
     let runId: string | null;
-    try { runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() }); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
+    try {
+      if (testMode) runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount(), testMode });
+      else runId = await startRun(trigger, dryRun, { settings, wave, cycle: await realRunCount() });
+    } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
     if (!runId) {
       console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
       return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
@@ -732,8 +738,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       };
       try {
         immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot before run');
-        const cfg = applySettings(loadImmoConfig(), settings);
-        try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
+        const baseCfg = applySettings(loadImmoConfig(), settings);
+        const cfg = progress.testMode === true ? applyImmoFinderTestBudget(baseCfg) : baseCfg;
+        if (progress.testMode !== true) {
+          try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
+        }
         const dl = settings.delivery;
         const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
           const label = immofinderWaveLabel(wave);
@@ -906,7 +915,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         else await finishRun(runId, result, errors, delivery, workerId);
       } catch { /* lease expiry lets another process recover the run */ }
       const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
-      const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
+      const snapshotStatus = progress.testMode === true ? 'skipped:test_mode' : await publishGitHubSnapshotAfterRun(runId!);
       clearRunCancel(runId!);
       immoLog('info', 'immofinder_worker_run_finalized', { runId, diagnosticsStatus, snapshotStatus, counts: result?.counts ?? {} });
 

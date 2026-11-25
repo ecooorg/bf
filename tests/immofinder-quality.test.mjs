@@ -945,3 +945,39 @@ test('P131.3 L3 direct contact must be copied from the same fetched detail page'
   assert.deepEqual(buildC131LetterDraft({ ...base, contactEvidence: [{ type: 'email', value: 'owner@example.ch', url: 'https://example.ch/contact' }] }), { ready: false, reason: 'direct_contact_not_page_grounded' });
   assert.deepEqual(buildC131LetterDraft({ ...base, finalUrl: 'https://example.ch/ad/2' }), { ready: false, reason: 'listing_url_mismatch' });
 });
+
+test('P131.5g settings disclosure is an explicit accessible button', () => {
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(ui, /data-testid="immofinder-settings-toggle"/);
+  assert.match(ui, /aria-expanded=\{settingsOpen\}/);
+  assert.match(ui, /aria-controls="immofinder-settings-panel"/);
+  assert.match(ui, /setSettingsOpen\(\(open\) => !open\)/);
+  assert.match(ui, /settingsOpen && <div id="immofinder-settings-panel"/);
+});
+test('P131.5g agent smoke search has a strict bounded budget', async () => {
+  const { applyImmoFinderTestBudget } = await import('../server/immofinderTestMode.ts');
+  const original = {
+    municipalities: ['Chur', 'Flims'], stopAgencies: [], minRooms: 3, platformDomains: [],
+    sources: [{ id: 'a', url: 'https://a.example', phase: 1 }, { id: 'b', url: 'https://b.example', phase: 1 }, { id: 'c', url: 'https://c.example', phase: 2 }, { id: 'd', url: 'https://d.example', phase: 2 }],
+    fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
+    limits: { maxDetailPagesPerSource: 20, recheckAfterDays: 7, fetchTimeoutMs: 5000, maxPageBytes: 100000 },
+    estCostPerLlmCallUsd: 0,
+    discovery: { enabled: true, communesPerRun: 12, resultsPerQuery: 10, maxPagesPerRun: 40, maxCandidatesPerQuery: 8, queries: ['private-a', 'private-b', 'private-c'], portalQueries: ['portal-a', 'portal-b', 'portal-c'], snippetOnlyHosts: [], skipHosts: [] },
+    contactEnrichment: { enabled: true, maxExtraSearchesPerRun: 12, maxReverseImagePerRun: 5 },
+  };
+  const bounded = applyImmoFinderTestBudget(original);
+  assert.equal(bounded.sources.length, Math.min(3, original.sources.length));
+  assert.equal(bounded.discovery?.communesPerRun, 1);
+  assert.ok((bounded.discovery?.resultsPerQuery ?? 99) <= 5);
+  assert.ok((bounded.discovery?.maxPagesPerRun ?? 99) <= 3);
+  assert.ok(bounded.limits.maxDetailPagesPerSource <= 2);
+  assert.equal(bounded.contactEnrichment?.enabled, false);
+  assert.ok((bounded.runMaxDurationMs ?? 999999) <= 90_000);
+  assert.equal(original.sources.length >= bounded.sources.length, true);
+  const route = read('server/immofinderRoutes.ts');
+  assert.match(route, /testMode && \(!\(req as any\)\.immoCron \|\| req\.body\?\.dryRun !== true\)/);
+  assert.match(route, /progress\.testMode === true \? applyImmoFinderTestBudget\(baseCfg\)/);
+  assert.match(route, /progress\.testMode === true \? 'skipped:test_mode' : await publishGitHubSnapshotAfterRun/);
+  const pipeline = read('server/immofinderPipeline.ts');
+  assert.match(pipeline, /if \(!opts\.dryRun\) \{\s*try \{ await deps\.store\.markSeen/);
+});
