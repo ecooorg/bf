@@ -1,3 +1,5 @@
+## P131.0g — Correct scorer TypeScript narrowing
+- Made the replay decision discriminant explicit for TypeScript; scorer semantics and runtime admission behavior unchanged.
 ## P131.0f — Add provider-free C131 gold replay scorer
 - Added a pure legacy-verifier scorer with owner-label metrics, fetchability separation, L1/L2/L3 counters and provenance diagnostics; runtime admission behavior unchanged.
 ## P131.0e — Preliminary WP2 source scorecard
