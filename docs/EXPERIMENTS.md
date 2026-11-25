@@ -1,3 +1,10 @@
+## P131.5h — Correcting the agent test target
+- **OBSERVED:** The first /immofinder-test workflow ran but targeted the legacy IMMOFINDER_BASE_URL secret. That endpoint was the stale v130 Render service and returned HTTP 200 with skipped=not_due; the testMode field was ignored by the old code. No search was run and no listing data changed.
+- **HYPOTHESIS:** Pinning the workflow to the verified My Workspace URL will route the test to commit 6be29f7 / patch 131.5g.
+- **METRICS:** Target service health, accepted runId, bounded query/page budget, diagnostics and zero listing/seen-cache/snapshot writes.
+- **ACCEPTANCE:** Correct-target test returns 202 and completes; health monitor reports the same deployed commit as main.
+- **ROLLBACK:** Revert only workflow target changes; app route and test-mode code remain unchanged.
+
 ## P131.5g — Accessible settings panel and bounded agent-operated smoke search
 - **OBSERVED / BASELINE:** Settings uses a native details/summary disclosure; user reports it does not expand on the search screen. Latest production Full run completed with 104 candidates, 20 result pages fetched and one L1-only record outside the configured rent ceiling; no L2/L3-qualified record was established.
 - **HYPOTHESIS:** An explicit controlled button/panel with aria-expanded removes native disclosure ambiguity; a secret-gated, dry-run-only bounded test mode enables rapid source/parser iteration without user clicks or listing writes.
