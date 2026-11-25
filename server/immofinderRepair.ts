@@ -22,6 +22,7 @@ import {
   isSpecificLink,
   isPortalDetailUrl,
   municipalityEvidenceMismatch,
+  parseRooms,
   nonListingReason,
   parsePrice,
   resolveListingPrice,
@@ -29,7 +30,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '131.0h.5';
+export const REPAIR_RULES_VERSION = '131.1.5';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -354,29 +355,14 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   if (!why && !sameListingUrlTarget(url, evidenceUrl)) why = 'detail_page_url_mismatch';
 
   const rooms = Number(row.rooms_estimated);
-  // Real long-term rental ads always state room count; 0 / missing is not a presentable card.
-  if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms <= 0)) why = 'rooms_unknown';
-  if (!why && Number.isFinite(rooms) && rooms >= 8) why = 'rooms_too_many';
+  const pageRooms = parseRooms(pageEvidence);
+  // L1 needs an explicit Zimmer count from this exact page; bedroom counts are not room counts.
+  if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms < 3 || row.rooms_basis !== 'zimmer' || pageRooms?.basis !== 'zimmer' || pageRooms.rooms < 3)) why = 'rooms_unknown';
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
 
-  // Verify any stored price against this page. Swiss portals often show net rent, gross rent and side costs together;
-  // multiple rent amounts are not by themselves proof that the listing is invalid. Undisclosed long-term rent is allowed.
-  // Seasonal/night/week offers are allowed, but only with their own period and verified contact.
-  let pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
+  const pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
   const shortStay = isShortStayListing(title, url, pageEvidence, pagePrice);
-  if (!why) {
-    const rentCandidates = [...new Map(priceCandidates(pageEvidence)
-      .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= (c.unit === 'night' ? 50 : c.unit === 'week' || c.unit === 'season' ? 100 : 400) && c.amount <= 100000)
-      .map((c) => [`${c.amount}:${c.unit}`, c])).values()];
-    const hasStoredPrice = raw.price?.amount != null || row.rent_monthly_chf != null;
-    if (rentCandidates.length === 0 && hasStoredPrice) {
-      const quote = String(raw.price_quote || obj(raw.price).quote || '');
-      const fromQuote = quote ? (resolveListingPrice(quote, null) || parsePrice(quote + '\n' + pageEvidence.slice(0, 2000))) : null;
-      if (!fromQuote || !fromQuote.amount) why = 'price_not_confirmed_on_detail_page';
-    }
-  }
-
   if (!why) {
     const evidenceText = buildEvidenceText(title, pageEvidence, 4000);
     pagePrice = resolveListingPrice(evidenceText, null) || parsePrice(evidenceText);
@@ -395,22 +381,6 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   if (!why) {
     const preflight = shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: provisionalSnippet ? 'snippet' : 'page_text', evidenceText: pageEvidence });
     if (preflight) why = preflight;
-  }
-  if (!why) {
-    const pv = priceVerdict(row);
-    if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
-    else if (pv.status !== 'missing') {
-      const rawUnit = String(obj(raw.price).unit || '').toLowerCase();
-      const rowUnit = String(row.pricing_unit || '').toLowerCase();
-      const unit = pv.status === 'repair'
-        ? pv.price.unit
-        : (['month', 'week', 'night', 'season'].includes(rawUnit) ? rawUnit : rowUnit);
-      if (!shortStay && ['week', 'night', 'season'].includes(unit)) why = 'non_monthly_price';
-      if (shortStay) {
-        const contacts = contactVerdict(row);
-        if (contacts.phone !== 'verified' && contacts.email !== 'verified') why = 'short_stay_contact_required';
-      }
-    }
   }
   return why;
 }
@@ -764,6 +734,12 @@ export function sanitizeNewRecord<T extends Record<string, any>>(rec: T, ctx: Au
   if (next.direct_email && (cv.email === 'platform' || cv.email === 'not_in_evidence')) { next.direct_email = null; notes.push(`email_dropped:${cv.email}`); }
   if (notes.length && !next.direct_phone && !next.direct_email) { next.contact_status = 'platform_only'; }
   const pv = priceVerdict(row);
+  if (pv.status === 'suspect') {
+    next.rent_monthly_chf = null;
+    next.pricing_unit = null;
+    next.raw = { ...obj(rec.raw), price: null, price_quote: null, price_cleared: pv.why };
+    notes.push('price_cleared:' + pv.why);
+  }
   if (pv.status === 'repair') {
     const evidence = String(obj(rec.raw).evidence_text || rec.description_de || '');
     const cand = priceCandidates(evidence).find((c) => c.amount === pv.price.amount);
