@@ -1,4 +1,8 @@
 ## P131.5j status — 2026-11-25
+- Corrects the short-test call-site contract: `testMode` belongs in `PipelineOptions`, not `PipelineDeps`; retains the discovery page cap.
+- Awaiting hosted Core CI and successful Render deployment before the next source-first dry-run. WP2 scorecard and WP6 Full runs remain open; WP7 conditional.
+
+## P131.5j status — 2026-11-25
 - Corrects the short-test call-site contract: `testMode` belongs in `PipelineOptions`, not `PipelineDeps`; retains the discovery cap.
 - Awaiting hosted Core CI and successful Render deployment before the next source-first dry-run. WP2 scorecard and WP6 Full runs remain open; WP7 conditional.
 
