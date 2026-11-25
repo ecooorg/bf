@@ -1,3 +1,7 @@
+## P131.1a — Hosted verification passed
+- Core CI passed 18/18 verification DAG checks and 182/182 core tests; build, typecheck, migrations, docs integrity and security scan passed.
+- Ensure repair workflow passed after the synchronized `131.1a.5` repair stamp.
+
 ## P131.1a — Corrective C131 test and price-unit alignment
 - Updated legacy tests to the approved page-grounded L1 contract and added explicit `Zimmer` basis to repair fixtures.
 - A price is classified as monthly only when the source unit and parsed page quote both say monthly; other units do not block L1.
