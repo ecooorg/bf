@@ -180,9 +180,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   const json = express.json({ limit: '10kb' });
   app.use('/api/immofinder', (req, res, next) => {
     const isRunPost = req.method === 'POST' && req.path === '/run';
+    const isTestProfilePost = req.method === 'POST' && req.path === '/settings/prepare-chur-test';
     const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
     const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
-    const cron = isRunPost && secretOk(req);
+    const cron = (isRunPost || isTestProfilePost) && secretOk(req);
     const diagnosticsPoll = isImmoDiagnosticsCall(req);
     if (isRunPost) {
       console.info(JSON.stringify({
