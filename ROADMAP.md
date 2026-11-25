@@ -1,4 +1,16 @@
-## C131 execution audit update — 2026-11-25 (P131.1b; documentation only)
+## C131 owner-directed execution update — 2026-11-25 (P131.1c)
+
+- **Gold Set:** removed as an execution prerequisite by D-2026-11-25-03. Use existing run diagnostics, sanitized public-page evidence and deterministic contract tests; never fabricate labels or claim precision/recall.
+- **WP1:** existing 17-module/26-payload reference trace, scorer, historical diagnostics and ten sanitized Tutti/Homegate evidence records retained. Remaining work is to make the no-label evidence inventory/replay explicit; no owner-label holdout will be created.
+- **WP2:** public source scorecard exists. Configured-fetcher pilot/cost-yield remains NOT_RUN; no tier is promoted without real fixtures and measurements.
+- **WP3:** existing P131.1 trust/pipeline implementation is transitional legacy architecture, not the planned isolated `server/immofinder/` engine. Current correction scope first closes page-grounded locality and bounded spend.
+- **WP4:** L2 owner evidence and platform/direct routes exist in part; L3 anti-fabrication verification remains to be completed and tested.
+- **WP5:** legacy deletion remains gated on reference/restore-workflow retirement and a verifiable production backup; historical encrypted snapshot is not assumed current.
+- **WP6:** production deployment and three completed live runs remain NOT_RUN.
+- **WP7:** conditional; trigger only on an observed WP6 recall gap. No Gold Set is required to execute a bounded live experiment if its gap is evidenced.
+- **Plan location:** `docs/ROADMAP_C131.md` exists; the earlier P131.1b note saying it was absent was incorrect. `ROADMAP.md` remains the repository's ordered-plan authority.
+
+## C131 execution audit update — 2026-11-25 (P131.1b; superseded by P131.1c owner amendment)
 
 - **WP4 PARTIAL:** source audit found R2 locality provenance is not enforced at the final trust boundary; short-stay records still have a direct-contact-only reject; contact enrichment remains enabled despite the delegated default-off decision. L2 metadata exists, but a complete L3 verifier/acceptance was not established. Corrective runtime work is gated on WP1 owner-labelled replay and WP2 fetcher pilot.
 - **WP5 NOT_DONE:** no approved production snapshot was available to verify; pre-C131 visibility/quarantine is not implemented in the inspected store/UI path. Do not delete legacy modules or payloads while restore scripts/workflows consume them.
