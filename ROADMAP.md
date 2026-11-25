@@ -1,11 +1,11 @@
 ## C131 execution status — P131.4 (2026-11-25)
 - **WP0:** DONE; owner-approved R1–R14 and no-Gold amendment recorded.
 - **WP1:** DONE for available evidence; no labels fabricated and no precision/recall claims.
-- **WP2:** PARTIAL; public scorecard and three-source pilot shortlist exist; configured-fetcher measurements, robots for 12 hosts and per-source cost/yield remain NOT_RUN.
+- **WP2:** PARTIAL; public scorecard and three-source pilot shortlist exist; configured-fetcher measurements, robots for 12 hosts and per-source cost/yield remain NOT_RUN. Latest carousel diagnostic was `INFRA_FAIL` (20 Serper credit errors; direct sources not exercised).
 - **WP3:** PARTIAL; page-grounded L1 and bounded source-first path implemented; isolated single-engine consolidation remains open.
 - **WP4:** P131.4 repairs L3 HTML evidence and compile errors; PR-head Core CI 18/18 and Answer Quality passed; live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot commit `a1ce09e` exists (2026-11-25 14:21 UTC); restore verification and legacy restore-consumer retirement remain unverified.
-- **WP6:** NOT_RUN; no deployment or three consecutive live runs.
+- **WP6:** NOT_RUN; latest production diagnostic shows stale deployed code and a Serper-credit `INFRA_FAIL`; no accepted full run or three consecutive live runs.
 - **WP7:** assessed but NOT_TRIGGERED; no measured WP6 recall gap exists, so conditional experiments are not justified.
 
 ## C131 execution status — P131.3a (2026-11-25)
