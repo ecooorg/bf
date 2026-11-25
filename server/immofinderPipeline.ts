@@ -618,7 +618,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rec.contact_advice = contactAdvice(url, type);
       }
       const ownerEvidenceMatch = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i.exec(pageText);
-      const contactRoute = trust.contact !== 'platform_only' ? 'direct' : (hasPageContactAction(pageText) ? 'platform_message' : 'none');
+      const contactRoute = trust.contact !== 'platform_only' ? 'direct' : (hasPageContactAction(pages[i].body) ? 'platform_message' : 'none');
       const ownerReachable = Boolean(ownerEvidenceMatch && contactRoute !== 'none');
       const letter = ownerReachable ? buildC131LetterDraft({
         resultType: type === 'holiday_owner' ? 'tourist_owner' : 'direct_offer',
@@ -626,6 +626,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         finalUrl: pages[i].finalUrl,
         title: meta.title,
         pageText,
+        pageHtml: pages[i].body,
         municipalities: cfg.municipalities,
         municipality: ex.municipality,
         propertyName: ex.name,
