@@ -646,13 +646,9 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true;
-    let defaultWave: 'carousel' | 'full' = 'carousel';
-    try {
-      const st = await getSettings(loadImmoConfig());
-      if (st.search?.profile === 'carousel') defaultWave = 'carousel';
-      else if ((st.search?.defaultWave as string) === 'priority') defaultWave = 'carousel'; // legacy value
-      else defaultWave = 'full';
-    } catch { /* keep carousel as C129 default */ }
+    // C131 manual run is outcome-first: the source-first full pass is the safe default.
+    // Users can still explicitly request { wave: 'carousel' } for a rotating slice.
+    const defaultWave: 'carousel' | 'full' = 'full';
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     // Product modes: carousel | full. Legacy priority→carousel, extended→full.
     const wave: 'carousel' | 'full' =
