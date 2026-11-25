@@ -1,4 +1,10 @@
 ## P131.7 — Shared-flat seeker false-positive correction
+- **OBSERVED:** the Chur dry-run admitted one Flatfox 4-room page as L1 even though its page text described a WG seeking people; the record had no owner verification. This is a seeker post, not a private rental offer.
+- **CHANGE:** generic WG/Wohngemeinschaft + seeking-verb classification now rejects the page as `trust_seeker_post` before L1; ordinary rental offers remain eligible.
+- **CI NOTE:** first branch attempt used a stale `tests/project-mode-contract.test.mjs` snapshot with a hard-coded `131.6a`; the current main contract is dynamic. This rebased branch retains the current dynamic contract.
+- **NOT_RUN:** exact-head Core CI, deployed repeat dry-run and independent human review.
+
+## P131.7 — Shared-flat seeker false-positive correction
 - **OBSERVED:** the Chur dry-run admitted one Flatfox 4-room page as L1 even though its text described a WG seeking people; the record had no owner verification. This is a seeker post, not a private rental offer.
 - **CHANGE:** generic WG/Wohngemeinschaft + seeking-verb classification now rejects the page as `trust_seeker_post` before L1; ordinary rental offers remain eligible.
 - **NOT_RUN:** exact-head Core CI, deployed repeat dry-run and independent human review.
