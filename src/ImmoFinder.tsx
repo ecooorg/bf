@@ -252,7 +252,7 @@ export default function ImmoFinder() {
             <>
               <p style={{ margin: '6px 0' }}>{new Date(run.started_at).toLocaleString()} · took {fmtDur(elapsed)}{run.dry_run ? ' · test run' : ''}{run.trigger === 'schedule' ? ' · automatic' : ''}</p>
               <p style={{ margin: '6px 0' }}>
-                {run.dry_run ? `Test run matched ${run.counts.kept ?? 0} pages (nothing saved).` : `Found ${run.counts.new ?? 0} new and updated ${run.counts.updated ?? 0} listings.`}{' '}
+                {run.counts.run_status === 'INFRA_FAIL' ? 'INFRA_FAIL — search infrastructure failed; this run is not a quality result.' : run.dry_run ? `Test run matched ${run.counts.kept ?? 0} pages (nothing saved).` : `Found ${run.counts.new ?? 0} new and updated ${run.counts.updated ?? 0} listings.`}{' '}
                 Checked {run.counts.fetched ?? 0} pages{run.counts.snippet_only ? ` and ${run.counts.snippet_only} search snippets` : ''}; {(run.counts.skipped_known ?? 0) + (run.counts.skipped_seen ?? 0)} were skipped as already checked. Estimated cost ${run.est_cost_usd}.
               </p>
               {filtered.length > 0 && <p style={{ margin: '6px 0', fontSize: 14 }}>Rejected: {filtered.map(([k, v]) => `${v} ${REASONS[k] || k}`).join(' · ')}.</p>}

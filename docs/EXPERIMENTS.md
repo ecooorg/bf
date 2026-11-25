@@ -1,3 +1,13 @@
+## P131.5 — Surface provider-wide search failure as INFRA_FAIL (BUGFIX / USER_VALUE)
+
+- **OBSERVED / BASELINE:** Production diagnostics `c9912bcf`, `98790669` and `85549585` show all Serper calls failing with HTTP 400 `Not enough credits`, 0 candidates and 0 fetched pages; the run is persisted and rendered as an ordinary zero-result run.
+- **HYPOTHESIS:** Classify a run as `INFRA_FAIL` when every attempted Serper call fails and no candidate/page was processed; persist that status and show it instead of implying a quality result.
+- **METRICS:** Deterministic pipeline status tests, persisted run summary, ImmoFinder UI summary, full Core CI.
+- **ACCEPTANCE:** All-provider-failure/zero-candidate runs show `INFRA_FAIL`; successful empty searches remain `COMPLETED`; partial search failures with real candidate/page processing are not mislabeled; no change to search budgets or listing admission.
+- **SCOPE:** Pipeline result status, run-store JSON summary, ImmoFinder last-run UI, existing ImmoFinder category tests, version/history. No external API calls, production DB mutation or source promotion.
+- **ROLLBACK:** Revert if successful empty searches are marked `INFRA_FAIL` or provider failures are hidden.
+- **CLASSIFICATION:** BUGFIX + USER_VALUE; no precision/recall claims.
+
 ## P131.4a — Production run diagnostic (no-label operational evidence)
 
 - **OBSERVED:** Run `c9912bcf-38e8-45fd-9030-8fef3858ed2f` (2026-11-25 14:19 UTC) ran `carousel`; all 20 Serper requests failed HTTP 400 `Not enough credits`, with 0 candidates, 0 fetched pages and 0 L1 records.

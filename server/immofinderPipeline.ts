@@ -68,6 +68,7 @@ export interface SourceStats {
   stoppedEarly?: boolean;
 }
 export interface RunResult {
+  status?: 'COMPLETED' | 'INFRA_FAIL';
   counts: Record<string, number>; filtered: Record<string, number>; errors: { source: string; code: string; detail?: string }[];
   newListings: ListingRecord[]; preview: { url: string; title: string; source: string; municipality: string | null; rooms: number | null; kept: boolean; reason?: string; detail?: string }[]; estCostUsd: number;
   /** Listings first seen during the priority wave (for dual delivery). */
@@ -1098,7 +1099,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
-  diag('run_completed', { durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
+  const serperCalls = Number(res.counts.serper_calls || 0);
+  const serperFailures = res.errors.filter((error) => error.code === 'search_failed' || error.code === 'step_timeout').length;
+  res.status = serperCalls > 0 && serperFailures >= serperCalls && Number(res.counts.candidates || 0) === 0 && Number(res.counts.fetched || 0) === 0 && Number(res.counts.index_pages || 0) === 0
+    ? 'INFRA_FAIL'
+    : 'COMPLETED';
+  diag('run_completed', { status: res.status, durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
   const filt = Object.entries(res.filtered).map(([k, v]) => `${k}=${v}`).join(' ') || 'none';
   const c = res.counts;
   const statsLine = (res.sourceStats || []).map((s) => `${s.id}:kept=${s.kept}/fetch=${s.fetched}/geo=${s.geo}/junk=${s.junk}${s.stoppedEarly ? '/STOP' : ''}`).join(' · ') || 'none';

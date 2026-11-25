@@ -426,12 +426,24 @@ test('P129.44 snippet text keeps each distinct segment once', () => {
   assert.match(out, /Haustiere erlaubt/);
 });
 
+test('P131.5 marks an all-provider-failure run INFRA_FAIL, not a zero-result quality outcome', async () => {
+  const result = await runPipeline({
+    config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(),
+    search: async () => { throw new Error('Serper HTTP 400: Not enough credits'); }, cycle: 0,
+  }, { dryRun: true, wave: 'carousel' });
+  assert.equal(result.counts.serper_calls, 1);
+  assert.equal(result.counts.candidates, 0);
+  assert.equal(result.counts.fetched, 0);
+  assert.equal(result.status, 'INFRA_FAIL');
+});
+
 test('discovery performs one unrestricted Serper call per query, without a freshness retry', async () => {
   const calls = [];
   const search = async (_q, options) => { calls.push(options ?? null); return staleHit; };
   const result = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
   assert.equal(result.counts.serper_calls, 1);
   assert.equal(result.counts.serper_fallback, 0);
+  assert.equal(result.status, 'COMPLETED', 'a successful search response remains a completed run even if no listing survives');
   assert.deepEqual(calls, [null]);
 });
 

@@ -464,7 +464,7 @@ export async function saveWorkerProgress(runId: string, workerId: string, progre
 }
 export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown, workerId?: string) {
   const p = await getPool();
-  const finalCounts = { ...(res?.counts ?? {}), filtered: res?.filtered ?? {}, sourceStats: res?.sourceStats ?? [], wavesRun: res?.wavesRun ?? [] };
+  const finalCounts = { ...(res?.counts ?? {}), run_status: res?.status ?? 'COMPLETED', filtered: res?.filtered ?? {}, sourceStats: res?.sourceStats ?? [], wavesRun: res?.wavesRun ?? [] };
   await p.query("UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, est_cost_usd = $4, delivery = $5::jsonb, sources = $6::jsonb, lease_owner = NULL, lease_until = NULL, cancel_requested = false, progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','completed','stage','done','text','Finished','counts',$2::jsonb,'delivery',$5::jsonb) WHERE id = $1 AND ($7::text IS NULL OR lease_owner = $7)",
     [id, j(finalCounts), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 200) ?? []), workerId ?? null]);
 }
