@@ -1,3 +1,8 @@
+## P131.5c implementation status — 2026-11-25
+- P131.5 `INFRA_FAIL` reporting and P131.5b post-release health trigger are in `main`; Core CI passed 18/18 and Answer Quality passed.
+- Latest health snapshot remains 08:25 UTC (production version 130 / commit `2ee99cb`, 369 commits behind main); the post-release probe awaits the next main push.
+- WP2 fetcher pilot, WP5 restore/legacy retirement, WP6 full runs and conditional WP7 remain open/NOT_RUN.
+
 ## P131.5b implementation status — 2026-11-25
 - ImmoFinder code/config/patch pushes to `main` trigger the existing read-only Render/GitHub health check; no deploy action or DB mutation is performed.
 - The probe will record deployed commit identity, runtime health and latest-run status after release.

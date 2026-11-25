@@ -1,7 +1,12 @@
+## P131.5c — Hosted verification and pending health probe
+- **PASS:** Core CI `45637400435`: 18/18 DAG checks; Answer Quality `45637400580` passed; secret scan passed.
+- **NOT_RUN:** Post-release Render health snapshot after P131.5b; the latest committed snapshot is still 08:25 UTC and reports version 130 / commit `2ee99cb`.
+- **NOT_RUN:** Configured-fetcher pilot, WP5 restore, WP6 full runs and conditional WP7.
+
 ## P131.5b — Post-release health probe
 - **OBSERVED:** Latest health snapshot (08:25 UTC) reports Render version `130`, commit `2ee99cb`, 369 commits behind main.
 - **CHANGE:** ImmoFinder code/config/patch pushes to `main` now trigger the existing read-only health check; no production deploy action was added.
-- **PASS:** Workflow contract is covered by the existing diagnostics/ops suite; hosted CI pending.
+- **PASS:** Workflow contract is covered by the existing diagnostics/ops suite; Core CI 18/18 and Answer Quality passed on PR #78.
 - **NOT_RUN:** Post-merge Render identity result, configured-fetcher pilot and WP6 full runs.
 
 ## P131.5 — Honest infrastructure status
