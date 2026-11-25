@@ -1,3 +1,7 @@
+## P131.5j correction — pass testMode through PipelineOptions, not PipelineDeps
+- **CORRECTION:** `runPipeline` declares `testMode` on its second `opts` argument and uses it to cap discovery pages. The property must not be deleted; it must be moved from the first `PipelineDeps` object into `{ dryRun, wave, testMode }`. The first Core CI failure was caused by the wrong object shape, not by testMode being unused.
+- **CHANGE:** Route call now keeps `PipelineDeps` contract clean and supplies `testMode` via `PipelineOptions`; regression test asserts both sides of this boundary.
+
 ## P131.5j status — 2026-11-25
 - Fixes PR #89's Core CI/Render build failure: remove redundant undeclared `testMode` field from `PipelineDeps`; queue progress still controls bounded test behavior.
 - Awaiting hosted Core CI and successful deployment before the next source-first smoke run. WP2 and WP6 remain open; WP7 conditional.
