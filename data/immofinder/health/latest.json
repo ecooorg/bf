@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-25T19:37:53.116Z",
+  "generatedAt": "2026-11-25T21:38:43.137Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 630975a"
+      "detail": "3 checks at e6f6c7c, 1 still running"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-25T09:49:17Z"
+      "detail": "last completed run success at 2026-11-25T19:40:16Z"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 661 commit(s) behind main with 87 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
+      "detail": "production is 669 commit(s) behind main with 87 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-25T19:37:52.196Z",
+        "checkedAt": "2026-11-25T21:38:42.212Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "62b1b7a6-a1f3-4a71-8705-4623679548d2, 2.6 h old"
+      "detail": "90659410-9c72-4727-8b38-93c308b9a0d5, 2.0 h old"
     },
     {
       "group": "SEARCH",
@@ -138,7 +138,7 @@
       "group": "PUBLISHING",
       "name": "Archive",
       "status": "FAIL",
-      "detail": "latest run 62b1b7a6-a1f3-4a71-8705-4623679548d2 is not archived (archive holds 2acc4c0e-e085-4945-8c96-a8ff17fb59c5); poller runs every 10 minutes (GitHub may delay schedules)"
+      "detail": "latest run 90659410-9c72-4727-8b38-93c308b9a0d5 is not archived (archive holds 34ace694-080d-4604-9fe6-1579e7211c3f); poller runs every 10 minutes (GitHub may delay schedules)"
     }
   ]
 }
