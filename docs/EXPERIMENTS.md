@@ -1,3 +1,8 @@
+## P131.6a — Complete Chur all-source dry-run wiring
+- **OBSERVED:** the fixed profile route passed the global auth gate but the ImmoFinder router middleware still only exempted `/run`; the first route contract returned 401. The test helper also truncated source adapters to three and portal queries to one.
+- **CHANGE:** allow only the exact fixed-profile POST through the router middleware after timing-safe secret validation; keep every configured adapter and portal query eligible under the existing finite caps.
+- **ACCEPTANCE:** profile endpoint returns DATABASE_UNAVAILABLE in no-DB tests with a valid secret and 401 for a bad secret; all configured sources/portal queries remain eligible; one commune, 3 pages, 1 detail/source, 1 browser render, no enrichment, 60 seconds, dry-run/no writes.
+
 ## P131.6a — Secret-gated reset to the Chur all-source test profile
 - **OBSERVED:** production settings are persisted in Postgres and the reset endpoint requires a browser session; the owner-only agent workflow has a separate timing-safe run secret.
 - **HYPOTHESIS:** expose one fixed-profile endpoint behind that same secret and make the owner-only dry-run workflow apply it before searching.
