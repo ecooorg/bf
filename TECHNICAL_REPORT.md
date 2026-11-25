@@ -1,4 +1,5 @@
 ## P131.5h — Production endpoint targeting
+- **Correction to P131.5g Full-run interpretation:** the Tamins UMS page text states CHF 2,188/month and 7 Dec 2026–28 Mar 2027, but the saved record has price=null and price_cleared=fragment_as_price; its C131 contact route is none and owner verification is not_ready, so it remains L1 only. Run settings had maxMonthlyRentChf=1,800 but limitPrice=false, requirePrice=false, requireContact=false and rejectNonMonthly=false; therefore the CHF 1,800 cap was not active in that run. Do not describe this as a confirmed over-budget rejection or a qualifying owner listing.
 - **OBSERVED:** First agent workflow invocation used the legacy IMMOFINDER_BASE_URL repository secret, which pointed to the old Render deployment (v130 / commit 2ee99cb); response was 200 skipped:not_due. No test run was started.
 - **CHANGE:** Agent smoke workflow now targets the confirmed My Workspace app URL. Health workflow uses the confirmed Render workspace, service and Postgres IDs.
 - **NOT_RUN:** Smoke workflow retry against the corrected target; awaiting hosted CI and merge.
