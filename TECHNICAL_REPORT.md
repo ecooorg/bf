@@ -1,3 +1,8 @@
+## P131.5d — Health snapshot freshness
+- **OBSERVED:** The 14:47 UTC snapshot reported Render version `130` / commit `2ee99cb`, 488 commits behind main; the next main push did not refresh it because deduplication compared only verdict/status.
+- **CHANGE:** Include check details in the snapshot signature so deployed-commit drift and other detail changes publish a fresh health record.
+- **NOT_RUN:** Hosted CI and a post-merge health snapshot after this correction.
+
 ## P131.5c — Hosted verification and pending health probe
 - **PASS:** Core CI `45637400435`: 18/18 DAG checks; Answer Quality `45637400580` passed; secret scan passed.
 - **NOT_RUN:** Post-release Render health snapshot after P131.5b; the latest committed snapshot is still 08:25 UTC and reports version 130 / commit `2ee99cb`.
