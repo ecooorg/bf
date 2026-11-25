@@ -1,4 +1,4 @@
-## P131.3b — Repair L3 HTML evidence flow and restore CI type safety (BUGFIX)
+## P131.4 — Repair L3 HTML evidence flow and restore CI type safety (BUGFIX)
 
 - **OBSERVED / BASELINE:** Core CI run 45630696024 failed typecheck because the pipeline discarded fetched HTML before L3 verification (pages[i].body does not exist); the L3 verifier also checked platform forms against normalized text instead of the fetched HTML.
 - **HYPOTHESIS:** Retain the exact fetched HTML with each candidate and verify platform-message forms against that same page body; keep page-text quote verification and URL identity checks unchanged.
