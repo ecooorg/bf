@@ -4,7 +4,7 @@
 - **WP2:** PARTIAL; public scorecard and three-source pilot shortlist exist; configured-fetcher measurements, robots for 12 hosts and per-source cost/yield remain NOT_RUN.
 - **WP3:** PARTIAL; page-grounded L1 and bounded source-first path implemented; isolated single-engine consolidation remains open.
 - **WP4:** P131.4 repairs L3 HTML evidence and compile errors; PR-head Core CI 18/18 and Answer Quality passed; live owner review NOT_RUN.
-- **WP5:** OPEN; encrypted snapshot is present, but production-current backup/restore and legacy restore-consumer retirement are unverified.
+- **WP5:** OPEN; encrypted snapshot commit `a1ce09e` exists (2026-11-25 14:21 UTC); restore verification and legacy restore-consumer retirement remain unverified.
 - **WP6:** NOT_RUN; no deployment or three consecutive live runs.
 - **WP7:** assessed but NOT_TRIGGERED; no measured WP6 recall gap exists, so conditional experiments are not justified.
 
