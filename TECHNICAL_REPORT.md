@@ -1,3 +1,6 @@
+## P131.5h — Bounded smoke trigger correction
+- **OBSERVED:** Actions run `45662487444` got HTTP 200 `skipped:not_due`; no test run was queued. **CHANGE:** Test mode now accepts explicit query flags as well as JSON body and runs a bounded Full/source-first probe. **NOT_RUN:** Successful post-fix production smoke and no-side-effect DB audit.
+
 ## P131.5g — Settings disclosure and agent-operated short search
 - **CHANGE:** Explicit React disclosure button with accessible expanded state; bounded agent smoke-run path is secret-gated and forces dry-run.
 - **BUDGET:** At most 3 configured sources, 1 commune, 2 private + 2 portal query templates, 3 result pages, 2 detail pages per source and 90 seconds; contact enrichment and cleanup are disabled.
