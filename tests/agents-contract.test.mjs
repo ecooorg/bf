@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { verifyListingAdmission } from '../server/immofinderTrustEngine.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
@@ -464,7 +465,41 @@ test('P129.23a refresh reads publication dates and contacts while preserving sto
 });
 
 
-test('P129.50 seasonal and short-stay listings require explicit period, direct page, exact link and advertiser contact', () => {
+
+test('C131 L1 admits page-grounded residential rentals without price, date or direct contact', () => {
+  const url = 'https://www.tutti.ch/de/vi/83553049';
+  const pageText = [
+    'Schöne, sonnige 4.5-Zimmerwohnung in Untervaz.',
+    'Zu vermieten nach Vereinbarung. Ruhige Wohnung an zentraler Lage mit tollem Ausblick.',
+    'Die Wohnung hat zwei Nasszellen, einen Balkon und einen Kellerraum.',
+    'PLZ 7204, Untervaz. Zimmer 4.5. Typ Mieten. Inserent kontaktieren.',
+  ].join(' ');
+  const base = {
+    requestedUrl: url, finalUrl: url, title: 'Schöne, sonnige 4.5-Zimmerwohnung',
+    pageText, provisional: false, rooms: 4.5,
+    priceMonthlyChf: null, priceUnit: null, priceQuote: null,
+    listedAt: null, maxAgeDays: 180, phone: null, email: null,
+    contactEvidenceUrls: [], nowMs: Date.parse('2026-11-25T12:00:00Z'),
+  };
+  const admitted = verifyListingAdmission(base);
+  assert.equal(admitted.accepted, true);
+  if (admitted.accepted) {
+    assert.equal(admitted.rooms, 4.5);
+    assert.equal(admitted.monthlyRentChf, null);
+    assert.equal(admitted.listedAt, null);
+    assert.equal(admitted.contact, 'platform_only');
+  }
+  assert.equal(verifyListingAdmission({ ...base, provisional: true }).accepted, false, 'snippets never reach L1');
+  const small = verifyListingAdmission({ ...base, pageText: pageText.replaceAll('4.5', '2.5'), title: '2.5-Zimmerwohnung', rooms: 2.5 });
+  assert.equal(small.accepted, false, 'below three rooms is not L1');
+  const bedroomsOnly = verifyListingAdmission({ ...base, pageText: 'Apartment zu vermieten in Untervaz. 3 bedrooms. ' + 'Residential description. '.repeat(8) });
+  assert.equal(bedroomsOnly.accepted, false, 'bedroom count is not a Zimmer count');
+  assert.equal(verifyListingAdmission({ ...base, finalUrl: 'https://www.tutti.ch/de/vi/99999999' }).accepted, false, 'final URL must match');
+  const commercial = verifyListingAdmission({ ...base, title: 'Büro zu vermieten', pageText: 'Büro zu vermieten in Chur. 4.5 Zimmer. ' + 'Gewerbefläche. '.repeat(12) });
+  assert.equal(commercial.accepted, false, 'commercial space is not residential');
+});
+
+test('C131 short-stay L1 requires a detail page, but not price period or direct contact', () => {
   const seasonal = parsePrice('CHF 850 pro Saison');
   assert.ok(seasonal);
   assert.equal(seasonal.unit, 'season');
@@ -475,10 +510,10 @@ test('P129.50 seasonal and short-stay listings require explicit period, direct p
   }, seasonal, null, false, true), null, 'explicit seasonal price is not rejected as non-monthly');
   const valid = { shortStay: true, price: seasonal, url: 'https://stay.example/listing/123456', evidenceKind: 'page_text' };
   assert.equal(shortStayPreflightReason(valid), null);
-  assert.equal(shortStayPreflightReason({ ...valid, price: parsePrice('CHF 850') }), 'short_stay_price_period_required');
+  assert.equal(shortStayPreflightReason({ ...valid, price: parsePrice('CHF 850') }), null, 'price is optional for L1');
   assert.equal(shortStayPreflightReason({ ...valid, url: 'https://stay.example/search' }), 'short_stay_specific_link_required');
   assert.equal(shortStayPreflightReason({ ...valid, evidenceKind: 'snippet' }), 'short_stay_page_evidence_required');
-  assert.equal(shortStayContactReason(true, null, null), 'short_stay_contact_required');
+  assert.equal(shortStayContactReason(true, null, null), null, 'platform message routes are sufficient for L1');
   assert.equal(shortStayContactReason(true, '+41791234567', null), null);
   assert.equal(shortStayContactReason(false, null, null), null);
 });
