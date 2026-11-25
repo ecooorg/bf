@@ -12,16 +12,47 @@ import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
 
-test('P129.48 defaults enable all Swiss portals and private discovery across a larger carousel slice', () => {
+test('C131 defaults enable the bounded source-first full run', () => {
   const settings = defaultSettings(cfg);
   assert.equal(settings.search.carouselCommunesPerRun, 12);
   assert.deepEqual(
     Object.entries(settings.search.sources).filter(([, enabled]) => enabled).map(([id]) => id).sort(),
-    [...SOURCE_IDS].sort(),
+    ['happyholiday', 'portal-homegate', 'portal-tutti', 'search'],
   );
+  assert.equal(settings.search.defaultWave, 'full');
+  assert.equal(settings.search.profile, 'burst');
+  assert.equal(settings.search.requirePrice, false);
+  assert.equal(settings.search.rejectNonMonthly, false);
+  assert.equal(settings.search.requireContact, false);
   assert.equal(sanitizeSettings({}, cfg).search.carouselCommunesPerRun, 12);
-  assert.equal(settings.search.privateQueryTemplates, 4);
+  assert.equal(settings.search.privateQueryTemplates, 2);
+  assert.equal(settings.search.enrichSearchesPerRun, 0);
+  assert.equal(settings.search.maxAiPages, 40);
   assert.equal(settings.schedule.everyHours, 3);
+});
+
+
+test('C131 full run processes configured direct sources before secondary Serper discovery', async () => {
+  const localCfg = leanCfg({ queries: ['{commune} Wohnung privat'], portalQueries: ['site:tutti.ch {commune} Wohnung mieten'], maxPagesPerRun: 40 });
+  const indexUrl = 'https://www.tutti.ch/de/q/test';
+  const detailUrl = 'https://www.tutti.ch/de/vi/83553049';
+  localCfg.sources = [{ id: 'portal-tutti', url: indexUrl, phase: 1, maxDetailPages: 1, detailPattern: '^https://www\\.tutti\\.ch/de/vi/\\d+$' }];
+  const events = [];
+  const html = '<html><head><title>Schöne 4.5-Zimmerwohnung in Chur</title></head><body><h1>Schöne 4.5-Zimmerwohnung</h1><p>Zu vermieten nach Vereinbarung. Helle Wohnung in Chur mit Balkon, Küche und zwei Nasszellen. Zimmer 4.5. Inserent kontaktieren.</p></body></html>';
+  const result = await runPipeline({
+    config: localCfg,
+    fetchPage: async (url) => {
+      events.push(url);
+      return url === indexUrl
+        ? { ok: true, status: 200, body: '<a href="' + detailUrl + '">4.5 Zimmer Wohnung</a>', finalUrl: indexUrl }
+        : { ok: true, status: 200, body: html, finalUrl: detailUrl };
+    },
+    llm: null, store: memStore(), search: async () => { events.push('serper'); return []; }, cycle: 0,
+  }, { dryRun: true, wave: 'full' });
+  assert.equal(events[0], indexUrl, 'direct source index is fetched before Serper');
+  assert.equal(events[1], detailUrl, 'a concrete detail page is fetched before Serper');
+  assert.equal(result.counts.kept, 1);
+  assert.equal(result.preview[0]?.rooms, 4.5);
 });
 
 test('Serper search sends weekly freshness filter when requested', async () => {
@@ -181,12 +212,12 @@ const memStore = (saved = []) => ({ findByUrl: async () => null, touch: async ()
 const noPage = async () => ({ ok: false, status: 403, body: '' });
 const staleHit = [{ title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chur', snippet: '' }];
 
-test('P129.48 quality-first defaults are what Reset restores and sanitize clamps the search fields', () => {
+test('C131 defaults are restored and sanitization clamps the search fields', () => {
   const d = defaultSettings(cfg);
   assert.equal(d.schedule.everyHours, 3);
-  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 12, false, 100]);
+  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 2, 0, false, 40]);
   const s = sanitizeSettings({ search: { privateQueryTemplates: 99, enrichSearchesPerRun: -4, carouselCommunesPerRun: 50 } }, cfg);
-  assert.deepEqual([s.search.privateQueryTemplates, s.search.enrichSearchesPerRun, s.search.carouselCommunesPerRun], [4, 12, 12]);
+  assert.deepEqual([s.search.privateQueryTemplates, s.search.enrichSearchesPerRun, s.search.carouselCommunesPerRun], [2, 0, 12]);
   const legacy = sanitizeSettings({ search: { freshness: 'w', freshnessFallback: true } }, cfg);
   assert.equal(Object.hasOwn(legacy.search, 'freshness'), false, 'obsolete date-filter settings are ignored');
   assert.equal(Object.hasOwn(legacy.search, 'freshnessFallback'), false);
