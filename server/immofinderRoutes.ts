@@ -646,16 +646,16 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
   app.post('/api/immofinder/run', json, async (req, res) => {
-    const testMode = req.body?.testMode === true;
-    if (testMode && (!(req as any).immoCron || req.body?.dryRun !== true)) return res.status(403).json({ success: false, error: 'Bounded test runs require the run secret and dryRun=true', code: 'TEST_RUN_FORBIDDEN' });
-    const dryRun = testMode || req.body?.dryRun === true;
+    const testMode = req.body?.testMode === true || req.query?.testMode === 'true';
+    if (testMode && (!(req as any).immoCron || !(req.body?.dryRun === true || req.query?.dryRun === 'true'))) return res.status(403).json({ success: false, error: 'Bounded test runs require the run secret and dryRun=true', code: 'TEST_RUN_FORBIDDEN' });
+    const dryRun = testMode || req.body?.dryRun === true || req.query?.dryRun === 'true';
     // C131 manual run is outcome-first: the source-first full pass is the safe default.
     // Users can still explicitly request { wave: 'carousel' } for a rotating slice.
     const defaultWave: 'carousel' | 'full' = 'full';
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     // Product modes: carousel | full. Legacy priority→carousel, extended→full.
     const wave: 'carousel' | 'full' =
-      testMode ? 'carousel' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
+      testMode ? 'full' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
       waveRaw === 'full' || waveRaw === 'extended' ? 'full' :
       defaultWave;
     const trigger = testMode ? 'manual' : (req as any).immoCron ? 'schedule' : 'manual';
