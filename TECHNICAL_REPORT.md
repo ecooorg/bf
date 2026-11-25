@@ -1,3 +1,8 @@
+## P131.0e — WP2 reconnaissance (partial)
+- **OBSERVED:** Public inspection covered 3 configured catalogs, 13 portals and 3 tourism/owner-discovery candidates; robots was readable for 4/16 configured hosts, Newhome had indexed detail pages despite a JS shell, and HappyHoliday/Graubünden Ferien exposed owner-contact routes.
+- **LIMIT:** No configured-fetcher requests, saved fixtures, full 44-locality coverage, per-host latency/cost or verified L1/L2 yield; paid-provider spend for this inspection was $0.
+- **NOT_RUN:** WP1 gold replay, WP2 fetcher pilot and owner tier/N/Serper decisions; WP3–WP7 remain gated.
+
 ## P131.0d — Post-merge hosted verification
 - **OBSERVED:** Core CI `45603944574` passed: 18/18 DAG checks, 1,156/1,162 TAP passed, 0 failed; docs integrity, typecheck, build, migrations and test:core passed.
 - **NOT_RUN:** owner-labelled gold replay, WP2 source scorecard, three live acceptance runs and user outcome.
