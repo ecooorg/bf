@@ -1,3 +1,13 @@
+## C131 execution status — P131.3a (2026-11-25)
+- **WP0:** DONE; R1–R14 and delegated no-Gold execution recorded.
+- **WP1:** DONE for available evidence; 60 historical run artifacts, ten sanitized portal examples, deterministic no-label invariant replay and source reference inventory. No precision/recall claim.
+- **WP2:** PARTIAL; three-source pilot shortlist and bounded Serper policy decided; configured-fetcher HTTP/robots/latency/yield/cost measurements and ≥5 saved fixtures per source remain open.
+- **WP3:** PARTIAL; page-grounded L1 and bounded source-first path exist; single-engine/adapters/access/run consolidation remains open.
+- **WP4:** P131.3 adds page-bound L3 verification; CI pending after corrective invariant replay; live owner review NOT_RUN.
+- **WP5:** OPEN; encrypted snapshot exists but restore verification and production-current snapshot are not confirmed; payload restore workflow still consumes legacy code.
+- **WP6:** NOT_RUN; production is reported stale in last health artifact; three live runs and independent review unavailable.
+- **WP7:** NOT_TRIGGERED; no measured WP6 recall gap exists.
+
 ## C131 execution status — P131.3 (2026-11-25)
 - **WP0:** DONE; R1–R14 and no-Gold amendment recorded.
 - **WP1:** DONE for available-evidence baseline; historical run diagnostics, ten sanitized portal examples, provider-free invariants and 17-module/26-payload reference trace recorded; no precision/recall claim.
