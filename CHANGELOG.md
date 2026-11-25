@@ -1,3 +1,7 @@
+## P131.1 — Restore page-grounded L1 results and source-first manual run
+- Removed mandatory price, publication-date and direct-contact admission gates; explicit ≥3-room detail-page evidence remains mandatory.
+- Added bounded direct index pilots for HappyHoliday, Tutti and Homegate; default manual run is full/source-first, capped at 20 Serper queries, and drafts are generated only for L2 owner-reachable records.
+
 ## P131.0h — Verify provider-free replay scorer in Core CI
 - Recorded successful post-correction Core CI for the C131 replay scorer; actual owner-labelled replay remains blocked.
 ## P131.0g — Correct scorer TypeScript narrowing
