@@ -960,7 +960,15 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       say('search', `Carousel communes: ${carouselLabel}`);
     }
     const markA = newBefore();
-    // Search first: live private ads (FB groups, owner sites) historically yield the most in-zone contacts.
+    // C131 source-first: direct catalog/index adapters must still run when Serper has no credits.
+    if (waveMode === 'full') {
+      waveDeadline = runDeadline;
+      for (const src of cfg.sources.filter((s) => s.phase === 1)) {
+        if (deps.shouldCancel?.() || timeLeft() < 60_000) break;
+        await runCatalogueSource(src, 'full');
+      }
+    }
+    // Secondary discovery follows the bounded direct-source pass.
     if (waveMode === 'carousel') {
       // Carousel: no query-count budget. Run every private + portal template for this commune slice.
       // Duration grows with Serper pacing (serperMinIntervalMs / serperMaxPerMinute); wave uses full run deadline.
@@ -1007,7 +1015,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // Full search: every private + portal query for ALL enabled communes; pace Serper; do not truncate sources.
       waveDeadline = runDeadline;
       if (timeLeft() > 30_000) {
-        await runDiscoverySearch(undefined, Math.max(cfg.discovery?.maxPagesPerRun ?? 120, 120), { finishAll: true });
+        await runDiscoverySearch(20, Math.min(cfg.discovery?.maxPagesPerRun ?? 40, 40), { finishAll: false });
       }
     } else if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
       // Legacy priority Stage 1 only (no UI button): capped slice.
@@ -1017,14 +1025,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if (waveMode === 'carousel') {
       say('catalogue', 'Carousel tick: catalogues skipped (web search + extract only)');
     } else if (waveMode === 'full') {
-      for (const src of cfg.sources.filter((s) => s.phase === 1)) {
-        if (deps.shouldCancel?.()) break;
-        if (timeLeft() < 60_000) {
-          res.errors.push({ source: src.id, code: 'run_time_budget', detail: 'run wall-clock near end before catalogue' });
-          break;
-        }
-        await runCatalogueSource(src, 'full');
-      }
+      say('catalogue', 'Phase 1 direct sources completed before secondary search');
     } else {
       for (const src of cfg.sources.filter((s) => s.phase === 1)) {
         if (deps.shouldCancel?.()) break;
@@ -1055,8 +1056,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const markB = newBefore();
     // Full discovery when running extended-only or when full and time remains.
     // Continue from discoveryQueryOffset so full mode does not repeat priority queries.
-    if (timeLeft() > 60_000) {
-      await runDiscoverySearch(undefined, cfg.discovery?.maxPagesPerRun);
+    if (deps.search && discoveryQueryOffset < 20 && timeLeft() > 60_000) {
+      await runDiscoverySearch(20 - discoveryQueryOffset, Math.min(cfg.discovery?.maxPagesPerRun ?? 40, 40));
     }
     for (const src of cfg.sources.filter((s) => s.phase >= 2)) {
       if (deps.shouldCancel?.() || timeLeft() < 60_000) break;
