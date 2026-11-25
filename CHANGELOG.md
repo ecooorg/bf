@@ -1,3 +1,6 @@
+## P131.6a — Extend bounded all-source test to 120 seconds
+- Give all 17 configured search templates enough time to run while preserving provider rate, page, candidate, detail-fetch, browser and no-write limits.
+
 ## P131.6a — Expand Chur all-source dry-run coverage
 - Use all configured private and portal query templates with a finite query-count page cap; allow up to two detail pages/source and two browser renders within a 90-second dry-run.
 
