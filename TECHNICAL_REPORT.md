@@ -1,3 +1,8 @@
+## P131.2a — Core CI pull-request coverage
+- **CHANGE:** Core CI now runs on pull requests targeting main; diagnostics-only data path remains ignored.
+- **PURPOSE:** Make full typecheck, ImmoFinder categories, architecture checks and production build observable before merge.
+- **NOT_RUN:** This PR's Core CI result pending.
+
 ## P131.2 — Page-grounded locality and bounded enrichment
 - **CHANGE:** Final TrustEngine independently verifies locality against fetched page text; URL/query locality fallback removed; repeat enrichment defaults off with zero budget.
 - **TESTS:** Added URL-only/conflicting locality rejects and default-off enrichment contract checks; hosted CI pending.

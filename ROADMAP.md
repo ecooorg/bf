@@ -1,3 +1,7 @@
+## C131 CI gate update — P131.2a
+- Core CI now runs on pull requests targeting main; full verification can gate the next implementation PR before merge.
+- P131.2 runtime changes are merged; live source pilot and production run remain NOT_RUN.
+
 ## C131 execution status — P131.2 (2026-11-25)
 - **WP1:** no-label baseline accepted under D-2026-11-25-03; historical run diagnostics and deterministic invariant fixtures used, no precision/recall claim.
 - **WP2:** public source scorecard recorded; configured-fetcher yield/cost pilot remains NOT_RUN.

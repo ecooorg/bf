@@ -5,6 +5,10 @@ on:
     # Snapshot/diagnostics-only commits must not burn a full verification DAG.
     paths-ignore:
       - 'data/immofinder/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'data/immofinder/**'
   workflow_dispatch:
 
 permissions:
