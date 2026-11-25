@@ -1,3 +1,8 @@
+## P131.0f — Offline replay harness implementation
+- **CHANGE:** Added a provider-free scorer beside the current trust verifier; it reports per-label precision/recall, infra failures, L1/L2/L3 and URL/quote provenance without changing admission.
+- **TEST:** Added a synthetic contract test to the existing ImmoFinder quality suite; hosted verification pending.
+- **BLOCKED:** Actual baseline replay still needs ≥60 owner-labelled page records; no holdout labels or fixtures were created here.
+
 ## P131.0e — WP2 reconnaissance (partial)
 - **OBSERVED:** Public inspection covered 3 configured catalogs, 13 portals and 3 tourism/owner-discovery candidates; robots was readable for 4/16 configured hosts, Newhome had indexed detail pages despite a JS shell, and HappyHoliday/Graubünden Ferien exposed owner-contact routes.
 - **LIMIT:** No configured-fetcher requests, saved fixtures, full 44-locality coverage, per-host latency/cost or verified L1/L2 yield; paid-provider spend for this inspection was $0.
