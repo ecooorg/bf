@@ -1,3 +1,9 @@
+## P131.5g status — 2026-11-25
+- Settings menu fix and bounded agent-run harness proposed in PR; awaiting hosted CI.
+- WP2 source scorecard still needs controlled per-source measurements; the test harness is a repeatable short probe, not a full WP2 pilot.
+- WP6 remains open: last manual Full run returned one L1-only record, not a verified qualifying listing.
+- WP7 remains conditional; no recall-gap claim without independent labelled evidence.
+
 ## C131 execution status — P131.5f (2026-11-25)
 - **WP0–WP1:** DONE for approved rules and available no-label evidence.
 - **WP2:** PARTIAL; configured-fetcher pilot/yield/cost not measured.
