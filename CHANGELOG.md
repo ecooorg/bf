@@ -1,3 +1,7 @@
+## P131.5d — Refresh health snapshots when deployment details change
+- Fixed health-snapshot deduplication to compare each check's detail as well as status/verdict, so a changing deployed-commit gap is not hidden for 24 hours.
+- Added regression coverage; no deploy or search action is performed by the health probe.
+
 ## P131.5c — Record post-release health trigger verification
 - Core CI `45637400435` passed 18/18; Answer Quality `45637400580` passed; secret scan passed.
 - The health workflow is configured for the next main push; latest production snapshot remains 08:25 UTC until that probe publishes.
