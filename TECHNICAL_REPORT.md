@@ -1,3 +1,9 @@
+## P131.1 — C131 L1 admission and source-first manual run
+- **OBSERVED:** Public index inspection found 90 HappyHoliday GR stays, 209 Tutti GR rental listings and 236 Homegate GR rentals; sanitized page fixtures include target 4.5-room candidates in Untervaz, Cazis, Jenins and Grüsch plus company-advertiser negatives.
+- **CHANGE:** Removed mandatory price/date/direct-contact admission; explicit fetched detail page, target locality, residential rental and ≥3 explicit Zimmer remain required. Added bounded HappyHoliday/Tutti/Homegate index pilots, source-first full manual run, ≤20 Serper queries, platform-only contact state, and L2-only German draft generation.
+- **TESTS:** Added TrustEngine cases for no-price/no-date/no-direct-contact L1, snippet rejection, exact final URL, explicit room count, minimum rooms and residential type; added 10 sanitized portal page fixtures and source-first no-Serper pipeline test.
+- **NOT_RUN:** hosted CI after P131.1, configured-fetcher live pilot/cost, owner-labelled Gold replay, production live runs, WP5 legacy cleanup, WP6 acceptance and conditional WP7.
+
 ## P131.0h — Post-correction replay scorer verification
 - **OBSERVED:** Core CI `45606607076` passed 18/18 DAG checks; typecheck, build, migrations, docs integrity, secret scan and test:core passed, with 0 test failures.
 - **TEST:** Replay scorer contract ran in the existing ImmoFinder quality suite using synthetic non-holdout inputs; Answer Quality `45606445493` passed, live smoke skipped by opt-in policy.
