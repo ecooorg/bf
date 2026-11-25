@@ -959,20 +959,25 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   const original = {
     municipalities: ['Chur', 'Flims'], stopAgencies: [], minRooms: 3, platformDomains: [],
     sources: [{ id: 'a', url: 'https://a.example', phase: 1 }, { id: 'b', url: 'https://b.example', phase: 1 }, { id: 'c', url: 'https://c.example', phase: 2 }, { id: 'd', url: 'https://d.example', phase: 2 }],
-    fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
+    fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true, browserRenderHosts: ['newhome.ch'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
     limits: { maxDetailPagesPerSource: 20, recheckAfterDays: 7, fetchTimeoutMs: 5000, maxPageBytes: 100000 },
     estCostPerLlmCallUsd: 0,
-    discovery: { enabled: true, communesPerRun: 12, resultsPerQuery: 10, maxPagesPerRun: 40, maxCandidatesPerQuery: 8, queries: ['private-a', 'private-b', 'private-c'], portalQueries: ['portal-a', 'portal-b', 'portal-c'], snippetOnlyHosts: [], skipHosts: [] },
+    discovery: { enabled: true, communesPerRun: 12, resultsPerQuery: 10, maxPagesPerRun: 40, maxCandidatesPerQuery: 8, queries: ['private-a', 'private-b', 'private-c'], portalQueries: ['site:homegate.ch query', 'site:newhome.ch query', 'site:flatfox.ch query'], snippetOnlyHosts: [], skipHosts: [] },
     contactEnrichment: { enabled: true, maxExtraSearchesPerRun: 12, maxReverseImagePerRun: 5 },
   };
   const bounded = applyImmoFinderTestBudget(original);
   assert.equal(bounded.sources.length, Math.min(3, original.sources.length));
   assert.equal(bounded.discovery?.communesPerRun, 1);
-  assert.ok((bounded.discovery?.resultsPerQuery ?? 99) <= 5);
+  assert.ok((bounded.discovery?.resultsPerQuery ?? 99) <= 3);
   assert.ok((bounded.discovery?.maxPagesPerRun ?? 99) <= 3);
-  assert.ok(bounded.limits.maxDetailPagesPerSource <= 2);
+  assert.ok((bounded.discovery?.maxCandidatesPerQuery ?? 99) <= 3);
+  assert.equal(bounded.discovery?.queries.length, 1);
+  assert.equal(bounded.discovery?.portalQueries?.[0]?.includes('newhome.ch'), true);
+  assert.ok(bounded.limits.maxDetailPagesPerSource <= 1);
+  assert.equal(bounded.sources.every((source) => source.maxDetailPages === 1), true);
+  assert.equal(bounded.fetch.maxBrowserRendersPerRun, 1);
   assert.equal(bounded.contactEnrichment?.enabled, false);
-  assert.ok((bounded.runMaxDurationMs ?? 999999) <= 90_000);
+  assert.ok((bounded.runMaxDurationMs ?? 999999) <= 60_000);
   assert.equal(original.sources.length >= bounded.sources.length, true);
   const route = read('server/immofinderRoutes.ts');
   assert.match(route, /testMode && \(!\(req as any\)\.immoCron \|\| req\.body\?\.dryRun !== true\)/);
@@ -990,4 +995,24 @@ test('P131.5h agent test and health workflows target the confirmed My Workspace 
   assert.match(health, /RENDER_OWNER_ID: tea-dbbjfi7avr4c73e32e8g/);
   assert.match(health, /RENDER_SERVICE_ID: srv-dc2joprrjlhs73cuo3n0/);
   assert.match(health, /RENDER_POSTGRES_ID: dpg-dc2jq267bikc738t6u30-a/);
+});
+
+test('P131.5i browser rendering is host-allowlisted and skips anti-bot challenge pages', async () => {
+  const { isShortPageBrowserCandidate } = await import('../server/immofinderFetcher.ts');
+  const cfg = { browserRenderHosts: ['newhome.ch'], browserRenderMinTextChars: 1200 };
+  assert.equal(isShortPageBrowserCandidate('www.newhome.ch', 863, cfg), true);
+  assert.equal(isShortPageBrowserCandidate('homegate.ch', 863, cfg), false);
+  assert.equal(isShortPageBrowserCandidate('newhome.ch', 1300, cfg), false);
+  const fetcher = read('server/immofinderFetcher.ts');
+  assert.match(fetcher, /if \(challengeLike\) \{[\s\S]*browser_fallback_skipped_challenge/);
+  assert.match(fetcher, /browserRenders >= browserRenderLimit/);
+});
+test('P131.5i carousel test mode enforces the candidate cap and durable retry SQL is typed', () => {
+  const pipeline = read('server/immofinderPipeline.ts');
+  assert.match(pipeline, /opts\.testMode \? Math\.min\(cfg\.discovery\?\.maxPagesPerRun \?\? 3, 3\)/);
+  assert.match(pipeline, /if \(processedItems >= pageLimit\)/);
+  const route = read('server/immofinderRoutes.ts');
+  assert.match(route, /testMode: progress\.testMode === true/);
+  const store = read('server/immofinderStore.ts');
+  assert.match(store, /jsonb_build_object\('state','queued','text',\$3::text,'releasedAt',now\(\)\)/);
 });
