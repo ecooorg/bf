@@ -64,7 +64,7 @@ jobs:
           fi
           mkdir -p artifacts
           cp /tmp/report.json artifacts/immofinder-test-$RUN_ID.json
-          summary=$(jq -r '"**ImmoFinder short test completed**\n- Run: (.report.runId)\n- Candidates: (.report.result.counts.candidates // 0)\n- Pages fetched: (.report.result.counts.fetched // 0)\n- Kept (dry-run preview): (.report.result.counts.kept // 0)\n- Serper queries: (.report.result.counts.search_queries // 0)\n- Estimated cost: $(.report.result.counts.est_cost_usd // "see report")\n- Errors: ([.report.result.errors[]?.code] | join(", "))\n- Diagnostics event count: (.report.eventCount)\n\nNo listing rows or seen-cache entries are written by this test mode. Full report is attached as a workflow artifact." ' /tmp/report.json)
+          summary=$(jq -r '"**ImmoFinder short test completed**\n- Run: \(.report.runId)\n- Candidates: \(.report.result.counts.candidates // 0)\n- Pages fetched: \(.report.result.counts.fetched // 0)\n- Kept (dry-run preview): \(.report.result.counts.kept // 0)\n- Serper queries: \(.report.result.counts.search_queries // 0)\n- Estimated cost: $\(.report.result.estCostUsd // "not reported")\n- Errors: \([.report.result.errors[]?.code] | join(", "))\n- Diagnostics event count: \(.report.eventCount)\n\nNo listing rows or seen-cache entries are written by this test mode. Full report is attached as a workflow artifact."' /tmp/report.json)
           gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$summary"
       - name: Upload short-search diagnostics
         if: always() && steps.trigger.outputs.run_id != ''
