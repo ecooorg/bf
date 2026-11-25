@@ -365,7 +365,6 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const shortStay = isShortStayListing(title, url, pageEvidence, pagePrice);
   if (!why) {
     const evidenceText = buildEvidenceText(title, pageEvidence, 4000);
-    pagePrice = resolveListingPrice(evidenceText, null) || parsePrice(evidenceText);
     why = credibilityRejectReason({
       title, evidenceText, url,
       municipality: row.municipality || null,
