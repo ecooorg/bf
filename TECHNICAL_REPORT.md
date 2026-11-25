@@ -1,3 +1,7 @@
+## P131.6a — CI follow-up for settings repair
+- **OBSERVED:** P131.6 Core CI caught stale repair stamp `131.5j.5` and one overlong UI string; new settings regression passed.
+- **CHANGE:** align stamp to `131.6a.5` and shorten copy. **NOT_RUN:** follow-up hosted CI and deploy.
+
 ## P131.6 — ImmoFinder settings and test profile
 - **CHANGE:** expose optional price/contact controls, all five configured catalogues and a reset-to-Chur/all-source preset; keep C131 hard admission rules.
 - **NOT_RUN:** authenticated production settings mutation, hosted CI, deployed browser check and live listing-quality run.
