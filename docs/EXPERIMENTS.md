@@ -8,6 +8,8 @@
 - **LIMITS / ROLLBACK:** No owner-labelled gold labels are authored. No source is declared R9 tier-1 until ≥5 saved real fixtures and a fetcher pilot scorecard are retained; these are controlled pilots. Roll back the admission/settings/source changes if wrong-object/agency/locality rates exceed the C131 threshold.
 - **CLASSIFICATION:** USER_VALUE + EXPERIMENT; one primary hypothesis.
 
+**Public-page evidence fixtures (2026-11-25):** `tests/immofinder-p0.test.mjs` retains five sanitized Tutti detail-page snapshots and five Homegate detail-page snapshots. Tutti samples include 4.5-room offers in target localities Untervaz and Cazis, two 3-room Jenaz/Pragg-Jenaz pages outside the 44-locality target, and a 1-room Splügen company-advertised studio (negative). Homegate samples include 4.5-room candidates in Jenins and Grüsch and company-advertised negatives in Ilanz, Untervaz and Chur. The fixtures omit personal names, phone numbers and street addresses. HappyHoliday's 90-item regional index is selected as a pilot source, but fewer than five sanitized detail fixtures are retained; it is not R9 tier-1. Tutti/Homegate fixtures are metadata/evidence snapshots, not raw HTML or owner labels; configured-fetcher pilot and cost/yield measurement remain outstanding.
+
 ## C131 WP1 — Owner-labelled baseline and offline replay (BLOCKED)
 
 - **PROBLEM / BASELINE:** Audit run `072836e3` (2026-11-22) reported 152 Serper queries, 93 candidates, 72 pages, 70 LLM calls and USD 0.304; audit review found none of six retained records acceptable. The run is historical evidence, not a newly reproduced baseline.
