@@ -1,3 +1,5 @@
+## P131.0c — Record post-fix verification
+- Recorded successful hosted Core CI for P131.0b; no runtime behavior changed.
 ## P131.0b — Fix cycle-aware repair stamp and canonical roadmap
 - Made repair-rule versioning cycle-neutral, moved C131 into the canonical root roadmap, and recorded WP1 dependency tracing; admission logic unchanged.
 ## P131.0a — Record C131 owner constitution
