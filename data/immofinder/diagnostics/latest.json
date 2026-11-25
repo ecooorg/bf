@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-25T17:01:12.947Z",
-  "runId": "62b1b7a6-a1f3-4a71-8705-4623679548d2",
-  "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
+  "generatedAt": "2026-11-25T17:26:02.170Z",
+  "runId": "b9ea9f5f-bf0c-4a1b-bf84-3b114323c650",
+  "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
   "eventCount": 23,
   "logSource": "process_trace_buffer",
   "databaseLogWriteFailures": null,
   "events": [
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
       "event": "run_started",
-      "at": "2026-11-25T16:59:38.376Z",
+      "at": "2026-11-25T17:25:30.773Z",
       "elapsedMs": 0,
       "wave": "carousel",
-      "dryRun": false,
+      "dryRun": true,
       "municipalities": [
         "Chur",
         "Haldenstein",
@@ -63,40 +63,37 @@
       ],
       "minRooms": 3,
       "discoveryEnabled": true,
-      "privateQueryTemplates": 4,
-      "portalQueryTemplates": 13,
-      "maxCandidatesPerQuery": 8,
-      "pageLimit": 420,
-      "runMaxDurationMs": 2700000,
-      "llmEnabled": true,
+      "privateQueryTemplates": 2,
+      "portalQueryTemplates": 2,
+      "maxCandidatesPerQuery": 4,
+      "pageLimit": 3,
+      "runMaxDurationMs": 90000,
+      "factExtractor": "deterministic_page_only",
+      "llmEnabled": false,
       "searchEnabled": true,
-      "maxLlmCalls": 100,
-      "sourceCount": 0
+      "sourceCount": 3
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
       "event": "discovery_plan",
-      "at": "2026-11-25T16:59:38.376Z",
-      "elapsedMs": 0,
+      "at": "2026-11-25T17:25:30.787Z",
+      "elapsedMs": 14,
       "wave": "carousel",
       "finishAll": true,
       "coverAllCommunes": false,
-      "cycle": 225,
+      "cycle": 18,
       "selectedCommunes": [
-        "Versam",
-        "Valendas",
-        "Castrisch",
-        "Ilanz"
+        "Flims"
       ],
-      "queryCountTotal": 68,
+      "queryCountTotal": 4,
       "queryOffset": 0,
-      "queryCountThisWave": 68,
-      "maxCandidatesPerQuery": 6,
-      "pageLimit": 420,
-      "resultsPerQuery": 10,
+      "queryCountThisWave": 4,
+      "maxCandidatesPerQuery": 4,
+      "pageLimit": 80,
+      "resultsPerQuery": 5,
       "serperMinIntervalMs": 1500,
-      "serperMaxPerMinute": 40,
+      "serperMaxPerMinute": 20,
       "queryFamilies": [
         "private",
         "portals"
@@ -104,625 +101,666 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T16:59:38.477Z",
-      "elapsedMs": 101,
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "discovery_query_resumed_skip",
+      "at": "2026-11-25T17:25:30.787Z",
+      "elapsedMs": 14,
       "source": "search",
       "queryIndex": 1,
-      "queryTotal": 68,
-      "query": "\"Versam\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "queryTotal": 4,
+      "query": "\"Flims\" (\"Wohnung zu vermieten\" OR \"Mietwohnung\" OR \"Wohnung mieten\") -kaufen -verkaufen"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T16:59:43.078Z",
-      "elapsedMs": 4702,
-      "source": "search",
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "discovery_query_resumed_skip",
+      "at": "2026-11-25T17:25:30.788Z",
+      "elapsedMs": 15,
+      "source": "portal-homegate",
       "queryIndex": 2,
-      "queryTotal": 68,
-      "query": "\"Valendas\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "queryTotal": 4,
+      "query": "site:homegate.ch \"Flims\" (Wohnung OR Appartement) (mieten OR vermieten OR \"à louer\") -kaufen -verkaufen"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T16:59:47.679Z",
-      "elapsedMs": 9303,
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "discovery_query_resumed_skip",
+      "at": "2026-11-25T17:25:30.788Z",
+      "elapsedMs": 15,
       "source": "search",
       "queryIndex": 3,
-      "queryTotal": 68,
-      "query": "\"Castrisch\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "queryTotal": 4,
+      "query": "\"Flims\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (Miete OR Mietzins) -kaufen -verkaufen"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T16:59:52.277Z",
-      "elapsedMs": 13901,
-      "source": "search",
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "serper_query_succeeded",
+      "at": "2026-11-25T17:25:36.482Z",
+      "elapsedMs": 5709,
+      "source": "portal-tutti",
       "queryIndex": 4,
-      "queryTotal": 68,
-      "query": "\"Ilanz\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "queryTotal": 4,
+      "query": "site:tutti.ch \"Flims\" (Wohnung OR Appartement) (mieten OR vermieten OR \"à louer\") -kaufen -verkaufen",
+      "resultCount": 5,
+      "pickedCount": 3,
+      "selectedCount": 3,
+      "pickDecisions": [
+        {
+          "accepted": false,
+          "reason": "non_listing:development_project",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "182 Inserate in Immobilien - Mieten - Wohnungen - Tutti"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:shared_room",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wg-zimmer-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalmbGF0U2hhcmWSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "8 Inserate in Immobilien - Mieten - WG-Zimmer - Tutti"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+          "title": "1 227 annonces dans Immobilier - Immobilier de vacances"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+          "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ..."
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/vi/83503009",
+          "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer"
+        }
+      ],
+      "results": [
+        {
+          "rank": 1,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "182 Inserate in Immobilien - Mieten - Wohnungen - Tutti",
+          "snippet": "«Flims Dorf - Helle und Zentrale Moblierte 1.5 Zi-Wohnung. Zu vermieten in ... mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 2,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-graubuenden-wg-zimmer-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalmbGF0U2hhcmWSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
+          "title": "8 Inserate in Immobilien - Mieten - WG-Zimmer - Tutti",
+          "snippet": "8 Inserate in Immobilien - Mieten - WG-Zimmer - Graubünden ; Möbliertes Zimmer zu vermieten · 800.- pro Monat ; WG Zimmer in Wunderschöner Wohnung inkl. Bergblick.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 3,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+          "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+          "snippet": "Luven - Flims - Laax, appartement de vacances, Appartamento di vacanza. Bel appartement spacieux de 2,5 pièces à louer. Télévision par câble et WiFi ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+          "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+          "snippet": "Ferienwohnung in Graubünden, Flims Laax Falera. 5. Liestal, 4410, [phone] ... mieten LausanneWohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 5,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/vi/83503009",
+          "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+          "snippet": "... Wohnung vermietet. ... Charmant studio au cœur de Flims. 1 110.- par mois ... à louer VernierMaisons à louer CoireMaisons à louer SionMaisons à louer Uster.",
+          "date": null,
+          "selected": true
+        }
+      ],
+      "selected": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+          "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+          "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/vi/83503009",
+          "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T16:59:56.875Z",
-      "elapsedMs": 18499,
-      "source": "portal-homegate",
-      "queryIndex": 5,
-      "queryTotal": 68,
-      "query": "site:homegate.ch \"Versam\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "discovery_batch_selected",
+      "at": "2026-11-25T17:25:36.484Z",
+      "elapsedMs": 5711,
+      "source": "portal-tutti",
+      "rawHits": 5,
+      "pickedBeforeCrossQueryDedupe": 3,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 3,
+      "maxCandidatesPerQuery": 4,
+      "processedItemsBefore": 6,
+      "pageLimit": 80,
+      "remainingPageBudget": 74,
+      "candidateUrls": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+          "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+          "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/fr/vi/83503009",
+          "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:01.486Z",
-      "elapsedMs": 23110,
-      "source": "portal-homegate",
-      "queryIndex": 6,
-      "queryTotal": 68,
-      "query": "site:homegate.ch \"Valendas\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_received",
+      "at": "2026-11-25T17:25:36.485Z",
+      "elapsedMs": 5712,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+      "host": "tutti.ch",
+      "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+      "snippetOnly": false,
+      "hasSearchHit": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:06.091Z",
-      "elapsedMs": 27715,
-      "source": "portal-homegate",
-      "queryIndex": 7,
-      "queryTotal": 68,
-      "query": "site:homegate.ch \"Castrisch\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-25T17:25:47.989Z",
+      "elapsedMs": 17216,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 10903,
+      "error": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, user-scalable=no\">\n  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\">\n  <style>/* cyrillic-ext */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 3",
+      "finalUrl": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:10.692Z",
-      "elapsedMs": 32316,
-      "source": "portal-homegate",
-      "queryIndex": 8,
-      "queryTotal": 68,
-      "query": "site:homegate.ch \"Ilanz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-25T17:25:47.990Z",
+      "elapsedMs": 17217,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+      "host": "tutti.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 208,
+      "evidenceConfidence": "low"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:15.294Z",
-      "elapsedMs": 36918,
-      "source": "search",
-      "queryIndex": 9,
-      "queryTotal": 68,
-      "query": "\"Versam\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_extracted",
+      "at": "2026-11-25T17:25:47.998Z",
+      "elapsedMs": 17225,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+      "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+      "textChars": 208,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 4,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Flims",
+      "rooms": 2.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:19.895Z",
-      "elapsedMs": 41519,
-      "source": "search",
-      "queryIndex": 10,
-      "queryTotal": 68,
-      "query": "\"Valendas\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_received",
+      "at": "2026-11-25T17:25:47.999Z",
+      "elapsedMs": 17226,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+      "host": "tutti.ch",
+      "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+      "snippetOnly": false,
+      "hasSearchHit": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:24.495Z",
-      "elapsedMs": 46119,
-      "source": "search",
-      "queryIndex": 11,
-      "queryTotal": 68,
-      "query": "\"Castrisch\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-25T17:25:54.888Z",
+      "elapsedMs": 24115,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 6208,
+      "error": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, user-scalable=no\">\n  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\">\n  <style>/* cyrillic-ext */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 3",
+      "finalUrl": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:29.096Z",
-      "elapsedMs": 50720,
-      "source": "search",
-      "queryIndex": 12,
-      "queryTotal": 68,
-      "query": "\"Ilanz\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-25T17:25:54.889Z",
+      "elapsedMs": 24116,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+      "host": "tutti.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 228,
+      "evidenceConfidence": "low"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:33.704Z",
-      "elapsedMs": 55328,
-      "source": "portal-immoscout24",
-      "queryIndex": 13,
-      "queryTotal": 68,
-      "query": "site:immoscout24.ch \"Versam\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_extracted",
+      "at": "2026-11-25T17:25:54.892Z",
+      "elapsedMs": 24119,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+      "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+      "textChars": 228,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 2,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Flims",
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:38.305Z",
-      "elapsedMs": 59929,
-      "source": "portal-immoscout24",
-      "queryIndex": 14,
-      "queryTotal": 68,
-      "query": "site:immoscout24.ch \"Valendas\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_received",
+      "at": "2026-11-25T17:25:54.892Z",
+      "elapsedMs": 24119,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/vi/83503009",
+      "host": "tutti.ch",
+      "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+      "snippetOnly": false,
+      "hasSearchHit": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:42.904Z",
-      "elapsedMs": 64528,
-      "source": "portal-immoscout24",
-      "queryIndex": 15,
-      "queryTotal": 68,
-      "query": "site:immoscout24.ch \"Castrisch\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-25T17:26:01.498Z",
+      "elapsedMs": 30725,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/vi/83503009",
+      "status": 403,
+      "fetchMode": "direct",
+      "durationMs": 6093,
+      "error": "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, user-scalable=no\">\n  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\">\n  <style>/* cyrillic-ext */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 3",
+      "finalUrl": "www.tutti.ch/fr/vi/83503009"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:47.515Z",
-      "elapsedMs": 69139,
-      "source": "portal-immoscout24",
-      "queryIndex": 16,
-      "queryTotal": 68,
-      "query": "site:immoscout24.ch \"Ilanz\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-25T17:26:01.498Z",
+      "elapsedMs": 30725,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/vi/83503009",
+      "host": "tutti.ch",
+      "originalFetchStatus": 403,
+      "snippetChars": 219,
+      "evidenceConfidence": "low"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:52.135Z",
-      "elapsedMs": 73759,
-      "source": "search",
-      "queryIndex": 17,
-      "queryTotal": 68,
-      "query": "\"Versam\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_extracted",
+      "at": "2026-11-25T17:26:01.586Z",
+      "elapsedMs": 30813,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/vi/83503009",
+      "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+      "textChars": 219,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 87,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Trimmis",
+      "rooms": 1,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:00:56.742Z",
-      "elapsedMs": 78366,
-      "source": "search",
-      "queryIndex": 18,
-      "queryTotal": 68,
-      "query": "\"Valendas\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-25T17:26:01.588Z",
+      "elapsedMs": 30815,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+      "host": "tutti.ch",
+      "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+      "reason": "rooms_below_min",
+      "detail": "2.5",
+      "municipality": "Flims",
+      "rooms": 2.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:01:01.346Z",
-      "elapsedMs": 82970,
-      "source": "search",
-      "queryIndex": 19,
-      "queryTotal": 68,
-      "query": "\"Castrisch\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-25T17:26:01.590Z",
+      "elapsedMs": 30817,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+      "host": "tutti.ch",
+      "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+      "reason": "short_stay_specific_link_required",
+      "detail": "snippet",
+      "municipality": "Flims",
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
-      "event": "serper_query_failed",
-      "at": "2026-11-25T17:01:05.951Z",
-      "elapsedMs": 87575,
-      "source": "search",
-      "queryIndex": 20,
-      "queryTotal": 68,
-      "query": "\"Ilanz\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
-      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
-      "errorName": "Error"
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-25T17:26:01.591Z",
+      "elapsedMs": 30818,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/fr/vi/83503009",
+      "host": "tutti.ch",
+      "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+      "reason": "rooms_below_min",
+      "detail": "1",
+      "municipality": "Trimmis",
+      "rooms": 1,
+      "roomsBasis": "zimmer",
+      "llmUsed": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "97eb017c-0476-4620-9c95-0f12893852ab",
+      "traceId": "8ba2d038-ec02-415a-a5cb-f065a2e347f4",
       "event": "run_completed",
-      "at": "2026-11-25T17:01:12.753Z",
-      "elapsedMs": 94377,
-      "durationMs": 94377,
+      "at": "2026-11-25T17:26:01.596Z",
+      "elapsedMs": 30823,
+      "status": "COMPLETED",
+      "durationMs": 30823,
       "counts": {
-        "sources": 0,
+        "sources": 5,
         "index_pages": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "snippet_only": 0,
+        "candidates": 14,
+        "fetched": 2,
+        "snippet_only": 8,
         "skipped_known": 0,
         "skipped_seen": 0,
         "skipped_geo": 0,
-        "search_queries": 20,
-        "serper_calls": 20,
+        "search_queries": 6,
+        "serper_calls": 6,
         "serper_fallback": 0,
         "llm_skipped_no_rooms": 0,
         "kept": 0,
         "new": 0,
         "updated": 0,
         "llm_calls": 0,
-        "enriched": 0
+        "enriched": 0,
+        "evidence_snippet": 5,
+        "evidence_page_text": 1
       },
-      "filtered": {},
-      "errors": [
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-homegate",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-homegate",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-homegate",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-homegate",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-immoscout24",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-immoscout24",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-immoscout24",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "portal-immoscout24",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_failed",
-          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-        },
-        {
-          "source": "search",
-          "code": "search_abort",
-          "detail": "20 consecutive Serper failures"
-        }
-      ],
+      "filtered": {
+        "seeker_post": 1,
+        "trust_snippet_only": 2,
+        "short_stay_specific_link_required": 2,
+        "rooms_below_min": 2
+      },
+      "errors": [],
       "sourceStats": [
         {
           "id": "search",
-          "queries": 12,
-          "hits": 0,
-          "candidates": 0,
-          "fetched": 0,
-          "llm": 0,
-          "kept": 0,
-          "new": 0,
-          "agencies": 0,
-          "junk": 0,
           "geo": 0,
-          "consecutiveBad": 0
+          "llm": 0,
+          "new": 0,
+          "hits": 10,
+          "junk": 2,
+          "kept": 0,
+          "fetched": 1,
+          "queries": 2,
+          "agencies": 0,
+          "candidates": 2,
+          "consecutiveBad": 2
         },
         {
           "id": "portal-homegate",
-          "queries": 4,
-          "hits": 0,
-          "candidates": 0,
-          "fetched": 0,
-          "llm": 0,
-          "kept": 0,
-          "new": 0,
-          "agencies": 0,
-          "junk": 0,
           "geo": 0,
-          "consecutiveBad": 0
+          "llm": 0,
+          "new": 0,
+          "hits": 5,
+          "junk": 2,
+          "kept": 0,
+          "fetched": 0,
+          "queries": 1,
+          "agencies": 0,
+          "candidates": 4,
+          "consecutiveBad": 2
         },
         {
-          "id": "portal-immoscout24",
-          "queries": 4,
-          "hits": 0,
-          "candidates": 0,
+          "id": "portal-tutti",
+          "queries": 1,
+          "hits": 5,
+          "candidates": 3,
           "fetched": 0,
           "llm": 0,
           "kept": 0,
           "new": 0,
           "agencies": 0,
-          "junk": 0,
+          "junk": 3,
           "geo": 0,
-          "consecutiveBad": 0
+          "consecutiveBad": 3
         }
       ],
       "wavesRun": [
+        "carousel",
+        "carousel",
         "carousel"
       ],
-      "previewCount": 0,
-      "preview": [],
-      "estimatedCostUsd": 0.02
+      "previewCount": 3,
+      "preview": [
+        {
+          "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+          "source": "portal-tutti",
+          "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+          "kept": false,
+          "reason": "rooms_below_min",
+          "detail": "2.5",
+          "municipality": "Flims",
+          "rooms": 2.5
+        },
+        {
+          "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+          "source": "portal-tutti",
+          "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+          "kept": false,
+          "reason": "short_stay_specific_link_required",
+          "detail": "snippet",
+          "municipality": "Flims",
+          "rooms": null
+        },
+        {
+          "url": "www.tutti.ch/fr/vi/83503009",
+          "source": "portal-tutti",
+          "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+          "kept": false,
+          "reason": "rooms_below_min",
+          "detail": "1",
+          "municipality": "Trimmis",
+          "rooms": 1
+        }
+      ],
+      "estimatedCostUsd": 0.006
     }
   ],
   "result": {
     "counts": {
-      "sources": 0,
+      "sources": 5,
       "index_pages": 0,
-      "candidates": 0,
-      "fetched": 0,
-      "snippet_only": 0,
+      "candidates": 14,
+      "fetched": 2,
+      "snippet_only": 8,
       "skipped_known": 0,
       "skipped_seen": 0,
       "skipped_geo": 0,
-      "search_queries": 20,
-      "serper_calls": 20,
+      "search_queries": 6,
+      "serper_calls": 6,
       "serper_fallback": 0,
       "llm_skipped_no_rooms": 0,
       "kept": 0,
       "new": 0,
       "updated": 0,
       "llm_calls": 0,
-      "enriched": 0
+      "enriched": 0,
+      "evidence_snippet": 5,
+      "evidence_page_text": 1
     },
-    "filtered": {},
-    "errors": [
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-homegate",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-homegate",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-homegate",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-homegate",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-immoscout24",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-immoscout24",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-immoscout24",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "portal-immoscout24",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_failed",
-        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
-      },
-      {
-        "source": "search",
-        "code": "search_abort",
-        "detail": "20 consecutive Serper failures"
-      }
-    ],
+    "filtered": {
+      "seeker_post": 1,
+      "trust_snippet_only": 2,
+      "short_stay_specific_link_required": 2,
+      "rooms_below_min": 2
+    },
+    "estCostUsd": 0.006,
+    "errors": [],
     "sourceStats": [
       {
         "id": "search",
-        "queries": 12,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
         "geo": 0,
-        "consecutiveBad": 0
+        "llm": 0,
+        "new": 0,
+        "hits": 10,
+        "junk": 2,
+        "kept": 0,
+        "fetched": 1,
+        "queries": 2,
+        "agencies": 0,
+        "candidates": 2,
+        "consecutiveBad": 2
       },
       {
         "id": "portal-homegate",
-        "queries": 4,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
         "geo": 0,
-        "consecutiveBad": 0
+        "llm": 0,
+        "new": 0,
+        "hits": 5,
+        "junk": 2,
+        "kept": 0,
+        "fetched": 0,
+        "queries": 1,
+        "agencies": 0,
+        "candidates": 4,
+        "consecutiveBad": 2
       },
       {
-        "id": "portal-immoscout24",
-        "queries": 4,
-        "hits": 0,
-        "candidates": 0,
+        "id": "portal-tutti",
+        "queries": 1,
+        "hits": 5,
+        "candidates": 3,
         "fetched": 0,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
-        "junk": 0,
+        "junk": 3,
         "geo": 0,
-        "consecutiveBad": 0
+        "consecutiveBad": 3
       }
     ],
     "wavesRun": [
       "carousel"
     ],
-    "preview": []
+    "preview": [
+      {
+        "url": "www.tutti.ch/fr/q/immobilier-immobilier-de-vacances/Ak8CqcmVhbEVzdGF0ZZSRkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZcDAwA",
+        "title": "1 227 annonces dans Immobilier - Immobilier de vacances",
+        "source": "portal-tutti",
+        "municipality": "Flims",
+        "rooms": 2.5,
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "2.5"
+      },
+      {
+        "url": "www.tutti.ch/de/q/immobilien-basel-landschaft-ferienobjekte-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZatob2xpZGF5SG9tZZKpcHJpY2VUeXBlpFJFTlTAwJGTqGxvY2F0aW9uu2dlby1jYW50b24tYmFzZWwtbGFuZHNjaGFmdMA",
+        "title": "11 Inserate in Immobilien - Mieten - Ferienobjekte - Basel- ...",
+        "source": "portal-tutti",
+        "municipality": "Flims",
+        "rooms": null,
+        "kept": false,
+        "reason": "short_stay_specific_link_required",
+        "detail": "snippet"
+      },
+      {
+        "url": "www.tutti.ch/fr/vi/83503009",
+        "title": "Möbliertes 1-Zimmer-Studio in Trimmis Canton Grisons louer",
+        "source": "portal-tutti",
+        "municipality": "Trimmis",
+        "rooms": 1,
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "1"
+      }
+    ]
   }
 }
