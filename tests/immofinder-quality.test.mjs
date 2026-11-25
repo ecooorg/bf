@@ -613,7 +613,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
 
   const applied = applySettings(cfg, defaults);
   assert.equal(applied.discovery.portalQueries.length, 2);
-  assert.equal(applied.discovery.communesPerRun, 12);
+  assert.equal(applied.discovery.communesPerRun, 44, 'full profile covers all target communes');
   assert.equal(applied.discovery.queries.length, 2);
 
   assert.match(routes, /\/api\/immofinder\/settings\/reset/);
