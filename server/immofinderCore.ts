@@ -343,7 +343,7 @@ export function contactAdvice(url: string, type: ListingType): string {
 /** German draft (Schweizer Hochdeutsch, no "ß"). Uses only verified facts; never states an amount; never sent. */
 export function draftMessage(f: { ownerName?: string | null; propertyName?: string; municipality: string; type?: ListingType; rooms?: number }): string {
   const greet = f.ownerName ? `Guten Tag ${f.ownerName}` : 'Guten Tag';
-  const me = 'Zu mir: Ich habe ein festes Einkommen in der Schweiz, einen sauberen Betreibungsregisterauszug und eine Privathaftpflichtversicherung. Gerne lege ich Ihnen die Unterlagen vor.';
+  const me = 'Bei Interesse kann ich Ihnen gerne weitere Angaben zu meiner Person zukommen lassen.';
   if (f.type === 'long_term_offer') {
     return [
       `Betreff: Interesse an Ihrer ${f.rooms ? `${f.rooms}-Zimmer-` : ''}Wohnung in ${f.municipality}`, '',
