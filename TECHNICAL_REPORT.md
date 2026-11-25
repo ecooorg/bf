@@ -1,3 +1,8 @@
+## P131.0b — Correct C131 CI regressions
+- **OBSERVED:** P131.0a Core CI passed build/typecheck but failed two repair-stamp assertions; docs allowlist failure pre-existed on base.
+- **CHANGE:** Generalized patch-stamp validation, synchronized repair stamp, and consolidated C131 under `ROADMAP.md`.
+- **NOT_RUN:** hosted verification after correction and all ImmoFinder gold/live outcomes.
+
 ## P131.0a — C131 WP0 decision and measurement gates
 - **OBSERVED:** Owner approved R1–R14; the audit baseline is historical and the ≥60-record owner-labelled gold set is absent.
 - **CHANGE:** Recorded the constitution, transitional config policy and WP1/WP2 plans; no runtime code changed.
