@@ -1,3 +1,7 @@
+## P131.5f — Align repair-rule stamp before CI verification
+- Synchronized the repair-rule stamp with package patch `131.5f`, preventing the P131.5e pre-merge version assertion failure from recurring.
+- Core CI and Answer Quality are rerun on this exact patch; no search or production data operation is performed.
+
 ## P131.5e — Preserve the current ImmoFinder core during repair
 - Prevented automatic main-push repair from overwriting the current core with the stale P130.16 payload; explicit force restore remains available.
 - Added a regression contract test; WP5 restore drill and legacy retirement remain NOT_RUN.
