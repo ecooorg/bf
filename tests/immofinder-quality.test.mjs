@@ -232,11 +232,25 @@ test('ImmoFinder reports a readable service-unavailable error when fetch cannot 
   assert.match(ui, /Check that the service is online, then retry/);
 });
 
-test('P130.17 settings UI describes mandatory page-verified rent and contact', () => {
+test('P131.6 settings UI exposes optional price/contact filters and a complete Chur test preset', () => {
   const ui = read('src/ImmoFinderSettings.tsx');
-  assert.match(ui, /explicit monthly CHF rent/i);
-  assert.match(ui, /direct advertiser phone or email/i);
+  assert.match(ui, /data-testid="immofinder-require-price"/);
+  assert.match(ui, /data-testid="immofinder-require-contact"/);
+  assert.match(ui, /data-testid="immofinder-reject-nonmonthly"/);
+  assert.doesNotMatch(ui, /checked=\{true\}\s+disabled/);
+  assert.match(ui, /data-testid="immofinder-prepare-chur-test"/);
+  assert.match(ui, /communes: \['Chur'\]/);
+  assert.match(ui, /Object\.keys\(base\.search\.sources\)\.map\(\(id\) => \[id, true\]\)/);
+  assert.match(ui, /requirePrice: false/);
+  assert.match(ui, /requireContact: false/);
+  assert.match(ui, /rejectNonMonthly: false/);
+  assert.match(ui, /rejectSeekerPosts: true/);
+  assert.match(ui, /minRooms: 3/);
+  assert.match(ui, /id: 'ferienhausmiete'/);
+  assert.match(ui, /id: 'happyholiday'/);
+  assert.match(ui, /id: 'landwirtschaft-gr'/);
   assert.match(ui, /AI extraction is disabled/i);
+  assert.match(ui, /\[3, 4, 5, 6, 7, 8\]/);
 });
 
 test('config prioritises long-term Swiss rental discovery portals', () => {
