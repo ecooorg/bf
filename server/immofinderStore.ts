@@ -454,7 +454,7 @@ export async function renewRunLease(runId: string, workerId: string): Promise<bo
 
 export async function releaseRunForRetry(runId: string, workerId: string, reason = 'Worker stopping; run will be recovered by the next process') {
   const p = await getPool();
-  await p.query("UPDATE immofinder_runs SET lease_owner = NULL, lease_until = now() + interval '3 seconds', progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','queued','text',$3,'releasedAt',now()) WHERE id = $1 AND lease_owner = $2 AND finished_at IS NULL", [runId, workerId, reason]);
+  await p.query("UPDATE immofinder_runs SET lease_owner = NULL, lease_until = now() + interval '3 seconds', progress = COALESCE(progress, '{}'::jsonb) || jsonb_build_object('state','queued','text',$3::text,'releasedAt',now()) WHERE id = $1 AND lease_owner = $2 AND finished_at IS NULL", [runId, workerId, reason]);
 }
 
 export async function saveWorkerProgress(runId: string, workerId: string, progress: unknown): Promise<boolean> {
