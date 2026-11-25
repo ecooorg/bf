@@ -1,6 +1,6 @@
-## P131.5a — Record green infrastructure-status verification
-- Core CI `45636126675` passed all 18/18 checks; Answer Quality `45636126454` passed.
-- The new run-status UI is CI-verified; production deployment and live verification remain NOT_RUN.
+## P131.5b — Verify deployment identity after ImmoFinder releases
+- Added a bounded health check on main pushes affecting ImmoFinder code/config or patch metadata; it uses the existing read-only Render/log and health probe, not deployment writes.
+- Added workflow-contract coverage; live health result is recorded separately from CI.
 
 ## P131.5 — Distinguish provider outage from a zero-result search
 - Persisted `INFRA_FAIL` when every Serper call fails before any candidate/page is processed; the ImmoFinder run summary now says this is not a quality result.
