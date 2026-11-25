@@ -1,3 +1,9 @@
+## P131.5g — Settings disclosure and agent-operated short search
+- **CHANGE:** Explicit React disclosure button with accessible expanded state; bounded agent smoke-run path is secret-gated and forces dry-run.
+- **BUDGET:** At most 3 configured sources, 1 commune, 2 private + 2 portal query templates, 3 result pages, 2 detail pages per source and 90 seconds; contact enrichment and cleanup are disabled.
+- **SAFETY:** Test mode is accepted only from the existing run-secret path with dryRun=true; the pipeline dry-run path avoids listing rows and seen-cache writes.
+- **NOT_RUN:** Browser reproduction on a human session, hosted CI on this patch, and repeatable live smoke result after merge.
+
 ## P131.5f — Repair-rule stamp alignment
 - **OBSERVED:** P131.5e Core CI failed because the repair stamp remained `131.5d.5` while package patch advanced.
 - **CHANGE:** Aligned `REPAIR_RULES_VERSION` with `131.5f.5` and synchronized package/lock metadata.
