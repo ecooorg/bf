@@ -1,4 +1,4 @@
-import { draftMessage, matchMunicipality, parseRooms, type ListingType } from './immofinderCore.ts';
+import { draftMessage, isPlausibleEmail, isPlausibleSwissPhone, matchMunicipality, normPhone, parseRooms, type ListingType } from './immofinderCore.ts';
 
 export type C131ResultType = 'tourist_owner' | 'direct_offer';
 export type C131ContactRoute = 'direct' | 'platform_message' | 'none';
@@ -65,27 +65,39 @@ export function buildC131LetterDraft(input: C131LetterInput): C131LetterResult {
   if (input.contactRoute === 'none') return fail('contact_route_missing');
   if (input.contactRoute === 'platform_message' && !hasPageContactAction(text)) return fail('platform_action_not_page_evidenced');
 
-  const evidence = [
+  const evidence: Array<{ field: string; value: string | number; quote: string; sourceUrl: string; fetchedAt: string }> = [
     { field: 'owner', value: ownerQuote, quote: ownerQuote, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
     { field: 'municipality', value: pageMunicipality, quote: pageMunicipality, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
     { field: 'rooms', value: pageRooms.rooms, quote: pageRooms.quote, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
   ];
   if (input.contactRoute === 'direct') {
     const direct = input.contactEvidence.find((item) => {
-      if (!item.value || !text.includes(item.value)) return false;
       try {
         const a = new URL(item.url); const b = new URL(input.finalUrl!);
-        return a.origin === b.origin && a.pathname === b.pathname;
+        if (a.origin !== b.origin || a.pathname !== b.pathname) return false;
       } catch { return false; }
+      if (item.type === 'email') return isPlausibleEmail(item.value) && text.toLowerCase().includes(item.value.toLowerCase());
+      if (item.type === 'phone') {
+        if (!isPlausibleSwissPhone(item.value)) return false;
+        const digits = normPhone(item.value).replace(/\D/g, '').slice(-9);
+        return digits.length === 9 && new RegExp(digits.split('').join('\\D*')).test(text);
+      }
+      return false;
     });
     if (!direct) return fail('direct_contact_not_page_grounded');
-    evidence.push({ field: 'contact', value: direct.value, quote: direct.value, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() });
+    let contactQuote = direct.value;
+    if (direct.type === 'phone') {
+      const digits = normPhone(direct.value).replace(/\D/g, '').slice(-9);
+      contactQuote = new RegExp(digits.split('').join('\\D*')).exec(text)?.[0] || direct.value;
+    }
+    evidence.push({ field: 'contact', value: direct.value, quote: contactQuote, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() });
   }
 
   const propertyName = input.propertyName && (text.includes(input.propertyName) || input.title.includes(input.propertyName))
     ? input.propertyName : '';
   const ownerName = input.ownerName && (text.includes(input.ownerName) || input.title.includes(input.ownerName))
     ? input.ownerName : null;
+  if (ownerName) evidence.push({ field: 'owner_name', value: ownerName, quote: ownerName, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() });
   const listingType: ListingType = input.resultType === 'direct_offer' ? 'long_term_offer' : 'holiday_owner';
   const draft = draftMessage({
     ownerName,
