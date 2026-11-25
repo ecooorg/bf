@@ -357,7 +357,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const rooms = Number(row.rooms_estimated);
   const pageRooms = parseRooms(pageEvidence);
   // L1 needs an explicit Zimmer count from this exact page; bedroom counts are not room counts.
-  if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms < 3 || row.rooms_basis !== 'zimmer' || pageRooms?.basis !== 'zimmer' || pageRooms.rooms < 3)) why = 'rooms_unknown';
+  if (!why && !provisionalSnippet && (!Number.isFinite(rooms) || rooms < 3 || String((row as any).rooms_basis) !== 'zimmer' || pageRooms?.basis !== 'zimmer' || pageRooms.rooms < 3)) why = 'rooms_unknown';
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
 
