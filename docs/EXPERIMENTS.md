@@ -1,3 +1,13 @@
+## P131.2 — Enforce page-grounded locality and disable repeat contact enrichment (BUGFIX / RELIABILITY)
+
+- **PROBLEM / BASELINE:** C131 R2 requires target locality evidence on the fetched detail page. The pipeline previously filled missing locality from URL/query hints and later allowed URL locality to override page extraction; the final trust boundary did not verify locality. Contact enrichment remained enabled with 35 secondary searches and 10 reverse-image lookups despite the delegated default-off decision. Existing baseline: deterministic locality and source-first tests; historical runs 072836e3 and 85549585 remain operational diagnostics only.
+- **HYPOTHESIS:** Requiring the final verifier to independently match the configured locality against fetched page title/text, removing URL/snippet assignment, and making enrichment explicit opt-in will eliminate URL-only locality admissions and uncontrolled repeat searches without weakening other L1 requirements.
+- **METRICS:** locality missing/conflict rejects; snippet-only L1+; source fixture/test outcomes; enrichment enabled flag and maximum per-run calls; ImmoFinder category CI.
+- **ACCEPTANCE:** URL/query-only locality is rejected; page-grounded locality is accepted; conflicting locality is rejected; default enrichment and both budgets are zero; all ImmoFinder category tests, typecheck/build and hosted Core CI pass.
+- **SCOPE:** TrustEngine, pipeline, contact enrichment defaults, config, existing ImmoFinder category suites, patch/version and concise history. No Gold labels, source expansion, production DB writes or legacy deletion.
+- **ROLLBACK:** revert if page-grounded locality fixtures regress, URL-only locality remains admissible, or any snippet-only L1+ is observed.
+- **CLASSIFICATION:** BUGFIX + RELIABILITY. No owner-labelled precision/recall is claimed.
+
 ## C131 — owner-directed no-Gold execution and trust-boundary correction (2026-11-25; pre-code gate)
 
 - **PROBLEM / OBSERVED:** No owner-labelled Gold Set will be supplied. Existing repo evidence is usable without inventing labels: run 072836e3 has 620 events / 93 candidates / 72 fetched / 6 historically retained (audit review found none acceptable); run 85549585 records Serper credit exhaustion and zero candidates/fetches; ten sanitized portal evidence records exist in tests. These are operational/fixture observations, not a labelled holdout.
