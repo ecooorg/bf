@@ -1,3 +1,6 @@
+## P131.7 — Reject shared-flat seeker posts
+- Classify shared-household pages that are seeking occupants as seeker posts before L1 admission; retain ordinary rental offers.
+
 ## P131.6a — Extend bounded all-source test to 120 seconds
 - Give all 17 configured search templates enough time to run while preserving provider rate, page, candidate, detail-fetch, browser and no-write limits.
 
