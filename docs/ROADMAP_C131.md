@@ -1,3 +1,7 @@
+## P131.5j correction — pass testMode through PipelineOptions, not PipelineDeps
+- **CORRECTION:** `runPipeline` declares `testMode` on its second `opts` argument and uses it to cap discovery pages. The property must not be deleted; it must be moved from the first `PipelineDeps` object into `{ dryRun, wave, testMode }`. The first Core CI failure was caused by the wrong object shape, not by testMode being unused.
+- **CHANGE:** Route call now keeps `PipelineDeps` contract clean and supplies `testMode` via `PipelineOptions`; regression test asserts both sides of this boundary.
+
 ## P131.5j implementation status — 2026-11-25
 - PR #89 introduced/combined a `PipelineDeps` type error; Core CI typecheck/build failed and Render build `6e3beb2` failed. Last successful Render deployment remains active.
 - P131.5j removes the unused `testMode` dependency field; test-mode state continues through queued progress and config budgeting.
