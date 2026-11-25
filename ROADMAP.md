@@ -1,3 +1,8 @@
+## P131.5h status — 2026-11-25
+- Corrected stale Render target in agent test and health workflows; awaiting CI and deploy.
+- The previous short-test attempt did not start a search (old endpoint returned skipped:not_due); no search result was counted.
+- WP2/WP6/WP7 remain evidence-driven and open.
+
 ## P131.5g status — 2026-11-25
 - Settings menu fix and bounded agent-run harness proposed in PR; awaiting hosted CI.
 - WP2 source scorecard still needs controlled per-source measurements; the test harness is a repeatable short probe, not a full WP2 pilot.
