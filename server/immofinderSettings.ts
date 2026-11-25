@@ -80,6 +80,37 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       recheckContactSearch: false,
     },
   };
+
+}
+
+/** Fixed, secret-triggered profile for an owner-requested Chur-only dry-run. */
+export function churTestSettings(cfg: ImmoConfig): ImmoSettings {
+  const d = defaultSettings(cfg);
+  return sanitizeSettings({
+    ...d,
+    schedule: { ...d.schedule, mode: 'manual' },
+    delivery: { ...d.delivery, telegram: false, email: false, emailTo: '', emailContent: 'new', drive: false, driveFolderId: '', notifyWhenEmpty: false },
+    search: {
+      ...d.search,
+      minRooms: 3,
+      communes: ['Chur'],
+      municipalityGroups: { group1: true, group2: false },
+      sources: Object.fromEntries(Object.keys(d.search.sources).map((id) => [id, true])),
+      maxAiPages: 200,
+      limitPrice: false,
+      maxListingAgeDays: 0,
+      requirePrice: false,
+      rejectNonMonthly: false,
+      rejectSeekerPosts: true,
+      requireContact: false,
+      defaultWave: 'full',
+      profile: 'burst',
+      carouselCommunesPerRun: 12,
+      privateQueryTemplates: 4,
+      enrichSearchesPerRun: 0,
+      recheckContactSearch: false,
+    },
+  }, cfg);
 }
 
 const bool = (v: unknown, d: boolean) => (typeof v === 'boolean' ? v : d);
