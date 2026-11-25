@@ -1,3 +1,8 @@
+## P131.1a — Hosted verification result
+- **PASS:** Core CI `45612490342`: 18/18 DAG checks, 182/182 core tests, typecheck/build, DB migrations, docs integrity, security scan and evidence gate.
+- **PASS:** Ensure repair `45612490402` restored/synchronized repair modules successfully.
+- **LIMIT:** Hosted CI validates code contracts; it does not establish owner-labelled recall, live source yield, production user value or WP6 acceptance.
+
 ## P131.1a — Corrective verification of the C131 L1 contract (CORRECTIVE)
 - **OBSERVED:** The first post-merge Core CI run found 14 test failures; most were legacy assertions for mandatory price/date/contact and all-portal fallback, not implementation failures. A separate mismatch could classify a weekly quote as monthly if the caller's unit disagreed with the page quote.
 - **HYPOTHESIS:** Updating tests to the already-approved R2 semantics and requiring source-unit agreement for monthly price metadata will restore a trustworthy green baseline without relaxing any C131 admission gate.

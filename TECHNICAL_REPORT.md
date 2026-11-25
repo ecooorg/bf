@@ -1,3 +1,8 @@
+## P131.1a — Final hosted verification
+- **OBSERVED:** Core CI `45612490342` PASS: Verification DAG 18/18, `test:core` 182/182, typecheck, production build, migrations, docs integrity, security scan and evidence gate all passed; Ensure repair workflow `45612490402` also passed.
+- **OBSERVED:** The Core CI job recorded 0 failures, 0 timeouts, 0 blocked checks and 0 policy skips; one browser-only test was explicitly skipped because Chromium was unavailable.
+- **NOT_RUN:** owner-labelled Gold replay, configured-fetcher live pilot/cost, production deployment, three consecutive live acceptance runs, WP5 legacy cleanup and conditional WP7.
+
 ## P131.1a — Full-profile commune assertion
 - **OBSERVED:** Core CI `45611713970` passed 181/182 tests; the remaining assertion expected the carousel batch size (12) in the full/burst profile, which correctly schedules all 44 target communes.
 - **CHANGE:** Updated the test to expect 44 for full mode while retaining the 12-commune carousel setting; no runtime change.
