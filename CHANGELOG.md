@@ -1,3 +1,7 @@
+## P131.5a — Record green infrastructure-status verification
+- Core CI `45636126675` passed all 18/18 checks; Answer Quality `45636126454` passed.
+- The new run-status UI is CI-verified; production deployment and live verification remain NOT_RUN.
+
 ## P131.5 — Distinguish provider outage from a zero-result search
 - Persisted `INFRA_FAIL` when every Serper call fails before any candidate/page is processed; the ImmoFinder run summary now says this is not a quality result.
 - Added regressions for provider-wide failure and successful empty searches; no search budget or admission rule changed.
