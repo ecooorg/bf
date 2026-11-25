@@ -1,5 +1,6 @@
-## P131.4a — Hosted verification
-- **PASS:** Core CI `45633920254`: 18/18 DAG checks, 0 failures/timeouts/blocked; Answer Quality `45633920285` passed; live smoke skipped.
+## P131.4a — Hosted verification and backup evidence
+- **PASS:** Core CI `45633920254`: 18/18 DAG checks; Answer Quality `45633920285` passed; live smoke skipped.
+- **OBSERVED:** Encrypted snapshot commit `a1ce09e` exists at 2026-11-25 14:21 UTC; restore integrity and legacy-consumer retirement are unverified.
 - **NOT_RUN:** Configured-fetcher pilot, production deployment, three live WP6 runs and owner review.
 
 ## P131.4 — L3 HTML evidence and CI correction
