@@ -1,3 +1,6 @@
+## P131.5j — PipelineOptions contract correction
+- **OBSERVED:** PR #89 Core CI failed TS2353 because the route passed `testMode` to `PipelineDeps`; the pipeline declares and consumes it on `PipelineOptions`. Render build for `6e3beb2` failed; previous live deployment was retained. **CHANGE:** move the flag to the second `runPipeline` argument and assert the dependency object remains clean. **NOT_RUN:** hosted CI and redeploy after correction.
+
 ## P131.5j — PipelineDeps type correction
 - **OBSERVED:** PR #89 Core CI failed typecheck/build with TS2353 at `server/immofinderRoutes.ts:851`: undeclared `testMode` on `PipelineDeps`. Render build for merge commit `6e3beb2` failed; previous successful deployment remains live. **CHANGE:** remove redundant property; queue progress remains the source of testMode. **NOT_RUN:** hosted CI and production redeploy after correction.
 
