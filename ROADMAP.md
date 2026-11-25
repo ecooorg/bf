@@ -1,6 +1,6 @@
 ## C131 — ImmoFinder reset: one objective, one engine, one measurable rule set (PLAN recorded 2026-11-25)
 
-**Execution status (2026-11-25):** WP0 merged as P131.0a. WP1 BLOCKED pending ≥60 owner-labelled gold records; WP2 scorecard NOT_RUN. No engine code started; WP3–WP7 remain gated by their prerequisites.
+**Execution status (2026-11-25):** WP0 merged as P131.0a. WP1 reference trace completed; gold replay BLOCKED pending ≥60 owner-labelled records and page snapshots. Latest inspected live run is INFRA_FAIL (Serper credit exhaustion), not a quality baseline. WP2 scorecard NOT_RUN; WP3–WP7 remain gated.
 
 - Status (2026-11-25): WP0 R1–R14 owner-approved and recorded in D-2026-11-25-01; normative text/config recorded in P131.0a. WP1 is BLOCKED pending ≥60 owner-labelled gold records; WP2 scorecard is NOT_RUN; WP3–WP7 have not started. Historical audit evidence remains unverified except where separately recorded. Cycle identity: version `131`; first product patch remains `131.1`.
 - Working rules: the C127 operating rules (`AGENTS.md` §0) are adopted for C131 unless the owner decides otherwise: `docs/EXPERIMENTS.md` entry before answer-path code; measure before and after; one hypothesis per primary patch; complexity budget; no example fitting; the holdout is labelled by the owner, not by the coding session.
