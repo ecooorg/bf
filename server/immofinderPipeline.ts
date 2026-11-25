@@ -1100,7 +1100,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
   const serperCalls = Number(res.counts.serper_calls || 0);
-  const serperFailures = res.errors.filter((error) => error.code === 'search_failed').length;
+  const serperFailures = res.errors.filter((error) => error.code === 'search_failed' || error.code === 'step_timeout').length;
   res.status = serperCalls > 0 && serperFailures >= serperCalls && Number(res.counts.candidates || 0) === 0 && Number(res.counts.fetched || 0) === 0
     ? 'INFRA_FAIL'
     : 'COMPLETED';
