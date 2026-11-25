@@ -1,3 +1,8 @@
+## P131.1a — Final default-setting assertion correction
+- **OBSERVED:** Core CI `45610992875` passed 181/182 core tests; the only remaining failure expected the old display value 3500 while the disabled price cap correctly defaults to 2000.
+- **CHANGE:** Updated the assertion to 2000 and explicitly asserted `limitPrice === false`; no runtime behavior changed.
+- **NOT_RUN:** final Core CI after this assertion-only correction and all live/user-value gates.
+
 ## P131.1a — Corrective CI and evidence alignment
 - **OBSERVED:** Core CI `45609744005` compiled the app but `test:core` reported 14 failures, mostly stale P128–P130 assertions that still required monthly price, publication date, direct contact or broad portal fallback; the run also exposed a price-unit attribution mismatch.
 - **CHANGE:** Updated those assertions to the approved C131 R1–R14 contract, added explicit room-basis evidence to repair fixtures, and only expose `monthlyRentChf` when both the page quote and parsed unit are monthly; missing/weekly/seasonal price remains optional for L1.
