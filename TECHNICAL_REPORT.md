@@ -1,7 +1,7 @@
 ## P131.0b — Correct C131 CI regressions
-- **OBSERVED:** P131.0a Core CI passed build/typecheck but failed two repair-stamp assertions; docs allowlist failure pre-existed on base.
+- **OBSERVED:** Core CI `45601500956` passed build/typecheck but failed two repair-stamp assertions; docs allowlist failure also existed on base. WP1 traced 17 modules/26 payloads; live run `85549585` was INFRA_FAIL (20 Serper credit errors, 0 candidates/fetches).
 - **CHANGE:** Generalized patch-stamp validation, synchronized repair stamp, and consolidated C131 under `ROADMAP.md`.
-- **NOT_RUN:** hosted verification after correction and all ImmoFinder gold/live outcomes.
+- **NOT_RUN:** hosted verification after correction, owner-labelled gold replay, WP2 source scorecard and three-run live acceptance.
 
 ## P131.0a — C131 WP0 decision and measurement gates
 - **OBSERVED:** Owner approved R1–R14; the audit baseline is historical and the ≥60-record owner-labelled gold set is absent.
