@@ -160,6 +160,8 @@ test('P130.4 health check names the failing GitHub publisher and compares deploy
 test('P130.4 health workflow is scheduled, has no Actions-triggered write beyond its snapshot and uses the shared collector', () => {
   const wf = read('.github/workflows/immofinder-health.yml');
   assert.match(wf, /cron: '17 \*\/6/);
+  assert.match(wf, /push:\s+branches:\s+\[main\]/, 'run a health probe after ImmoFinder code/config releases');
+  assert.match(wf, /package\.json/, 'patch metadata changes also trigger the deployment identity check');
   assert.match(wf, /workflow_dispatch/);
   assert.match(wf, /issues: write/);
   assert.match(wf, /contents: write/, 'needed only to commit data/immofinder/health/latest.json');

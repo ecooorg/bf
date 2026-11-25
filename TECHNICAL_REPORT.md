@@ -1,3 +1,9 @@
+## P131.5b — Post-release health probe
+- **OBSERVED:** Latest health snapshot (08:25 UTC) reports Render version `130`, commit `2ee99cb`, 369 commits behind main.
+- **CHANGE:** ImmoFinder code/config/patch pushes to `main` now trigger the existing read-only health check; no production deploy action was added.
+- **PASS:** Workflow contract is covered by the existing diagnostics/ops suite; hosted CI pending.
+- **NOT_RUN:** Post-merge Render identity result, configured-fetcher pilot and WP6 full runs.
+
 ## P131.5 — Honest infrastructure status
 - **OBSERVED:** Recent production carousel runs had 20/20 Serper HTTP 400 credit failures, 0 candidates and 0 fetched pages; UI previously presented an ordinary zero-result summary.
 - **CHANGE:** Classify all-provider-failure runs as `INFRA_FAIL`, persist the status and display it in the run summary; successful empty searches remain `COMPLETED`.
