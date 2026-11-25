@@ -1,3 +1,12 @@
+## P131.5j — Remove undeclared testMode from PipelineDeps (BUGFIX)
+- **OBSERVED / BASELINE:** PR #89's hosted Core CI failed `typecheck` and `build`: `server/immofinderRoutes.ts(851,11) TS2353`, `testMode` is not a member of `PipelineDeps`. Render build for merge commit `6e3beb2` failed; the last successful service deploy remained live.
+- **HYPOTHESIS:** The test-mode flag is already stored in queue progress and used to cap config before calling `runPipeline`; passing it again inside `PipelineDeps` is redundant and violates the pipeline contract. Remove that property and add a regression assertion.
+- **METRICS:** Hosted typecheck/build/Core CI green; production deploy commit matches main; bounded test path remains Full/dry-run.
+- **ACCEPTANCE:** `PipelineDeps` object has no undeclared testMode property; existing testMode queue, budget, dry-run and snapshot-skip behavior remains.
+- **SCOPE:** One property deletion, one category regression assertion, patch metadata and history. No runtime algorithm or listing gate changes.
+- **ROLLBACK:** Revert only this deletion if a real pipeline consumer is identified; no consumer currently reads the property.
+- **CLASSIFICATION:** BUGFIX; no USER_VALUE claim.
+
 ## P131.5i — Make the bounded smoke runner complete and exercise direct sources (RELIABILITY)
 - **OBSERVED / BASELINE:** Production dry-run `b9ea9f5f-bf0c-4a1b-bf84-3b114323c650` completed with 6 Serper calls, 14 candidates, 2 fetched pages, 0 kept, estimated cost USD 0.006; diagnostics persisted with 23 events. The workflow's 160-second poll expired before completion during an overlapping Render deploy; the run needed 3 worker attempts. Carousel mode exercised only `search`, `portal-homegate`, and `portal-tutti`, skipping phase-1 direct catalogues.
 - **HYPOTHESIS:** Force test mode through the bounded Full/source-first path, allow up to 360 seconds for deploy/retry recovery, and explicitly type the retry-release SQL parameter to prevent PostgreSQL's unknown `$3` inference error.
