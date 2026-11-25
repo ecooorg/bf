@@ -1,3 +1,8 @@
+## P131.5e implementation status — 2026-11-25
+- Main-push repair now preserves the current core; stale P130.16 payload restoration requires explicit `FORCE_IMMOFINDER_CORE_RESTORE=1`.
+- Added a regression contract assertion and advanced patch metadata to `131.5e`.
+- Hosted CI, encrypted snapshot restore drill, configured-fetcher pilot, WP6 Full runs and conditional WP7 remain NOT_RUN.
+
 ## P131.5d implementation status — 2026-11-25
 - Health snapshot deduplication now includes check details, so a changed deployed-commit gap produces a new snapshot even when the overall WARN/FAIL state is unchanged.
 - Latest observed production health (14:47 UTC): Render version `130`, commit `2ee99cb`, 488 commits behind main; deploy remains unverified.
