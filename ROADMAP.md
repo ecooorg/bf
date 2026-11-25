@@ -1,3 +1,13 @@
+## C131 execution status — P131.4 (2026-11-25)
+- **WP0:** DONE; owner-approved R1–R14 and no-Gold amendment recorded.
+- **WP1:** DONE for available evidence; no labels fabricated and no precision/recall claims.
+- **WP2:** PARTIAL; public scorecard and three-source pilot shortlist exist; configured-fetcher measurements, robots for 12 hosts and per-source cost/yield remain NOT_RUN.
+- **WP3:** PARTIAL; page-grounded L1 and bounded source-first path implemented; isolated single-engine consolidation remains open.
+- **WP4:** P131.4 repairs L3 HTML evidence and compile errors; hosted CI pending.
+- **WP5:** OPEN; encrypted snapshot is present, but production-current backup/restore and legacy restore-consumer retirement are unverified.
+- **WP6:** NOT_RUN; no deployment or three consecutive live runs.
+- **WP7:** NOT_TRIGGERED; no measured WP6 recall gap; conditional experiments must not be invented.
+
 ## C131 execution status — P131.3a (2026-11-25)
 - **WP0:** DONE; R1–R14 and delegated no-Gold execution recorded.
 - **WP1:** DONE for available evidence; 60 historical run artifacts, ten sanitized portal examples, deterministic no-label invariant replay and source reference inventory. No precision/recall claim.
