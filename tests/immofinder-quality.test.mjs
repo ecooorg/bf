@@ -975,7 +975,7 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   assert.ok((bounded.runMaxDurationMs ?? 999999) <= 90_000);
   assert.equal(original.sources.length >= bounded.sources.length, true);
   const route = read('server/immofinderRoutes.ts');
-  assert.match(route, /testMode && \(!cron \|\| req\.body\?\.dryRun !== true\)/);
+  assert.match(route, /testMode && \(!\(req as any\)\.immoCron \|\| req\.body\?\.dryRun !== true\)/);
   assert.match(route, /progress\.testMode === true \? applyImmoFinderTestBudget\(baseCfg\)/);
   const pipeline = read('server/immofinderPipeline.ts');
   assert.match(pipeline, /if \(!opts\.dryRun\) \{\s*try \{ await deps\.store\.markSeen/);
