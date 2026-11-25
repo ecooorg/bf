@@ -10,6 +10,7 @@ export interface C131LetterInput {
   finalUrl: string | null | undefined;
   title: string;
   pageText: string;
+  pageHtml: string;
   municipalities: string[];
   municipality: string;
   propertyName: string;
@@ -33,9 +34,10 @@ const PLATFORM_ACTIONS = [
   'contatta il proprietario', 'scrivi al venditore',
 ];
 
-export function hasPageContactAction(pageText: string): boolean {
-  const text = String(pageText || '').toLocaleLowerCase().replace(/\s+/g, ' ');
-  return PLATFORM_ACTIONS.some((marker) => text.includes(marker));
+export function hasPageContactAction(pageHtml: string): boolean {
+  const html = String(pageHtml || '');
+  const forms = html.match(/<form\\b[^>]*>[\\s\\S]*?<\\/form>/gi) || [];
+  return forms.some((form) => /<textarea\\b/i.test(form) && /<button\\b|<input\\b[^>]*type=["']?submit/i.test(form));
 }
 
 /** Build L3 only from a single fetched page and a page-evidenced owner/contact route. */
@@ -60,7 +62,7 @@ export function buildC131LetterDraft(input: C131LetterInput): C131LetterResult {
       input.rooms == null || Math.abs(pageRooms.rooms - input.rooms) > 0.01) return fail('rooms_not_page_grounded');
 
   const ownerQuote = String(input.ownerEvidenceQuote || '').trim();
-  if (!ownerQuote || !text.includes(ownerQuote) || !PRIVATE_OWNER.test(ownerQuote)) return fail('private_owner_evidence_missing');
+  if (!ownerQuote || !(text.includes(ownerQuote) || String(input.title || '').includes(ownerQuote)) || !PRIVATE_OWNER.test(ownerQuote)) return fail('private_owner_evidence_missing');
 
   if (input.contactRoute === 'none') return fail('contact_route_missing');
   if (input.contactRoute === 'platform_message' && !hasPageContactAction(text)) return fail('platform_action_not_page_evidenced');
