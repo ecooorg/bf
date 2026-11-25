@@ -51,9 +51,9 @@ export interface ContactEnrichmentConfig {
 }
 
 export const DEFAULT_CONTACT_ENRICHMENT: ContactEnrichmentConfig = {
-  enabled: true,
-  maxExtraSearchesPerRun: 25,
-  maxReverseImagePerRun: 8,
+  enabled: false,
+  maxExtraSearchesPerRun: 0,
+  maxReverseImagePerRun: 0,
   maxCandidatePagesPerListing: 4,
   skipHosts: [
     'wikipedia.org',
@@ -89,14 +89,14 @@ export function resolveEnrichmentConfig(cfg: ImmoConfig): ContactEnrichmentConfi
   const c = cfg.contactEnrichment;
   if (!c) return { ...DEFAULT_CONTACT_ENRICHMENT, enabled: false };
   return {
-    enabled: c.enabled !== false,
+    enabled: c.enabled === true,
     maxExtraSearchesPerRun: c.maxExtraSearchesPerRun ?? DEFAULT_CONTACT_ENRICHMENT.maxExtraSearchesPerRun,
     maxReverseImagePerRun: c.maxReverseImagePerRun ?? DEFAULT_CONTACT_ENRICHMENT.maxReverseImagePerRun,
     maxCandidatePagesPerListing: c.maxCandidatePagesPerListing ?? DEFAULT_CONTACT_ENRICHMENT.maxCandidatePagesPerListing,
     skipHosts: c.skipHosts ?? DEFAULT_CONTACT_ENRICHMENT.skipHosts,
     snippetOnlyHosts: c.snippetOnlyHosts ?? DEFAULT_CONTACT_ENRICHMENT.snippetOnlyHosts,
-    useReverseImage: c.useReverseImage !== false,
-    useSecondarySearch: c.useSecondarySearch !== false,
+    useReverseImage: c.useReverseImage === true,
+    useSecondarySearch: c.useSecondarySearch === true,
   };
 }
 
