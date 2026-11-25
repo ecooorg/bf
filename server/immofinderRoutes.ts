@@ -17,7 +17,7 @@ function immofinderWaveLabel(wave: string): string {
   if (w === 'priority') return 'Full search'; // legacy internal phase name — not a separate product mode
   return 'Search';
 }
-import { TIMEZONE, applySettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
+import { TIMEZONE, applySettings, churTestSettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
@@ -72,7 +72,7 @@ function secretOk(req: Request): boolean {
 
 /** Cron call shape (POST /api/immofinder/run with X-Immofinder-Secret). Lets it past the global session gate only; the secret itself is verified in registerImmoFinderRoutes. */
 export function isImmoCronCall(req: Request): boolean {
-  return req.method === 'POST' && req.path === '/api/immofinder/run' && Boolean(req.get('x-immofinder-secret'));
+  return req.method === 'POST' && ['/api/immofinder/run', '/api/immofinder/settings/prepare-chur-test'].includes(req.path) && Boolean(req.get('x-immofinder-secret'));
 }
 
 /** Read-only diagnostics polling endpoint for GitHub Actions; the same timing-safe run secret protects it. */
@@ -577,6 +577,18 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.put('/api/immofinder/settings', json, async (req, res) => {
     try { const cfg = loadImmoConfig(); res.json({ success: true, settings: await saveSettings(cfg, req.body), channels: channelStatus() }); }
     catch { res.status(500).json({ success: false, error: 'Settings could not be saved', code: 'IMMOFINDER_FAILED' }); }
+  });
+
+  app.post('/api/immofinder/settings/prepare-chur-test', json, async (req, res) => {
+    if (!secretOk(req)) return res.status(401).json({ success: false, error: 'Invalid test secret', code: 'UNAUTHORIZED' });
+    if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Settings store unavailable', code: 'DATABASE_UNAVAILABLE' });
+    try {
+      const cfg = loadImmoConfig();
+      const settings = await saveSettings(cfg, churTestSettings(cfg));
+      return res.json({ success: true, settings, channels: channelStatus(), communes: cfg.municipalities, timezone: TIMEZONE });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Chur test profile could not be applied', code: 'IMMOFINDER_FAILED' });
+    }
   });
 
   app.post('/api/immofinder/settings/reset', json, async (_req, res) => {
