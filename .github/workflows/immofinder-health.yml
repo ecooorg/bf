@@ -62,7 +62,7 @@ jobs:
           set -euo pipefail
           [ -f data/immofinder/health/latest.json ] || { echo "No snapshot produced."; exit 0; }
           cp data/immofinder/health/latest.json /tmp/health-latest.json
-          sig() { jq -c '[.verdict, [.checks[] | [.name, .status]]]' "$1" 2>/dev/null || echo none; }
+          sig() { jq -c '[.verdict, [.checks[] | [.name, .status, .detail]]]' "$1" 2>/dev/null || echo none; }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3; do
