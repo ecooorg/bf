@@ -946,7 +946,7 @@ export interface QualitySettings {
 
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
-  maxListingAgeDays: 180,
+  maxListingAgeDays: 0,
   // Optional gate; default is off so a verified listing with undisclosed rent can still be useful.
   requirePrice: false,
   rejectNonMonthly: false,
@@ -1035,23 +1035,14 @@ export function shortStayPreflightReason(input: {
   shortStay: boolean; price: ParsedPrice | null; url: string; evidenceKind: 'page_text' | 'snippet' | 'link_only'; evidenceText?: string;
 }): string | null {
   if (!input.shortStay) return null;
-  if (!input.price || input.price.unit === 'unknown' || !input.price.quote || !/\d/.test(input.price.quote)) return 'short_stay_price_period_required';
-  const source = String(input.evidenceText || input.price.quote);
-  const quote = String(input.price.quote);
-  const quoteAt = source.toLowerCase().indexOf(quote.toLowerCase());
-  const context = quoteAt >= 0 ? source.slice(Math.max(0, quoteAt - 90), quoteAt + quote.length + 90) : quote;
-  const explicitPeriod = input.price.unit === 'month'
-    ? /monat|mtl\.?|month|monthly|per\s+month|\/\s*mo\b/i.test(context)
-    : input.price.unit === 'week'
-      ? /woche|week|weekly|per\s+week/i.test(context)
-      : input.price.unit === 'night'
-        ? /nacht|nächte|night|tag|day|per\s+(night|day)/i.test(context)
-        : input.price.unit === 'season'
-          ? /saison|season|stagione/i.test(context)
-          : false;
-  if (!explicitPeriod) return 'short_stay_price_period_required';
+  // R2: price and contact are optional. Only a fetched detail page is eligible for L1.
   if (!isSpecificLink(input.url)) return 'short_stay_specific_link_required';
   if (input.evidenceKind !== 'page_text') return 'short_stay_page_evidence_required';
+  return null;
+}
+
+/** Contact route is an L2 enrichment dimension, never an L1 admission gate. */
+export function shortStayContactReason(_shortStay: boolean, _phone: string | null | undefined, _email: string | null | undefined): string | null {
   return null;
 }
 
