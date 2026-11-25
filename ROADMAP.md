@@ -1,4 +1,5 @@
 ## P131.5h status — 2026-11-25
+- **Correction to P131.5g Full-run interpretation:** the Tamins UMS page text states CHF 2,188/month and 7 Dec 2026–28 Mar 2027, but the saved record has price=null and price_cleared=fragment_as_price; its C131 contact route is none and owner verification is not_ready, so it remains L1 only. Run settings had maxMonthlyRentChf=1,800 but limitPrice=false, requirePrice=false, requireContact=false and rejectNonMonthly=false; therefore the CHF 1,800 cap was not active in that run. Do not describe this as a confirmed over-budget rejection or a qualifying owner listing.
 - Corrected stale Render target in agent test and health workflows; awaiting CI and deploy.
 - The previous short-test attempt did not start a search (old endpoint returned skipped:not_due); no search result was counted.
 - WP2/WP6/WP7 remain evidence-driven and open.
