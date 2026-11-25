@@ -399,6 +399,10 @@ test('ImmoFinder cron POST with a valid secret and no session reaches the route;
     assert.equal((await call('POST', '/api/immofinder/run', { 'x-immofinder-secret': secret + 'x' })).status, 401, 'wrong secret');
     assert.equal((await call('POST', '/api/immofinder/run')).status, 401, 'no secret and no session');
     assert.equal((await call('GET', '/api/immofinder/listings', { 'x-immofinder-secret': secret })).status, 401, 'secret must not open other ImmoFinder routes');
+    const profile = await call('POST', '/api/immofinder/settings/prepare-chur-test', { 'x-immofinder-secret': secret });
+    assert.equal(profile.status, 503, 'valid secret passes the gate; no DB is configured in this test');
+    assert.equal(profile.body.code, 'DATABASE_UNAVAILABLE');
+    assert.equal((await call('POST', '/api/immofinder/settings/prepare-chur-test', { 'x-immofinder-secret': secret + 'x' })).status, 401, 'wrong profile secret');
     assert.equal((await call('POST', '/api/immofinder/enrich-existing', { 'x-immofinder-secret': secret })).status, 401, 'secret must not open other ImmoFinder POST routes');
   } finally {
     await new Promise((r) => server.close(r));
