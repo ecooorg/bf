@@ -214,7 +214,7 @@ export function scoreC131GoldReplay(records: readonly C131GoldReplayRecord[]) {
     }
 
     const decision = verifyListingAdmission(record.input);
-    if (decision.accepted) {
+    if (decision.accepted === true) {
       admittedL1++;
       labelStats.admittedL1++;
       if (record.label === 'good_tourist_owner' || record.label === 'good_direct_offer') truePositive++;

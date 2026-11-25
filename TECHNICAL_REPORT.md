@@ -1,3 +1,8 @@
+## P131.0g — Replay scorer compile correction
+- **OBSERVED:** Core CI `45605988764` passed 16/18 checks and failed typecheck/build on two `TrustAdmission.reason` narrowing errors in the new scorer.
+- **CHANGE:** Used an explicit false/true discriminant branch; no runtime admission logic changed.
+- **NOT_RUN:** post-correction Core CI; owner-labelled replay remains BLOCKED.
+
 ## P131.0f — Offline replay harness implementation
 - **CHANGE:** Added a provider-free scorer beside the current trust verifier; it reports per-label precision/recall, infra failures, L1/L2/L3 and URL/quote provenance without changing admission.
 - **TEST:** Added a synthetic contract test to the existing ImmoFinder quality suite; hosted verification pending.
