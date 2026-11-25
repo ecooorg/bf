@@ -1,3 +1,6 @@
+## P131.5j — PipelineDeps type correction
+- Remove the unused `testMode` field from the `runPipeline` dependency object; retain queued test-mode behavior.
+
 ## P131.5i — Short-search runner reliability
 - Bound test mode to source-first Full, extend diagnostics polling and type retry-release SQL parameter.
 
