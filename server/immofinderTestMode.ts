@@ -5,7 +5,6 @@ export function applyImmoFinderTestBudget(config: ImmoConfig): ImmoConfig {
   const discovery = config.discovery;
   const portalQueries = discovery?.portalQueries ?? [];
   const newhomeQuery = portalQueries.find((query) => /site:newhome\.ch/i.test(query));
-  const fallbackPortalQuery = portalQueries.find((query) => query !== newhomeQuery);
   return {
     ...config,
     sources: config.sources.slice(0, 3).map((source) => ({ ...source, maxDetailPages: 1 })),
@@ -22,7 +21,7 @@ export function applyImmoFinderTestBudget(config: ImmoConfig): ImmoConfig {
       maxPagesPerRun: Math.min(discovery.maxPagesPerRun, 3),
       maxCandidatesPerQuery: Math.min(discovery.maxCandidatesPerQuery ?? 3, 3),
       queries: discovery.queries.slice(0, 1),
-      portalQueries: [newhomeQuery, fallbackPortalQuery].filter((query): query is string => Boolean(query)),
+      portalQueries: newhomeQuery ? [newhomeQuery] : portalQueries.slice(0, 1),
       fallbackPortalQueries: [],
     } : undefined,
     limits: { ...config.limits, maxDetailPagesPerSource: Math.min(config.limits.maxDetailPagesPerSource, 1) },
