@@ -1,3 +1,5 @@
+## P131.0e — Preliminary WP2 source scorecard
+- Recorded public-page evidence for 3 catalogs, 13 portals and 3 owner-discovery candidates; no runtime or source-admission behavior changed.
 ## P131.0d — Hosted verification result
 - Core CI passed after the repair-rule stamp was synchronized in the same commit as package metadata.
 ## P131.0d — Synchronize repair-rule stamp
