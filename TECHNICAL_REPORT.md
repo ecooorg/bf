@@ -1,4 +1,5 @@
 ## P131.5b — Post-release health probe
+- **OBSERVED:** Latest health snapshot (08:25 UTC) reports Render version `130`, commit `2ee99cb`, 369 commits behind main.
 - **CHANGE:** ImmoFinder code/config/patch pushes to `main` now trigger the existing read-only health check; no production deploy action was added.
 - **PASS:** Workflow contract is covered by the existing diagnostics/ops suite; hosted CI pending.
 - **NOT_RUN:** Post-merge Render identity result, configured-fetcher pilot and WP6 full runs.
