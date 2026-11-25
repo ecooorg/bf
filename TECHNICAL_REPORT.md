@@ -1,3 +1,7 @@
+## P131.3a — C131 invariant replay
+- **CHANGE:** Replaced fabricated Gold labels with no-label invariant replay; the first full Core CI exposed the stale fixture and was corrected.
+- **NOT_RUN:** Live fetcher pilot and production acceptance.
+
 ## P131.3 — Evidence-bound L3 letters
 - **CHANGE:** Added page-grounded private-owner/contact route verifier; L3 drafts use only verified listing facts and no invented applicant claims.
 - **NOT_RUN:** Hosted CI and live owner-review remain pending.
