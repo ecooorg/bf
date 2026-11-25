@@ -32,6 +32,9 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 /** Search targets: portal entries are Google site: queries, not independent portal crawlers. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'search', label: 'Private-owner web search', hint: 'Google owner-direct ads and Nachmieter; social snippets are not saved as verified listings', priority: true },
+  { id: 'ferienhausmiete', label: 'Ferienhausmiete owner catalogue', hint: 'Direct holiday-home owner catalogue', priority: true },
+  { id: 'happyholiday', label: 'HappyHoliday owner catalogue', hint: 'Regional holiday-home catalogue', priority: true },
+  { id: 'landwirtschaft-gr', label: 'Graubünden agricultural / rural catalogue', hint: 'Regional rural property source', priority: false },
   { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: false },
   { id: 'portal-homegate', label: 'Homegate', hint: 'site:homegate.ch', priority: true },
   { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: false },
@@ -151,6 +154,48 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
     }
   };
 
+  const prepareChurTest = async () => {
+    try {
+      const reset = await api('/api/immofinder/settings/reset', { method: 'POST', body: '{}' });
+      const base = reset.settings as S;
+      const profile: S = {
+        ...base,
+        schedule: { ...base.schedule, mode: 'manual' },
+        delivery: { ...base.delivery, telegram: false, email: false, emailTo: '', drive: false, notifyWhenEmpty: false },
+        search: {
+          ...base.search,
+          minRooms: 3,
+          communes: ['Chur'],
+          municipalityGroups: { group1: true, group2: false },
+          sources: Object.fromEntries(Object.keys(base.search.sources).map((id) => [id, true])),
+          maxAiPages: 200,
+          limitPrice: false,
+          maxListingAgeDays: 0,
+          requirePrice: false,
+          rejectNonMonthly: false,
+          rejectSeekerPosts: true,
+          requireContact: false,
+          defaultWave: 'full',
+          profile: 'burst',
+          privateQueryTemplates: 4,
+          enrichSearchesPerRun: 0,
+          recheckContactSearch: false,
+        },
+      };
+      const saved = await api('/api/immofinder/settings', { method: 'PUT', body: JSON.stringify(profile) });
+      setS(saved.settings);
+      setChannels(saved.channels);
+      setCommunes(reset.communes || ['Chur']);
+      setDirty(false);
+      setShowAdvanced(false);
+      setShowCommunes(false);
+      setNote('Settings reset. Chur-only test profile saved: all configured sources on, optional filters off, delivery and schedule off.');
+      onChanged?.(saved.settings);
+    } catch (e) {
+      setNote((e as Error).message);
+    }
+  };
+
   const test = async (channel: string) => {
     try {
       if (dirty) await save();
@@ -192,7 +237,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             value={s.search.minRooms}
             onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, minRooms: Number(e.target.value) } }))}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+            {[3, 4, 5, 6, 7, 8].map((n) => (
               <option key={n} value={n}>{n}+</option>
             ))}
           </select>
@@ -279,9 +324,15 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             Group 2 (22) — Prättigau / Surselva / south (Maienfeld…Peist)
           </label>
         </div>
-        <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setShowCommunes((v) => !v)}>
-          Communes ({selectedCommunes} of {allCommunes || selectedCommunes} selected)
-        </button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '8px 0' }}>
+          <button type="button" className="ghost" data-testid="immofinder-chur-only" onClick={() => {
+            upd((x) => ({ ...x, search: { ...x.search, municipalityGroups: { group1: true, group2: false }, communes: ['Chur'] } }));
+            setShowCommunes(false);
+          }}>Chur only</button>
+          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setShowCommunes((v) => !v)}>
+            Communes ({selectedCommunes} of {allCommunes || selectedCommunes} selected)
+          </button>
+        </div>
         {showCommunes && (
           <div style={{ marginTop: 8, maxHeight: 220, overflow: 'auto' }}>
             <button
@@ -392,6 +443,10 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
           <span>Detail pages must verify rooms, monthly CHF rent, publication date, active status, and advertiser contact.</span>{' '}
           <span>Snippets, failed fetches, sales, seeker posts, stale offers, platform contacts, and conflicting facts are rejected.</span>
         </p>
+        <button type="button" className="ghost" data-testid="immofinder-enable-all-sources" style={{ margin: '6px 0' }}
+          onClick={() => upd((x) => ({ ...x, search: { ...x.search, sources: Object.fromEntries(Object.keys(x.search.sources).map((id) => [id, true])) } }))}>
+          Enable all configured sources
+        </button>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
           return (
@@ -557,34 +612,29 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         {showAdvanced && (
           <div style={{ marginTop: 10 }}>
             <p style={hint}>Defaults favour private leads. Tighten only if results are noisy.</p>
+            <p style={{ ...hint, marginBottom: 8 }}>C131 keeps seeker posts, sales, non-residential pages and unverified room counts out of L1. Price period and direct owner contact are optional evidence, not user filters.</p>
             <label style={labelBlock}>
-              <input
-                type="checkbox"
-                checked={true}
-                disabled
+              <input type="checkbox" checked={s.search.requirePrice}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requirePrice: e.target.checked } }))}
+                data-testid="immofinder-require-price"
               />{' '}
-              Reject “looking for a flat” seeker posts
+              Require a stated price (optional filter)
             </label>
             <label style={labelBlock}>
-              <input
-                type="checkbox"
-                checked={true}
-                disabled
+              <input type="checkbox" checked={s.search.requireContact}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))}
+                data-testid="immofinder-require-contact"
               />{' '}
-              Require direct advertiser phone or email (mandatory)
+              Require direct advertiser phone or email (optional filter)
             </label>
-            <div style={{ marginTop: 6, fontSize: 13, opacity: 0.8 }}>
-              <span>An explicit monthly CHF rent and an advertiser-labelled direct contact are mandatory.</span>{' '}
-              <span>Missing publication dates and unknown listing status never count as current.</span>
-            </div>
             <label style={labelBlock}>
-              <input
-                type="checkbox"
-                checked={true}
-                disabled
+              <input type="checkbox" checked={s.search.rejectNonMonthly}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectNonMonthly: e.target.checked } }))}
+                data-testid="immofinder-reject-nonmonthly"
               />{' '}
-              Reject night / week / season-only prices (mandatory)
+              Reject night / week / season-only prices (optional filter)
             </label>
+            <p style={hint}>Seeker posts remain excluded by the C131 admission rule. Publication date and direct contact are not required for L1.</p>
             <label style={labelBlock}>
               Max listing age (days, 0 = use 180-day default){' '}
               <input
@@ -645,6 +695,16 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         style={{ padding: '10px 18px', fontSize: 16, marginRight: 8 }}
       >
         Reset to defaults
+      </button>
+      <button
+        type="button"
+        data-testid="immofinder-prepare-chur-test"
+        onClick={() => void prepareChurTest()}
+        disabled={false}
+        className="immo-btn"
+        style={{ padding: '10px 18px', fontSize: 16, marginRight: 8 }}
+      >
+        Reset & prepare Chur test
       </button>
       <button
         type="button"
