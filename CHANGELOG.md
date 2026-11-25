@@ -1,3 +1,7 @@
+## P131.4 — Repair evidence-bound L3 contact forms and pipeline typing
+- Retained fetched HTML per candidate and verified platform-message forms against that exact page; corrected the L3 pipeline type errors.
+- Added same-page form, missing-form, no-route and URL-mismatch regressions; no automatic sending.
+
 ## P131.3a — No-label invariant replay
 - Removed synthetic owner labels and precision/recall claims; replay now reports only admission, infrastructure and provenance invariants.
 - Platform contact route requires a structured message form; no language-specific phrase heuristics.
