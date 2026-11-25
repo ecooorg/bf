@@ -1,3 +1,5 @@
+## P131.0d — Synchronize repair-rule stamp
+- Updated the repair-rule version stamp in the same commit as package metadata after P131.0c CI exposed a stale-stamp mismatch; admission logic unchanged.
 ## P131.0c — Record post-fix verification
 - Recorded successful hosted Core CI for P131.0b; no runtime behavior changed.
 ## P131.0b — Fix cycle-aware repair stamp and canonical roadmap
