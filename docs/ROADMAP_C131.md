@@ -1,3 +1,8 @@
+## P131.5 implementation status — 2026-11-25
+- All-Serper-failure runs with zero candidates/pages are now classified `INFRA_FAIL`, persisted in run counts and shown as an infrastructure status rather than a quality result.
+- Successful empty searches remain `COMPLETED`; search budgets and L1 admission rules are unchanged.
+- Hosted CI pending; production deploy identity, configured-fetcher pilot, WP5 restore, WP6 full runs and conditional WP7 remain open/NOT_RUN.
+
 ## P131.4 implementation status — 2026-11-25
 - Retained fetched HTML per candidate and bound platform contact-form verification to the identity-matched page; added L3 positive/negative regressions.
 - Corrected Core CI typecheck failures from the initial P131.3 merge; PR-head Core CI `45633920254` passed 18/18 DAG checks and Answer Quality `45633920285` passed.
