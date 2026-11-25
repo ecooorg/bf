@@ -1,3 +1,8 @@
+## P131.1a — Corrective CI and evidence alignment
+- **OBSERVED:** Core CI `45609744005` compiled the app but `test:core` reported 14 failures, mostly stale P128–P130 assertions that still required monthly price, publication date, direct contact or broad portal fallback; the run also exposed a price-unit attribution mismatch.
+- **CHANGE:** Updated those assertions to the approved C131 R1–R14 contract, added explicit room-basis evidence to repair fixtures, and only expose `monthlyRentChf` when both the page quote and parsed unit are monthly; missing/weekly/seasonal price remains optional for L1.
+- **NOT_RUN:** Core CI after correction, live fetcher pilot/cost, owner-labelled Gold replay, production live runs, WP5 cleanup, WP6 acceptance and conditional WP7.
+
 ## P131.1 — C131 L1 admission and source-first manual run
 - **OBSERVED:** Public index inspection found 90 HappyHoliday GR stays, 209 Tutti GR rental listings and 236 Homegate GR rentals; sanitized page fixtures include target 4.5-room candidates in Untervaz, Cazis, Jenins and Grüsch plus company-advertiser negatives.
 - **CHANGE:** Removed mandatory price/date/direct-contact admission; explicit fetched detail page, target locality, residential rental and ≥3 explicit Zimmer remain required. Added bounded HappyHoliday/Tutti/Homegate index pilots, source-first full manual run, ≤20 Serper queries, platform-only contact state, and L2-only German draft generation.
