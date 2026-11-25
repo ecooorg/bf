@@ -1,3 +1,9 @@
+## P131.4a — Hosted verification and backup evidence
+- **PASS:** Core CI `45633920254`: 18/18 DAG checks; Answer Quality `45633920285` passed; live smoke skipped.
+- **OBSERVED:** Encrypted snapshot commit `a1ce09e` exists at 14:21 UTC; restore integrity is unverified. Latest run `c9912bcf` was carousel `INFRA_FAIL`: 20/20 Serper calls returned HTTP 400 `Not enough credits`, 0 candidates/fetches/L1; direct sources were skipped by mode.
+- **KNOWN:** Runtime diagnostics identify deployed code older than `main`; deploy identity must be verified before live acceptance.
+- **NOT_RUN:** Configured-fetcher pilot, production deployment, three accepted full WP6 runs and owner review.
+
 ## P131.4 — L3 HTML evidence and CI correction
 - **OBSERVED:** Core CI `45630696024` failed typecheck at pipeline lines 621/629; platform-form verification also consumed text instead of HTML.
 - **CHANGE:** Preserve fetched HTML and verify the same-page contact form; add positive/negative L3 tests.
