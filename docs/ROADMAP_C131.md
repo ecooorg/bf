@@ -1,3 +1,10 @@
+## P131.5g implementation status — 2026-11-25
+- Settings disclosure is changed to an explicit accessible React button/panel; regression contract added.
+- Agent-operated test search is a secret-gated, forced dry-run with hard limits (3 sources, 1 commune, 3 result pages, 2 detail pages/source, 90 seconds); no listing/cache writes.
+- WP2: bounded diagnostics harness proposed; configured-fetcher scorecard remains pending.
+- WP6: last manual Full run completed but only one L1-only, over-budget seasonal listing surfaced; no L2/L3-qualified result.
+- WP7: conditional; not triggered until WP6 has a measured recall gap against an approved independent benchmark.
+
 ## P131.5f implementation status — 2026-11-25
 - Corrected the P131.5e CI version-stamp mismatch by aligning `REPAIR_RULES_VERSION` with package patch `131.5f`.
 - Core CI failure evidence was a stale `131.5d.5` repair stamp; no product-search logic changed.
