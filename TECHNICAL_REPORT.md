@@ -1,3 +1,6 @@
+## P131.5j — PipelineDeps type correction
+- **OBSERVED:** PR #89 Core CI failed typecheck/build with TS2353 at `server/immofinderRoutes.ts:851`: undeclared `testMode` on `PipelineDeps`. Render build for merge commit `6e3beb2` failed; previous successful deployment remains live. **CHANGE:** remove redundant property; queue progress remains the source of testMode. **NOT_RUN:** hosted CI and production redeploy after correction.
+
 ## P131.5i — Short-search runner reliability
 - **OBSERVED:** Dry-run `b9ea9f5f` completed: 6 Serper calls, 14 candidates, 2 fetched, 0 kept, USD 0.006; diagnostics committed (23 events). GitHub poll timed out at 160s during a Render deploy; worker needed 3 attempts. Carousel skipped phase-1 direct sources. **CHANGE PROPOSED:** bounded Full test path, 360s poll, explicit retry SQL text cast. **NOT_RUN:** post-fix workflow and side-effect audit.
 
