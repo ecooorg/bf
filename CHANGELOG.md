@@ -1,3 +1,7 @@
+## P131.2 — Page-grounded locality and bounded enrichment
+- Enforced fetched-page locality at final admission; URL/query hints no longer set or override locality.
+- Made secondary contact search and reverse-image enrichment explicit opt-in with zero default budget.
+
 ## P131.1c — C131 no-Gold execution amendment
 - Replaced owner-labelled Gold gate with repo diagnostics and deterministic invariant evidence; corrected prior audit inaccuracies.
 - Updated C131 plan/spec; no runtime or production data changed.
