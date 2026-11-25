@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-25T08:25:31.732Z",
-  "verdict": "FAIL",
+  "generatedAt": "2026-11-25T14:47:34.797Z",
+  "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at 93f2062, 1 still running"
+      "detail": "3 checks at a8b5b00, 2 still running"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-25T01:02:05Z"
+      "detail": "last completed run success at 2026-11-25T09:49:17Z"
     },
     {
       "group": "RENDER",
@@ -30,17 +30,17 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 369 commit(s) behind main with 74 non-archive file(s) changed (e.g. .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml, .github/workflows/emergency-fix-portal-detail.yml); deploy may be pending or failed"
+      "detail": "production is 488 commit(s) behind main with 85 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
-      "status": "OK",
-      "detail": "Gemini timeouts 0, SSL warnings 0, 5xx 0 in collected Render logs",
+      "status": "WARN",
+      "detail": "Gemini timeouts 1, SSL warnings 0, 5xx 1 in collected Render logs",
       "data": {
-        "geminiTimeouts": 0,
+        "geminiTimeouts": 1,
         "sslWarnings": 0,
-        "http5xx": 0
+        "http5xx": 1
       }
     },
     {
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-25T08:25:30.603Z",
+        "checkedAt": "2026-11-25T14:47:33.900Z",
         "steps": [
           {
             "step": "app",
@@ -121,7 +121,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "34c04f1a-08f5-47b5-b2da-e880c317a1c0, 2.1 h old"
+      "detail": "c9912bcf-38e8-45fd-9030-8fef3858ed2f, 0.4 h old"
     },
     {
       "group": "SEARCH",
@@ -142,8 +142,8 @@
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "FAIL",
-      "detail": "latest run 34c04f1a-08f5-47b5-b2da-e880c317a1c0 is not archived (archive holds 9bdaf74d-5536-48db-b8e9-9d0a39114879); poller runs every 10 minutes (GitHub may delay schedules)"
+      "status": "OK",
+      "detail": "run c9912bcf-38e8-45fd-9030-8fef3858ed2f is archived in the repository"
     }
   ]
 }
