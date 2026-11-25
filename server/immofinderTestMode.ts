@@ -4,10 +4,9 @@ import type { ImmoConfig } from './immofinderCore.ts';
 export function applyImmoFinderTestBudget(config: ImmoConfig): ImmoConfig {
   const discovery = config.discovery;
   const portalQueries = discovery?.portalQueries ?? [];
-  const newhomeQuery = portalQueries.find((query) => /site:newhome\.ch/i.test(query));
   return {
     ...config,
-    sources: config.sources.slice(0, 3).map((source) => ({ ...source, maxDetailPages: 1 })),
+    sources: config.sources.map((source) => ({ ...source, maxDetailPages: 1 })),
     fetch: {
       ...config.fetch,
       browserRenderHosts: ['newhome.ch'],
@@ -21,7 +20,7 @@ export function applyImmoFinderTestBudget(config: ImmoConfig): ImmoConfig {
       maxPagesPerRun: Math.min(discovery.maxPagesPerRun, 3),
       maxCandidatesPerQuery: Math.min(discovery.maxCandidatesPerQuery ?? 3, 3),
       queries: discovery.queries.slice(0, 1),
-      portalQueries: newhomeQuery ? [newhomeQuery] : portalQueries.slice(0, 1),
+      portalQueries,
       fallbackPortalQueries: [],
     } : undefined,
     limits: { ...config.limits, maxDetailPagesPerSource: Math.min(config.limits.maxDetailPagesPerSource, 1) },
