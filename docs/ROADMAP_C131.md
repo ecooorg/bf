@@ -1,3 +1,7 @@
+## P131.3 implementation status — 2026-11-25
+- L3 drafts now require exact private-owner evidence and a page-evidenced direct/platform contact route; unsupported applicant claims are removed.
+- Hosted CI pending; live letter review and production search remain NOT_RUN.
+
 ## P131.2 implementation status — 2026-11-25
 - Page-grounded locality is a final TrustEngine requirement; URL/query hints are discovery-only.
 - Contact enrichment is explicit opt-in and disabled by default with zero budget.
