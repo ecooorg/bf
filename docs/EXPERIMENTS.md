@@ -1,3 +1,19 @@
+## C131 WP1 — Owner-labelled baseline and offline replay (BLOCKED)
+
+- **PROBLEM / BASELINE:** Audit run `072836e3` (2026-11-22) reported 152 Serper queries, 93 candidates, 72 pages, 70 LLM calls and USD 0.304; audit review found none of six retained records acceptable. The run is historical evidence, not a newly reproduced baseline.
+- **HYPOTHESIS:** A provider-free replay over an owner-labelled, URL-grounded gold set will quantify current-engine precision/recall and distinguish product rejection from fetch infrastructure failure before any engine rewrite.
+- **METRICS:** Per-label confusion matrix for `good_tourist_owner`, `good_direct_offer`, `wrong_object`, `agency`, `wrong_locality`, `not_listing`, `other`; page fetchability; L1/L2/L3; reject reasons; query/fetch/LLM/browser spend; module reference graph and transport-leftover inventory.
+- **ACCEPTANCE:** ≥60 owner-labelled records; offline replay without provider keys; baseline precision/recall reported by label; fetchable-good recall baseline; reference trace of 17 ImmoFinder modules and 26 reported transport leftovers. Gold labels must be supplied by the owner; this coding session must not author or label holdout records.
+- **SCOPE:** Existing ImmoFinder category suites and harness, snapshot fixtures/store, `server/immofinder*` reference inventory. No answer-path code or engine rewrite before WP1 baseline and WP2 scorecard.
+- **ROLLBACK:** Remove only measurement instrumentation if it changes runtime decisions, leaks personal contact data, or makes replay depend on provider credentials.
+- **CLASSIFICATION:** EXPERIMENT. **BLOCKED:** no ≥60-record owner-labelled gold set or owner labels were supplied in this session; baseline run and live run NOT_RUN.
+
+## C131 WP2 — Source scorecard (NOT_RUN)
+
+- **SCOPE:** Three configured catalogs and 13 configured portal sources, plus owner-profile, municipality and tourism-organisation candidates. Record HTTP/robots/JS behavior, detail-page structure, owner/contact exposure, private/agency marking, locality coverage and request cost per source.
+- **ACCEPTANCE:** At most five tier-1 sources selected by owner after measured scorecard; owner sets N L2 leads/run; owner decides whether Serper remains a detail-URL discovery channel.
+- **STATUS:** No source requests, saved fixture pages or cost observations were made in this session. Every source measurement remains NOT_RUN; no tier or volume target is inferred.
+
 ## P130.18a — Durable query-level recovery
 - **PROBLEM / BASELINE:** P130.17d persists a PostgreSQL run queue and leases, but a recovered worker replays the query plan from the beginning; a process replacement can also interrupt a query before its candidates are committed.
 - **HYPOTHESIS:** Persisting exact completed-query keys, cumulative counters and delivery acknowledgements after each fully processed query will let a new worker skip completed work, retry only incomplete queries and avoid duplicate wave notifications.

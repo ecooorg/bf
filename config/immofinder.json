@@ -302,7 +302,55 @@
     "requirePrice": true,
     "rejectNonMonthly": true,
     "rejectSeekerPosts": true,
-    "requireContact": true
+    "requireContact": true,
+    "policyVersion": "C131-R1-R14",
+    "resultTypes": [
+      "tourist_owner",
+      "direct_offer"
+    ],
+    "requiredForL1": [
+      "fetched_detail_page",
+      "final_url_matches_record_url",
+      "locality_in_configured_44_with_page_evidence",
+      "residential_apartment_or_house",
+      "rooms_gte_3_confirmed_by_page_text",
+      "not_seeker_sale_parking_commercial_or_shared_room",
+      "not_stop_list_agency_or_company_operated",
+      "not_expired_when_date_visible"
+    ],
+    "optionalForL1": [
+      "price_any_period",
+      "publication_date",
+      "direct_contact",
+      "phone",
+      "photos"
+    ],
+    "levels": {
+      "L0": "candidate_only_not_shown_or_counted",
+      "L1": "verified_listing",
+      "L2": "private_owner_evidenced_with_contact_route",
+      "L3": "letter_ready"
+    },
+    "snippetPolicy": "discovery_only_never_evidence",
+    "provenance": [
+      "value",
+      "verbatim_quote",
+      "source_url",
+      "fetch_time"
+    ],
+    "rejectCodes": [
+      "not_detail_page",
+      "agency",
+      "outside_target",
+      "rooms_below_min",
+      "rooms_unknown",
+      "not_residential",
+      "seeker",
+      "expired",
+      "fetch_blocked",
+      "duplicate"
+    ],
+    "legacyRuntimeUntilWp5": true
   },
   "runMaxDurationMs": 2700000,
   "contactEnrichment": {

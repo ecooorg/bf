@@ -1,3 +1,5 @@
+## P131.0a — Record C131 owner constitution
+- Recorded approved R1–R14, superseded conflicting ImmoFinder policy text, and added C131 measurement plans; runtime behavior unchanged.
 ## P130.18b — Correct recovery test ordering
 - Made the checkpoint test independent of planner ordering and aligned the pipeline contract assertion with the new post-batch checkpoint.
 ## P130.18a — Resume ImmoFinder searches after process replacement

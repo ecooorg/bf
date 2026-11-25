@@ -1,4 +1,6 @@
-## C131 — ImmoFinder reset: one objective, one engine, one measurable rule set (PLAN recorded 2026-11-25; code NOT_STARTED)
+## C131 — ImmoFinder reset: one objective, one engine, one measurable rule set (PLAN recorded 2026-11-25)
+
+**Execution status (2026-11-25):** WP0 R1–R14 approved by Navigator and recorded in D-2026-11-25-01; normative text/config updated in branch. WP1 BLOCKED pending ≥60 owner-labelled gold records; WP2 scorecard NOT_RUN. No engine code started; WP3–WP7 remain gated by their prerequisites.
 
 - Status: programme recorded from the owner-requested audit of P128–P130 (`audit_immofinder.docx`, owner upload, 2026-11-25) plus assistant proposals marked **[A]**. Nothing below is implemented or verified; every live outcome is `NOT_RUN`. Owner approval of WP0 is required before normative text (`TECHNICAL_SPECIFICATION.md` P128, `docs/DECISIONS.md`, `config/immofinder.json` `quality`) is changed. Cycle identity: version `131`, first product patch `131.1`; this record is non-product and does not change `package.json`.
 - Working rules: the C127 operating rules (`AGENTS.md` §0) are adopted for C131 unless the owner decides otherwise: `docs/EXPERIMENTS.md` entry before answer-path code; measure before and after; one hypothesis per primary patch; complexity budget; no example fitting; the holdout is labelled by the owner, not by the coding session.

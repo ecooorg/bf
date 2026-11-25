@@ -10,6 +10,27 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
+test('P131.0a C131 constitution config preserves approved result and evidence rules', () => {
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const q = cfg.quality;
+  assert.equal(q.policyVersion, 'C131-R1-R14');
+  assert.deepEqual(q.resultTypes, ['tourist_owner', 'direct_offer']);
+  for (const field of [
+    'fetched_detail_page', 'final_url_matches_record_url',
+    'locality_in_configured_44_with_page_evidence', 'residential_apartment_or_house',
+    'rooms_gte_3_confirmed_by_page_text', 'not_seeker_sale_parking_commercial_or_shared_room',
+    'not_stop_list_agency_or_company_operated', 'not_expired_when_date_visible',
+  ]) assert.ok(q.requiredForL1.includes(field), `missing L1 requirement: ${field}`);
+  for (const field of ['price_any_period', 'publication_date', 'direct_contact', 'phone', 'photos']) {
+    assert.ok(q.optionalForL1.includes(field), `missing optional L1 field: ${field}`);
+  }
+  assert.equal(q.snippetPolicy, 'discovery_only_never_evidence');
+  assert.deepEqual(q.provenance, ['value', 'verbatim_quote', 'source_url', 'fetch_time']);
+  assert.equal(q.legacyRuntimeUntilWp5, true);
+  const spec = read('TECHNICAL_SPECIFICATION.md');
+  for (const rule of Array.from({ length: 14 }, (_, i) => `R${i + 1} —`)) assert.ok(spec.includes(rule), `missing approved rule ${rule}`);
+});
+
 test('P130.17 trust engine admits only same-page, current, explicit rental facts', async () => {
   const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
   const url = 'https://example.ch/listing/123456';
