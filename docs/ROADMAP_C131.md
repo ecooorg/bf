@@ -1,3 +1,6 @@
+## P131.6a dry-run follow-up — 2026-11-25
+- Expanded all-query run `92ced2d0-fdd2-4311-8732-c8b0e20d5847`: 4/17 Serper queries completed before the 90-second test budget's 45-second reserve stopped further search; 86 candidates, 5 index pages, 0 detail pages fetched, 0 kept, 4 snippet-only rejects, 14 out-of-commune rejects, Homegate/Tutti 403. Next bounded experiment raises the total ceiling to 120 seconds, retaining all other finite caps.
+
 ## P131.6a dry-run evidence — 2026-11-25
 - First Chur-only all-source profile run `5dc40093-a7be-40f2-82a5-8a5510184bac`: 85 candidates, 2 Serper calls, 3 Homegate detail fetches all HTTP 403, 14 HappyHoliday off-target locality rejects, 0 fetched detail pages, 0 kept, USD 0.002. No listing/cache writes. Next experiment expands the bounded test to all query templates (page cap = min(config cap, query count)), 2 detail pages/source, 2 browser renders and 90 seconds; still one commune and no contact enrichment.
 
