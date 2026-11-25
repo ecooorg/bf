@@ -1,3 +1,7 @@
+## P131.2a — Run full Core CI for pull requests
+- Added pull_request trigger to Core CI so full verification runs before merge, not only after push to main.
+- Kept diagnostics-only data commits excluded from the verification DAG.
+
 ## P131.2 — Page-grounded locality and bounded enrichment
 - Enforced fetched-page locality at final admission; URL/query hints no longer set or override locality.
 - Made secondary contact search and reverse-image enrichment explicit opt-in with zero default budget.
