@@ -1,7 +1,7 @@
 ## P131.6a — Secret-gated reset to the Chur all-source test profile
 - **OBSERVED:** production settings are persisted in Postgres and the reset endpoint requires a browser session; the owner-only agent workflow has a separate timing-safe run secret.
 - **HYPOTHESIS:** expose one fixed-profile endpoint behind that same secret and make the owner-only dry-run workflow apply it before searching.
-- **ACCEPTANCE:** endpoint cannot be called without the secret; it sets Chur only, all configured source flags on, minRooms=3, all optional price/contact/period/age filters off, schedule and delivery off, contact enrichment off; C131 admission gates remain unchanged.
+- **ACCEPTANCE:** endpoint cannot be called without the secret; it sets Chur only, all configured source flags and adapters on, all configured portal queries eligible, minRooms=3, all optional price/contact/period/age filters off, schedule and delivery off, contact enrichment off; 1 commune, 3 pages, 1 detail page/source and 60 seconds remain hard caps; C131 admission gates remain unchanged.
 - **SAFETY:** no arbitrary settings payload, no listing/cache mutation, dry-run only, existing search budgets remain in force.
 
 ## P131.6a — Repair CI metadata and copy regressions (BUGFIX)
