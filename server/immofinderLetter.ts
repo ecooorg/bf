@@ -29,8 +29,8 @@ export type C131LetterResult =
 const PRIVATE_OWNER = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i;
 export function hasPageContactAction(pageHtml: string): boolean {
   const html = String(pageHtml || '');
-  const forms = html.match(/<form\\b[^>]*>[\\s\\S]*?<\\/form>/gi) || [];
-  return forms.some((form) => /<textarea\\b/i.test(form) && /<button\\b|<input\\b[^>]*type=["']?submit/i.test(form));
+  const forms = html.match(/<form\b[^>]*>[\s\S]*?<\/form>/gi) || [];
+  return forms.some((form) => /<textarea\b/i.test(form) && /<button\b|<input\b[^>]*type=["']?submit/i.test(form));
 }
 
 /** Build L3 only from a single fetched page and a page-evidenced owner/contact route. */
