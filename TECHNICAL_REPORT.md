@@ -1,3 +1,7 @@
+## P131.0c — P131.0b hosted verification
+- **OBSERVED:** Core CI `45602637421` passed: 18/18 DAG checks, docs integrity, typecheck, build, migrations and test:core; 1,156/1,162 TAP passed, 0 failed, 6 skipped.
+- **NOT_RUN:** owner-labelled gold replay, WP2 source scorecard, three live acceptance runs and user outcome.
+
 ## P131.0b — Correct C131 CI regressions
 - **OBSERVED:** Core CI `45601500956` passed build/typecheck but failed two repair-stamp assertions; docs allowlist failure also existed on base. WP1 traced 17 modules/26 payloads; live run `85549585` was INFRA_FAIL (20 Serper credit errors, 0 candidates/fetches).
 - **CHANGE:** Generalized patch-stamp validation, synchronized repair stamp, and consolidated C131 under `ROADMAP.md`.
