@@ -1,3 +1,5 @@
+## P131.0d — Hosted verification result
+- Core CI passed after the repair-rule stamp was synchronized in the same commit as package metadata.
 ## P131.0d — Synchronize repair-rule stamp
 - Updated the repair-rule version stamp in the same commit as package metadata after P131.0c CI exposed a stale-stamp mismatch; admission logic unchanged.
 ## P131.0c — Record post-fix verification
