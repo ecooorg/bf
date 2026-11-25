@@ -848,7 +848,6 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           maxLlmCalls: settings.search.maxAiPages,
           search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
           cycle: Number(progress.cycle ?? 0),
-          testMode: progress.testMode === true,
           resume: {
             completedQueryKeys: Array.isArray(progress.completedQueryKeys) ? progress.completedQueryKeys : [],
             discoveryProcessedItems: Number(progress.discoveryProcessedItems) || 0,
