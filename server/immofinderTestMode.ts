@@ -27,7 +27,7 @@ export function applyImmoFinderTestBudget(config: ImmoConfig): ImmoConfig {
     contactEnrichment: config.contactEnrichment
       ? { ...config.contactEnrichment, enabled: false, maxExtraSearchesPerRun: 0, maxReverseImagePerRun: 0 }
       : undefined,
-    runMaxDurationMs: 120_000,
+    runMaxDurationMs: 180_000,
     priorityWaveMs: Math.min(config.priorityWaveMs ?? 45_000, 45_000),
   };
 }
