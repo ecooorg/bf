@@ -1,3 +1,12 @@
+## P131.5g — Accessible settings panel and bounded agent-operated smoke search
+- **OBSERVED / BASELINE:** Settings uses a native details/summary disclosure; user reports it does not expand on the search screen. Latest production Full run completed with 104 candidates, 20 result pages fetched and one L1-only record outside the configured rent ceiling; no L2/L3-qualified record was established.
+- **HYPOTHESIS:** An explicit controlled button/panel with aria-expanded removes native disclosure ambiguity; a secret-gated, dry-run-only bounded test mode enables rapid source/parser iteration without user clicks or listing writes.
+- **METRICS:** Accessible expanded-state contract; deterministic budget tests; source funnel, fetched pages, candidate decisions, duration and estimated Serper cost; full hosted CI.
+- **ACCEPTANCE:** Settings opens/closes by mouse and keyboard; test runs require the existing run secret, force dry-run and Carousel, cap scope/time, skip cleanup/delivery and never persist listing rows or seen-cache entries.
+- **SCOPE:** ImmoFinder UI, pure test-budget helper, run queue metadata/route, owner-only GitHub issue-comment workflow, category tests and patch docs. No changes to listing quality gates or normal Full-run behavior.
+- **ROLLBACK:** Revert UI/route/helper/workflow together; normal manual and scheduled run paths remain unchanged.
+- **CLASSIFICATION:** BUGFIX + DEVELOPER_TOOLING; live smoke results do not count as WP6 Full runs.
+
 ## P131.5e — Prevent stale payload from overwriting the current ImmoFinder core (BUGFIX)
 
 - **OBSERVED / BASELINE:** The main-push `ensure-repair.yml` workflow invokes `immofinder-core-restore.mjs`, which unconditionally writes the P130.16 payload over the current core whenever payload fragments exist.
