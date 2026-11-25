@@ -147,64 +147,27 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf, listedAt, contact };
 }
 
-export type C131GoldLabel =
-  | 'good_tourist_owner'
-  | 'good_direct_offer'
-  | 'wrong_object'
-  | 'agency'
-  | 'wrong_locality'
-  | 'not_listing'
-  | 'other';
-
-export interface C131GoldReplayRecord {
+export interface C131InvariantReplayRecord {
   id: string;
-  label: C131GoldLabel;
-  /** True only when the saved detail page was fetched successfully at capture time. */
+  /** True only when the detail page was fetched successfully at capture time. */
   fetchable: boolean;
   input: TrustAdmissionInput;
-  /** Owner-reviewed reachability/letter readiness; do not infer these from portal contact forms. */
-  ownerReachable?: boolean;
-  letterReady?: boolean;
-  /** One provenance item per captured field; quotes must occur verbatim in the saved page text. */
+  /** Provenance items captured from one saved page; quotes must occur verbatim in pageText. */
   fieldEvidence?: Array<{ field: string; sourceUrl: string; verbatimQuote: string }>;
 }
 
-export interface C131GoldReplayLabelStats {
-  total: number;
-  fetchable: number;
-  admittedL1: number;
-  rejected: number;
-  falsePositive: number;
-  falseNegative: number;
-}
-
-const C131_GOOD_LABELS = new Set<C131GoldLabel>(['good_tourist_owner', 'good_direct_offer']);
-const C131_WRONG_OBJECT_LABELS = new Set<C131GoldLabel>(['wrong_object', 'agency', 'wrong_locality']);
-const C131_GOLD_LABELS = new Set<C131GoldLabel>([
-  'good_tourist_owner', 'good_direct_offer', 'wrong_object', 'agency', 'wrong_locality', 'not_listing', 'other',
-]);
-
 /**
- * Provider-free measurement of the current admission verifier against owner-labelled,
- * saved-page records. This is a scorer only: it never changes runtime admission decisions.
- * The caller is responsible for loading the input from the encrypted snapshot store.
+ * Provider-free invariant replay over saved page evidence. It intentionally has no owner labels,
+ * precision/recall, or quality claims; independent human labels are not available in this programme.
  */
-export function scoreC131GoldReplay(records: readonly C131GoldReplayRecord[]) {
-  if (!Array.isArray(records)) throw new Error('c131_gold_records_must_be_array');
+export function replayC131Invariants(records: readonly C131InvariantReplayRecord[]) {
+  if (!Array.isArray(records)) throw new Error('c131_invariant_records_must_be_array');
   const seenIds = new Set<string>();
-  const perLabel = Object.fromEntries([...C131_GOLD_LABELS].map((label) => [label, {
-    total: 0, fetchable: 0, admittedL1: 0, rejected: 0, falsePositive: 0, falseNegative: 0,
-  }])) as Record<C131GoldLabel, C131GoldReplayLabelStats>;
   const rejectReasons: Record<string, number> = {};
-  let fetchableCount = 0;
+  let fetchable = 0;
   let infrastructureFailures = 0;
-  let truePositive = 0;
-  let falsePositive = 0;
-  let fetchableGood = 0;
-  let fetchableGoodMissed = 0;
   let admittedL1 = 0;
-  let ownerReachableL2 = 0;
-  let letterReadyL3 = 0;
+  let rejected = 0;
   let snippetOnlyAdmitted = 0;
   let acceptedNotFetchable = 0;
   let crossUrlFieldMergeCount = 0;
@@ -214,18 +177,11 @@ export function scoreC131GoldReplay(records: readonly C131GoldReplayRecord[]) {
 
   for (const record of records) {
     if (!record || typeof record.id !== 'string' || !record.id.trim() || seenIds.has(record.id)) {
-      throw new Error('c131_gold_record_id_missing_or_duplicate');
+      throw new Error('c131_invariant_record_id_missing_or_duplicate');
     }
     seenIds.add(record.id);
-    if (!C131_GOLD_LABELS.has(record.label)) throw new Error('c131_gold_label_invalid');
-    if (typeof record.fetchable !== 'boolean' || !record.input) throw new Error('c131_gold_record_shape_invalid');
-
-    const labelStats = perLabel[record.label];
-    labelStats.total++;
-    if (record.fetchable) {
-      fetchableCount++;
-      labelStats.fetchable++;
-    } else infrastructureFailures++;
+    if (typeof record.fetchable !== 'boolean' || !record.input) throw new Error('c131_invariant_record_shape_invalid');
+    if (record.fetchable) fetchable++; else infrastructureFailures++;
 
     const evidence = Array.isArray(record.fieldEvidence) ? record.fieldEvidence : [];
     if (!evidence.length) missingFieldEvidenceCount++;
@@ -241,53 +197,24 @@ export function scoreC131GoldReplay(records: readonly C131GoldReplayRecord[]) {
     const decision = verifyListingAdmission(record.input);
     if (decision.accepted === true) {
       admittedL1++;
-      labelStats.admittedL1++;
-      if (record.label === 'good_tourist_owner' || record.label === 'good_direct_offer') truePositive++;
-      else {
-        falsePositive++;
-        labelStats.falsePositive++;
-      }
       if (record.input.provisional) snippetOnlyAdmitted++;
       if (!record.fetchable) acceptedNotFetchable++;
-      if (record.ownerReachable === true) {
-        ownerReachableL2++;
-        if (record.letterReady === true) letterReadyL3++;
-      }
     } else {
-      labelStats.rejected++;
+      rejected++;
       rejectReasons[decision.reason] = (rejectReasons[decision.reason] || 0) + 1;
-      if (C131_GOOD_LABELS.has(record.label) && record.fetchable) {
-        fetchableGoodMissed++;
-        labelStats.falseNegative++;
-      }
     }
-    if (C131_GOOD_LABELS.has(record.label) && record.fetchable) fetchableGood++;
   }
 
   return {
     total: records.length,
-    fetchable: fetchableCount,
+    fetchable,
     infrastructureFailures,
-    fetchFailureRate: records.length ? infrastructureFailures / records.length : null,
     admittedL1,
-    ownerReachableL2,
-    letterReadyL3,
-    precision: admittedL1 ? truePositive / admittedL1 : null,
-    fetchableGoodRecall: fetchableGood ? (fetchableGood - fetchableGoodMissed) / fetchableGood : null,
-    falsePositiveCount: falsePositive,
-    wrongObjectAgencyWrongLocalityRate: admittedL1
-      ? [...C131_WRONG_OBJECT_LABELS].reduce((sum, label) => sum + perLabel[label].falsePositive, 0) / admittedL1
-      : null,
+    rejected,
     snippetOnlyAdmitted,
     acceptedNotFetchable,
-    provenance: {
-      crossUrlFieldMergeCount,
-      sourceUrlMismatchCount,
-      missingFieldEvidenceCount,
-      unverifiableQuoteCount,
-    },
+    provenance: { crossUrlFieldMergeCount, sourceUrlMismatchCount, missingFieldEvidenceCount, unverifiableQuoteCount },
     rejectReasons,
-    perLabel,
   };
 }
 
