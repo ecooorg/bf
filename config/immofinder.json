@@ -116,7 +116,12 @@
   "fetch": {
     "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
     "perHostDelayMs": 1500,
-    "respectRobotsTxt": true
+    "respectRobotsTxt": true,
+    "browserRenderHosts": [
+      "newhome.ch"
+    ],
+    "browserRenderMinTextChars": 1200,
+    "maxBrowserRendersPerRun": 2
   },
   "schedule": {
     "cron": "0 */3 * * *"
