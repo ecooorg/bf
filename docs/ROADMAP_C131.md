@@ -1,3 +1,6 @@
+## P131.6a dry-run evidence — 2026-11-25
+- First Chur-only all-source profile run `5dc40093-a7be-40f2-82a5-8a5510184bac`: 85 candidates, 2 Serper calls, 3 Homegate detail fetches all HTTP 403, 14 HappyHoliday off-target locality rejects, 0 fetched detail pages, 0 kept, USD 0.002. No listing/cache writes. Next experiment expands the bounded test to all query templates (page cap = min(config cap, query count)), 2 detail pages/source, 2 browser renders and 90 seconds; still one commune and no contact enrichment.
+
 ## P131.6a test-profile clarification — 2026-11-25
 - The owner-only Chur test profile enables every configured source adapter and keeps every configured portal query eligible; the dry-run remains bounded to one commune, 3 result pages, 1 detail page per source, 1 browser render and 60 seconds. It remains dry-run-only with no listing/cache writes.
 

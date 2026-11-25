@@ -1,3 +1,8 @@
+## P131.6a — First Chur all-source dry-run evidence
+- **RUN:** `5dc40093-a7be-40f2-82a5-8a5510184bac` (dry-run). **RESULT:** 85 candidates; 2 Serper calls; 3 Homegate detail fetches returned HTTP 403 challenge; 14 HappyHoliday candidates were outside Chur; 0 detail pages fetched; 0 kept; USD 0.002; no listing/cache writes.
+- **INTERPRETATION:** no quality claim; the admission gate correctly rejected snippet-only records. Source fetchability/coverage remains incomplete.
+- **NEXT:** expand bounded query/page coverage to all query templates, up to 2 detail pages/source and 2 browser renders, 90 seconds; keep one commune, no contact enrichment and dry-run only.
+
 ## P131.6a — Chur test profile automation
 - **CHANGE:** a timing-safe secret-gated endpoint saves a fixed profile (Chur only, every configured source enabled, optional filters and delivery off, manual schedule); the owner-only agent workflow applies it before its bounded dry-run.
 - **SAFETY:** no arbitrary settings input; no listing/seen-cache writes; C131 admission gates and the all-source/3-page/60-second test budget remains bounded.
