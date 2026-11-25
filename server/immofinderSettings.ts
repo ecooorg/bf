@@ -62,7 +62,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
         ...SOURCE_IDS.map((s) => [s, ['search', 'portal-homegate', 'portal-tutti'].includes(s)] as const),
-        ...(cfg.sources || []).map((src) => [src.id, src.id === 'happyholiday'] as const),
+        ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'portal-homegate', 'portal-tutti'].includes(src.id)] as const),
       ]),
       maxAiPages: 40,
       limitPrice: false,
