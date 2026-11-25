@@ -1,3 +1,7 @@
+## P131.0d — Post-merge hosted verification
+- **OBSERVED:** Core CI `45603944574` passed: 18/18 DAG checks, 1,156/1,162 TAP passed, 0 failed; docs integrity, typecheck, build, migrations and test:core passed.
+- **NOT_RUN:** owner-labelled gold replay, WP2 source scorecard, three live acceptance runs and user outcome.
+
 ## P131.0d — Repair-stamp follow-up
 - **OBSERVED:** Core CI `45603279018` failed two test assertions because package patch `131.0c` was ahead of the repair stamp `131.0b.5`; docs, typecheck, build and migrations passed.
 - **CHANGE:** Synchronized `REPAIR_RULES_VERSION` to `131.0d.5` in the same commit as package metadata.
