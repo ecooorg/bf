@@ -476,7 +476,7 @@ test('C131 L1 admits page-grounded residential rentals without price, date or di
   ].join(' ');
   const base = {
     requestedUrl: url, finalUrl: url, title: 'Schöne, sonnige 4.5-Zimmerwohnung',
-    pageText, provisional: false, rooms: 4.5,
+    pageText, municipality: 'Untervaz', municipalities: ['Untervaz'], provisional: false, rooms: 4.5,
     priceMonthlyChf: null, priceUnit: null, priceQuote: null,
     listedAt: null, maxAgeDays: 180, phone: null, email: null,
     contactEvidenceUrls: [], nowMs: Date.parse('2026-11-25T12:00:00Z'),
