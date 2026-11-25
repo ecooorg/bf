@@ -612,7 +612,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         {showAdvanced && (
           <div style={{ marginTop: 10 }}>
             <p style={hint}>Defaults favour private leads. Tighten only if results are noisy.</p>
-            <p style={{ ...hint, marginBottom: 8 }}>C131 keeps seeker posts, sales, non-residential pages and unverified room counts out of L1. Price period and direct owner contact are optional evidence, not user filters.</p>
+            <p style={{ ...hint, marginBottom: 8 }}>C131 rejects seekers, sales, non-residential pages and unverified rooms. Price periods and direct contact stay optional.</p>
             <label style={labelBlock}>
               <input type="checkbox" checked={s.search.requirePrice}
                 onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requirePrice: e.target.checked } }))}
