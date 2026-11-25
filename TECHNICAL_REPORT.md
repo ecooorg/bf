@@ -1,3 +1,7 @@
+## P131.4a — Hosted verification
+- **PASS:** Core CI `45633920254`: 18/18 DAG checks, 0 failures/timeouts/blocked; Answer Quality `45633920285` passed; live smoke skipped.
+- **NOT_RUN:** Configured-fetcher pilot, production deployment, three live WP6 runs and owner review.
+
 ## P131.4 — L3 HTML evidence and CI correction
 - **OBSERVED:** Core CI `45630696024` failed typecheck at pipeline lines 621/629; platform-form verification also consumed text instead of HTML.
 - **CHANGE:** Preserve fetched HTML and verify the same-page contact form; add positive/negative L3 tests.
