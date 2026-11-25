@@ -1,3 +1,11 @@
+## C131 execution status — P131.5e (2026-11-25)
+- **WP0–WP1:** DONE for approved rules and available no-label evidence.
+- **WP2:** PARTIAL; configured-fetcher pilot/yield/cost not measured.
+- **WP3–WP4:** PARTIAL; page-grounded pipeline and L3/INFRA_FAIL contracts implemented; production behavior not verified.
+- **WP5:** IN PROGRESS; automatic stale-core overwrite guarded; encrypted snapshot restore and legacy-consumer retirement NOT_RUN.
+- **WP6:** NOT_RUN; deployed runtime and manual Full runs unverified.
+- **WP7:** NOT_TRIGGERED; no measured WP6 recall gap.
+
 ## C131 execution status — P131.5d (2026-11-25)
 - **WP0:** DONE; owner-approved constitution and no-Gold amendment recorded.
 - **WP1:** DONE for available evidence; deterministic no-label baseline and historical diagnostics retained.
