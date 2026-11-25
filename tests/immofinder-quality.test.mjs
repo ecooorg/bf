@@ -995,13 +995,13 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
     contactEnrichment: { enabled: true, maxExtraSearchesPerRun: 12, maxReverseImagePerRun: 5 },
   };
   const bounded = applyImmoFinderTestBudget(original);
-  assert.equal(bounded.sources.length, Math.min(3, original.sources.length));
+  assert.equal(bounded.sources.length, original.sources.length, 'all configured source adapters remain in the bounded test');
   assert.equal(bounded.discovery?.communesPerRun, 1);
   assert.ok((bounded.discovery?.resultsPerQuery ?? 99) <= 3);
   assert.ok((bounded.discovery?.maxPagesPerRun ?? 99) <= 3);
   assert.ok((bounded.discovery?.maxCandidatesPerQuery ?? 99) <= 3);
   assert.equal(bounded.discovery?.queries.length, 1);
-  assert.equal(bounded.discovery?.portalQueries?.[0]?.includes('newhome.ch'), true);
+  assert.deepEqual(bounded.discovery?.portalQueries, original.discovery.portalQueries, 'all enabled portal queries remain eligible within the page cap');
   assert.ok(bounded.limits.maxDetailPagesPerSource <= 1);
   assert.equal(bounded.sources.every((source) => source.maxDetailPages === 1), true);
   assert.equal(bounded.fetch.maxBrowserRendersPerRun, 1);
