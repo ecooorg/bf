@@ -1,3 +1,9 @@
+## P131.7 — Reject shared-flat seeker posts before L1 admission
+- **OBSERVED:** dry-run `daab22a7-7e7f-4a87-9418-9754a85095d5`: 179 candidates, 15 Serper calls, 5 fetched detail pages, 1 L1 admission from Flatfox, 0 L2, USD 0.015. The admitted page described a WG/flatshare seeking new people; owner was not verified. This is a seeker/roommate request, not a private rental offer. No listing/cache writes.
+- **HYPOTHESIS:** extend the generic seeker classifier to detect a shared-flat/household seeking roommates, even when the title itself looks like a rental offer in another language.
+- **METRICS:** existing ImmoFinder quality and verify suites; assert `trust_seeker_post` for generic WG-seeker text and preserve normal 4-room rental offers; run bounded Chur dry-run after deploy.
+- **ACCEPTANCE:** shared-flat seeker pages are rejected; ordinary owner rental offers remain eligible; no other C131 admission gates are weakened; no example-specific phrase is embedded in code.
+
 ## P131.6a — Extend the bounded all-query window to 120 seconds
 - **OBSERVED:** run `92ced2d0-fdd2-4311-8732-c8b0e20d5847`: 86 candidates, 4/17 Serper queries, 5 index pages, 0 detail pages fetched, 0 kept, 4 snippet-only rejects, 14 out-of-commune rejects, Homegate and Tutti HTTP 403. Search stopped with 13 queries left because only 33 seconds remained under the 90-second cap and the pipeline reserves 45 seconds for later work.
 - **HYPOTHESIS:** raise only the bounded test ceiling to 120 seconds. With the existing 45-second reserve, this gives up to 75 seconds for the 17 configured queries; the 20/min provider cap, one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders and no enrichment remain.
