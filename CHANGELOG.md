@@ -1,6 +1,6 @@
 ## P131.5b — Verify deployment identity after ImmoFinder releases
 - Added a bounded health check on main pushes affecting ImmoFinder code/config or patch metadata; it uses the existing read-only Render/log and health probe, not deployment writes.
-- Added workflow-contract coverage; live health result is recorded separately from CI.
+- Recorded latest health evidence: production version `130` / commit `2ee99cb`, 369 commits behind main; post-release result remains pending.
 
 ## P131.5 — Distinguish provider outage from a zero-result search
 - Persisted `INFRA_FAIL` when every Serper call fails before any candidate/page is processed; the ImmoFinder run summary now says this is not a quality result.
