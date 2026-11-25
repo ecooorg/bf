@@ -1,3 +1,7 @@
+# C131 owner amendment — 2026-11-25 (D-2026-11-25-03)
+
+The Navigator has confirmed that no 60-record owner-labelled Gold Set or further owner labels will be supplied. This is not a project blocker. WP1 uses existing run/event diagnostics, sanitized public-page evidence in the repository and deterministic provider-free invariant tests. No labels are fabricated and no precision/recall claims are made without independent labels. WP3/WP4 may proceed after this no-label baseline and the existing WP2 public scorecard; configured-fetcher pilot measurements remain required before source-tier promotion. WP6 live runs remain distinct from CI. WP7 is conditional on an observed live recall gap.
+
 ## C131 — ImmoFinder reset: one objective, one engine, one measurable rule set (PLAN recorded 2026-11-25; code NOT_STARTED)
 
 - Status: programme recorded from the owner-requested audit of P128–P130 (`audit_immofinder.docx`, owner upload, 2026-11-25) plus assistant proposals marked **[A]**. Nothing below is implemented or verified; every live outcome is `NOT_RUN`. Owner approval of WP0 is required before normative text (`TECHNICAL_SPECIFICATION.md` P128, `docs/DECISIONS.md`, `config/immofinder.json` `quality`) is changed. Cycle identity: version `131`, first product patch `131.1`; this record is non-product and does not change `package.json`.
@@ -43,12 +47,12 @@ New directory `server/immofinder/` (target: at most 8 modules and at most 50% of
 
 ### 4. Work packages
 
-Order: WP0 → (WP1 ‖ WP2) → WP3 → WP4 → WP5 → WP6; WP7 only on evidence. No engine code before the WP1 baseline and the WP2 scorecard exist (C127 rule 1). Patch numbers are assigned per `AGENTS.md` §2 when shipped. New checks go into existing category suites from `docs/TEST_MAP.md`; no per-patch test files.
+Order: WP0 → (WP1 ‖ WP2) → WP3 → WP4 → WP5 → WP6; WP7 only on evidence. No engine code before the available-evidence WP1 baseline and WP2 public scorecard are recorded (C127 rule 1); owner-labelled Gold data is explicitly not part of this programme. Patch numbers are assigned per `AGENTS.md` §2 when shipped. New checks go into existing category suites from `docs/TEST_MAP.md`; no per-patch test files.
 
 | WP | Class | Content | Exit evidence |
 |---|---|---|---|
 | WP0 | MAINTENANCE (owner decision) | Record decision superseding the P130.17 gate and the "current long-term offers" wording in the ImmoFinder quality section of `docs/ARCHITECTURE.md`; replace the P128 criteria text in `TECHNICAL_SPECIFICATION.md` with the constitution of section 2; re-define `quality` in `config/immofinder.json`. | Owner yes/no on R1–R14 and open questions below; docs integrity check; hosted CI `NOT_RUN` until run. |
-| WP1 | EXPERIMENT | EXPERIMENTS entry; gold set of at least 60 records (DB export, run `072836e3`, historical good and bad cases) labelled by the owner: `good_tourist_owner`, `good_direct_offer`, `wrong_object`, `agency`, `wrong_locality`, `not_listing`, `other`; snapshot store and offline replay harness that runs without provider keys; baseline of the current engine on the gold set (offline where snapshots exist, plus one live run) with owner-labelled precision; in-UI good/bad button with reason feeding the gold set [A]; reference trace of the 17 modules and the 26 leftover files. | Baseline numbers recorded; harness green in CI without keys; deletion candidates listed with reference evidence. |
+| WP1 | EXPERIMENT | EXPERIMENTS entry; existing run/event diagnostic inventory (`072836e3`, `85549585` and retained runs); inventory of the ten sanitized Tutti/Homegate page-evidence records; provider-free invariant replay over retained fixtures (no owner labels, no precision/recall claim); reference trace of the 17 modules and 26 transport leftovers. No in-UI labelling workflow or owner-labelled holdout. | Operational baseline and invariant results recorded; harness green in CI without provider keys; deletion candidates listed with reference evidence. |
 | WP2 | EXPERIMENT (measurement only) | Per-source scorecard for the 3 configured catalogs and 13 portals plus candidates [A]: owner-profile pages, municipality and tourism-organisation holiday-home listings. Per source: fetchability (HTTP status, robots, JS), detail-page structure, owner/contact exposure, private/agency marking, coverage of the 44 localities, request cost. Bounded request budget; no answer-path code. | Scorecard in `docs/EXPERIMENTS.md`; owner picks tier-1 (at most 5 sources) and sets the volume target (N L2 leads per run) from observed catalog size; decision whether Serper stays as detail-URL discovery. |
 | WP3 | USER_VALUE | Engine of section 3 for tier-1 sources: adapters, `access`, `classify`, `run`; deterministic extraction; reject taxonomy; run report with R8 counters. | Offline gold replay meets section 5 offline thresholds; typecheck/build/CI results recorded as such. |
 | WP4 | USER_VALUE | `owner` routine, contact routes, platform-contact instructions, two letter templates, verifier. | L2/L3 correct on gold fixtures; owner reads at least 10 generated letters. |
@@ -58,7 +62,7 @@ Order: WP0 → (WP1 ‖ WP2) → WP3 → WP4 → WP5 → WP6; WP7 only on eviden
 
 ### 5. Acceptance (proposed thresholds; owner confirms in WP0)
 
-- Offline gold replay: zero records with fields from more than one URL; zero snippet-only L1+ records; recall of at least 90% on owner-labelled good records whose page can be fetched; `wrong_object`, `agency` and `wrong_locality` together at most 5% of L1+.
+- Offline invariant replay: zero fields sourced from multiple URLs; zero snippet-only L1+; zero L1 locality admitted from URL/snippet alone. Precision, recall and false-positive percentages are NOT_MEASURED without independent labels.
 - Live (WP6): the same precision on owner-reviewed records; at least N L2 leads per run with N set after WP2; at most 40 Serper queries per run (baseline 152 on 2026-11-22); cost per L1 and per L2 reported; `INFRA_FAIL` runs not counted as quality results.
 - Size and structure: engine plus delivery at most 50% of the 434 KB baseline; single pipeline path.
 - Green CI or gold replay is not user value; user value stays `NOT_RUN` until the owner has reviewed live records (`AGENTS.md` G5).

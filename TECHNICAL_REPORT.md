@@ -1,3 +1,8 @@
+## P131.1c — C131 no-Gold execution amendment
+- **DECISION:** Owner labels/60-record Gold Set will not be supplied; use repo diagnostics and invariant fixtures, with no precision/recall claims.
+- **CORRECTION:** Short-stay contact helper already returns null; plan path docs/ROADMAP_C131.md exists.
+- **NOT_RUN:** Configured fetcher pilot, production snapshot/deploy and WP6 live acceptance.
+
 ## P131.1b — C131 WP4/WP5 source audit (2026-11-25)
 - **OBSERVED:** R2 locality can fall back to URL evidence; short-stay direct-contact rejection and enabled enrichment conflict with delegated policy. Legacy-row quarantine and complete L3 acceptance are not established.
 - **CHANGE:** Added a pre-change experiment gate and updated C131 status; no runtime or database code changed.

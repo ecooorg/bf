@@ -1,3 +1,14 @@
+## C131 — owner-directed no-Gold execution and trust-boundary correction (2026-11-25; pre-code gate)
+
+- **PROBLEM / OBSERVED:** No owner-labelled Gold Set will be supplied. Existing repo evidence is usable without inventing labels: run 072836e3 has 620 events / 93 candidates / 72 fetched / 6 historically retained (audit review found none acceptable); run 85549585 records Serper credit exhaustion and zero candidates/fetches; ten sanitized portal evidence records exist in tests. These are operational/fixture observations, not a labelled holdout.
+- **CORRECTION TO PRIOR AUDIT:** `shortStayContactReason` currently returns `null`; the earlier P131.1b audit incorrectly described a live direct-contact rejection. Do not change this helper. The verified gaps are URL-derived locality admission and contact enrichment enabled by configuration.
+- **HYPOTHESIS:** The final L1 boundary will require locality evidence in the fetched detail page itself, never URL/snippet inference; enrichment will be off by default. Existing deterministic tests will assert both invariants without claiming labelled precision/recall.
+- **METRICS:** page-grounded locality pass/reject; snippet-only and cross-URL admission counts; fixture-contract pass rate; source-index/detail fetch counts; per-source fetchability, L1/L2, Serper calls and spend when observed; enrichment calls.
+- **ACCEPTANCE:** zero L1 locality sourced only from URL/search metadata; zero snippet-only L1+; no field provenance crossing URLs; enrichment defaults to zero extra searches/reverse-image calls; existing ImmoFinder category CI green. No precision/recall claim without independent labels.
+- **SCOPE:** TrustEngine, pipeline locality provenance, config enrichment defaults, existing ImmoFinder category suites, version and concise history. No source expansion, no synthetic Gold labels, no production DB mutation or legacy deletion.
+- **ROLLBACK:** revert if valid page-grounded locality fixtures are rejected, URL-only locality can pass, snippet-only records pass, or configured default spend exceeds the C131 cap.
+- **CLASSIFICATION:** BUGFIX + RELIABILITY. **BASELINE:** 072836e3 and 85549585 historical diagnostics; current invariant baseline is covered by existing contract tests. Code edits follow this entry.
+
 ## C131 WP4/WP5 implementation audit — 2026-11-25 (pre-change gate)
 
 - **OBSERVED:** The current pipeline derives a missing locality from the listing URL before admission, while the final trust verifier does not receive or verify locality; this can admit an L1 record without R2 page-grounded locality. The post-admission short-stay check still rejects records without direct phone/email, contrary to R2 optional-contact policy. contactEnrichment remains enabled with 35 secondary searches and 10 reverse-image lookups, contrary to the delegated default-off decision and the 20-query Serper ceiling.
