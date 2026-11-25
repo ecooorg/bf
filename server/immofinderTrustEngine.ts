@@ -4,6 +4,7 @@ import {
   isPlausibleEmail,
   isPlausibleSwissPhone,
   isSeekerPost,
+  matchMunicipality,
   normPhone,
   parsePrice,
   parseRooms,
@@ -15,6 +16,8 @@ export interface TrustAdmissionInput {
   finalUrl: string | null | undefined;
   title: string;
   pageText: string;
+  municipality: string | null;
+  municipalities: string[];
   provisional: boolean;
   rooms: number | null;
   priceMonthlyChf: number | null;
@@ -32,6 +35,8 @@ export type TrustRejectReason =
   | 'trust_snippet_only'
   | 'trust_fetch_url_unverified'
   | 'trust_page_too_short'
+  | 'trust_locality_missing'
+  | 'trust_locality_conflict'
   | 'trust_not_rental'
   | 'trust_not_residential'
   | 'trust_for_sale'
@@ -91,6 +96,9 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   if (input.provisional) return reject('trust_snippet_only');
   if (!input.finalUrl || !sameListingUrlTarget(input.requestedUrl, input.finalUrl)) return reject('trust_fetch_url_unverified');
   if (text.length < 120) return reject('trust_page_too_short');
+  const pageMunicipality = matchMunicipality(full, input.municipalities || []);
+  if (!pageMunicipality || !input.municipality) return reject('trust_locality_missing');
+  if (pageMunicipality !== input.municipality) return reject('trust_locality_conflict');
   if (isForSaleListing(input.title, text, input.requestedUrl)) return reject('trust_for_sale');
   if (isSeekerPost(input.title, text)) return reject('trust_seeker_post');
   if (isListingUnavailable(input.title, text)) return reject('trust_listing_unavailable');
