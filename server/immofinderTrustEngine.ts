@@ -33,6 +33,7 @@ export type TrustRejectReason =
   | 'trust_fetch_url_unverified'
   | 'trust_page_too_short'
   | 'trust_not_rental'
+  | 'trust_not_residential'
   | 'trust_for_sale'
   | 'trust_seeker_post'
   | 'trust_listing_unavailable'
@@ -48,7 +49,7 @@ export type TrustRejectReason =
   | 'trust_contact_not_page_attributed'
   | 'trust_contact_not_advertiser';
 
-export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: number; listedAt: string; contact: 'phone' | 'email' } | { accepted: false; reason: TrustRejectReason };
+export type TrustAdmission = { accepted: true; rooms: number; monthlyRentChf: number | null; listedAt: string | null; contact: 'phone' | 'email' | 'platform_only' } | { accepted: false; reason: TrustRejectReason };
 
 /**
  * Final admission boundary. Search results, model output, enrichment pages and stored
@@ -70,57 +71,73 @@ function hasAdvertiserContactContext(text: string, value: string, kind: 'phone' 
   return labels.test(text.slice(Math.max(0, match.index - 120), Math.min(text.length, match.index + match[0].length + 100)));
 }
 
+function isResidentialDetail(title: string, text: string): boolean {
+  const h = String(title) + '\n' + String(text || '').slice(0, 2500);
+  if (/\b(wg[- ]?zimmer|zimmer\s+in\s+(?:einer\s+)?wg|shared\s+room|room\s+in\s+shared|chambre\s+en\s+colocation|camera\s+condivisa)\b/i.test(h)) return false;
+  if (/^\s*(?:parkplatz|stellplatz|garage|büro|gewerbe|geschäftsfläche|ladenfläche|lager(?:raum|halle)?|atelier|praxis)\b/i.test(title)) return false;
+  if (/\b(?:objekttyp|property\s*type|type)\s*[:：]\s*(?:büro|gewerbe|geschäftsfläche|ladenfläche|lager|atelier|praxis|parking|garage)\b/i.test(h)) return false;
+  return /\b(wohnung|wohnhaus|haus|chalet|ferienwohnung|ferienhaus|apartment|flat|house|maison|appartement|casa|abitazione)\b/i.test(h);
+}
+
+/**
+ * C131 L1 admission: one fetched identity-matched detail page, explicit room count,
+ * target-residential rental and no known reject condition. Price, date and direct
+ * contact enrich the card but never determine whether the listing exists.
+ */
 export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmission {
   const reject = (reason: TrustRejectReason): TrustAdmission => ({ accepted: false, reason });
   const text = String(input.pageText || '').trim();
+  const full = String(input.title) + '\n' + text;
   if (input.provisional) return reject('trust_snippet_only');
   if (!input.finalUrl || !sameListingUrlTarget(input.requestedUrl, input.finalUrl)) return reject('trust_fetch_url_unverified');
   if (text.length < 120) return reject('trust_page_too_short');
   if (isForSaleListing(input.title, text, input.requestedUrl)) return reject('trust_for_sale');
   if (isSeekerPost(input.title, text)) return reject('trust_seeker_post');
   if (isListingUnavailable(input.title, text)) return reject('trust_listing_unavailable');
-  if (!/(mieten|vermieten|mietwohnung|zur\s+miete|zu\s+vermieten|loyer|à\s+louer|louer|affitto|in\s+affitto|for\s+rent|rent\s+out|to\s+let)/i.test(input.title + '\n' + text)) return reject('trust_not_rental');
+  if (!isResidentialDetail(input.title, text)) return reject('trust_not_residential');
+  if (!/(mieten|miete|vermieten|mietwohnung|zur\s+miete|zu\s+vermieten|loyer|à\s+louer|louer|affitto|in\s+affitto|for\s+rent|rent\s+out|to\s+let|ferienwohnung|ferienhaus|holiday\s+rental|vacation\s+rental|unterkunft)/i.test(full)) return reject('trust_not_rental');
 
   const pageRooms = parseRooms(text);
-  if (!pageRooms || !(pageRooms.rooms > 0)) return reject('trust_rooms_missing');
+  if (!pageRooms || pageRooms.basis !== 'zimmer' || pageRooms.rooms < 3) return reject('trust_rooms_missing');
   if (input.rooms == null || Math.abs(pageRooms.rooms - input.rooms) > 0.01) return reject('trust_rooms_conflict');
 
-  if (!(Number(input.priceMonthlyChf) > 0)) return reject('trust_monthly_price_missing');
-  const quote = String(input.priceQuote || '').trim();
-  if (!quote || !text.includes(quote)) return reject('trust_price_quote_missing');
-  if (input.priceUnit !== 'month' || !/(?:CHF|Fr\.?|SFr\.?)/i.test(quote) ||
-      !/(?:\b(?:pro\s+Monat|im\s+Monat|monatlich|Monatsmiete|Mietzins|Nettomiete|Bruttomiete|mtl\.?|\/\s*(?:Monat|Mt\.?|month)|per\s+month|par\s+mois)\b)/i.test(quote)) {
-    return reject('trust_price_not_monthly_chf');
-  }
-  const parsedPrice = parsePrice(quote);
-  if (!parsedPrice || parsedPrice.unit !== 'month' || parsedPrice.monthlyChf !== input.priceMonthlyChf) return reject('trust_price_not_monthly_chf');
-
-  if (!input.listedAt) return reject('trust_publication_date_missing');
-  const published = new Date(input.listedAt);
-  if (!Number.isFinite(published.getTime())) return reject('trust_publication_date_missing');
   const now = input.nowMs ?? Date.now();
-  if (published.getTime() > now + 24 * 60 * 60 * 1000) return reject('trust_publication_date_future');
-  if (now - published.getTime() > (input.maxAgeDays > 0 ? input.maxAgeDays : 180) * 86400000) return reject('trust_listing_stale');
+  let listedAt: string | null = null;
+  if (input.listedAt) {
+    const published = new Date(input.listedAt);
+    if (Number.isFinite(published.getTime())) {
+      if (published.getTime() > now + 24 * 60 * 60 * 1000) return reject('trust_publication_date_future');
+      listedAt = published.toISOString();
+    }
+  }
 
-  const phone = input.phone ? normPhone(input.phone) : null;
-  const validPhone = Boolean(phone && isPlausibleSwissPhone(phone));
-  const email = input.email ? input.email.trim().toLowerCase() : null;
-  const validEmail = Boolean(email && isPlausibleEmail(email));
-  if (!validPhone && !validEmail) return reject('trust_contact_missing');
-  if (!(validPhone && phone && hasAdvertiserContactContext(text, phone, 'phone')) && !(validEmail && email && hasAdvertiserContactContext(text, email, 'email'))) return reject('trust_contact_not_advertiser');
+  let monthlyRentChf: number | null = null;
+  const quote = String(input.priceQuote || '').trim();
+  if (quote && text.includes(quote)) {
+    const parsedPrice = parsePrice(quote);
+    if (parsedPrice?.unit === 'month' && parsedPrice.monthlyChf != null &&
+        input.priceMonthlyChf != null && parsedPrice.monthlyChf === input.priceMonthlyChf) {
+      monthlyRentChf = parsedPrice.monthlyChf;
+    }
+  }
+
   const pageUrl = input.finalUrl;
-  const attributed = input.contactEvidenceUrls.some((url) => {
+  const attributed = (url: string) => {
     try {
       const a = new URL(url); const b = new URL(pageUrl);
       return a.origin === b.origin && a.pathname === b.pathname;
     } catch { return false; }
-  });
-  if (!attributed) return reject('trust_contact_not_page_attributed');
-
-  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf: input.priceMonthlyChf, listedAt: published.toISOString(), contact: validPhone && phone && hasAdvertiserContactContext(text, phone, 'phone') ? 'phone' : 'email' };
+  };
+  const phone = input.phone ? normPhone(input.phone) : null;
+  const validPhone = Boolean(phone && isPlausibleSwissPhone(phone) && hasAdvertiserContactContext(text, phone, 'phone') &&
+    input.contactEvidenceUrls.some(attributed));
+  const email = input.email ? input.email.trim().toLowerCase() : null;
+  const validEmail = Boolean(email && isPlausibleEmail(email) && hasAdvertiserContactContext(text, email, 'email') &&
+    input.contactEvidenceUrls.some(attributed));
+  const contact = validPhone ? 'phone' : validEmail ? 'email' : 'platform_only';
+  void input.maxAgeDays;
+  return { accepted: true, rooms: pageRooms.rooms, monthlyRentChf, listedAt, contact };
 }
-
-
 
 export type C131GoldLabel =
   | 'good_tourist_owner'
