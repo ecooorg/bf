@@ -1,3 +1,6 @@
+## P131.7a — Extend bounded Chur test duration to 180 seconds
+- Allow the full configured query set more time while preserving page, candidate, detail-fetch, browser, provider-rate and no-write limits.
+
 ## P131.7 — Reject shared-flat seeker posts
 - Classify shared-household pages that are seeking occupants as seeker posts before L1 admission; retain ordinary rental offers.
 
