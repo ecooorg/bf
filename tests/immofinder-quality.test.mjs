@@ -10,6 +10,15 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
+test('P131.5e automatic repair preserves the current core unless force restore is explicit', () => {
+  const restore = read('scripts/immofinder-core-restore.mjs');
+  assert.match(restore, /existsSync\(target\) && process\.env\.FORCE_IMMOFINDER_CORE_RESTORE !== '1'/);
+  assert.match(restore, /writeFileSync\(target, buf\)/);
+  assert.match(restore, /Current immofinderCore\.ts preserved/);
+  const workflow = read('.github/workflows/ensure-repair.yml');
+  assert.match(workflow, /node scripts\/ensure-repair\.mjs/);
+});
+
 test('P131.0a C131 constitution config preserves approved result and evidence rules', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const q = cfg.quality;
