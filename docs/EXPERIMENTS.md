@@ -1,3 +1,8 @@
+## P131.6a — Extend the bounded all-query window to 120 seconds
+- **OBSERVED:** run `92ced2d0-fdd2-4311-8732-c8b0e20d5847`: 86 candidates, 4/17 Serper queries, 5 index pages, 0 detail pages fetched, 0 kept, 4 snippet-only rejects, 14 out-of-commune rejects, Homegate and Tutti HTTP 403. Search stopped with 13 queries left because only 33 seconds remained under the 90-second cap and the pipeline reserves 45 seconds for later work.
+- **HYPOTHESIS:** raise only the bounded test ceiling to 120 seconds. With the existing 45-second reserve, this gives up to 75 seconds for the 17 configured queries; the 20/min provider cap, one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders and no enrichment remain.
+- **ACCEPTANCE:** run has up to 17 query pages, never exceeds config page cap, 120 seconds, or provider rate limit; dry-run/no listing writes; no snippet-only L1.
+
 ## P131.6a — Expand the all-source Chur dry-run after first evidence
 - **OBSERVED:** run `5dc40093-a7be-40f2-82a5-8a5510184bac`: 85 candidates, 2 Serper queries, 3 detail fetch attempts, 3 HTTP 403 challenge responses, 14 off-target HappyHoliday candidates, 0 fetched detail pages, 0 kept, USD 0.002. The test profile was correctly Chur-only and all source flags were true, but the harness still limited discovery to 3 pages and one private query.
 - **HYPOTHESIS:** let all configured private/portal queries run within a finite page cap derived from query count; allow up to 2 detail pages/source and 2 browser renders; extend the hard timeout to 90 seconds. Keep one commune, max 3 candidates/query, no contact enrichment, dry-run/no writes.
