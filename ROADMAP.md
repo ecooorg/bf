@@ -1,3 +1,12 @@
+## C131 execution status — P131.2 (2026-11-25)
+- **WP1:** no-label baseline accepted under D-2026-11-25-03; historical run diagnostics and deterministic invariant fixtures used, no precision/recall claim.
+- **WP2:** public source scorecard recorded; configured-fetcher yield/cost pilot remains NOT_RUN.
+- **WP3:** P131.1 legacy pipeline now requires page-grounded locality at final admission; isolated engine architecture remains outstanding.
+- **WP4:** L2 route logic exists; complete L3 anti-fabrication verifier remains outstanding.
+- **WP5:** not complete; legacy deletion awaits production backup and restore-consumer retirement.
+- **WP6:** not run; deployment and three live runs remain outstanding.
+- **WP7:** conditional on measured WP6 recall gap; not yet triggered.
+
 ## C131 owner-directed execution update — 2026-11-25 (P131.1c)
 
 - **Gold Set:** removed as an execution prerequisite by D-2026-11-25-03. Use existing run diagnostics, sanitized public-page evidence and deterministic contract tests; never fabricate labels or claim precision/recall.
