@@ -4,6 +4,11 @@
 - WP2 source scorecard and WP6 consecutive live Full runs remain open; WP7 conditional on a measured recall gap.
 
 ## P131.5j implementation status — 2026-11-25
+- PR #89 Core CI/Render build failure traced to `testMode` being passed to `PipelineDeps` rather than `PipelineOptions`.
+- P131.5j moves the flag to the correct options object; regression test asserts the contract. Awaiting hosted CI and production redeploy.
+- WP2 source scorecard and WP6 consecutive live Full runs remain open; WP7 conditional on a measured recall gap.
+
+## P131.5j implementation status — 2026-11-25
 - PR #89 introduced/combined a `PipelineDeps` type error; Core CI typecheck/build failed and Render build `6e3beb2` failed. Last successful Render deployment remains active.
 - P131.5j removes the unused `testMode` dependency field; test-mode state continues through queued progress and config budgeting.
 - WP2 source scorecard and WP6 consecutive live Full runs remain open; WP7 conditional on a measured recall gap.
