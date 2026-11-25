@@ -1014,6 +1014,7 @@ test('P131.5i browser rendering is host-allowlisted and skips anti-bot challenge
 test('P131.5i carousel test mode enforces the candidate cap and durable retry SQL is typed', () => {
   const pipeline = read('server/immofinderPipeline.ts');
   assert.match(pipeline, /opts\.testMode \? Math\.min\(cfg\.discovery\?\.maxPagesPerRun \?\? 3, 3\)/);
+  assert.match(pipeline, /runPipeline\(deps: PipelineDeps, opts: \{ dryRun: boolean; wave\?: RunWave; testMode\?: boolean \}\)/);
   assert.match(pipeline, /if \(processedItems >= pageLimit\)/);
   const route = read('server/immofinderRoutes.ts');
   assert.match(route, /testMode: progress\.testMode === true/);
