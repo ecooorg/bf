@@ -1,3 +1,6 @@
+## P131.5j correction — Preserve PipelineOptions testMode
+- Pass the bounded test flag in the `runPipeline` options argument, not the dependency object.
+
 ## P131.5j — PipelineDeps type correction
 - Remove the unused `testMode` field from the `runPipeline` dependency object; retain queued test-mode behavior.
 
