@@ -920,6 +920,10 @@ export function isSeekerPost(title: string, text: string): boolean {
   // A shared household explicitly seeking people is a seeker post, not a private rental offer.
   if (/\b(?:wg|wohngemeinschaft)\b[\s\S]{0,180}\b(?:sucht|suchen|gesucht)\b/i.test(h) ||
       /\b(?:sucht|suchen|gesucht)\b[\s\S]{0,180}\b(?:wg|wohngemeinschaft)\b/i.test(h)) return true;
+  const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
+  // A shared household explicitly seeking people is a seeker post, not a private rental offer.
+  if (/\b(?:wg|wohngemeinschaft)\b[\s\S]{0,180}\b(?:sucht|suchen|gesucht)\b/i.test(h) ||
+      /\b(?:sucht|suchen|gesucht)\b[\s\S]{0,180}\b(?:wg|wohngemeinschaft)\b/i.test(h)) return true;
   // Clear offer title wins: "… zu vermieten" without demand language.
   if (/\bzu\s+vermieten\b/i.test(tOnly) && !/\bgesucht\b/i.test(tOnly)) return false;
   if (/\bvermiete\b/i.test(tOnly) && !/\b(suche|gesucht)\b/i.test(tOnly)) return false;
