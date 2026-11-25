@@ -20,7 +20,7 @@ jobs:
       - name: Trigger a bounded dry-run against production
         id: trigger
         env:
-          BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          BASE_URL: https://bf-3tqo.onrender.com
           RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
           GH_TOKEN: ${{ github.token }}
           GH_REPOSITORY: ${{ github.repository }}
