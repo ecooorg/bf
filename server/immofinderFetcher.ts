@@ -8,9 +8,9 @@ export function isShortPageBrowserCandidate(
   textChars: number,
   fetchConfig: Pick<ImmoConfig['fetch'], 'browserRenderHosts' | 'browserRenderMinTextChars'>,
 ): boolean {
-  const host = hostname.replace(/^www\\./i, '').toLowerCase();
+  const host = hostname.replace(/^www\./i, '').toLowerCase();
   const minChars = Math.max(120, Math.floor(fetchConfig.browserRenderMinTextChars ?? 1200));
-  const allowed = (fetchConfig.browserRenderHosts ?? []).map((value) => value.replace(/^www\\./i, '').toLowerCase());
+  const allowed = (fetchConfig.browserRenderHosts ?? []).map((value) => value.replace(/^www\./i, '').toLowerCase());
   return textChars >= 120 && textChars < minChars && allowed.some((value) => host === value || host.endsWith('.' + value));
 }
 
