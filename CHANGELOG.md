@@ -1,3 +1,6 @@
+## P131.5h — Bounded test trigger correction
+- Accept secret-gated test flags via query; bounded dry-run now covers source-first Full path.
+
 ## P131.5g — Accessible settings and agent-operated short search
 - Replaced native Settings disclosure with an explicit accessible button/panel state.
 - Added secret-gated dry-run test mode capped at 3 sources, 1 commune, 3 result pages, 2 detail pages per source and 90 seconds; listing cleanup and contact enrichment are disabled.
