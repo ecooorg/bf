@@ -1,3 +1,7 @@
+## P131.6 — ImmoFinder settings and test profile
+- **CHANGE:** expose optional price/contact controls, all five configured catalogues and a reset-to-Chur/all-source preset; keep C131 hard admission rules.
+- **NOT_RUN:** authenticated production settings mutation, hosted CI, deployed browser check and live listing-quality run.
+
 ## P131.5j — PipelineOptions contract correction
 - **OBSERVED:** PR #89 Core CI failed TS2353 because the route passed `testMode` to `PipelineDeps`; the pipeline declares and consumes it on `PipelineOptions`. Render build for `6e3beb2` failed; previous live deployment was retained. **CHANGE:** move the flag to the second `runPipeline` argument and assert the dependency object remains clean. **NOT_RUN:** hosted CI and redeploy after correction.
 
