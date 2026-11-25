@@ -39,7 +39,7 @@ test('C131 TrustEngine admits same-page residential rentals when price, date and
   const url = 'https://example.ch/listing/123456';
   const quote = "CHF 1'450.– pro Monat";
   const pageText = [
-    '3.5 Zimmer Wohnung zu vermieten',
+    '3.5 Zimmer Wohnung zu vermieten in Chur',
     'Inseriert am: 20.11.2026',
     'Verfügbar ab sofort. Helle Wohnung mit Balkon und eigener Küche.',
     quote,
@@ -48,7 +48,7 @@ test('C131 TrustEngine admits same-page residential rentals when price, date and
   ].join('\\n');
   const input = {
     requestedUrl: url, finalUrl: url, title: '3.5 Zimmer Wohnung zu vermieten', pageText,
-    provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: quote,
+    municipality: 'Chur', municipalities: ['Chur'], provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: quote,
     listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
     contactEvidenceUrls: [url], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
   };
@@ -70,6 +70,10 @@ test('C131 TrustEngine admits same-page residential rentals when price, date and
   if (noAdvertiserLabel.accepted) assert.equal(noAdvertiserLabel.contact, 'platform_only');
   const wrongPriceUnit = verifyListingAdmission({ ...input, priceUnit: 'week' });
   assert.equal(wrongPriceUnit.accepted, true);
+  const urlOnlyLocality = verifyListingAdmission({ ...input, pageText: input.pageText.replaceAll('Chur', 'Luzern'), municipality: 'Chur' });
+  assert.deepEqual(urlOnlyLocality, { accepted: false, reason: 'trust_locality_missing' });
+  const conflictingLocality = verifyListingAdmission({ ...input, pageText: input.pageText.replaceAll('Chur', 'Untervaz'), municipality: 'Chur', municipalities: ['Chur', 'Untervaz'] });
+  assert.deepEqual(conflictingLocality, { accepted: false, reason: 'trust_locality_conflict' });
   if (wrongPriceUnit.accepted) assert.equal(wrongPriceUnit.monthlyRentChf, null);
 });
 
@@ -78,8 +82,8 @@ test('C131 TrustEngine rejects sale, seeker, unavailable and unverified room fac
   const base = {
     requestedUrl: 'https://example.ch/listing/123456', finalUrl: 'https://example.ch/listing/123456',
     title: '3.5 Zimmer Wohnung zu vermieten',
-    pageText: "3.5 Zimmer Wohnung zu vermieten. CHF 1'450.– pro Monat. Inseriert am: 20.11.2026. Verfügbar ab sofort. Kontakt +41 79 123 45 67. Heller Wohnbereich, Küche, Bad, Balkon und Kellerabteil.",
-    provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: "CHF 1'450.– pro Monat",
+    pageText: "3.5 Zimmer Wohnung zu vermieten in Untervaz. CHF 1'450.– pro Monat. Inseriert am: 20.11.2026. Verfügbar ab sofort. Kontakt +41 79 123 45 67. Heller Wohnbereich, Küche, Bad, Balkon und Kellerabteil.",
+    municipality: 'Untervaz', municipalities: ['Untervaz'], provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: "CHF 1'450.– pro Monat",
     listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
     contactEvidenceUrls: ['https://example.ch/listing/123456'], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
   };
