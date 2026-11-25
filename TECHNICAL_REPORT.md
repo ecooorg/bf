@@ -1,3 +1,7 @@
+## P131.7a — All-source Chur test timing follow-up
+- **RUN:** `2acc4c0e-e085-4945-8c96-a8ff17fb59c5`. **RESULT:** 91 candidates; 8/17 Serper queries; 5 index pages; 1 detail page fetched; 0 kept; 14 out-of-commune rejects; 7 snippet-only rejects; 1 shared-flat seeker rejected; Homegate/Tutti HTTP 403; 9 queries left at the 120-second cap; USD 0.008.
+- **NEXT:** raise only the test duration ceiling to 180 seconds, preserving all other finite budgets and no-write behavior.
+
 ## P131.7 — Exact-main CI follow-up
 - **OBSERVED:** PR #112 Core CI run `45684715815` failed in `tests/project-mode-contract.test.mjs` because its branch snapshot expected patch `131.6a`; current main has the dynamic patch-version contract. The shared-flat classifier and new quality regression were included in that run.
 - **STATUS:** P131.7 is merged on main; exact-main Core CI is **NOT_RUN** and is being triggered by this documentation-only PR.
