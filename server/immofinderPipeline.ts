@@ -646,7 +646,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         c131_owner_evidence_url: ownerEvidenceMatch ? url : null,
         c131_owner_evidence_fetched_at: ownerEvidenceMatch ? fetchedAt : null,
         c131_contact_route: contactRoute,
-        c131_letter_verification: letter.ready ? { status: 'verified', verified_at: letter.verifiedAt, evidence: letter.evidence } : { status: 'not_ready', reason: letter.reason },
+        c131_letter_verification: letter.ready === true ? { status: 'verified', verified_at: letter.verifiedAt, evidence: letter.evidence } : { status: 'not_ready', reason: letter.ready === false ? letter.reason : 'unknown' },
       };
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
