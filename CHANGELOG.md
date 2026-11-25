@@ -1,3 +1,7 @@
+## P131.5 — Distinguish provider outage from a zero-result search
+- Persisted `INFRA_FAIL` when every Serper call fails before any candidate/page is processed; the ImmoFinder run summary now says this is not a quality result.
+- Added regressions for provider-wide failure and successful empty searches; no search budget or admission rule changed.
+
 ## P131.4a — Record hosted verification and backup evidence
 - Core CI `45633920254` passed 18/18 checks; Answer Quality `45633920285` passed deterministic checks.
 - Recorded encrypted snapshot commit `a1ce09e` and latest carousel `INFRA_FAIL` (20 Serper credit errors, 0 candidates); restore verification and live WP6 outcome remain open.
