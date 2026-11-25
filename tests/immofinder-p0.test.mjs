@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '../server/immofinderSettings.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText, htmlToText, resolveListingPrice, looksLikeAgencyListing } from '../server/immofinderCore.ts';
-import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
+import { buildSecondaryQueries, resolveEnrichmentConfig } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, buildQueries, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig, sanitizeNewRecord } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
@@ -60,6 +60,8 @@ test('C131 defaults enable the bounded source-first full run', () => {
   assert.equal(settings.search.enrichSearchesPerRun, 0);
   assert.equal(settings.search.maxAiPages, 40);
   assert.equal(settings.schedule.everyHours, 3);
+  const enrichment = resolveEnrichmentConfig(cfg);
+  assert.deepEqual([enrichment.enabled, enrichment.maxExtraSearchesPerRun, enrichment.maxReverseImagePerRun, enrichment.useReverseImage, enrichment.useSecondarySearch], [false, 0, 0, false, false]);
 });
 
 
