@@ -655,7 +655,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     // Product modes: carousel | full. Legacy priority→carousel, extended→full.
     const wave: 'carousel' | 'full' =
-      testMode ? 'carousel' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
+      testMode ? 'full' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
       waveRaw === 'full' || waveRaw === 'extended' ? 'full' :
       defaultWave;
     const trigger = testMode ? 'manual' : (req as any).immoCron ? 'schedule' : 'manual';
