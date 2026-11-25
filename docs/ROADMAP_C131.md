@@ -1,4 +1,5 @@
 ## P131.5h implementation status — 2026-11-25
+- **Correction to P131.5g Full-run interpretation:** the Tamins UMS page text states CHF 2,188/month and 7 Dec 2026–28 Mar 2027, but the saved record has price=null and price_cleared=fragment_as_price; its C131 contact route is none and owner verification is not_ready, so it remains L1 only. Run settings had maxMonthlyRentChf=1,800 but limitPrice=false, requirePrice=false, requireContact=false and rejectNonMonthly=false; therefore the CHF 1,800 cap was not active in that run. Do not describe this as a confirmed over-budget rejection or a qualifying owner listing.
 - The agent-runner's first invocation reached the stale URL from the repository secret and received skipped:not_due from v130; no test search occurred.
 - Corrected the test runner to the confirmed My Workspace production URL and aligned health-monitor workspace/service/Postgres identifiers.
 - No production search, listing write or listing-quality threshold change in this patch.
