@@ -1,3 +1,8 @@
+## P131.5f — Repair-rule stamp alignment
+- **OBSERVED:** P131.5e Core CI failed because the repair stamp remained `131.5d.5` while package patch advanced.
+- **CHANGE:** Aligned `REPAIR_RULES_VERSION` with `131.5f.5` and synchronized package/lock metadata.
+- **NOT_RUN:** Hosted CI on this exact head; live search remains NOT_RUN.
+
 ## P131.5e — Safe ImmoFinder core restore
 - **OBSERVED:** Main-push repair invoked an unconditional P130.16 core payload overwrite.
 - **CHANGE:** Existing core is preserved unless `FORCE_IMMOFINDER_CORE_RESTORE=1`; regression assertion added.
