@@ -915,7 +915,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         else await finishRun(runId, result, errors, delivery, workerId);
       } catch { /* lease expiry lets another process recover the run */ }
       const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
-      const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
+      const snapshotStatus = progress.testMode === true ? 'skipped:test_mode' : await publishGitHubSnapshotAfterRun(runId!);
       clearRunCancel(runId!);
       immoLog('info', 'immofinder_worker_run_finalized', { runId, diagnosticsStatus, snapshotStatus, counts: result?.counts ?? {} });
 
