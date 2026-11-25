@@ -1,3 +1,8 @@
+## P131.2 — Page-grounded locality and bounded enrichment
+- **CHANGE:** Final TrustEngine independently verifies locality against fetched page text; URL/query locality fallback removed; repeat enrichment defaults off with zero budget.
+- **TESTS:** Added URL-only/conflicting locality rejects and default-off enrichment contract checks; hosted CI pending.
+- **LIMIT:** Live source yield, deployed search and owner-confirmed quality NOT_RUN.
+
 ## P131.1c — C131 no-Gold execution amendment
 - **DECISION:** Owner labels/60-record Gold Set will not be supplied; use repo diagnostics and invariant fixtures, with no precision/recall claims.
 - **CORRECTION:** Short-stay contact helper already returns null; plan path docs/ROADMAP_C131.md exists.
