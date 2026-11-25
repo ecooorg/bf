@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { hostOf, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { verifyListingAdmission, buildTrustSearchPlan } from './immofinderTrustEngine.ts';
+import { buildC131LetterDraft, hasPageContactAction } from './immofinderLetter.ts';
 
 export interface ListingRecord {
   listing_type: ListingType; canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
@@ -566,7 +567,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rooms_text: ex.rooms?.quote || '', rooms_estimated: ex.rooms?.rooms ?? 0, rooms_basis: ex.rooms?.basis || '', street_address: ex.streetAddress, description_de: descriptionDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
-        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms?.rooms ?? null }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, evidence_confidence: snippetEvidence ? 'low' : 'verified_page', provisional: snippetEvidence, search_result_date: hitDate, address_quote: ex.streetAddress },
+        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: '', raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, evidence_confidence: snippetEvidence ? 'low' : 'verified_page', provisional: snippetEvidence, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
       const fetchedAt = new Date(now()).toISOString();
       const municipalityIndex = ex.municipality ? pageText.toLowerCase().indexOf(ex.municipality.toLowerCase()) : -1;
@@ -616,19 +617,37 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rec.contact_status = 'platform_only';
         rec.contact_advice = contactAdvice(url, type);
       }
-      const ownerEvidenceMatch = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i.exec(evidenceText);
-      const ownerReachable = Boolean(ownerEvidenceMatch && (trust.contact !== 'platform_only' || rec.contact_advice !== ''));
+      const ownerEvidenceMatch = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i.exec(pageText);
+      const contactRoute = trust.contact !== 'platform_only' ? 'direct' : (hasPageContactAction(pageText) ? 'platform_message' : 'none');
+      const ownerReachable = Boolean(ownerEvidenceMatch && contactRoute !== 'none');
+      const letter = ownerReachable ? buildC131LetterDraft({
+        resultType: type === 'holiday_owner' ? 'tourist_owner' : 'direct_offer',
+        listingUrl: url,
+        finalUrl: pages[i].finalUrl,
+        title: meta.title,
+        pageText,
+        municipalities: cfg.municipalities,
+        municipality: ex.municipality,
+        propertyName: ex.name,
+        rooms: ex.rooms?.rooms ?? null,
+        ownerName: ex.owner,
+        ownerEvidenceQuote: ownerEvidenceMatch?.[0] ?? null,
+        contactRoute,
+        contactEvidence: rec.contact_evidence,
+        fetchedAt,
+      }) : { ready: false as const, reason: 'owner_or_contact_route_missing' };
+      rec.draft_message_de = letter.ready ? letter.draft : '';
       rec.raw = {
         ...rec.raw,
         c131_policy: 'C131-R1-R14',
         c131_result_type: type === 'holiday_owner' ? 'tourist_owner' : 'direct_offer',
-        c131_quality_level: ownerReachable ? 'L2' : 'L1',
+        c131_quality_level: letter.ready ? 'L3' : ownerReachable ? 'L2' : 'L1',
         c131_owner_evidence_quote: ownerEvidenceMatch?.[0] ?? null,
         c131_owner_evidence_url: ownerEvidenceMatch ? url : null,
-        c131_owner_evidence_fetched_at: ownerEvidenceMatch ? new Date(now()).toISOString() : null,
-        c131_contact_route: trust.contact === 'platform_only' ? (rec.contact_advice ? 'platform_message' : 'none') : 'direct',
+        c131_owner_evidence_fetched_at: ownerEvidenceMatch ? fetchedAt : null,
+        c131_contact_route: contactRoute,
+        c131_letter_verification: letter.ready ? { status: 'verified', verified_at: letter.verifiedAt, evidence: letter.evidence } : { status: 'not_ready', reason: letter.reason },
       };
-      if (!ownerReachable) rec.draft_message_de = '';
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
         if (dryChecked.hardReason) { await deny(dryChecked.hardReason, 'write_gate'); continue; }
