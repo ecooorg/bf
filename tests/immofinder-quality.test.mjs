@@ -617,9 +617,24 @@ test('sanitizeSerperQuery trims and caps length', async () => {
 });
 
 test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded quality-first cadence', async () => {
-  const { defaultSettings, applySettings } = await import('../server/immofinderSettings.ts');
+  const { defaultSettings, applySettings, churTestSettings } = await import('../server/immofinderSettings.ts');
   const cfg = JSON.parse(read('config/immofinder.json'));
   const defaults = defaultSettings(cfg);
+  const testProfile = churTestSettings(cfg);
+  assert.deepEqual(testProfile.search.communes, ['Chur']);
+  assert.equal(testProfile.schedule.mode, 'manual');
+  assert.equal(testProfile.search.minRooms, 3);
+  assert.ok(Object.values(testProfile.search.sources).every(Boolean));
+  assert.equal(testProfile.search.limitPrice, false);
+  assert.equal(testProfile.search.requirePrice, false);
+  assert.equal(testProfile.search.rejectNonMonthly, false);
+  assert.equal(testProfile.search.requireContact, false);
+  assert.equal(testProfile.search.rejectSeekerPosts, true);
+  assert.equal(testProfile.search.enrichSearchesPerRun, 0);
+  assert.equal(testProfile.delivery.telegram, false);
+  assert.equal(testProfile.delivery.email, false);
+  assert.equal(testProfile.delivery.emailTo, '');
+  assert.equal(testProfile.delivery.drive, false);
   const routes = read('server/immofinderRoutes.ts');
   const ui = read('src/ImmoFinderSettings.tsx');
 
