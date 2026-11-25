@@ -1,3 +1,10 @@
+## P131.4a — Production run diagnostic (no-label operational evidence)
+
+- **OBSERVED:** Run `c9912bcf-38e8-45fd-9030-8fef3858ed2f` (2026-11-25 14:19 UTC) ran `carousel`; all 20 Serper requests failed HTTP 400 `Not enough credits`, with 0 candidates, 0 fetched pages and 0 L1 records.
+- **INTERPRETATION:** `INFRA_FAIL`, not a quality/recall result. Carousel intentionally skips direct catalogues, so this run did not exercise HappyHoliday, Tutti or Homegate; the current source-first path is exercised only by `full`.
+- **LIMIT:** Runtime diagnostics also show the deployed process is older than current `main` (`sourceCount: 0`, `llmEnabled: true` versus the current configured sources and deterministic extractor). Deployment identity must be checked before WP6.
+- **NEXT EVIDENCE:** A deployed manual `full` run is needed to measure direct-source fetchability/yield; no source tier is promoted and WP7 remains conditional on a real WP6 recall gap.
+
 ## P131.4 — Repair L3 HTML evidence flow and restore CI type safety (BUGFIX)
 
 - **OBSERVED / BASELINE:** Core CI run 45630696024 failed typecheck because the pipeline discarded fetched HTML before L3 verification (pages[i].body does not exist); the L3 verifier also checked platform forms against normalized text instead of the fetched HTML.
