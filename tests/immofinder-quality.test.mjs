@@ -189,7 +189,7 @@ test('routes accept carousel and full wave body parameters', () => {
   const routes = read('server/immofinderRoutes.ts');
   assert.match(routes, /req\.body\?\.wave/);
   assert.match(routes, /wave.*carousel.*full/);
-  assert.match(routes, /\{\s*dryRun,\s*wave\s*\}/);
+  assert.match(routes, /\{\s*dryRun,\s*wave,\s*testMode:\s*progress\.testMode === true\s*\}/);
 });
 
 test('UI exposes carousel and full run controls', () => {
