@@ -1,3 +1,8 @@
+## P131.5e — Safe ImmoFinder core restore
+- **OBSERVED:** Main-push repair invoked an unconditional P130.16 core payload overwrite.
+- **CHANGE:** Existing core is preserved unless `FORCE_IMMOFINDER_CORE_RESTORE=1`; regression assertion added.
+- **NOT_RUN:** Hosted CI, restore drill and legacy retirement.
+
 ## P131.5d — Health snapshot freshness
 - **OBSERVED:** The 14:47 UTC snapshot reported Render version `130` / commit `2ee99cb`, 488 commits behind main; the next main push did not refresh it because deduplication compared only verdict/status.
 - **CHANGE:** Include check details in the snapshot signature so deployed-commit drift and other detail changes publish a fresh health record.
