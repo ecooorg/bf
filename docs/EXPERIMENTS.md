@@ -1,3 +1,11 @@
+## P131.6a — Repair CI metadata and copy regressions (BUGFIX)
+- **OBSERVED / BASELINE:** P131.6 CI: ImmoFinder settings regression PASS; `lint:copy` failed on one 25+ word string; Core/Project suites failed because `REPAIR_RULES_VERSION` remained `131.5j.5` while package patch was `131.6`.
+- **HYPOTHESIS:** Shorten only the UI string and synchronize the repair stamp with the non-product follow-up patch.
+- **METRICS:** lint:copy, ImmoFinder category suite, Core CI and Project suite.
+- **ACCEPTANCE:** no copy lint violation; repair stamp equals package patch plus `.5`; all prior settings tests remain green.
+- **SCOPE:** UI copy, repair-rule version constant, package metadata and concise history only.
+- **ROLLBACK:** revert only the stamp/copy edits if the version contract or copy linter changes.
+
 ## P131.6 — Restore user control over optional ImmoFinder filters (BUGFIX)
 - **OBSERVED / BASELINE:** Advanced settings hard-coded price-period and direct-contact requirements as checked/disabled although C131 R2 makes price and direct contact optional; three configured catalogues were absent from the source selector; room selector offered values below the C131 minimum.
 - **HYPOTHESIS:** Bind optional filters to persisted settings, expose every configured source, and provide a single reset-and-prepare action for manual Chur-only testing with all sources enabled and optional filters off.
