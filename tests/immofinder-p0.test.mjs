@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '../server/immofinderSettings.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
-import { dedupeSnippetText, htmlToText, resolveListingPrice } from '../server/immofinderCore.ts';
+import { dedupeSnippetText, htmlToText, resolveListingPrice, looksLikeAgencyListing } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, buildQueries, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig, sanitizeNewRecord } from '../server/immofinderRepair.ts';
@@ -11,6 +11,37 @@ import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderC
 import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
+
+
+const C131_TUTTI_PAGE_FIXTURES = [
+  { id: '83553049', locality: 'Untervaz', rooms: 4.5, title: 'Schöne, sonnige 4.5-Zimmerwohnung', providerText: 'Inserent kontaktieren', expected: 'L1_candidate' },
+  { id: '83710092', locality: 'Cazis', rooms: 4.5, title: '4.5-Zimmerwohnung in Cazis', providerText: 'Inserent kontaktieren', expected: 'L1_candidate' },
+  { id: '83680310', locality: 'Jenaz', rooms: 3, title: '3 Zimmer Wohnung in Jenaz', providerText: 'Inserent kontaktieren', expected: 'outside_target' },
+  { id: '83684988', locality: 'Pragg-Jenaz', rooms: 3, title: '3 Zimmer Wohnung in Pragg-Jenaz', providerText: 'Inserent kontaktieren', expected: 'outside_target' },
+  { id: '82749080', locality: 'Splügen', rooms: 1, title: 'Gemütliches Studio in Splügen Medels', providerText: 'De Blanck Immobilien GmbH', expected: 'agency_wrong_locality_small' },
+];
+const C131_HOMEGATE_PAGE_FIXTURES = [
+  { id: '4003376560', locality: 'Jenins', rooms: 4.5, title: 'Aussichtsreiche 4.5-Zimmer-Maisonette-Wohnung', providerText: 'Kontakt: individual advertiser; three-party house', expected: 'L1_candidate' },
+  { id: '4003613619', locality: 'Grüsch', rooms: 4.5, title: 'Zentral gelegene Wohnung im 2. OG', providerText: 'Kontakt: individual advertiser', expected: 'L1_candidate' },
+  { id: '4003649753', locality: 'Ilanz', rooms: 4.5, title: 'Charmante 4.5 Zimmer-Wohnung in Ilanz', providerText: 'Anbieter: Privera AG', expected: 'agency' },
+  { id: '4003623993', locality: 'Untervaz', rooms: 4.5, title: 'Moderne 4.5-Zimmerwohnung an ruhiger Wohnlage', providerText: 'Anbieter: Conrad + Magnin AG', expected: 'agency' },
+  { id: '4003542724', locality: 'Chur', rooms: 4.5, title: 'Mieten ohne Kaution - Willkommen zu Hause', providerText: 'Anbieter: Wincasa AG', expected: 'agency' },
+];
+
+test('C131 source pilot fixtures cover five real detail pages per direct portal', () => {
+  assert.equal(C131_TUTTI_PAGE_FIXTURES.length, 5);
+  assert.equal(C131_HOMEGATE_PAGE_FIXTURES.length, 5);
+  for (const f of C131_TUTTI_PAGE_FIXTURES) {
+    assert.equal(cfg.municipalities.includes(f.locality), f.expected === 'L1_candidate');
+    assert.equal(looksLikeAgencyListing(f.title, f.providerText), f.expected === 'agency_wrong_locality_small');
+  }
+  for (const f of C131_HOMEGATE_PAGE_FIXTURES) {
+    assert.equal(cfg.municipalities.includes(f.locality), true);
+    assert.equal(looksLikeAgencyListing(f.title, f.providerText), f.expected === 'agency');
+  }
+  assert.equal(C131_TUTTI_PAGE_FIXTURES.filter((f) => f.expected === 'L1_candidate').length, 2);
+  assert.equal(C131_HOMEGATE_PAGE_FIXTURES.filter((f) => f.expected === 'L1_candidate').length, 2);
+});
 
 test('C131 defaults enable the bounded source-first full run', () => {
   const settings = defaultSettings(cfg);
