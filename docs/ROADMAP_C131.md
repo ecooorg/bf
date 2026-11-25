@@ -1,7 +1,7 @@
 ## P131.4 implementation status — 2026-11-25
 - Retained fetched HTML per candidate and bound platform contact-form verification to the identity-matched page; added L3 positive/negative regressions.
 - Corrected Core CI typecheck failures from the initial P131.3 merge; PR-head Core CI `45633920254` passed 18/18 DAG checks and Answer Quality `45633920285` passed.
-- WP2 configured-fetcher pilot, WP5 production snapshot/restore, WP6 live runs and owner review remain NOT_RUN; WP7 was assessed and not triggered without a WP6 recall gap.
+- WP2 configured-fetcher pilot, WP5 snapshot restore/legacy-consumer retirement and WP6 live runs remain NOT_RUN; encrypted snapshot commit `a1ce09e` is present (14:21 UTC), but restore integrity is unverified. WP7 was assessed and not triggered without a WP6 recall gap.
 
 ## P131.3a implementation status — 2026-11-25
 - Replaced synthetic Gold-label scorer with no-label invariant replay; no precision/recall claims.
