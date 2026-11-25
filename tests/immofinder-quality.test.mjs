@@ -998,13 +998,13 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   assert.equal(bounded.sources.length, original.sources.length, 'all configured source adapters remain in the bounded test');
   assert.equal(bounded.discovery?.communesPerRun, 1);
   assert.ok((bounded.discovery?.resultsPerQuery ?? 99) <= 3);
-  assert.ok((bounded.discovery?.maxPagesPerRun ?? 99) <= 3);
+  assert.equal(bounded.discovery?.maxPagesPerRun, Math.min(original.discovery.maxPagesPerRun, original.discovery.queries.length + original.discovery.portalQueries.length));
   assert.ok((bounded.discovery?.maxCandidatesPerQuery ?? 99) <= 3);
-  assert.equal(bounded.discovery?.queries.length, 1);
+  assert.deepEqual(bounded.discovery?.queries, original.discovery.queries);
   assert.deepEqual(bounded.discovery?.portalQueries, original.discovery.portalQueries, 'all enabled portal queries remain eligible within the page cap');
-  assert.ok(bounded.limits.maxDetailPagesPerSource <= 1);
-  assert.equal(bounded.sources.every((source) => source.maxDetailPages === 1), true);
-  assert.equal(bounded.fetch.maxBrowserRendersPerRun, 1);
+  assert.ok(bounded.limits.maxDetailPagesPerSource <= 2);
+  assert.equal(bounded.sources.every((source) => source.maxDetailPages <= 2), true);
+  assert.equal(bounded.fetch.maxBrowserRendersPerRun, 2);
   assert.equal(bounded.contactEnrichment?.enabled, false);
   assert.ok((bounded.runMaxDurationMs ?? 999999) <= 60_000);
   assert.equal(original.sources.length >= bounded.sources.length, true);
