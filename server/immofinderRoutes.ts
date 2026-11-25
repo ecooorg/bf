@@ -867,7 +867,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             try { await deliverWave(wave, newInWave, counts); }
             catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
           },
-        }, { dryRun, wave });
+        }, { dryRun, wave, testMode: progress.testMode === true });
         pipelineCompleted = true;
         immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot after run');
         errors.push(...(result.errors || []));
