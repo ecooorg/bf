@@ -1,3 +1,7 @@
+## P131.5a — Hosted verification
+- **PASS:** Core CI `45636126675`: 18/18 DAG checks, 0 failures/timeouts/blocked; Answer Quality `45636126454` passed; secret scan passed.
+- **NOT_RUN:** Deployed `INFRA_FAIL` rendering, configured-fetcher pilot, production deploy identity and WP6 full runs.
+
 ## P131.5 — Honest infrastructure status
 - **OBSERVED:** Recent production carousel runs had 20/20 Serper HTTP 400 credit failures, 0 candidates and 0 fetched pages; UI previously presented an ordinary zero-result summary.
 - **CHANGE:** Classify all-provider-failure runs as `INFRA_FAIL`, persist the status and display it in the run summary; successful empty searches remain `COMPLETED`.
