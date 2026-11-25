@@ -1,11 +1,11 @@
-## C131 execution status — P131.5 (2026-11-25)
+## C131 execution status — P131.5b (2026-11-25)
 - **WP0:** DONE; R1–R14 and no-Gold execution amendment recorded.
 - **WP1:** DONE for available evidence; deterministic no-label baseline, historical diagnostics and fixture inventory retained.
 - **WP2:** PARTIAL; scorecard and pilot shortlist exist; configured-fetcher measurements/robots/cost-yield remain NOT_RUN.
 - **WP3:** PARTIAL; source-first page-grounded path exists; isolated single-engine consolidation remains open.
 - **WP4:** PARTIAL; L3 verifier and P131.4 HTML correction implemented; P131.5 `INFRA_FAIL` status passed hosted CI 18/18; live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot exists, but restore integrity and legacy restore-consumer retirement remain unverified.
-- **WP6:** NOT_RUN; latest observed carousel was `INFRA_FAIL`; current deployed runtime identity remains unverified/stale and no accepted full runs exist.
+- **WP6:** NOT_RUN; latest observed carousel was `INFRA_FAIL`; the post-release health probe is now automatic, but current deployed runtime identity and accepted full runs remain unverified.
 - **WP7:** assessed but NOT_TRIGGERED; no measured WP6 recall gap.
 
 ## C131 execution status — P131.4 (2026-11-25)
