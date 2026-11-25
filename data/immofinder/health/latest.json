@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-25T15:06:14.392Z",
+  "generatedAt": "2026-11-25T15:39:02.482Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at f62c480, 2 still running"
+      "detail": "no check runs reported for e80aed7"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 500 commit(s) behind main with 85 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
+      "detail": "production is 511 commit(s) behind main with 85 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-25T15:06:13.168Z",
+        "checkedAt": "2026-11-25T15:39:01.494Z",
         "steps": [
           {
             "step": "app",
@@ -121,7 +121,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "c9912bcf-38e8-45fd-9030-8fef3858ed2f, 0.8 h old"
+      "detail": "c9912bcf-38e8-45fd-9030-8fef3858ed2f, 1.3 h old"
     },
     {
       "group": "SEARCH",
