@@ -906,3 +906,48 @@ test('C131 gold replay scorer is provider-free and reports owner labels, infrast
   assert.throws(() => scoreC131GoldReplay([{ id: 'bad', label: 'unknown', fetchable: true, input }]), /label_invalid/);
 });
 
+
+test('P131.3 L3 letter requires page-grounded private owner and actual contact route', async () => {
+  const { buildC131LetterDraft } = await import('../server/immofinderLetter.ts');
+  const pageText = [
+    '4.5 Zimmer Ferienwohnung zu vermieten in Flims.',
+    'Diese Ferienwohnung wird von privat vermietet. Helle Wohnung mit Balkon und Küche.',
+    'Kontakt aufnehmen über das Formular. Weitere Angaben zur Unterkunft und Ausstattung.',
+  ].join(' ');
+  const base = {
+    resultType: 'tourist_owner', listingUrl: 'https://example.ch/listing/123',
+    finalUrl: 'https://example.ch/listing/123', title: '4.5 Zimmer Ferienwohnung in Flims',
+    pageText, municipalities: ['Flims'], municipality: 'Flims', propertyName: 'Ferienwohnung',
+    rooms: 4.5, ownerName: 'Nicht belegter Name', ownerEvidenceQuote: 'von privat vermietet',
+    contactRoute: 'platform_message', contactEvidence: [], fetchedAt: '2026-11-25T12:00:00.000Z',
+  };
+  const result = buildC131LetterDraft(base);
+  assert.equal(result.ready, true);
+  if (result.ready) {
+    assert.match(result.draft, /Flims/);
+    assert.match(result.draft, /4.5-Zimmer/);
+    assert.doesNotMatch(result.draft, /Nicht belegter Name/);
+    assert.doesNotMatch(result.draft, /festes Einkommen|Betreibungsregister|Privathaftpflicht/);
+    assert.equal(result.evidence.every((item) => item.sourceUrl === base.finalUrl), true);
+  }
+  assert.deepEqual(buildC131LetterDraft({ ...base, pageText: pageText.replace('von privat vermietet', 'professionell verwaltet') }), { ready: false, reason: 'private_owner_evidence_missing' });
+  assert.deepEqual(buildC131LetterDraft({ ...base, contactRoute: 'none' }), { ready: false, reason: 'contact_route_missing' });
+  assert.deepEqual(buildC131LetterDraft({ ...base, pageText: pageText.replace('Kontakt aufnehmen über das Formular.', '') }), { ready: false, reason: 'platform_action_not_page_evidenced' });
+  assert.deepEqual(buildC131LetterDraft({ ...base, municipality: 'Chur' }), { ready: false, reason: 'locality_not_page_grounded' });
+  assert.deepEqual(buildC131LetterDraft({ ...base, rooms: 2.5 }), { ready: false, reason: 'rooms_not_page_grounded' });
+});
+
+test('P131.3 L3 direct contact must be copied from the same fetched detail page', async () => {
+  const { buildC131LetterDraft } = await import('../server/immofinderLetter.ts');
+  const pageText = '3.5 Zimmer Wohnung zu vermieten in Chur. Von privat vermietet. Kontakt: owner@example.ch. ' + 'Weitere Angaben zur Wohnung und Ausstattung. '.repeat(3);
+  const base = {
+    resultType: 'direct_offer', listingUrl: 'https://example.ch/ad/1', finalUrl: 'https://example.ch/ad/1',
+    title: '3.5 Zimmer Wohnung', pageText, municipalities: ['Chur'], municipality: 'Chur',
+    propertyName: 'Wohnung', rooms: 3.5, ownerName: null, ownerEvidenceQuote: 'Von privat vermietet',
+    contactRoute: 'direct', contactEvidence: [{ type: 'email', value: 'owner@example.ch', url: 'https://example.ch/ad/1' }],
+    fetchedAt: '2026-11-25T12:00:00.000Z',
+  };
+  assert.equal(buildC131LetterDraft(base).ready, true);
+  assert.deepEqual(buildC131LetterDraft({ ...base, contactEvidence: [{ type: 'email', value: 'owner@example.ch', url: 'https://example.ch/contact' }] }), { ready: false, reason: 'direct_contact_not_page_grounded' });
+  assert.deepEqual(buildC131LetterDraft({ ...base, finalUrl: 'https://example.ch/ad/2' }), { ready: false, reason: 'listing_url_mismatch' });
+});
