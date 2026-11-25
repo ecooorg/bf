@@ -125,7 +125,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   assert.ok(saved[0].direct_phone, 'the advertiser-labelled phone is verified on the detail page');
   assert.equal(saved[0].direct_email, null, 'the verified phone is the selected direct contact channel');
   assert.equal(saved[0].contact_status, 'found');
-  assert.ok(saved[0].draft_message_de.length > 200);
+  assert.ok(saved[0].draft_message_de.length > 200, JSON.stringify(saved[0].raw?.c131_letter_verification || saved[0].raw));
   assert.equal(saved.some((item) => /Interhome/i.test(item.property_name)), false, 'the managed holiday result is never saved');
   assert.ok(res.preview.filter((item) => !item.kept).length >= 2, 'the managed and incomplete detail pages are rejected');
   const dry = await runPipeline({ config: cfg, fetchPage: async (u) => ({ ok: true, status: 200, body: pages[u] || '', finalUrl: u }), llm, store }, { dryRun: true });
