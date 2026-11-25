@@ -47,7 +47,7 @@ test('C131 TrustEngine admits same-page residential rentals when price, date and
     'Weitere Angaben zur Wohnung: renoviertes Bad, Kellerabteil, Waschküche und ruhige Lage.',
   ].join('\\n');
   const input = {
-    requestedUrl: url, finalUrl: url, title: '3.5 Zimmer Wohnung zu vermieten', pageText,
+    requestedUrl: url, finalUrl: url, title: '3.5 Zimmer Wohnung zu vermieten', municipality: 'Chur', municipalities: ['Chur'], pageText: pageText.replace('3.5 Zimmer Wohnung zu vermieten','3.5 Zimmer Wohnung zu vermieten in Chur'),
     municipality: 'Chur', municipalities: ['Chur'], provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: quote,
     listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
     contactEvidenceUrls: [url], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
