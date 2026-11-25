@@ -66,6 +66,7 @@ export function buildC131LetterDraft(input: C131LetterInput): C131LetterResult {
   if (input.contactRoute === 'platform_message' && !hasPageContactAction(text)) return fail('platform_action_not_page_evidenced');
 
   const roomQuote = /(?:\d{1,2}(?:[.,]\d)?\s*(?:[- ]?Zimmer|Zi\.?|rooms?|pi[eè]ces?)|(?:Zimmer|rooms?|pi[eè]ces?)\s*[:=]?\s*\d{1,2}(?:[.,]\d)?)/i.exec(input.title + '\n' + text)?.[0] || String(pageRooms.rooms);
+  const evidence: Array<{ field: string; value: string | number; quote: string; sourceUrl: string; fetchedAt: string }> = [
     { field: 'owner', value: ownerQuote, quote: ownerQuote, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
     { field: 'municipality', value: pageMunicipality, quote: pageMunicipality, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
     { field: 'rooms', value: pageRooms.rooms, quote: roomQuote, sourceUrl: input.finalUrl, fetchedAt: fetchedAt.toISOString() },
