@@ -1,5 +1,11 @@
 ## P131.7 — Reject shared-flat seeker posts before L1 admission
 - **OBSERVED:** dry-run `daab22a7-7e7f-4a87-9418-9754a85095d5`: 179 candidates, 15 Serper calls, 5 fetched detail pages, 1 L1 admission from Flatfox, 0 L2, USD 0.015. The admitted page described a WG/flatshare seeking new people; owner was not verified. This is a seeker/roommate request, not a private rental offer. No listing/cache writes.
+- **HYPOTHESIS:** extend the generic seeker classifier to detect a shared-flat/household seeking occupants, even when the title itself looks like a rental offer in another language.
+- **METRICS:** existing ImmoFinder quality and verify suites; assert `trust_seeker_post` for generic WG-seeker text and preserve normal 4-room rental offers; run bounded Chur dry-run after deploy.
+- **ACCEPTANCE:** shared-flat seeker pages are rejected; ordinary owner rental offers remain eligible; no other C131 admission gates are weakened; no example-specific phrase is embedded in code.
+
+## P131.7 — Reject shared-flat seeker posts before L1 admission
+- **OBSERVED:** dry-run `daab22a7-7e7f-4a87-9418-9754a85095d5`: 179 candidates, 15 Serper calls, 5 fetched detail pages, 1 L1 admission from Flatfox, 0 L2, USD 0.015. The admitted page described a WG/flatshare seeking new people; owner was not verified. This is a seeker/roommate request, not a private rental offer. No listing/cache writes.
 - **HYPOTHESIS:** extend the generic seeker classifier to detect a shared-flat/household seeking roommates, even when the title itself looks like a rental offer in another language.
 - **METRICS:** existing ImmoFinder quality and verify suites; assert `trust_seeker_post` for generic WG-seeker text and preserve normal 4-room rental offers; run bounded Chur dry-run after deploy.
 - **ACCEPTANCE:** shared-flat seeker pages are rejected; ordinary owner rental offers remain eligible; no other C131 admission gates are weakened; no example-specific phrase is embedded in code.
