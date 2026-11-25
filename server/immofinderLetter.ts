@@ -27,13 +27,6 @@ export type C131LetterResult =
   | { ready: false; reason: string };
 
 const PRIVATE_OWNER = /\b(von privat|privatvermietung|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt vom vermieter|private owner|private landlord)\b/i;
-const PLATFORM_ACTIONS = [
-  'inserent kontaktieren', 'anbieter kontaktieren', 'kontakt aufnehmen', 'kontaktformular',
-  'nachricht senden', 'nachricht schreiben', 'kontaktieren', 'contact owner', 'contact advertiser',
-  'send message', 'message host', 'contacter le propriétaire', 'contacter l’annonceur',
-  'contatta il proprietario', 'scrivi al venditore',
-];
-
 export function hasPageContactAction(pageHtml: string): boolean {
   const html = String(pageHtml || '');
   const forms = html.match(/<form\\b[^>]*>[\\s\\S]*?<\\/form>/gi) || [];
