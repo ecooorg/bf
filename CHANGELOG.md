@@ -1,3 +1,6 @@
+## P131.5i — Short-search runner reliability
+- Bound test mode to source-first Full, extend diagnostics polling and type retry-release SQL parameter.
+
 ## P131.5h — Correct production target for agent tests and health checks
 - The first automated smoke attempt reached the stale URL stored in IMMOFINDER_BASE_URL and was handled by the old version (HTTP 200 skipped:not_due). It did not start a search.
 - Pin the agent test workflow to the confirmed My Workspace production URL and correct the health monitor's Render workspace/service/Postgres IDs.
