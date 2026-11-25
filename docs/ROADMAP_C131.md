@@ -1,3 +1,8 @@
+## P131.5h implementation status — 2026-11-25
+- Corrects the P131.5g smoke-run trigger: explicit test/dry-run query flags are accepted only through run-secret middleware; bounded mode exercises phase-1 direct sources plus capped discovery in Full mode.
+- First production-connected workflow attempt was NOT_RUN (HTTP 200 `skipped:not_due`); post-fix run is pending.
+- WP2 remains partial; WP5 and WP6 remain open; WP7 remains conditional.
+
 ## P131.5g implementation status — 2026-11-25
 - Settings disclosure is changed to an explicit accessible React button/panel; regression contract added.
 - Agent-operated test search is a secret-gated, forced dry-run with hard limits (3 sources, 1 commune, 3 result pages, 2 detail pages/source, 90 seconds); no listing/cache writes.
