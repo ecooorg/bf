@@ -1,3 +1,8 @@
+## P131.4 — L3 HTML evidence and CI correction
+- **OBSERVED:** Core CI `45630696024` failed typecheck at pipeline lines 621/629; platform-form verification also consumed text instead of HTML.
+- **CHANGE:** Preserve fetched HTML and verify the same-page contact form; add positive/negative L3 tests.
+- **NOT_RUN:** Hosted CI after correction, configured-fetcher pilot, production deployment and WP6 live acceptance.
+
 ## P131.3a — C131 invariant replay
 - **CHANGE:** Replaced fabricated Gold labels with no-label invariant replay; the first full Core CI exposed the stale fixture and was corrected.
 - **NOT_RUN:** Live fetcher pilot and production acceptance.
