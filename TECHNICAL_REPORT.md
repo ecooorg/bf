@@ -1,3 +1,7 @@
+## P131.3 — Evidence-bound L3 letters
+- **CHANGE:** Added page-grounded private-owner/contact route verifier; L3 drafts use only verified listing facts and no invented applicant claims.
+- **NOT_RUN:** Hosted CI and live owner-review remain pending.
+
 ## P131.2a — Core CI pull-request coverage
 - **CHANGE:** Core CI now runs on pull requests targeting main; diagnostics-only data path remains ignored.
 - **PURPOSE:** Make full typecheck, ImmoFinder categories, architecture checks and production build observable before merge.
