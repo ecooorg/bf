@@ -8,6 +8,15 @@
 - **ROLLBACK:** Remove only measurement instrumentation if it changes runtime decisions, leaks personal contact data, or makes replay depend on provider credentials.
 - **CLASSIFICATION:** EXPERIMENT. **BLOCKED:** no ≥60-record owner-labelled gold set or owner labels were supplied in this session; baseline run and live run NOT_RUN.
 
+
+**WP1 reference-trace observation (2026-11-25):** 17 runtime modules are present: `immofinderContactEnrichment`, `Core`, `Delivery`, `Diag`, `Discovery`, `Fetcher`, `Pipeline`, `Refresh`, `Repair`, `RepairStore`, `Routes`, `RunDiagnostics`, `SearchGuards`, `Settings`, `Snapshot`, `Store`, `TrustEngine`. Main wiring: `server.ts` → Routes; Routes imports the delivery, discovery, fetch, pipeline, refresh, repair/store, settings, snapshot and diagnostics services; Pipeline imports Discovery/Core/ContactEnrichment/Repair/TrustEngine; `allLogs.ts` imports RepairStore. Category suites reference the current contracts. The generated module map is dated 2026-11-21 and omits RunDiagnostics, SearchGuards and TrustEngine, so it is not a complete current graph.
+
+**WP1 transport-leftover trace:** 26 files remain: Core payloads `p13016.b64.0–5` and `zlib.b64.p00,p04`; Repair payloads `zlib.b64.p0–p7,part1`; Store payloads `part0,part1,part2,part3,part3a,part3b,zlib.b64,zlib.b64.p0,p1`. `scripts/ensure-repair.mjs` and `.github/workflows/ensure-repair.yml` consume Repair/Store payloads; `scripts/immofinder-core-restore.mjs` consumes Core fragments. These are **not safe deletion candidates** until restoration scripts/workflow are retired and references rechecked.
+
+**WP1 available-evidence gap:** `data/immofinder/listings.snapshot.enc` is an encrypted DB snapshot, not a fetched-page fixture set. The inspected run diagnostic contains event traces, not page HTML. No ≥60-record owner-labelled gold set or page snapshots were available; no labels were fabricated.
+
+**Observed live infrastructure baseline:** run `85549585-515a-4938-870c-f492c751f753` (2026-11-25) stopped after 20 Serper HTTP 400 “Not enough credits” failures; 0 candidates, 0 fetches, 0 LLM calls, 0 saved listings, 94.2 s. Classify as **INFRA_FAIL**, not a quality result or zero-recall baseline.
+
 ## C131 WP2 — Source scorecard (NOT_RUN)
 
 - **SCOPE:** Three configured catalogs and 13 configured portal sources, plus owner-profile, municipality and tourism-organisation candidates. Record HTTP/robots/JS behavior, detail-page structure, owner/contact exposure, private/agency marking, locality coverage and request cost per source.
