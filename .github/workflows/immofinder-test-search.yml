@@ -15,7 +15,7 @@ jobs:
       github.event.comment.user.login == github.repository_owner &&
       startsWith(github.event.comment.body, '/immofinder-test')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Trigger a bounded dry-run against production
         id: trigger
@@ -53,13 +53,13 @@ jobs:
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "Triggered bounded test run $RUN_ID (previous diagnostics: ${before_id:-none})."
           found=false
-          for attempt in $(seq 1 20); do
+          for attempt in $(seq 1 45); do
             sleep 8
             status=$(curl -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
             if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.report.runId == $id' /tmp/report.json >/dev/null; then found=true; break; fi
           done
           if [ "$found" != true ]; then
-            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Bounded ImmoFinder test $RUN_ID was accepted but no completed diagnostics report appeared within 160 seconds. Check the Render worker logs. The run is dry-run-only."
+            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Bounded ImmoFinder test $RUN_ID was accepted but no completed diagnostics report appeared within 360 seconds. Check the Render worker logs. The run is dry-run-only."
             exit 1
           fi
           mkdir -p artifacts
