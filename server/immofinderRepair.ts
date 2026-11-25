@@ -361,7 +361,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
 
-  const pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
+  let pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
   const shortStay = isShortStayListing(title, url, pageEvidence, pagePrice);
   if (!why) {
     const evidenceText = buildEvidenceText(title, pageEvidence, 4000);
@@ -370,7 +370,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       title, evidenceText, url,
       municipality: row.municipality || null,
       roomsEstimated: Number.isFinite(rooms) ? rooms : null,
-      price: pagePrice,
+      price: null,
       phone: null, email: null,
       evidenceKind: provisionalSnippet ? 'snippet' : 'page_text',
       municipalities: ctx.municipalities,
