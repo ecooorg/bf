@@ -1,3 +1,13 @@
+## D-2026-11-25-01 — C131 ImmoFinder search constitution
+
+**Owner decision (2026-11-25):** Navigator explicitly approved R1–R14 in `docs/ROADMAP_C131.md`. This supersedes conflicting P129–P130 “current long-term listing” and mandatory price/month/date/contact admission wording. The canonical constitution and acceptance thresholds are in `TECHNICAL_SPECIFICATION.md`; `docs/ARCHITECTURE.md` points to that source.
+
+**Boundaries:** approval does not label the ≥60-record holdout, choose source tiers or volume/cost targets, resolve the five open questions in the roadmap, authorize automatic letter sending, or establish production/live acceptance. Existing stop-list and runtime behavior remain unchanged pending measured WP1/WP2 and explicit resolution of open inputs.
+
+**Effect:** WP0 owner approval recorded; implementation and all live outcomes remain NOT_RUN until their stated evidence exists.
+
+---
+
 ## D-2026-11-15-01 — ImmoFinder GR: in-repo TypeScript module, Postgres, no Python
 
 **Owner decision (2026-11-15), spec v128.** A separate module (button on the home screen, own workspace; not Simple/Expert/Architect and not a fourth agent: `BIO-001` is unchanged). Implemented as `server/immofinder/` inside the existing Express/Postgres/Gemini stack; reuses auth, Gemini key pool, budgets and the job queue; no Python service, no isolated sub-agent context. Postgres is the source of truth; Google Drive and Telegram are outputs. Letters are drafts only and are never sent. Owner accepted: scraping niche catalogues politely, cold outreach by the owner from drafts, storing only contact-relevant personal data, deferring Apify/Airbnb and Facebook to a later phase. Hosts with several objects are kept. Client workspace and Drive client stay (D-2026-11-05-01).
