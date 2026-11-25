@@ -1,3 +1,8 @@
+## P131.6a — Expand the all-source Chur dry-run after first evidence
+- **OBSERVED:** run `5dc40093-a7be-40f2-82a5-8a5510184bac`: 85 candidates, 2 Serper queries, 3 detail fetch attempts, 3 HTTP 403 challenge responses, 14 off-target HappyHoliday candidates, 0 fetched detail pages, 0 kept, USD 0.002. The test profile was correctly Chur-only and all source flags were true, but the harness still limited discovery to 3 pages and one private query.
+- **HYPOTHESIS:** let all configured private/portal queries run within a finite page cap derived from query count; allow up to 2 detail pages/source and 2 browser renders; extend the hard timeout to 90 seconds. Keep one commune, max 3 candidates/query, no contact enrichment, dry-run/no writes.
+- **ACCEPTANCE:** all queries and configured source adapters remain eligible; max pages never exceed query count or config cap; detail pages/source <=2; browser renders <=2; duration <=90s; no L1 admission from snippets; no listing/cache writes.
+
 ## P131.6a — Complete Chur all-source dry-run wiring
 - **OBSERVED:** the fixed profile route passed the global auth gate but the ImmoFinder router middleware still only exempted `/run`; the first route contract returned 401. The test helper also truncated source adapters to three and portal queries to one.
 - **CHANGE:** allow only the exact fixed-profile POST through the router middleware after timing-safe secret validation; keep every configured adapter and portal query eligible under the existing finite caps.
