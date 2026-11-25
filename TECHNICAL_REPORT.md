@@ -1,3 +1,8 @@
+## P131.7 — Shared-flat seeker false-positive correction
+- **OBSERVED:** the Chur dry-run admitted one Flatfox 4-room page as L1 even though its text described a WG seeking people; the record had no owner verification. This is a seeker post, not a private rental offer.
+- **CHANGE:** generic WG/Wohngemeinschaft + seeking-verb classification now rejects the page as `trust_seeker_post` before L1; ordinary rental offers remain eligible.
+- **NOT_RUN:** exact-head Core CI, deployed repeat dry-run and independent human review.
+
 ## P131.6a — All-query dry-run timing evidence
 - **RUN:** `92ced2d0-fdd2-4311-8732-c8b0e20d5847`. **RESULT:** 86 candidates; 4 of 17 Serper queries; 5 index pages; 0 detail pages fetched; 0 kept; 4 snippet-only rejects; 14 out-of-commune rejects; Homegate and Tutti HTTP 403. The pipeline stopped with 13 queries remaining because 33 seconds remained under the 90-second cap and the existing 45-second reserve prevents further discovery.
 - **NEXT:** raise the test ceiling to 120 seconds only; preserve provider rate cap 20/min, 17-query/page cap, one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders, no enrichment and dry-run/no writes.
