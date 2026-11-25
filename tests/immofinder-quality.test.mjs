@@ -981,3 +981,13 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   const pipeline = read('server/immofinderPipeline.ts');
   assert.match(pipeline, /if \(!opts\.dryRun\) \{\s*try \{ await deps\.store\.markSeen/);
 });
+
+test('P131.5h agent test and health workflows target the confirmed My Workspace service', () => {
+  const smoke = read('.github/workflows/immofinder-test-search.yml');
+  assert.match(smoke, /BASE_URL: https:\/\/bf-3tqo\.onrender\.com/);
+  assert.doesNotMatch(smoke, /secrets\.IMMOFINDER_BASE_URL/);
+  const health = read('.github/workflows/immofinder-health.yml');
+  assert.match(health, /RENDER_OWNER_ID: tea-dbbjfi7avr4c73e32e8g/);
+  assert.match(health, /RENDER_SERVICE_ID: srv-dc2joprrjlhs73cuo3n0/);
+  assert.match(health, /RENDER_POSTGRES_ID: dpg-dc2jq267bikc738t6u30-a/);
+});

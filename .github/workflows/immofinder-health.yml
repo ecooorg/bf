@@ -35,9 +35,9 @@ jobs:
         continue-on-error: true
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_OWNER_ID: ${{ vars.RENDER_OWNER_ID }}
-          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
-          RENDER_POSTGRES_ID: ${{ vars.RENDER_POSTGRES_ID }}
+          RENDER_OWNER_ID: tea-dbbjfi7avr4c73e32e8g
+          RENDER_SERVICE_ID: srv-dc2joprrjlhs73cuo3n0
+          RENDER_POSTGRES_ID: dpg-dc2jq267bikc738t6u30-a
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
