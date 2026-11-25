@@ -126,7 +126,7 @@ interface SrcMeta { id: string; cutMarkers?: string[]; privateTitleHint?: string
 
 export type RunWave = 'priority' | 'extended' | 'full' | 'carousel';
 
-export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; wave?: RunWave }): Promise<RunResult> {
+export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; wave?: RunWave; testMode?: boolean }): Promise<RunResult> {
   const { config: cfg } = deps; const now = deps.now ?? Date.now;
   const diagnosticRunId = randomUUID();
   const diagnosticStartedAt = now();
@@ -884,6 +884,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
     };
     for (const q of slice) {
+      if (processedItems >= pageLimit) {
+        diag('discovery_stopped_page_limit', { processedItems, pageLimit, queryOffset: discoveryQueryOffset, remainingQueries: slice.length - qi });
+        break;
+      }
       if (opts?.stopAtKept && res.counts.kept >= opts.stopAtKept) {
         diag('discovery_target_reached', { targetKeepCount: opts.stopAtKept, kept: res.counts.kept, remainingQueries: slice.length - qi });
         break;
@@ -1000,7 +1004,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // Duration grows with Serper pacing (serperMinIntervalMs / serperMaxPerMinute); wave uses full run deadline.
       waveDeadline = runDeadline;
       if (timeLeft() > 30_000) {
-        const pageBudget = Math.max(cfg.discovery?.maxPagesPerRun ?? 80, 80);
+        const pageBudget = opts.testMode ? Math.min(cfg.discovery?.maxPagesPerRun ?? 3, 3) : Math.max(cfg.discovery?.maxPagesPerRun ?? 80, 80);
         await runDiscoverySearch(undefined, pageBudget, { finishAll: true });
         // If the selected portal subset cannot produce ten verified matches, automatically
         // widen this carousel tick to the complete Swiss portal pool without changing saved settings.
