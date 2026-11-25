@@ -108,7 +108,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   const cfg = { ...immoCfg, sources: [{ id: 't', url: 'https://t.example/area', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
   const pages = {
     'https://t.example/area': immoPage('Index', '<a href="/mietwohnung/1">a</a><a href="/mietwohnung/2">b</a><a href="/mietwohnung/3">c</a>'),
-    'https://t.example/mietwohnung/1': immoPage('Chesa Alba', '<p>Chesa Alba in Churwalden, 4.5 Zimmer Wohnung zu vermieten. Inseriert am: 20.11.2026. Nettomiete CHF 1\'200 pro Monat. Kontakt Vermieter: Hans Muster, hans@example.org, +41 81 111 22 33.</p>'),
+    'https://t.example/mietwohnung/1': immoPage('Chesa Alba', '<p>Chesa Alba in Churwalden, 4.5 Zimmer Wohnung zu vermieten. Privatvermietung von privat. Inseriert am: 20.11.2026. Nettomiete CHF 1\'200 pro Monat. Kontakt Vermieter: Hans Muster, hans@example.org, +41 81 111 22 33.</p>'),
     'https://t.example/mietwohnung/2': immoPage('Interhome Haus', '<p>Interhome Ferienhaus in Chur, 5 Zimmer.</p>'),
     'https://t.example/mietwohnung/3': immoPage('Studio Davos', '<p>Studio in Davos, 1.5 Zimmer. Ruhige Lage mit Balkon und schöner Aussicht.</p>'),
   };
@@ -221,7 +221,7 @@ test('P129.48 settings: invalid input falls back to new defaults, scope applies,
   const s = sanitizeSettings({ schedule: { mode: 'hours', everyHours: 5, dailyAt: '25:99' }, delivery: { email: true, emailTo: 'bad address', telegram: false }, search: { minRooms: 99, communes: ['Chur', 'Atlantis'], maxAiPages: 7, sources: { search: false } } }, immoCfg);
   assert.equal(s.schedule.everyHours, 3); assert.equal(s.schedule.dailyAt, '06:00');
   assert.equal(s.delivery.email, false, 'email stays off without a valid address'); assert.equal(s.delivery.telegram, false);
-  assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 100);
+  assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 40);
   const eff = applySettings(immoCfg, s);
   assert.deepEqual(eff.municipalities, ['Chur']); assert.equal(eff.discovery.enabled, false);
   assert.equal(sanitizeSettings({ search: { communes: [] } }, immoCfg).search.communes.length, immoCfg.municipalities.length);
@@ -592,7 +592,7 @@ test('P129.50 verified street address is carried into the shared user-facing car
 });
 
 
-test('P129.50 repair audit admits seasonal listings only with period, direct link, page evidence and verified contact', async () => {
+test('C131 repair gate admits page-verified seasonal listings without price period or direct contact', async () => {
   const { hardRejectReason } = await import('../server/immofinderRepair.ts');
   const url = 'https://stay.example/listing/123456';
   const evidence = 'Ferienwohnung in Sampletown, 3.5 Zimmer. CHF 850 pro Saison. Kontakt: +41 79 123 45 67. Die Wohnung hat einen Balkon, eine moderne Küche, ein separates Bad, einen hellen Wohnbereich und liegt in ruhiger Lage nahe dem öffentlichen Verkehr.';
@@ -602,6 +602,7 @@ test('P129.50 repair audit admits seasonal listings only with period, direct lin
     municipality: 'Sampletown',
     property_name: 'Ferienwohnung in Sampletown',
     rooms_estimated: 3.5,
+    rooms_basis: 'zimmer',
     rent_monthly_chf: null,
     pricing_unit: 'season',
     direct_phone: '+41791234567',
@@ -612,8 +613,8 @@ test('P129.50 repair audit admits seasonal listings only with period, direct lin
   };
   const ctx = { municipalities: ['Sampletown'] };
   assert.equal(hardRejectReason(seasonal, ctx), null);
-  assert.equal(hardRejectReason({ ...seasonal, direct_phone: null, contact_evidence: [] }, ctx), 'short_stay_contact_required');
-  assert.equal(hardRejectReason({ ...seasonal, raw: { ...seasonal.raw, evidence_text: evidence.replace('pro Saison', ''), price: { amount: 850, unit: 'unknown' } } }, ctx), 'short_stay_price_period_required');
+  assert.equal(hardRejectReason({ ...seasonal, direct_phone: null, contact_evidence: [] }, ctx), null);
+  assert.equal(hardRejectReason({ ...seasonal, raw: { ...seasonal.raw, evidence_text: evidence.replace('pro Saison', ''), price: { amount: 850, unit: 'unknown' } } }, ctx), null);
 });
 
 

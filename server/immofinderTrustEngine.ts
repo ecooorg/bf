@@ -115,7 +115,7 @@ export function verifyListingAdmission(input: TrustAdmissionInput): TrustAdmissi
   const quote = String(input.priceQuote || '').trim();
   if (quote && text.includes(quote)) {
     const parsedPrice = parsePrice(quote);
-    if (parsedPrice?.unit === 'month' && parsedPrice.monthlyChf != null &&
+    if (input.priceUnit === 'month' && parsedPrice?.unit === 'month' && parsedPrice.monthlyChf != null &&
         input.priceMonthlyChf != null && parsedPrice.monthlyChf === input.priceMonthlyChf) {
       monthlyRentChf = parsedPrice.monthlyChf;
     }

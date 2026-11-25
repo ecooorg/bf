@@ -1,3 +1,7 @@
+## P131.1a — Corrective C131 test and price-unit alignment
+- Updated legacy tests to the approved page-grounded L1 contract and added explicit `Zimmer` basis to repair fixtures.
+- A price is classified as monthly only when the source unit and parsed page quote both say monthly; other units do not block L1.
+
 ## P131.1 — Restore page-grounded L1 results and source-first manual run
 - Removed mandatory price, publication-date and direct-contact admission gates; explicit ≥3-room detail-page evidence remains mandatory.
 - Added bounded direct index pilots for HappyHoliday, Tutti and Homegate; default manual run is full/source-first, capped at 20 Serper queries, and drafts are generated only for L2 owner-reachable records.

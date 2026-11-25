@@ -26,12 +26,15 @@ test('P131.0a C131 constitution config preserves approved result and evidence ru
   }
   assert.equal(q.snippetPolicy, 'discovery_only_never_evidence');
   assert.deepEqual(q.provenance, ['value', 'verbatim_quote', 'source_url', 'fetch_time']);
-  assert.equal(q.legacyRuntimeUntilWp5, true);
+  assert.equal(q.legacyRuntimeUntilWp5, false);
+  assert.equal(q.requirePrice, false);
+  assert.equal(q.rejectNonMonthly, false);
+  assert.equal(q.requireContact, false);
   const spec = read('TECHNICAL_SPECIFICATION.md');
   for (const rule of Array.from({ length: 14 }, (_, i) => `R${i + 1} —`)) assert.ok(spec.includes(rule), `missing approved rule ${rule}`);
 });
 
-test('P130.17 trust engine admits only same-page, current, explicit rental facts', async () => {
+test('C131 TrustEngine admits same-page residential rentals when price, date and direct contact are absent', async () => {
   const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
   const url = 'https://example.ch/listing/123456';
   const quote = "CHF 1'450.– pro Monat";
@@ -54,14 +57,23 @@ test('P130.17 trust engine admits only same-page, current, explicit rental facts
   if (accepted.accepted) assert.deepEqual([accepted.rooms, accepted.monthlyRentChf, accepted.contact], [3.5, 1450, 'phone']);
   assert.deepEqual(verifyListingAdmission({ ...input, provisional: true }), { accepted: false, reason: 'trust_snippet_only' });
   assert.deepEqual(verifyListingAdmission({ ...input, finalUrl: 'https://example.ch/listing/999999' }), { accepted: false, reason: 'trust_fetch_url_unverified' });
-  assert.deepEqual(verifyListingAdmission({ ...input, listedAt: '2025-01-01T00:00:00.000Z' }), { accepted: false, reason: 'trust_listing_stale' });
-  assert.deepEqual(verifyListingAdmission({ ...input, phone: null, email: null }), { accepted: false, reason: 'trust_contact_missing' });
-  assert.deepEqual(verifyListingAdmission({ ...input, contactEvidenceUrls: ['https://example.ch/contact'] }), { accepted: false, reason: 'trust_contact_not_page_attributed' });
-  assert.deepEqual(verifyListingAdmission({ ...input, pageText: input.pageText.replace('Kontakt Vermieter: ', '') }), { accepted: false, reason: 'trust_contact_not_advertiser' });
-  assert.deepEqual(verifyListingAdmission({ ...input, priceUnit: 'week' }), { accepted: false, reason: 'trust_price_not_monthly_chf' });
+  const staleButNotMarkedExpired = verifyListingAdmission({ ...input, listedAt: '2025-01-01T00:00:00.000Z' });
+  assert.equal(staleButNotMarkedExpired.accepted, true, 'age alone is not an expiry signal');
+  const noDirectContact = verifyListingAdmission({ ...input, phone: null, email: null });
+  assert.equal(noDirectContact.accepted, true);
+  if (noDirectContact.accepted) assert.equal(noDirectContact.contact, 'platform_only');
+  const wrongContactPage = verifyListingAdmission({ ...input, contactEvidenceUrls: ['https://example.ch/contact'] });
+  assert.equal(wrongContactPage.accepted, true);
+  if (wrongContactPage.accepted) assert.equal(wrongContactPage.contact, 'platform_only');
+  const noAdvertiserLabel = verifyListingAdmission({ ...input, pageText: input.pageText.replace('Kontakt Vermieter: ', '') });
+  assert.equal(noAdvertiserLabel.accepted, true);
+  if (noAdvertiserLabel.accepted) assert.equal(noAdvertiserLabel.contact, 'platform_only');
+  const wrongPriceUnit = verifyListingAdmission({ ...input, priceUnit: 'week' });
+  assert.equal(wrongPriceUnit.accepted, true);
+  if (wrongPriceUnit.accepted) assert.equal(wrongPriceUnit.monthlyRentChf, null);
 });
 
-test('P130.17 trust engine rejects sale, seeker, unavailable and unquoted room facts', async () => {
+test('C131 TrustEngine rejects sale, seeker, unavailable and unverified room facts while allowing unknown date', async () => {
   const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
   const base = {
     requestedUrl: 'https://example.ch/listing/123456', finalUrl: 'https://example.ch/listing/123456',
@@ -75,7 +87,11 @@ test('P130.17 trust engine rejects sale, seeker, unavailable and unquoted room f
   assert.deepEqual(verifyListingAdmission({ ...base, title: 'Ich suche eine 3.5 Zimmer Wohnung' }), { accepted: false, reason: 'trust_seeker_post' });
   assert.deepEqual(verifyListingAdmission({ ...base, pageText: base.pageText + ' Inserat bereits vermietet.' }), { accepted: false, reason: 'trust_listing_unavailable' });
   assert.deepEqual(verifyListingAdmission({ ...base, rooms: 4 }), { accepted: false, reason: 'trust_rooms_conflict' });
-  assert.deepEqual(verifyListingAdmission({ ...base, listedAt: null }), { accepted: false, reason: 'trust_publication_date_missing' });
+  const noPageRoomQuote = verifyListingAdmission({ ...base, pageText: base.pageText.replaceAll('3.5 Zimmer', '3 Schlafzimmer') });
+  assert.deepEqual(noPageRoomQuote, { accepted: false, reason: 'trust_rooms_missing' });
+  const noPublicationDate = verifyListingAdmission({ ...base, listedAt: null });
+  assert.equal(noPublicationDate.accepted, true);
+  if (noPublicationDate.accepted) assert.equal(noPublicationDate.listedAt, null);
 });
 
 test('P130.17 search planner ignores legacy query wording and generates rental-intent searches', async () => {
@@ -583,21 +599,21 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.schedule.everyHours, 3);
   assert.equal(defaults.search.minRooms, 3);
   assert.equal(defaults.search.carouselCommunesPerRun, 12);
-  assert.equal(defaults.search.privateQueryTemplates, 4);
-  assert.equal(defaults.search.maxAiPages, 100);
-  assert.equal(defaults.search.enrichSearchesPerRun, 12);
-  assert.equal(defaults.search.requirePrice, true);
-  assert.equal(defaults.search.rejectNonMonthly, true);
+  assert.equal(defaults.search.privateQueryTemplates, 2);
+  assert.equal(defaults.search.maxAiPages, 40);
+  assert.equal(defaults.search.enrichSearchesPerRun, 0);
+  assert.equal(defaults.search.requirePrice, false);
+  assert.equal(defaults.search.rejectNonMonthly, false);
   assert.equal(defaults.search.rejectSeekerPosts, true);
-  assert.equal(defaults.search.requireContact, true);
+  assert.equal(defaults.search.requireContact, false);
   assert.equal(defaults.search.maxMonthlyRentChf, 3500);
   assert.equal(defaults.delivery.driveFolderId, cfg.driveFolderId);
-  assert.ok(Object.values(defaults.search.sources).filter(Boolean).length >= 14);
+  assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 4);
 
   const applied = applySettings(cfg, defaults);
-  assert.equal(applied.discovery.portalQueries.length, cfg.discovery.portalQueries.length);
+  assert.equal(applied.discovery.portalQueries.length, 2);
   assert.equal(applied.discovery.communesPerRun, 12);
-  assert.equal(applied.discovery.queries.length, 4);
+  assert.equal(applied.discovery.queries.length, 2);
 
   assert.match(routes, /\/api\/immofinder\/settings\/reset/);
   assert.match(routes, /const current = await getSettings\(cfg\)/);
@@ -651,6 +667,7 @@ test('P129.48 repair audit allows undisclosed rent and writes evidence-backed pr
     property_name: '3.5-Zimmer-Wohnung in Chur',
     description_de: 'Helle Wohnung mit Balkon in Chur.',
     rooms_estimated: 3.5,
+    rooms_basis: 'zimmer',
     rent_monthly_chf: null,
     pricing_unit: null,
     hidden: false,
@@ -697,7 +714,7 @@ test('P129.48 repair audit allows undisclosed rent and writes evidence-backed pr
     pricing_unit: 'week',
     raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 800 pro Woche. Helle Wohnung mit Balkon und Küche. Wohnfläche 90 m2, ruhige Lage und Bezug ab sofort möglich.', price: { amount: 800, unit: 'week' } },
   };
-  assert.equal(hardRejectReason(weekly, ctx), 'short_stay_contact_required');
+  assert.equal(hardRejectReason(weekly, ctx), null, 'weekly price and missing direct contact do not block L1');
 });
 
 test('P129.47 All Logs contains the complete ImmoFinder snapshot and repair endpoints are authenticated', () => {
@@ -730,7 +747,7 @@ test('P129.47 a repair patch can carry batches that auto-apply once on first req
 
 
 test('P129.49 only presents cards backed by the exact fetched detail page and one matching monthly price', async () => {
-  const { hardRejectReason, isPresentable } = await import('../server/immofinderRepair.ts');
+  const { hardRejectReason, isPresentable, sanitizeNewRecord } = await import('../server/immofinderRepair.ts');
   const ctx = { municipalities: ['Exampleville'] };
   const url = 'https://example.ch/listing/42';
   const base = {
@@ -739,6 +756,7 @@ test('P129.49 only presents cards backed by the exact fetched detail page and on
     municipality: 'Exampleville',
     property_name: '3.5 Zimmer Wohnung in Exampleville',
     rooms_estimated: 3.5,
+    rooms_basis: 'zimmer',
     rent_monthly_chf: 1450,
     pricing_unit: 'month',
     description_de: '3.5 Zimmer Wohnung in Exampleville, zu vermieten.',
@@ -767,7 +785,11 @@ test('P129.49 only presents cards backed by the exact fetched detail page and on
     ...base,
     raw: { ...base.raw, evidence_text: '3.5 Zimmer Wohnung in Exampleville zu vermieten. Miete CHF 1 450 pro Monat. Zweiter Preis CHF 1 650 pro Monat. Wohnfläche 82 m2. Helle Räume, Balkon und Küche vorhanden.' },
   };
-  assert.equal(hardRejectReason(ambiguousPrice, ctx), 'price_ambiguous_on_detail_page');
+  assert.equal(hardRejectReason(ambiguousPrice, ctx), null, 'ambiguous optional price must not hide a verified listing');
+  const cleaned = sanitizeNewRecord(ambiguousPrice, ctx);
+  assert.equal(cleaned.hardReason, null);
+  assert.equal(cleaned.rec.rent_monthly_chf, null);
+  assert.equal(cleaned.rec.raw.price, null);
 });
 
 test('P129.52 pipeline validates optional final URL, same-listing redirects and verified page text', () => {
@@ -808,7 +830,7 @@ test('P129.49 automatically rechecks and restores only previously auto-hidden li
   assert.match(pipeline, /res\.newListings\.push\(safeRec\)/);
 });
 
-test('ImmoFinder expands to all configured portals when selected portals yield fewer than ten verified ads', async () => {
+test('ImmoFinder does not widen beyond selected portals when fewer than ten ads are found', async () => {
   const { defaultSettings, applySettings } = await import('../server/immofinderSettings.ts');
   const cfg = JSON.parse(read('config/immofinder.json'));
   const settings = defaultSettings(cfg);
@@ -816,7 +838,8 @@ test('ImmoFinder expands to all configured portals when selected portals yield f
   const applied = applySettings(cfg, settings);
   assert.ok(applied.discovery.portalQueries.length > 0);
   assert.ok(applied.discovery.portalQueries.every((q) => q.includes('site:flatfox.ch')));
-  assert.equal(applied.discovery.fallbackPortalQueries.length, cfg.discovery.portalQueries.length);
+  assert.equal(applied.discovery.fallbackPortalQueries.length, applied.discovery.portalQueries.length);
+  assert.ok(applied.discovery.fallbackPortalQueries.every((q) => q.includes('site:flatfox.ch')));
   assert.match(read('server/immofinderPipeline.ts'), /res\.counts\.kept < 10/);
   assert.match(read('server/immofinderPipeline.ts'), /discovery_source_fallback_started/);
   assert.match(read('server/immofinderPipeline.ts'), /remainingPages/);

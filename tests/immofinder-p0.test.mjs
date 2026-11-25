@@ -262,13 +262,13 @@ test('P129.48 applySettings maps private templates and enrichment budget into th
   assert.equal(Object.hasOwn(eff.discovery, 'freshnessFallback'), false);
   assert.equal(eff.contactEnrichment.maxExtraSearchesPerRun, 3);
   const lean = applySettings(cfg, defaultSettings(cfg));
-  assert.equal(lean.discovery.queries.length, 4);
+  assert.equal(lean.discovery.queries.length, 2);
   const staleSlice = sanitizeSettings({ search: { communes: ['Chur', 'Zizers', 'Igis', 'Landquart'], carouselCommunesPerRun: 2 } }, cfg);
   assert.equal(applySettings(cfg, staleSlice).discovery.communesPerRun, 12);
   const four = ['Chur', 'Zizers', 'Igis', 'Landquart'];
   const fourCfg = applySettings(cfg, sanitizeSettings({ search: { communes: four, carouselCommunesPerRun: 2 } }, cfg));
   assert.deepEqual(communesForRun(fourCfg.municipalities, fourCfg.discovery.communesPerRun, 0), four);
-  assert.equal(lean.contactEnrichment.maxExtraSearchesPerRun, 12);
+  assert.equal(lean.contactEnrichment.maxExtraSearchesPerRun, 0);
 });
 
 test('discovery interleaves communes so a bounded run cannot starve later locations', () => {
@@ -359,11 +359,11 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
 test('Swiss listings with net and gross rent remain eligible and gross rent is preferred for the budget check', () => {
   const text = "3.5-Zimmer-Wohnung in Chur. Nettomiete CHF 1'500 pro Monat. Bruttomiete CHF 1'800 pro Monat. Nebenkosten CHF 300 pro Monat. Helle Wohnung mit Balkon und Küche.";
   assert.equal(resolveListingPrice(text, null)?.amount, 1800);
-  const netStored = { listing_url: 'https://www.homegate.ch/mieten/4001234567', property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1500, pricing_unit: 'month', raw: { price: { amount: 1500, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567' } };
+  const netStored = { listing_url: 'https://www.homegate.ch/mieten/4001234567', property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rooms_basis: 'zimmer', rent_monthly_chf: 1500, pricing_unit: 'month', raw: { price: { amount: 1500, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567' } };
   assert.equal(hardRejectReason(netStored, ctxFromConfig(cfg)), null);
   assert.equal(sanitizeNewRecord(netStored, ctxFromConfig(cfg)).rec.raw.price.amount, 1800, 'replace net rent with the gross amount for the budget check');
   const url = 'https://www.homegate.ch/mieten/4001234567';
-  const row = { listing_url: url, property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1800, pricing_unit: 'month', raw: { price: { amount: 1800, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: url } };
+  const row = { listing_url: url, property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rooms_basis: 'zimmer', rent_monthly_chf: 1800, pricing_unit: 'month', raw: { price: { amount: 1800, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: url } };
   assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
 });
 test('pipeline uses the configured portal allowlist at its final write gate', async () => {
@@ -391,7 +391,7 @@ test('sameListingUrlTarget accepts stable portal slugs across language redirects
 test('non-standard Swiss portal detail URL survives the final write-time and repair gate', () => {
   const url = 'https://flatfox.ch/en/flat/abc-123';
   const evidence = '3.5 Zimmer Wohnung in Chur. Helle Wohnung mit Balkon und eigener Küche. Ruhige Lage nahe Bahnhof.';
-  const row = { listing_url: url, property_name: '3.5 Zimmer Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, raw: { evidence_text: evidence, evidence_kind: 'page_text', evidence_url: url } };
+  const row = { listing_url: url, property_name: '3.5 Zimmer Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rooms_basis: 'zimmer', raw: { evidence_text: evidence, evidence_kind: 'page_text', evidence_url: url } };
   assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null, 'unknown rent is allowed when the page is otherwise verified');
 });
 test('htmlToText excludes head metadata from listing evidence', () => {
@@ -511,9 +511,9 @@ test('Google SERP crawl date is not treated as the listing publication date', as
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }), llm: null, store: memStore(saved),
     search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten', date: '2 years ago' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(result.counts.kept, 0, 'a SERP crawl date cannot substitute for page publication date');
-  assert.equal(saved.length, 0);
-  assert.equal(result.filtered.trust_publication_date_missing, 1);
+  assert.equal(result.counts.kept, 1, 'publication date is optional and the SERP crawl date is not used');
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].listed_at, null, 'no page publication date means no stored publication date');
 });
 test('polite fetcher blocks private targets and validates each redirect hop', async () => {
   const calls = [];
