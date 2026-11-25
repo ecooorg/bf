@@ -1,3 +1,7 @@
+## P131.5c — Record post-release health trigger verification
+- Core CI `45637400435` passed 18/18; Answer Quality `45637400580` passed; secret scan passed.
+- The health workflow is configured for the next main push; latest production snapshot remains 08:25 UTC until that probe publishes.
+
 ## P131.5b — Verify deployment identity after ImmoFinder releases
 - Added a bounded health check on main pushes affecting ImmoFinder code/config or patch metadata; it uses the existing read-only Render/log and health probe, not deployment writes.
 - Recorded latest health evidence: production version `130` / commit `2ee99cb`, 369 commits behind main; post-release result remains pending.
