@@ -1,3 +1,7 @@
+## P131.1c — C131 no-Gold execution amendment
+- Replaced owner-labelled Gold gate with repo diagnostics and deterministic invariant evidence; corrected prior audit inaccuracies.
+- Updated C131 plan/spec; no runtime or production data changed.
+
 ## P131.1b — C131 WP4/WP5 audit (documentation only)
 - Recorded R2 locality/contact/enrichment gaps and legacy-row quarantine blockers; added the pre-change experiment gate.
 - No runtime code or production data changed; WP1/WP2 evidence remains a prerequisite for corrective implementation.
