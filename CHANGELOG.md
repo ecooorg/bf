@@ -1,3 +1,6 @@
+## P131.6a — Apply the Chur all-source test profile automatically
+- Add a fixed, secret-gated settings profile endpoint and make the owner-only dry-run workflow apply it before testing; no arbitrary settings payload or listing writes.
+
 ## P131.6a — Align repair-rule stamp and settings copy with CI contracts
 - Sync the deterministic repair version to package patch `131.6a.5`; shorten the settings explanation to the repository copy limit.
 
