@@ -1,3 +1,6 @@
+## P131.7a test-budget follow-up — 2026-11-25
+- Chur run `2acc4c0e-e085-4945-8c96-a8ff17fb59c5` completed 8/17 Serper queries before the 45-second reserve stopped discovery at the 120-second cap; 91 candidates, 1 fetched detail page, 0 kept, 1 shared-flat seeker rejected, Homegate/Tutti 403, 9 queries left. Next bounded test raises only the time ceiling to 180 seconds.
+
 ## P131.6a dry-run follow-up — 2026-11-25
 - Expanded all-query run `92ced2d0-fdd2-4311-8732-c8b0e20d5847`: 4/17 Serper queries completed before the 90-second test budget's 45-second reserve stopped further search; 86 candidates, 5 index pages, 0 detail pages fetched, 0 kept, 4 snippet-only rejects, 14 out-of-commune rejects, Homegate/Tutti 403. Next bounded experiment raises the total ceiling to 120 seconds, retaining all other finite caps.
 
