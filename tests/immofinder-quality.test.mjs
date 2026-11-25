@@ -956,8 +956,15 @@ test('P131.5g settings disclosure is an explicit accessible button', () => {
 });
 test('P131.5g agent smoke search has a strict bounded budget', async () => {
   const { applyImmoFinderTestBudget } = await import('../server/immofinderTestMode.ts');
-  const { loadImmoConfig } = await import('../server/immofinderCore.ts');
-  const original = loadImmoConfig();
+  const original = {
+    municipalities: ['Chur', 'Flims'], stopAgencies: [], minRooms: 3, platformDomains: [],
+    sources: [{ id: 'a', url: 'https://a.example', phase: 1 }, { id: 'b', url: 'https://b.example', phase: 1 }, { id: 'c', url: 'https://c.example', phase: 2 }, { id: 'd', url: 'https://d.example', phase: 2 }],
+    fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
+    limits: { maxDetailPagesPerSource: 20, recheckAfterDays: 7, fetchTimeoutMs: 5000, maxPageBytes: 100000 },
+    estCostPerLlmCallUsd: 0,
+    discovery: { enabled: true, communesPerRun: 12, resultsPerQuery: 10, maxPagesPerRun: 40, maxCandidatesPerQuery: 8, queries: ['private-a', 'private-b', 'private-c'], portalQueries: ['portal-a', 'portal-b', 'portal-c'], snippetOnlyHosts: [], skipHosts: [] },
+    contactEnrichment: { enabled: true, maxExtraSearchesPerRun: 12, maxReverseImagePerRun: 5 },
+  };
   const bounded = applyImmoFinderTestBudget(original);
   assert.equal(bounded.sources.length, Math.min(3, original.sources.length));
   assert.equal(bounded.discovery?.communesPerRun, 1);
