@@ -1046,11 +1046,6 @@ export function shortStayContactReason(_shortStay: boolean, _phone: string | nul
   return null;
 }
 
-/** A short-stay card is not deliverable until a real advertiser phone or e-mail is attached. */
-export function shortStayContactReason(shortStay: boolean, phone: string | null | undefined, email: string | null | undefined): string | null {
-  return shortStay && !(String(phone || '').trim() || String(email || '').trim()) ? 'short_stay_contact_required' : null;
-}
-
 // Evidence-first credibility (P129.30+) — product precision + diagnostics
 // ---------------------------------------------------------------------------
 
