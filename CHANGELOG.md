@@ -1,3 +1,6 @@
+## P131.6a — Expand Chur all-source dry-run coverage
+- Use all configured private and portal query templates with a finite query-count page cap; allow up to two detail pages/source and two browser renders within a 90-second dry-run.
+
 ## P131.6a — Apply the Chur all-source test profile automatically
 - Add a fixed, secret-gated settings profile endpoint and make the owner-only dry-run workflow apply it before testing; no arbitrary settings payload or listing writes.
 
