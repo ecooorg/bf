@@ -1094,3 +1094,45 @@ test('P131.7 rejects shared-flat seeker posts but preserves ordinary rental offe
   assert.equal(isSeekerPost(offerTitle, offerText), false);
   assert.equal(verifyListingAdmission({ ...common, title: offerTitle, pageText: offerText }).accepted, true);
 });
+
+
+test('P131.7 rejects shared-flat seeker posts but preserves ordinary rental offers', async () => {
+  const { isSeekerPost } = await import('../server/immofinderCore.ts');
+  const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
+  const seekerTitle = 'Appartement 4 pièces à louer à Chur';
+  const seekerText = [
+    'Appartement de 4 pièces à louer à Chur.',
+    'Die Wohngemeinschaft in der Stadt sucht neue Mitbewohner und organisiert die Übernahme der gemeinsamen Wohnung.',
+    'Die Anzeige beschreibt eine bestehende Wohngemeinschaft, die weitere Personen für den Haushalt sucht.',
+    'Die Wohnung liegt in Chur und umfasst vier Zimmer.',
+  ].join(' ');
+  assert.equal(isSeekerPost(seekerTitle, seekerText), true);
+  const common = {
+    requestedUrl: 'https://example.test/chur-4-room-flat',
+    finalUrl: 'https://example.test/chur-4-room-flat',
+    municipality: 'Chur',
+    municipalities: ['Chur'],
+    provisional: false,
+    rooms: 4,
+    priceMonthlyChf: null,
+    priceUnit: null,
+    priceQuote: null,
+    listedAt: null,
+    maxAgeDays: 0,
+    phone: null,
+    email: null,
+    contactEvidenceUrls: [],
+  };
+  assert.deepEqual(verifyListingAdmission({ ...common, title: seekerTitle, pageText: seekerText }), {
+    accepted: false,
+    reason: 'trust_seeker_post',
+  });
+  const offerTitle = '4-Zimmer-Wohnung zu vermieten in Chur';
+  const offerText = [
+    '4-Zimmer-Wohnung zu vermieten in Chur.',
+    'Die helle Wohnung befindet sich in zentraler Lage und verfügt über vier abgeschlossene Zimmer.',
+    'Die Wohnung ist ab sofort zu mieten; Besichtigung nach Vereinbarung.',
+  ].join(' ');
+  assert.equal(isSeekerPost(offerTitle, offerText), false);
+  assert.equal(verifyListingAdmission({ ...common, title: offerTitle, pageText: offerText }).accepted, true);
+});
