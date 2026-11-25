@@ -1,3 +1,7 @@
+## P131.1b — C131 WP4/WP5 audit (documentation only)
+- Recorded R2 locality/contact/enrichment gaps and legacy-row quarantine blockers; added the pre-change experiment gate.
+- No runtime code or production data changed; WP1/WP2 evidence remains a prerequisite for corrective implementation.
+
 ## P131.1a — Hosted verification passed
 - Core CI passed 18/18 verification DAG checks and 182/182 core tests; build, typecheck, migrations, docs integrity and security scan passed.
 - Ensure repair workflow passed after the synchronized `131.1a.5` repair stamp.
