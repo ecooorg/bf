@@ -1,3 +1,6 @@
+## P131.6a test-profile clarification — 2026-11-25
+- The owner-only Chur test profile enables every configured source adapter and keeps every configured portal query eligible; the dry-run remains bounded to one commune, 3 result pages, 1 detail page per source, 1 browser render and 60 seconds. It remains dry-run-only with no listing/cache writes.
+
 ## P131.5j implementation status — 2026-11-25
 - PR #89 Core CI/Render build failure traced to `testMode` being passed to `PipelineDeps` rather than `PipelineOptions`.
 - P131.5j moves the flag to the correct options object; regression test asserts the contract. Awaiting hosted CI and production redeploy.
