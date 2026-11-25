@@ -1,3 +1,7 @@
+## P131.6a — All-query dry-run timing evidence
+- **RUN:** `92ced2d0-fdd2-4311-8732-c8b0e20d5847`. **RESULT:** 86 candidates; 4 of 17 Serper queries; 5 index pages; 0 detail pages fetched; 0 kept; 4 snippet-only rejects; 14 out-of-commune rejects; Homegate and Tutti HTTP 403. The pipeline stopped with 13 queries remaining because 33 seconds remained under the 90-second cap and the existing 45-second reserve prevents further discovery.
+- **NEXT:** raise the test ceiling to 120 seconds only; preserve provider rate cap 20/min, 17-query/page cap, one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders, no enrichment and dry-run/no writes.
+
 ## P131.6a — First Chur all-source dry-run evidence
 - **RUN:** `5dc40093-a7be-40f2-82a5-8a5510184bac` (dry-run). **RESULT:** 85 candidates; 2 Serper calls; 3 Homegate detail fetches returned HTTP 403 challenge; 14 HappyHoliday candidates were outside Chur; 0 detail pages fetched; 0 kept; USD 0.002; no listing/cache writes.
 - **INTERPRETATION:** no quality claim; the admission gate correctly rejected snippet-only records. Source fetchability/coverage remains incomplete.
