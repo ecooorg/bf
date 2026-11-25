@@ -1,3 +1,13 @@
+## P131.3 — Evidence-bound L3 letter generation (USER_VALUE / BUGFIX)
+
+- **PROBLEM / BASELINE:** Current pipeline creates drafts from a free-form owner name and sets L2 using a broad phrase plus generic contact advice; it has no separate L3 verifier. The existing draft also asserts personal financial/insurance facts not supplied by the user. No owner-labelled precision/recall is available; baseline is deterministic TrustEngine and existing sanitized page fixtures.
+- **HYPOTHESIS:** Build L3 only when private-owner evidence, an actual page contact route, and every listing-specific draft fact are grounded in the same fetched page; remove unsupported personal claims.
+- **METRICS:** L1/L2/L3 counts; L3 rejection reasons; owner quote/page identity; contact route evidence; unsupported draft facts; existing ImmoFinder category tests.
+- **ACCEPTANCE:** No L3 without exact owner quote and direct/platform action evidence; no owner name/property/locality/room fact absent from the fetched page; no invented personal financial claims; no auto-send; category tests, typecheck, build and hosted Core CI pass.
+- **SCOPE:** Pure letter builder/verifier, existing pipeline integration, existing ImmoFinder tests, version and concise status/history. No source expansion, DB mutation or policy change.
+- **ROLLBACK:** Revert if valid page-grounded private-owner/platform-route fixtures cannot reach L3 or any unsupported fact survives verification.
+- **CLASSIFICATION:** USER_VALUE + BUGFIX. Gold labels are not fabricated; offline invariant evidence only.
+
 ## P131.2 — Enforce page-grounded locality and disable repeat contact enrichment (BUGFIX / RELIABILITY)
 
 - **PROBLEM / BASELINE:** C131 R2 requires target locality evidence on the fetched detail page. The pipeline previously filled missing locality from URL/query hints and later allowed URL locality to override page extraction; the final trust boundary did not verify locality. Contact enrichment remained enabled with 35 secondary searches and 10 reverse-image lookups despite the delegated default-off decision. Existing baseline: deterministic locality and source-first tests; historical runs 072836e3 and 85549585 remain operational diagnostics only.
