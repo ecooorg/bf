@@ -1,3 +1,12 @@
+## P131.5h — Make bounded smoke trigger deterministic and exercise source-first path (BUGFIX)
+- **OBSERVED / BASELINE:** Production-connected Actions run `45662487444` supplied the run secret and received HTTP 200 `skipped:not_due` instead of a queued test run; no test run row was created. The JSON-body test flag was not reliably reaching the route's test-mode branch.
+- **HYPOTHESIS:** Read explicit, secret-gated test-mode and dry-run flags from query parameters as well as JSON body; force a bounded Full/source-first pass so configured fetchers are exercised while dry-run prevents listing writes and delivery.
+- **METRICS:** HTTP 202 with runId; persisted run marked dry_run; diagnostics same runId; sourceStats/fetched/Serper counts; zero listing upserts/seen-cache writes/snapshot publication; duration <=90s.
+- **ACCEPTANCE:** Owner-triggered workflow completes and attaches diagnostics for the same runId; at most 3 sources, 1 commune, 3 discovery pages, 2 detail pages/source, 90 seconds, no contact enrichment or side effects.
+- **SCOPE:** Run route, bounded test workflow, ImmoFinder category test, patch metadata and concise history. No listing quality/admission rule changes.
+- **ROLLBACK:** Revert if test-mode requests fail to queue or any listing/cache/delivery side effect is observed.
+- **CLASSIFICATION:** BUGFIX; not USER_VALUE and not a WP6 Full run.
+
 ## P131.5g — Accessible settings panel and bounded agent-operated smoke search
 - **OBSERVED / BASELINE:** Settings uses a native details/summary disclosure; user reports it does not expand on the search screen. Latest production Full run completed with 104 candidates, 20 result pages fetched and one L1-only record outside the configured rent ceiling; no L2/L3-qualified record was established.
 - **HYPOTHESIS:** An explicit controlled button/panel with aria-expanded removes native disclosure ambiguity; a secret-gated, dry-run-only bounded test mode enables rapid source/parser iteration without user clicks or listing writes.
