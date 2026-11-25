@@ -1,4 +1,5 @@
 ## P131.5h — Correcting the agent test target
+- **Correction to P131.5g Full-run interpretation:** the Tamins UMS page text states CHF 2,188/month and 7 Dec 2026–28 Mar 2027, but the saved record has price=null and price_cleared=fragment_as_price; its C131 contact route is none and owner verification is not_ready, so it remains L1 only. Run settings had maxMonthlyRentChf=1,800 but limitPrice=false, requirePrice=false, requireContact=false and rejectNonMonthly=false; therefore the CHF 1,800 cap was not active in that run. Do not describe this as a confirmed over-budget rejection or a qualifying owner listing.
 - **OBSERVED:** The first /immofinder-test workflow ran but targeted the legacy IMMOFINDER_BASE_URL secret. That endpoint was the stale v130 Render service and returned HTTP 200 with skipped=not_due; the testMode field was ignored by the old code. No search was run and no listing data changed.
 - **HYPOTHESIS:** Pinning the workflow to the verified My Workspace URL will route the test to commit 6be29f7 / patch 131.5g.
 - **METRICS:** Target service health, accepted runId, bounded query/page budget, diagnostics and zero listing/seen-cache/snapshot writes.
