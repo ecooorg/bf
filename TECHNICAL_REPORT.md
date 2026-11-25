@@ -1,3 +1,8 @@
+## P131.0h — Post-correction replay scorer verification
+- **OBSERVED:** Core CI `45606607076` passed 18/18 DAG checks; typecheck, build, migrations, docs integrity, secret scan and test:core passed, with 0 test failures.
+- **TEST:** Replay scorer contract ran in the existing ImmoFinder quality suite using synthetic non-holdout inputs; Answer Quality `45606445493` passed, live smoke skipped by opt-in policy.
+- **NOT_RUN:** ≥60-record owner-labelled replay, WP2 fetcher pilot, source-tier/N/Serper decisions and live acceptance.
+
 ## P131.0g — Replay scorer compile correction
 - **OBSERVED:** Core CI `45605988764` passed 16/18 checks and failed typecheck/build on two `TrustAdmission.reason` narrowing errors in the new scorer.
 - **CHANGE:** Used an explicit false/true discriminant branch; no runtime admission logic changed.
