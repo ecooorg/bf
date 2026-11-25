@@ -1,3 +1,11 @@
+## P131.6 — Restore user control over optional ImmoFinder filters (BUGFIX)
+- **OBSERVED / BASELINE:** Advanced settings hard-coded price-period and direct-contact requirements as checked/disabled although C131 R2 makes price and direct contact optional; three configured catalogues were absent from the source selector; room selector offered values below the C131 minimum.
+- **HYPOTHESIS:** Bind optional filters to persisted settings, expose every configured source, and provide a single reset-and-prepare action for manual Chur-only testing with all sources enabled and optional filters off.
+- **METRICS:** Existing ImmoFinder category suite; settings contract assertions; typecheck/build; hosted CI; deployed settings round-trip and live dry-run diagnostics.
+- **ACCEPTANCE:** No disabled optional filter; all configured source IDs are selectable/enablable; preset stores Chur only, all sources on, minRooms=3, no price/contact/period/age restrictions, manual schedule and delivery off; seeker/sale/non-residential/room evidence gates remain intact.
+- **SCOPE:** ImmoFinder settings UI, existing tests/immofinder-quality.test.mjs, patch metadata and concise history. No admission-engine changes or listing/database mutation.
+- **ROLLBACK:** Revert the UI/preset if settings round-trip changes any unrelated setting or if a C131 admission invariant can be bypassed.
+
 ## P131.5j — Place bounded testMode in PipelineOptions (BUGFIX)
 - **OBSERVED / BASELINE:** PR #89 Core CI failed `typecheck`/`build` with TS2353 at `server/immofinderRoutes.ts:851`: `testMode` was placed on `PipelineDeps`. `PipelineOptions` declares `testMode?: boolean` and `runPipeline` uses `opts.testMode` to cap discovery pages. Render build for merge commit `6e3beb2` failed; previous successful deployment remained live.
 - **HYPOTHESIS:** Move the flag from the first `runPipeline` argument (`PipelineDeps`) to the second (`PipelineOptions`); retain the bounded page cap and dry-run semantics.
