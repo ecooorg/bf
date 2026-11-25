@@ -1,5 +1,5 @@
 ## P131.6a — Chur test profile automation
-- **CHANGE:** a timing-safe secret-gated endpoint saves a fixed profile (Chur only, every configured source enabled, optional filters and delivery off, manual schedule); the owner-only agent workflow applies it before its bounded dry-run.
+- **CHANGE:** a timing-safe secret-gated endpoint saves a fixed profile (Chur only, every configured source enabled, optional filters and delivery off, manual schedule); the owner-only agent workflow applies it before a bounded dry-run that includes all configured source adapters and portal queries (one commune, 3 pages, 1 detail page/source, 60 seconds).
 - **SAFETY:** no arbitrary settings input; no listing/seen-cache writes; C131 admission gates and the existing 3-source/3-page/90-second test budget remain unchanged.
 - **NOT_RUN:** exact-head Core CI, deployed settings round-trip and production dry-run.
 
