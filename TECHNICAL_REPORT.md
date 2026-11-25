@@ -1,3 +1,8 @@
+## P131.1a — Full-profile commune assertion
+- **OBSERVED:** Core CI `45611713970` passed 181/182 tests; the remaining assertion expected the carousel batch size (12) in the full/burst profile, which correctly schedules all 44 target communes.
+- **CHANGE:** Updated the test to expect 44 for full mode while retaining the 12-commune carousel setting; no runtime change.
+- **NOT_RUN:** final Core CI after this test-only correction and all live/user-value gates.
+
 ## P131.1a — Final default-setting assertion correction
 - **OBSERVED:** Core CI `45610992875` passed 181/182 core tests; the only remaining failure expected the old display value 3500 while the disabled price cap correctly defaults to 2000.
 - **CHANGE:** Updated the assertion to 2000 and explicitly asserted `limitPrice === false`; no runtime behavior changed.
