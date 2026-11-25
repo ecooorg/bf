@@ -2,10 +2,24 @@ import { existsSync } from 'node:fs';
 import { htmlToText, type ImmoConfig } from './immofinderCore.ts';
 import { isPublicFetchTarget } from './webSearch.ts';
 
+/** True only for explicitly allowlisted JS-shell hosts with a short but non-empty direct response. */
+export function isShortPageBrowserCandidate(
+  hostname: string,
+  textChars: number,
+  fetchConfig: Pick<ImmoConfig['fetch'], 'browserRenderHosts' | 'browserRenderMinTextChars'>,
+): boolean {
+  const host = hostname.replace(/^www\\./i, '').toLowerCase();
+  const minChars = Math.max(120, Math.floor(fetchConfig.browserRenderMinTextChars ?? 1200));
+  const allowed = (fetchConfig.browserRenderHosts ?? []).map((value) => value.replace(/^www\\./i, '').toLowerCase());
+  return textChars >= 120 && textChars < minChars && allowed.some((value) => host === value || host.endsWith('.' + value));
+}
+
 /** Polite fetcher: honest User-Agent, per-host delay, robots.txt, timeout, size cap, http(s) only. */
 export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fetch, isPublicTarget: (url: string) => Promise<boolean> = isPublicFetchTarget) {
   type RobotsRule = { allow: boolean; path: string };
   const last = new Map<string, number>(); const robots = new Map<string, RobotsRule[]>();
+  let browserRenders = 0;
+  const browserRenderLimit = Math.max(0, Math.min(3, Math.floor(cfg.fetch.maxBrowserRendersPerRun ?? 2)));
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   async function readPrefix(response: Response, maxBytes = cfg.limits.maxPageBytes): Promise<string> {
     if (!response.body) return '';
@@ -128,7 +142,9 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   /** Bounded browser rendering for JS-shell/anti-bot responses; all navigations remain public-target checked. */
   async function browserFallback(target: string, logFetch: (event: string, details?: Record<string, unknown>) => void) {
     if (process.env.NODE_ENV !== 'production' || process.env.IMMOFINDER_BROWSER_FALLBACK === 'false') return null;
+    if (browserRenders >= browserRenderLimit) { logFetch('browser_fallback_budget_exhausted', { limit: browserRenderLimit }); return null; }
     if (!await isPublicTarget(target)) return null;
+    browserRenders++;
     let browser: any = null;
     try {
       if (!process.env.PLAYWRIGHT_BROWSERS_PATH && existsSync('/opt/render/project/playwright-browsers')) {
@@ -209,7 +225,12 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     const directTextChars = htmlToText(direct.body).trim().length;
     const challengeLike = /just a moment|attention required|cf-browser-verification|checking your browser|enable javascript and cookies|ddos protection by|security check|access denied|one more step|please wait|verify you are human|captcha/i.test((direct.body || '') + ' ' + ((direct as any).title || ''));
     logFetch('direct_result', { ok: direct.ok, status: direct.status, fetchMode: redirected ? 'direct_redirect' : 'direct', bodyChars: direct.body.length, textChars: directTextChars, finalHost: (() => { try { return new URL(direct.finalUrl || currentUrl).hostname; } catch { return 'invalid'; } })(), error: !direct.ok ? String(direct.body || '').slice(0, 240) : null });
-    if (!direct.ok || directTextChars < 120 || challengeLike) {
+    if (challengeLike) {
+      logFetch('browser_fallback_skipped_challenge', { status: direct.status, directTextChars });
+      logFetch('fetch_completed', { ok: direct.ok, status: direct.status, bodyChars: direct.body.length, textChars: directTextChars, fetchMode: 'direct_challenge_blocked' });
+      return { ok: direct.ok, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: 'direct_challenge_blocked' };
+    }
+    if (!direct.ok || directTextChars < 120) {
       if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
       const fallback = await jinaFallback(url);
       if (fallback) {
@@ -226,6 +247,20 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         return rendered;
       }
       try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
+    }
+    if (direct.ok && isShortPageBrowserCandidate(initial.hostname, directTextChars, cfg.fetch)) {
+      logFetch('browser_short_page_render_attempt', { directStatus: direct.status, directTextChars, host: initial.hostname });
+      const rendered = await browserFallback(url, logFetch);
+      if (rendered) {
+        const renderedChars = htmlToText(rendered.body).trim().length;
+        const minChars = Math.max(120, Math.floor(cfg.fetch.browserRenderMinTextChars ?? 1200));
+        if (renderedChars >= minChars && renderedChars > directTextChars * 1.5) {
+          logFetch('browser_short_page_rendered', { directStatus: direct.status, directTextChars, renderedTextChars: renderedChars });
+          try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'browser_short_page_rendered', directStatus: direct.status, directTextChars, renderedTextChars: renderedChars })); } catch { /* diagnostics only */ }
+          return rendered;
+        }
+        logFetch('browser_short_page_not_improved', { directStatus: direct.status, directTextChars, renderedTextChars: renderedChars, minChars });
+      }
     }
     logFetch('fetch_completed', { ok: direct.ok, status: direct.status, bodyChars: direct.body.length, textChars: directTextChars, fetchMode: redirected ? 'direct_redirect' : 'direct' });
     return { ok: direct.ok, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: redirected ? 'direct_redirect' : 'direct' };
