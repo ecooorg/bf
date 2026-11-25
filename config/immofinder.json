@@ -53,9 +53,6 @@
     "e-domizil",
     "GriwaRent",
     "Mountain Flair",
-    "Booking.com",
-    "Booking",
-    "Airbnb",
     "Vrbo",
     "Fewo-Direkt",
     "HomeToGo",
@@ -83,21 +80,39 @@
     {
       "id": "happyholiday",
       "url": "https://happyholiday.ch/area/graubuenden/",
-      "phase": 3,
-      "cityUrl": "https://happyholiday.ch/city/{slug}/",
+      "phase": 1,
       "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
       "cutMarkers": [
         "Andere Häuser",
         "Ausgewählte Unterkünfte"
       ],
       "privateTitleHint": "von privat",
-      "maxDetailPages": 30
+      "maxDetailPages": 35,
+      "indexUrls": [
+        "https://happyholiday.ch/area/graubuenden/page/2/",
+        "https://happyholiday.ch/area/graubuenden/page/3/",
+        "https://happyholiday.ch/area/graubuenden/page/4/"
+      ]
     },
     {
       "id": "landwirtschaft-gr",
       "url": "https://www.landwirtschaft-gr.ch",
       "phase": 3,
       "maxDetailPages": 15
+    },
+    {
+      "id": "portal-tutti",
+      "url": "https://www.tutti.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW4F",
+      "phase": 1,
+      "maxDetailPages": 40,
+      "detailPattern": "^https://www\\.tutti\\.ch/de/vi/\\d+$"
+    },
+    {
+      "id": "portal-homegate",
+      "url": "https://www.homegate.ch/mieten/wohnung/kanton-graubuenden/trefferliste",
+      "phase": 1,
+      "maxDetailPages": 40,
+      "detailPattern": "^https://www\\.homegate\\.ch/mieten/\\d+$"
     }
   ],
   "fetch": {
@@ -140,8 +155,8 @@
     "enabled": true,
     "communesPerRun": 12,
     "resultsPerQuery": 10,
-    "maxCandidatesPerQuery": 8,
-    "maxPagesPerRun": 420,
+    "maxCandidatesPerQuery": 4,
+    "maxPagesPerRun": 40,
     "queries": [
       "\"{commune}\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
       "\"{commune}\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
@@ -226,7 +241,7 @@
       "urbanhome.ch"
     ],
     "serperMinIntervalMs": 1500,
-    "serperMaxPerMinute": 40,
+    "serperMaxPerMinute": 20,
     "portalSources": [
       {
         "id": "portal-immoscout24",
@@ -297,12 +312,12 @@
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
   "quality": {
-    "maxMonthlyRentChf": 3500,
-    "maxListingAgeDays": 180,
-    "requirePrice": true,
-    "rejectNonMonthly": true,
+    "maxMonthlyRentChf": 0,
+    "maxListingAgeDays": 0,
+    "requirePrice": false,
+    "rejectNonMonthly": false,
     "rejectSeekerPosts": true,
-    "requireContact": true,
+    "requireContact": false,
     "policyVersion": "C131-R1-R14",
     "resultTypes": [
       "tourist_owner",
@@ -350,7 +365,7 @@
       "fetch_blocked",
       "duplicate"
     ],
-    "legacyRuntimeUntilWp5": true
+    "legacyRuntimeUntilWp5": false
   },
   "runMaxDurationMs": 2700000,
   "contactEnrichment": {
