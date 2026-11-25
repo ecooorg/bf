@@ -121,7 +121,7 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
       eventCount: events.length, logSource: 'process_trace_buffer', databaseLogWriteFailures: null,
       events,
       result: {
-        counts: result?.counts || {}, filtered: result?.filtered || {}, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
+        counts: result?.counts || {}, filtered: result?.filtered || {}, estCostUsd: result?.estCostUsd ?? null, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
         sourceStats: result?.sourceStats || [], wavesRun: result?.wavesRun || [],
         preview: (result?.preview || []).slice(0, 120).map((p: any) => ({ url: cleanUrl(p.url), title: cleanText(p.title, 160), source: cleanText(p.source, 80), municipality: p.municipality || null, rooms: p.rooms ?? null, kept: Boolean(p.kept), reason: p.reason || null, detail: cleanText(p.detail, 180) })),
       },
