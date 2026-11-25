@@ -9,6 +9,7 @@ import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
 import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderCore.ts';
 import { readFileSync } from 'node:fs';
+import { buildC131LetterDraft, hasPageContactAction } from '../server/immofinderLetter.ts';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
 
@@ -619,4 +620,21 @@ test('P130.5 GitHub App probe names the exact cause and never returns a token', 
   assert.equal(p.installation.account, 'ecooorg');
   assert.doesNotMatch(JSON.stringify(p), /ghs_|BEGIN/, 'no token or key in the result');
   assert.deepEqual(githubAppConfigFromEnv({}).missing.sort(), ['GITHUB_APP_ID', 'GITHUB_APP_INSTALLATION_ID', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_REPOSITORY_NAME', 'GITHUB_REPOSITORY_OWNER']);
+});
+
+test('P131.3b L3 platform contact is verified against the same fetched HTML page', () => {
+  const listingUrl = 'https://www.happyholiday.ch/ferienwohnung/12345';
+  const pageText = '3.5-Zimmer-Ferienwohnung in Chur zu vermieten. Diese gepflegte Wohnung bietet eine Küche, ein Bad, einen Balkon und einen schönen Wohnbereich. Vermietung von privat durch den Eigentümer.';
+  const pageHtml = '<html><body><form action="/contact"><textarea name="message"></textarea><button type="submit">Nachricht senden</button></form></body></html>';
+  const input = {
+    resultType: 'tourist_owner', listingUrl, finalUrl: listingUrl, title: '3.5-Zimmer-Ferienwohnung in Chur',
+    pageText, pageHtml, municipalities: ['Chur'], municipality: 'Chur', propertyName: 'Ferienwohnung', rooms: 3.5,
+    ownerName: null, ownerEvidenceQuote: 'Vermietung von privat', contactRoute: 'platform_message', contactEvidence: [], fetchedAt: new Date().toISOString(),
+  };
+  assert.equal(hasPageContactAction(pageHtml), true);
+  assert.equal(hasPageContactAction(pageText), false, 'normalized page text is not a substitute for fetched HTML');
+  assert.equal(buildC131LetterDraft(input).ready, true, 'same-page structured form permits a verified L3 draft');
+  assert.equal(buildC131LetterDraft({ ...input, pageHtml: '<html><body><p>Keine Kontaktmöglichkeit</p></body></html>' }).ready, false);
+  assert.equal(buildC131LetterDraft({ ...input, contactRoute: 'none' }).ready, false);
+  assert.equal(buildC131LetterDraft({ ...input, finalUrl: 'https://www.happyholiday.ch/ferienwohnung/99999' }).ready, false);
 });
