@@ -848,7 +848,6 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           maxLlmCalls: settings.search.maxAiPages,
           search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
           cycle: Number(progress.cycle ?? 0),
-          testMode: progress.testMode === true,
           resume: {
             completedQueryKeys: Array.isArray(progress.completedQueryKeys) ? progress.completedQueryKeys : [],
             discoveryProcessedItems: Number(progress.discoveryProcessedItems) || 0,
@@ -868,7 +867,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             try { await deliverWave(wave, newInWave, counts); }
             catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
           },
-        }, { dryRun, wave });
+        }, { dryRun, wave, testMode: progress.testMode === true });
         pipelineCompleted = true;
         immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot after run');
         errors.push(...(result.errors || []));
