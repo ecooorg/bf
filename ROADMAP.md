@@ -1,3 +1,7 @@
+## P131.5h status — 2026-11-25
+- Short-search harness first attempt failed closed (`skipped:not_due`); PR correction routes explicit secret-gated test query flags and uses bounded Full/source-first mode.
+- WP2 source scorecard, WP5 restore/legacy audit, WP6 accepted full runs and WP7 conditional assessment remain open.
+
 ## P131.5g status — 2026-11-25
 - Settings menu fix and bounded agent-run harness proposed in PR; awaiting hosted CI.
 - WP2 source scorecard still needs controlled per-source measurements; the test harness is a repeatable short probe, not a full WP2 pilot.
