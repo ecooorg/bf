@@ -1,3 +1,8 @@
+## P131.5i implementation status — 2026-11-25
+- Production dry-run `b9ea9f5f`: 6 Serper calls, 14 candidates, 2 fetched, 0 kept, USD 0.006; diagnostics 23 events. No listing result was admitted.
+- Test mode currently runs Carousel and therefore skips phase-1 direct catalogues; next patch makes the capped test source-first Full. Workflow polling was too short for a concurrent Render deploy/retry.
+- WP2 remains partial; WP5 restore/legacy audit and WP6 accepted Full runs remain open; WP7 conditional.
+
 ## P131.5h implementation status — 2026-11-25
 - **Correction to P131.5g Full-run interpretation:** the Tamins UMS page text states CHF 2,188/month and 7 Dec 2026–28 Mar 2027, but the saved record has price=null and price_cleared=fragment_as_price; its C131 contact route is none and owner verification is not_ready, so it remains L1 only. Run settings had maxMonthlyRentChf=1,800 but limitPrice=false, requirePrice=false, requireContact=false and rejectNonMonthly=false; therefore the CHF 1,800 cap was not active in that run. Do not describe this as a confirmed over-budget rejection or a qualifying owner listing.
 - The agent-runner's first invocation reached the stale URL from the repository secret and received skipped:not_due from v130; no test search occurred.
