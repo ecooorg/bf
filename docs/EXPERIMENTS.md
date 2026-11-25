@@ -1,3 +1,13 @@
+## P131.4 — Repair L3 HTML evidence flow and restore CI type safety (BUGFIX)
+
+- **OBSERVED / BASELINE:** Core CI run 45630696024 failed typecheck because the pipeline discarded fetched HTML before L3 verification (pages[i].body does not exist); the L3 verifier also checked platform forms against normalized text instead of the fetched HTML.
+- **HYPOTHESIS:** Retain the exact fetched HTML with each candidate and verify platform-message forms against that same page body; keep page-text quote verification and URL identity checks unchanged.
+- **METRICS:** Typecheck, ImmoFinder category tests, L3 direct/platform/none route outcomes, same-page URL rejection, full hosted Core CI.
+- **ACCEPTANCE:** No TypeScript errors; a real same-page structured contact form can reach L3; missing/foreign-page form cannot; no auto-send and no unsupported draft facts.
+- **SCOPE:** Pipeline page snapshot, L3 verifier, existing ImmoFinder category test, patch/version and concise history. No source-policy promotion, database mutation or production deployment.
+- **ROLLBACK:** Revert if HTML evidence is not identity-bound to the fetched listing or any form without a textarea and submit control is accepted.
+- **CLASSIFICATION:** BUGFIX. Hosted CI failure is the measured baseline; live owner review remains separate.
+
 ## P131.3a — Replace synthetic Gold scorer with no-label invariant replay (MAINTENANCE)
 
 - **PROBLEM / OBSERVED:** Existing provider-free test fabricates labels such as good-owner/agency and reports precision/recall, contradicting D-2026-11-25-03; the fixture also omitted required page-grounded locality and failed admission.

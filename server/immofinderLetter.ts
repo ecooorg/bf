@@ -58,7 +58,7 @@ export function buildC131LetterDraft(input: C131LetterInput): C131LetterResult {
   if (!ownerQuote || !(text.includes(ownerQuote) || String(input.title || '').includes(ownerQuote)) || !PRIVATE_OWNER.test(ownerQuote)) return fail('private_owner_evidence_missing');
 
   if (input.contactRoute === 'none') return fail('contact_route_missing');
-  if (input.contactRoute === 'platform_message' && !hasPageContactAction(text)) return fail('platform_action_not_page_evidenced');
+  if (input.contactRoute === 'platform_message' && !hasPageContactAction(input.pageHtml)) return fail('platform_action_not_page_evidenced');
 
   const roomQuote = /(?:\d{1,2}(?:[.,]\d)?\s*(?:[- ]?Zimmer|Zi\.?|rooms?|pi[eè]ces?)|(?:Zimmer|rooms?|pi[eè]ces?)\s*[:=]?\s*\d{1,2}(?:[.,]\d)?)/i.exec(input.title + '\n' + text)?.[0] || String(pageRooms.rooms);
   const evidence: Array<{ field: string; value: string | number; quote: string; sourceUrl: string; fetchedAt: string }> = [

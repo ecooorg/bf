@@ -1,3 +1,8 @@
+## P131.4 implementation status — 2026-11-25
+- Retained fetched HTML per candidate and bound platform contact-form verification to the identity-matched page; added L3 positive/negative regressions.
+- Corrected Core CI typecheck failures from the initial P131.3 merge; hosted verification after this correction pending.
+- WP2 fetcher pilot, WP5 production snapshot/restore, WP6 live runs and conditional WP7 remain open/NOT_RUN.
+
 ## P131.3a implementation status — 2026-11-25
 - Replaced synthetic Gold-label scorer with no-label invariant replay; no precision/recall claims.
 - L3 drafts require page-grounded owner/contact/listing evidence; platform route requires a structured message form.
