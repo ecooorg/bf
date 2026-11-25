@@ -365,12 +365,12 @@
   },
   "runMaxDurationMs": 2700000,
   "contactEnrichment": {
-    "enabled": true,
-    "maxExtraSearchesPerRun": 35,
-    "maxReverseImagePerRun": 10,
+    "enabled": false,
+    "maxExtraSearchesPerRun": 0,
+    "maxReverseImagePerRun": 0,
     "maxCandidatePagesPerListing": 4,
-    "useReverseImage": true,
-    "useSecondarySearch": true
+    "useReverseImage": false,
+    "useSecondarySearch": false
   },
   "priorityWaveMs": 1200000,
   "municipalityGroups": {
