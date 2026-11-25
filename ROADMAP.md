@@ -1,3 +1,7 @@
+## P131.5j status — 2026-11-25
+- Fixes PR #89's Core CI/Render build failure: remove redundant undeclared `testMode` field from `PipelineDeps`; queue progress still controls bounded test behavior.
+- Awaiting hosted Core CI and successful deployment before the next source-first smoke run. WP2 and WP6 remain open; WP7 conditional.
+
 ## P131.5i status — 2026-11-25
 - Short test run produced real funnel evidence but workflow timed out during a concurrent deploy; source-first adapters were not exercised because test mode used Carousel.
 - Reliability correction proposed: bounded Full mode, longer diagnostics wait and typed worker retry parameter. WP2 scorecard and WP6 Full acceptance remain open; WP7 remains conditional.
