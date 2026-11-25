@@ -1,3 +1,8 @@
+## P131.1b — C131 WP4/WP5 source audit (2026-11-25)
+- **OBSERVED:** R2 locality can fall back to URL evidence; short-stay direct-contact rejection and enabled enrichment conflict with delegated policy. Legacy-row quarantine and complete L3 acceptance are not established.
+- **CHANGE:** Added a pre-change experiment gate and updated C131 status; no runtime or database code changed.
+- **NOT_RUN:** Gold replay, configured-fetcher pilot, production snapshot/deploy and live acceptance.
+
 ## P131.1a — Final hosted verification
 - **OBSERVED:** Core CI `45612490342` PASS: Verification DAG 18/18, `test:core` 182/182, typecheck, production build, migrations, docs integrity, security scan and evidence gate all passed; Ensure repair workflow `45612490402` also passed.
 - **OBSERVED:** The Core CI job recorded 0 failures, 0 timeouts, 0 blocked checks and 0 policy skips; one browser-only test was explicitly skipped because Chromium was unavailable.

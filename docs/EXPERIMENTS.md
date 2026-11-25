@@ -1,3 +1,14 @@
+## C131 WP4/WP5 implementation audit — 2026-11-25 (pre-change gate)
+
+- **OBSERVED:** The current pipeline derives a missing locality from the listing URL before admission, while the final trust verifier does not receive or verify locality; this can admit an L1 record without R2 page-grounded locality. The post-admission short-stay check still rejects records without direct phone/email, contrary to R2 optional-contact policy. contactEnrichment remains enabled with 35 secondary searches and 10 reverse-image lookups, contrary to the delegated default-off decision and the 20-query Serper ceiling.
+- **OBSERVED:** WP4 currently writes L1/L2 and a draft string into stored metadata, but this audit did not establish a complete L3 verifier and result-type-specific anti-fabrication acceptance. Pre-C131 rows are not shown to be policy-version quarantined; the existing store/UI path still reads visible rows by hidden status.
+- **HYPOTHESIS:** A narrowly scoped corrective experiment should restore page-grounded locality, remove the short-stay direct-contact bypass, disable repeated enrichment by default, and complete the L2/L3 owner/letter contract without admitting snippets or estimating rooms.
+- **METRICS:** Owner-labelled Gold replay precision/recall and fetchable-good recall; R2 false-admission count; L1/L2/L3 counts; direct/platform/none route accuracy; enrichment and Serper calls/cost; legacy-row visibility and snapshot integrity.
+- **ACCEPTANCE:** First obtain the ≥60-record owner-labelled WP1 baseline and complete the configured-fetcher WP2 pilot. Then replay before/after; no Gold recall regression, zero locality-from-URL L1 admissions, zero snippet-only L1+, zero short-stay rejection solely for missing direct contact, and no automatic letter sending. No source tier is promoted without ≥5 saved real page fixtures and measured pilot evidence.
+- **SCOPE:** Trust admission, pipeline owner/contact/letter stages, enrichment defaults, and focused existing ImmoFinder category tests. No production DB mutation, legacy deletion, source expansion, or WP7 experiment.
+- **ROLLBACK:** Revert the corrective runtime patch if owner-labelled recall falls, field provenance crosses URLs, or any false-positive admission rises above the approved threshold.
+- **CLASSIFICATION:** EXPERIMENT / planned product correction. **BLOCKED:** owner-labelled Gold records and configured-fetcher pilot are not available in this session; no runtime code changed.
+
 ## P131.1a — Hosted verification result
 - **PASS:** Core CI `45612490342`: 18/18 DAG checks, 182/182 core tests, typecheck/build, DB migrations, docs integrity, security scan and evidence gate.
 - **PASS:** Ensure repair `45612490402` restored/synchronized repair modules successfully.
