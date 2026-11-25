@@ -1,3 +1,7 @@
+## P131.5j correction — pass testMode through PipelineOptions, not PipelineDeps
+- **CORRECTION:** `runPipeline` declares `testMode` on its second `opts` argument and uses it to cap discovery pages. The property must not be deleted; it must be moved from the first `PipelineDeps` object into `{ dryRun, wave, testMode }`. The first Core CI failure was caused by the wrong object shape, not by testMode being unused.
+- **CHANGE:** Route call now keeps `PipelineDeps` contract clean and supplies `testMode` via `PipelineOptions`; regression test asserts both sides of this boundary.
+
 ## P131.5j — Remove undeclared testMode from PipelineDeps (BUGFIX)
 - **OBSERVED / BASELINE:** PR #89's hosted Core CI failed `typecheck` and `build`: `server/immofinderRoutes.ts(851,11) TS2353`, `testMode` is not a member of `PipelineDeps`. Render build for merge commit `6e3beb2` failed; the last successful service deploy remained live.
 - **HYPOTHESIS:** The test-mode flag is already stored in queue progress and used to cap config before calling `runPipeline`; passing it again inside `PipelineDeps` is redundant and violates the pipeline contract. Remove that property and add a regression assertion.
