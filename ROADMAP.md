@@ -1,3 +1,13 @@
+## C131 execution status — P131.3 (2026-11-25)
+- **WP0:** DONE; R1–R14 and no-Gold amendment recorded.
+- **WP1:** DONE for available-evidence baseline; historical run diagnostics, ten sanitized portal examples, provider-free invariants and 17-module/26-payload reference trace recorded; no precision/recall claim.
+- **WP2:** PARTIAL; public scorecard and selected bounded pilot exist; configured-fetcher measurements, robots verification for 12 hosts and per-source cost/yield remain NOT_RUN.
+- **WP3:** PARTIAL; P131.2 closes page-grounded locality and budgets, but isolated single-engine architecture/adapters remain outstanding.
+- **WP4:** P131.3 adds evidence-bound L3 verification; hosted CI and live letter review pending.
+- **WP5:** OPEN; legacy retirement still depends on production backup and restore-consumer migration.
+- **WP6:** NOT_RUN; production deployment and three completed manual runs unavailable in this session.
+- **WP7:** NOT_TRIGGERED; no WP6 recall gap has been measured.
+
 ## C131 CI gate update — P131.2a
 - Core CI now runs on pull requests targeting main; full verification can gate the next implementation PR before merge.
 - P131.2 runtime changes are merged; live source pilot and production run remain NOT_RUN.
