@@ -1,3 +1,7 @@
+## P131.4a — Record green hosted verification
+- Core CI `45633920254` passed all 18/18 verification checks; Answer Quality `45633920285` passed deterministic checks.
+- Live search smoke was opt-in and skipped; no production or WP6 outcome is claimed.
+
 ## P131.4 — Repair evidence-bound L3 contact forms and pipeline typing
 - Retained fetched HTML per candidate and verified platform-message forms against that exact page; corrected the L3 pipeline type errors.
 - Added same-page form, missing-form, no-route and URL-mismatch regressions; no automatic sending.
