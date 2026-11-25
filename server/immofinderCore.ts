@@ -356,7 +356,7 @@ export function draftMessage(f: { ownerName?: string | null; propertyName?: stri
   }
   const obj = f.propertyName ? `Ihre Ferienwohnung «${f.propertyName}»` : 'Ihre Ferienwohnung';
   return [
-    `Betreff: Anfrage zur langfristigen Miete – ${f.propertyName || 'Ferienwohnung'} in ${f.municipality}`, '',
+    `Betreff: Anfrage zur langfristigen Miete – ${f.rooms ? `${f.rooms}-Zimmer-` : ''}${f.propertyName || 'Ferienwohnung'} in ${f.municipality}`, '',
     `${greet},`, '',
     `ich bin auf ${obj} in ${f.municipality} aufmerksam geworden und möchte anfragen, ob für Sie eine langfristige Vermietung ab drei Jahren denkbar wäre.`, '',
     'Für Sie hätte das einige Vorteile: keine Leerstände zwischen den Buchungen, keine Plattformkommissionen, kein Aufwand für Gästewechsel und Reinigung, und eine Mieterschaft, die mit der Wohnung sorgfältig umgeht.', '',
