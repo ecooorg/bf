@@ -1,3 +1,11 @@
+## D-2026-11-25-03 — C131 execution without an owner-labelled Gold Set
+
+**Owner direction (2026-11-25):** The Navigator confirms that no 60-record Gold Set or further owner-supplied labels will be provided and directs autonomous completion of WP0–WP7 using repository data and documented evidence.
+
+**Execution amendment:** Do not block implementation on owner-labelled Gold data and do not fabricate labels. WP1 evidence is the existing real run/event diagnostics, saved public-page evidence already retained in tests, source/reference inventories, and deterministic provider-free contract tests. Report operational funnel and invariant results only; do not claim precision, recall, false-positive rate, or owner-confirmed quality without independent labels. Preserve raw diagnostics and encrypted snapshots; do not infer their contents without decryption access.
+
+**Acceptance boundary:** WP3/WP4 changes require offline invariant tests and saved-page evidence checks. WP6 still requires real deployed runs; CI is not live user value. WP7 remains conditional on a measured live recall gap; if none is observable, record NOT_TRIGGERED rather than inventing one. This decision supersedes only the Gold Set dependency and owner-input questions; R1–R14, privacy, robots, budget and no-auto-send rules remain binding.
+
 ## D-2026-11-25-02 — Navigator delegation for C131 execution
 
 **Decision authority:** Navigator explicitly delegated all intermediate WP0–WP7 decisions to the coding session and stated the target outcome: after deployment, a manual ImmoFinder search should return at least several real, high-quality listings. This authorizes resolving the previously open C131 choices for implementation, without fabricating owner labels or claiming production evidence.
