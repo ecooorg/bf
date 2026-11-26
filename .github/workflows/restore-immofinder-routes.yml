@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '.github/trigger-restore-routes'
+      - 'server/immofinder/_restore_parts/**'
 permissions:
   contents: write
 jobs:
@@ -12,60 +12,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Restore routes from last good commit and patch secret settings PUT
+      - name: Reconstruct routes from base64 parts
         run: |
           set -euo pipefail
-          git checkout 3a6f6816698ed15ca80f5efded2fc1040dcde532 -- server/immofinderRoutes.ts
-          python3 << 'PY'
-          from pathlib import Path
-          p = Path('server/immofinderRoutes.ts')
-          t = p.read_text()
-          old_cron = """export function isImmoCronCall(req: Request): boolean {
-  return req.method === 'POST' && ['/api/immofinder/run', '/api/immofinder/settings/prepare-chur-test'].includes(req.path) && Boolean(req.get('x-immofinder-secret'));
-}"""
-          new_cron = """export function isImmoCronCall(req: Request): boolean {
-  const path = String(req.path || '');
-  const secretPresent = Boolean(req.get('x-immofinder-secret'));
-  if (!secretPresent) return false;
-  if (req.method === 'POST' && ['/api/immofinder/run', '/api/immofinder/settings/prepare-chur-test'].includes(path)) return true;
-  if (req.method === 'PUT' && path === '/settings') return true;
-  return false;
-}"""
-          assert old_cron in t, 'cron block missing'
-          t = t.replace(old_cron, new_cron, 1)
-          old_mw = """    const isRunPost = req.method === 'POST' && req.path === '/run';
-    const isTestProfilePost = req.method === 'POST' && req.path === '/settings/prepare-chur-test';
-    const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
-    const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
-    const cron = (isRunPost || isTestProfilePost) && secretOk(req);"""
-          new_mw = """    const isRunPost = req.method === 'POST' && req.path === '/run';
-    const isTestProfilePost = req.method === 'POST' && req.path === '/settings/prepare-chur-test';
-    const isSettingsPut = req.method === 'PUT' && req.path === '/settings';
-    const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
-    const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
-    const cron = (isRunPost || isTestProfilePost || isSettingsPut) && secretOk(req);"""
-          assert old_mw in t, 'mw block missing'
-          t = t.replace(old_mw, new_mw, 1)
-          old_put = """  app.put('/api/immofinder/settings', json, async (req, res) => {
-    try { const cfg = loadImmoConfig(); res.json({ success: true, settings: await saveSettings(cfg, req.body), channels: channelStatus() }); }
-    catch { res.status(500).json({ success: false, error: 'Settings could not be saved', code: 'IMMOFINDER_FAILED' }); }
-  });"""
-          new_put = """  app.put('/api/immofinder/settings', json, async (req, res) => {
-    if ((req as any).immoCron && !secretOk(req)) {
-      return res.status(401).json({ success: false, error: 'Invalid run secret', code: 'UNAUTHORIZED' });
-    }
-    try { const cfg = loadImmoConfig(); res.json({ success: true, settings: await saveSettings(cfg, req.body), channels: channelStatus(), communes: cfg.municipalities, timezone: TIMEZONE }); }
-    catch { res.status(500).json({ success: false, error: 'Settings could not be saved', code: 'IMMOFINDER_FAILED' }); }
-  });"""
-          assert old_put in t, 'put block missing'
-          t = t.replace(old_put, new_put, 1)
-          p.write_text(t)
-          print('patched bytes', len(t))
-          PY
+          if [ ! -d server/immofinder/_restore_parts ]; then
+            echo "no parts"; exit 1
+          fi
+          cat server/immofinder/_restore_parts/part-*.b64 | tr -d '\n' | base64 -d > server/immofinderRoutes.ts
+          wc -c server/immofinderRoutes.ts
+          head -c 60 server/immofinderRoutes.ts; echo
+          grep -q "registerImmoFinderRoutes" server/immofinderRoutes.ts
+          grep -q "isImmoCronCall" server/immofinderRoutes.ts
           git config user.name "immofinder-restore"
           git config user.email "bot@users.noreply.github.com"
           git add server/immofinderRoutes.ts
-          git commit -m "fix(immofinder): restore routes + secret PUT /settings" || echo "nothing to commit"
+          git commit -m "fix(immofinder): reconstruct routes from restore parts"
           git push origin HEAD:main
