@@ -87,6 +87,7 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
   };
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
   assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats }));
+  assert.equal(result.counts.kept_l1, 1);
   assert.equal(writes.length, 1);
   assert.equal(writes[0].listing_type, 'long_term_offer');
   assert.equal(writes[0].municipality, 'Chur');
@@ -101,6 +102,8 @@ test('pipeline rejects detail pages without an actionable contact route', async 
   assert.equal(result.counts.kept, 0);
   assert.equal(writes.length, 0);
   assert.ok(result.filtered.no_contact_route >= 1);
+  assert.equal(result.preview[0].kept, false, 'no-contact candidates must not remain marked as kept in preview');
+  assert.equal(result.preview[0].reason, 'no_contact_route');
 });
 
 test('Flatfox parser retains half rooms, monthly price and platform contact', async () => {
@@ -177,6 +180,7 @@ test('bounded Serper discovery seeds direct Anibis detail pages and counts searc
   assert.ok(fetched.includes(detail));
   assert.equal(result.estCostUsd, 0.001);
   assert.equal(result.counts.serper_calls, 1);
+  assert.equal(result.counts.serper_available, 1);
 });
 
 test('rotating Serper discovery can fetch a Homegate detail page without crawling its blocked index', async () => {
@@ -231,6 +235,7 @@ test('Gemini promotes a borderline lead only when its private-owner quote is ver
   assert.ok(writes[0].raw.owner_markers.includes(privateQuote));
   assert.equal(result.estCostUsd, 0.002);
   assert.equal(result.counts.gemini_calls, 1);
+  assert.equal(result.counts.kept_l2, 1);
 });
 
 test('polite fetcher can disable Jina and browser fallbacks', async () => {

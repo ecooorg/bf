@@ -144,7 +144,7 @@ export async function runPipeline(
     stopAgencies: deps.config.stopAgencies || [],
   };
   const counts: Record<string, number> = {
-    index_pages: 0, candidates: 0, fetched: 0, kept: 0, new: 0, updated: 0, skipped: 0, infra_failures: 0, serper_calls: 0, gemini_calls: 0,
+    index_pages: 0, candidates: 0, fetched: 0, kept: 0, kept_l1: 0, kept_l2: 0, new: 0, updated: 0, skipped: 0, infra_failures: 0, serper_calls: 0, gemini_calls: 0, serper_available: deps.search ? 1 : 0, gemini_available: deps.llm ? 1 : 0,
   };
   const filtered: Record<string, number> = {};
   const errors: RunResult['errors'] = [];
@@ -366,6 +366,8 @@ export async function runPipeline(
         const directPhone = owner?.phone || null;
         const directEmail = owner?.email || null;
         if (!owner || owner.contactRoute === 'none') {
+          const rejectedPreview = preview[preview.length - 1];
+          if (rejectedPreview) { rejectedPreview.kept = false; rejectedPreview.reason = 'no_contact_route'; rejectedPreview.detail = 'no_contact_route'; }
           filtered.no_contact_route = (filtered.no_contact_route || 0) + 1;
           stats.consecutiveBad++;
           if (!opts.dryRun) { try { await deps.store.markSeen(candidate.url, source.id, 'rejected', 'no_contact_route'); } catch { /* non-critical cache */ } }
@@ -432,6 +434,8 @@ export async function runPipeline(
           try { await deps.store.markSeen(candidate.url, source.id, 'kept', level); } catch { /* non-critical cache */ }
         }
         counts.kept++;
+        if (level === 'L1') counts.kept_l1++;
+        else if (level === 'L2') counts.kept_l2++;
         stats.kept++;
         stats.consecutiveBad = 0;
       } catch (error) {

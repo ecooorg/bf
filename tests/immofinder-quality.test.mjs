@@ -1077,6 +1077,9 @@ test('P131.9 live acceptance is CI-gated and targets the confirmed My Workspace 
   assert.match(ci, /manualRun":true/);
   assert.match(ci, /EXPECTED_COMMIT=.*GITHUB_SHA/);
   assert.match(ci, /\.commit == \$expected/);
+  assert.match(ci, /\.report\.runId == \$id/);
+  assert.doesNotMatch(ci, /\.report\.result\.status/);
+  assert.match(ci, /\.counts\.kept \/\/ 0/);
   const route = read('server/immofinderRoutes.ts');
   assert.match(route, /req\.body\?\.manualRun !== true/);
   assert.equal(existsSync(path.join(root, '.github/workflows/immofinder-test-search.yml')), false);

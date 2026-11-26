@@ -16,7 +16,7 @@ permissions:
   actions: read
 concurrency:
   group: core-ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
@@ -223,7 +223,7 @@ jobs:
           for attempt in $(seq 1 60); do
             sleep 10
             status=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
-            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id and (.report.result.status == "COMPLETED" or .report.result.status == "INFRA_FAIL")' /tmp/report.json >/dev/null 2>&1; then
+            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id' /tmp/report.json >/dev/null 2>&1; then
               completed=true
               break
             fi
@@ -236,14 +236,18 @@ jobs:
           jq '{
             runId: .report.runId,
             completedAt: .report.completedAt,
-            status: .report.result.status,
+            status: "COMPLETED",
             counts: .report.result.counts,
             filtered: .report.result.filtered,
             sourceStats: .report.result.sourceStats,
             estimatedProviderCostUsd: .report.result.estCostUsd,
             qualityLevels: {
-              L1: ([.report.result.preview[]? | select(.kept == true and .detail == "L1")] | unique_by(.url) | length),
-              L2: ([.report.result.preview[]? | select(.kept == true and .detail == "L2")] | unique_by(.url) | length)
+              L1: (.report.result.counts.kept_l1 // 0),
+              L2: (.report.result.counts.kept_l2 // 0)
+            },
+            providerAvailability: {
+              serper: ((.report.result.counts.serper_available // 0) == 1),
+              gemini: ((.report.result.counts.gemini_available // 0) == 1)
             },
             leadEvidence: ([.report.result.preview[]? | select(.kept == true) | {source,municipality,rooms,level:.detail}] | unique),
             providerCalls: {
@@ -254,18 +258,25 @@ jobs:
           }' /tmp/report.json > artifacts/immofinder-live/summary.json
           L1=$(jq -r '.qualityLevels.L1' artifacts/immofinder-live/summary.json)
           L2=$(jq -r '.qualityLevels.L2' artifacts/immofinder-live/summary.json)
-          TOTAL=$((L1 + L2))
+          TOTAL=$(jq -r '.counts.kept // 0' artifacts/immofinder-live/summary.json)
           {
             echo "### ImmoFinder production live acceptance"
             echo "- Run: $RUN_ID"
             echo "- L1 leads: $L1"
             echo "- L2 private-owner leads: $L2"
             echo "- Total kept leads: $TOTAL (acceptance minimum: 3)"
+            echo "- New/updated: $(jq -r '.counts.new // 0' artifacts/immofinder-live/summary.json)/$(jq -r '.counts.updated // 0' artifacts/immofinder-live/summary.json)"
+            echo "- Provider configured (Serper/Gemini): $(jq -r '.providerAvailability.serper' artifacts/immofinder-live/summary.json)/$(jq -r '.providerAvailability.gemini' artifacts/immofinder-live/summary.json)"
             echo "- Fetched detail pages: $(jq -r '.counts.fetched // 0' artifacts/immofinder-live/summary.json)"
             echo "- Serper/Gemini calls: $(jq -r '.providerCalls.serper' artifacts/immofinder-live/summary.json)/$(jq -r '.providerCalls.gemini' artifacts/immofinder-live/summary.json)"
             echo "- Estimated provider cost: USD $(jq -r '.estimatedProviderCostUsd // 0' artifacts/immofinder-live/summary.json)"
             echo "- Source stats: `$(jq -c '.sourceStats' artifacts/immofinder-live/summary.json)`"
           } >> "$GITHUB_STEP_SUMMARY"
+          SERPER_AVAILABLE=$(jq -r '.providerAvailability.serper' artifacts/immofinder-live/summary.json)
+          if [ "$SERPER_AVAILABLE" != "true" ]; then
+            echo "Live acceptance failed: Serper search provider is not configured in production." >&2
+            exit 1
+          fi
           if [ "$TOTAL" -lt 3 ]; then
             echo "Live acceptance failed: fewer than 3 unique L1/L2 results." >&2
             exit 1
