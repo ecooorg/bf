@@ -1,3 +1,13 @@
+## P131.8r — Full-canton direct-source yield experiment (2026-11-26)
+- **HYPOTHESIS:** Replacing the one-commune saved scope with the full official Graubünden commune catalogue plus locality aliases, lowering the room threshold to 2, and adding direct Anibis/Tutti adapters will produce verified rental leads without paid search/model calls.
+- **SCOPE:** production path `server/immofinder/live.ts`; direct adapters HappyHoliday, Ferienhausmiete, Anibis, Tutti; 100 official communes + 19 locality aliases. Schedule and delivery remain manual/off. Hard caps: 6 index pages/source, 12 details/source, 48 details/run, 240s, 1.5s host pacing.
+- **QUALITY GATE:** only fetched detail pages with matching final URL, explicit in-scope locality evidence, residential rental classification and explicit room count >=2; reject sale, seeker and known agency records. No snippets or inferred room counts. L1 is a verified listing; L2 requires private-owner evidence plus a contact route.
+- **COST GATE:** Serper, LLM, Jina and browser rendering stay disabled; target provider cost $0.00/run. No recurring schedule, notifications or drive exports.
+- **ACCEPTANCE:** >=3 unique L1/L2 listings in a real production run; no locality/room false positives in reviewed sample; successful detail fetches from at least two sources; core CI green. If yield remains zero, report each source's HTTP/fetchability and reject reasons; do not weaken page-evidence gates to manufacture results.
+- **SOURCE STATUS:** Anibis and Tutti are pilot adapters, not R9 Tier-1 approved. They require >=5 saved detail fixtures/source and measured fetch/yield/cost scorecards before Tier-1 designation.
+- **ROLLBACK:** disable a blocked source after 403/429; revert an adapter if final-URL, locality or detail-page validation fails. Do not reactivate paid discovery automatically.
+- **CLASSIFICATION:** USER_VALUE + EXPERIMENT; live production yield pending.
+
 ## P131.8q — Source-first live engine and provider-cost freeze (EXPERIMENT)
 - **PROBLEM/EVIDENCE:** Legacy search produced no owner-accepted quality listings; prior C131 pilots show Serper credits exhausted and major portals returning 403. New C131 classifier produced L1/L2 on bounded HappyHoliday live pilot, but its pipeline was offline-only and never the production path.
 - **HYPOTHESIS:** A bounded source-first runtime using direct index/detail fetches, strict page-level locality/rooms/agency/seeker gates, owner evidence and durable listing writes can surface better candidates without paid Serper/LLM calls. Keep only sources with verified fetchability; blocked sources are skipped, not retried.
