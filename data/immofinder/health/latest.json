@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T14:35:58.616Z",
+  "generatedAt": "2026-11-26T14:36:22.377Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "OK",
-      "detail": "1 checks at adf28e0, all completed without failure"
+      "status": "WARN",
+      "detail": "no check runs reported for f307225"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 13 commit(s) behind main with 7 non-archive file(s) changed (e.g. package-lock.json, package.json, server/immofinder/live.ts); deploy may be pending or failed"
+      "detail": "production is 15 commit(s) behind main with 7 non-archive file(s) changed (e.g. package-lock.json, package.json, server/immofinder/live.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T14:35:57.496Z",
+        "checkedAt": "2026-11-26T14:36:21.441Z",
         "steps": [
           {
             "step": "app",
