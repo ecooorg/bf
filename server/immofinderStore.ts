@@ -487,6 +487,11 @@ export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
   const p = await getPool(); const r = await p.query("SELECT data FROM immofinder_settings WHERE id = 'main'");
   return r.rows[0] ? sanitizeSettings(r.rows[0].data, cfg) : defaultSettings(cfg);
 }
+export async function getSettingsUpdatedAt(): Promise<Date | null> {
+  const p = await getPool();
+  const r = await p.query("SELECT updated_at FROM immofinder_settings WHERE id = 'main'");
+  return r.rows[0]?.updated_at ? new Date(r.rows[0].updated_at) : null;
+}
 export async function saveSettings(cfg: ImmoConfig, input: unknown): Promise<ImmoSettings> {
   const s = sanitizeSettings(input, cfg); const p = await getPool();
   await p.query("INSERT INTO immofinder_settings (id, data) VALUES ('main', $1::jsonb) ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = now()", [JSON.stringify(s)]);
