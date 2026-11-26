@@ -4,7 +4,7 @@
 - **CHANGE:** source-first classifier, core write-time mismatch checks, owner phone validation, HappyHoliday adapter, browser allowlist and one-time seen-cache reset.
 - **ACCEPTANCE:** >=3 visible unique L1/L2 leads; correct locality and room count in every reviewed lead; >=10 substantive body words or structured price/amenity evidence; no placeholder contacts; second run cost $0.00 in paid providers; Core CI green.
 - **ROLLBACK:** keep any source paused if 403/429 persists; never relax locality, room or substantive-detail gates to force a positive count.
-- **SOURCE STATUS:** HappyHoliday local render is capped to 3 pages/run. Fresh defaults enable only HappyHoliday/Ferienhausmiete; Anibis/Tutti remain paused until access changes and fixture evidence is captured. Schedule and delivery stay off.
+- **SOURCE STATUS:** HappyHoliday/Flatfox local render is capped to 3 pages/run. Fresh defaults enable only HappyHoliday/Ferienhausmiete/Flatfox; Anibis/Tutti remain paused until access changes and fixture evidence is captured. Schedule and delivery stay off.
 
 ## P131.8r — Full-canton direct-source yield experiment (2026-11-26)
 - **HYPOTHESIS:** Replacing the one-commune saved scope with the full official Graubünden commune catalogue plus locality aliases, lowering the room threshold to 2, and adding direct Anibis/Tutti adapters will produce verified rental leads without paid search/model calls.
