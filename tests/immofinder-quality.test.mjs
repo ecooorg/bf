@@ -215,8 +215,10 @@ test('ImmoFinder controls reflect live discovery behaviour and run duration', ()
   const settings = read('server/immofinderSettings.ts');
   const core = read('server/immofinderCore.ts');
   const app = read('src/ImmoFinder.tsx');
-  assert.match(settingsUi, /Private-owner web search/);
-  assert.match(settingsUi, /social snippets are not saved as verified listings/);
+  assert.match(settingsUi, /Directly fetched classified details/);
+  assert.match(settingsUi, /HappyHoliday/);
+  assert.match(settingsUi, /Anibis/);
+  assert.doesNotMatch(settingsUi, /Private-owner web search|Google owner-direct ads/);
   assert.match(settingsUi, /No date filter is applied/);
   assert.doesNotMatch(settingsUi, /Facebook & private|Search freshness|immofinder-freshness/);
   assert.doesNotMatch(settings, /freshnessFallback|freshness:/);
@@ -248,7 +250,9 @@ test('P131.6 settings UI exposes optional price/contact filters and a complete C
   assert.match(ui, /minRooms: 3/);
   assert.match(ui, /id: 'ferienhausmiete'/);
   assert.match(ui, /id: 'happyholiday'/);
-  assert.match(ui, /id: 'landwirtschaft-gr'/);
+  assert.match(ui, /id: 'portal-anibis'/);
+  assert.match(ui, /id: 'portal-tutti'/);
+  assert.doesNotMatch(ui, /id: 'landwirtschaft-gr'/);
   assert.match(ui, /AI extraction is disabled/i);
   assert.match(ui, /\[3, 4, 5, 6, 7, 8\]/);
 });
