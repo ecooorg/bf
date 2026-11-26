@@ -970,7 +970,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             communes: [...cfg.municipalities],
             minRooms: 2,
             municipalityGroups: { group1: true, group2: true },
-            sources: Object.fromEntries(sourceIds.map((id) => [id, !['portal-anibis', 'portal-tutti'].includes(id)])),
+            sources: Object.fromEntries(sourceIds.map((id) => [id, ['happyholiday', 'ferienhausmiete'].includes(id)])),
             profile: 'burst',
             defaultWave: 'full',
             carouselCommunesPerRun: cfg.municipalities.length,
