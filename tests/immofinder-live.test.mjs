@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { runPipeline } from '../server/immofinder/live.ts';
 
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
-const detailUrl = 'https://happyholiday.ch/haus/wohnung-chur-123/';
+const detailUrl = 'https://happyholiday.ch/haus/wohnung-chur-123';
 const offTargetUrl = 'https://happyholiday.ch/haus/ferienwohnung-graubuenden-in-scuol/';
 const indexHtml = '<html><body>' + '<nav>Wohnungen mieten in Graubünden. Angebote und Details. </nav>'.repeat(6) + '<a href="' + offTargetUrl + '">Ferienwohnung Scuol</a><a href="' + detailUrl + '">Wohnung Chur</a></body></html>';
 const detailHtml = '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>Diese schöne Wohnung liegt in Chur. 3.5 Zimmer, helle Räume und Balkon. Das Angebot ist von privat. Für Fragen nutzen Sie bitte das Kontaktformular oder senden Sie eine Nachricht.</p></body></html>';
@@ -48,9 +48,10 @@ function depsFor() {
 
 test('source-first pipeline admits a fetched private listing with traceable evidence', async () => {
   const { deps, writes, fetched } = depsFor();
+  assert.ok(happyholidayAdapter.discover(indexHtml, indexUrl).some((item) => item.url === detailUrl), 'fixture index must expose the canonical detail URL');
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
   assert.equal(result.status, 'COMPLETED');
-  assert.equal(result.counts.fetched, 1);
+  assert.equal(result.counts.fetched, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats, fetched }));
   assert.equal(result.counts.kept, 1);
   assert.equal(result.counts.new, 1);
   assert.equal(writes.length, 1);
@@ -71,15 +72,19 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
   const detail = 'https://www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783';
   deps.config.municipalities = ['Chur'];
   deps.config.sources = [{ id: 'portal-anibis', url: index, maxDetailPages: 12, detailPattern: '^https://www\\.anibis\\.ch/de/vi/.*' }];
-  deps.config.discovery = { enabled: true, portalSources: [{ id: 'portal-anibis', host: 'anibis.ch' }], portalQueries: ['site:anibis.ch "{commune}" Wohnung mieten'], queries: [], serperMinIntervalMs: 0 };
-  deps.search = async () => [{ title: '3.5-Zimmer-Wohnung Chur', link: detail, snippet: '3.5 Zimmer, Chur, Wohnung mieten' }];
+  deps.config.discovery = {
+    enabled: true, communesPerRun: 1, resultsPerQuery: 10,
+    portalQueries: ['site:anibis.ch "{commune}" ("3.5 Zimmer" OR "4 Zimmer") Wohnung mieten'],
+    portalSources: [{ id: 'portal-anibis', host: 'anibis.ch' }], portalHosts: ['anibis.ch'],
+    skipHosts: [], snippetOnlyHosts: [], serperMinIntervalMs: 0,
+  };
+  deps.search = async () => [{ title: '3.5 Zimmer Wohnung in Chur mieten', link: detail, snippet: '3.5 Zimmer, Chur, Wohnung zu vermieten' }];
   deps.fetchPage = async (url) => {
-    if (url === index) return { ok: true, status: 200, body: '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3.5-Zimmer-Wohnung Chur</a></main>', finalUrl: url };
-    if (url === detail) return { ok: true, status: 200, body: '<h1>Helle 3.5-Zimmer-Wohnung in Chur</h1><p>7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Privatperson. Kontaktformular.</p>', finalUrl: url };
+    if (url === detail) return { ok: true, status: 200, body: '<h1>Helle 3.5-Zimmer-Wohnung in Chur</h1><p>7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Privatperson. Kontaktformular. Helle Wohnung mit Balkon und Küche.</p>', finalUrl: url };
     return { ok: false, status: 404, body: '', finalUrl: url };
   };
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
-  assert.equal(result.counts.kept, 1);
+  assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats }));
   assert.equal(writes.length, 1);
   assert.equal(writes[0].listing_type, 'long_term_offer');
   assert.equal(writes[0].municipality, 'Chur');
@@ -99,11 +104,13 @@ test('pipeline rejects detail pages without an actionable contact route', async 
 test('Flatfox parser retains half rooms, monthly price and platform contact', async () => {
   const { deps, writes } = depsFor();
   const index = 'https://flatfox.ch/de/search/?offer_type=RENT&north=47.8';
-  const detail = 'https://flatfox.ch/de/wohnung/via-sogn-martin-1-7166-trun/86331649/';
+  const detail = 'https://flatfox.ch/de/wohnung/via-sogn-martin-1-7166-trun/86331649';
   deps.config.municipalities = ['Trun'];
   deps.config.sources = [{ id: 'portal-flatfox', url: index, maxDetailPages: 12, detailPattern: '^https://(?:www\\.)?flatfox\\.ch/(?:de/wohnung|en/flat)/.+/\\d+/?$' }];
+  const flatfoxIndexHtml = '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a></main>';
+  assert.ok(createSwissClassifiedAdapter('portal-flatfox', 'flatfox.ch').discover(flatfoxIndexHtml, index).some((item) => item.url === detail), 'Flatfox index must expose its canonical detail URL');
   deps.fetchPage = async (url) => {
-    if (url === index) return { ok: true, status: 200, body: '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a></main>', finalUrl: url };
+    if (url === index) return { ok: true, status: 200, body: flatfoxIndexHtml, finalUrl: url };
     if (url === detail) return {
       ok: true, status: 200, finalUrl: url,
       body: '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1><p>Via Sogn Martin 1, 7166 Trun. CHF 1’520 inkl. NK pro Monat.</p><h2>Beschreibung</h2><p>Moderne Wohnung mit Terrasse, Küche, Waschmaschine, Keller und Parkplatz.</p><h3>Inserent</h3><p>Herr Max Muster</p><p>Kontaktformular erstellen</p>',
@@ -111,7 +118,7 @@ test('Flatfox parser retains half rooms, monthly price and platform contact', as
     return { ok: false, status: 404, body: '', finalUrl: url };
   };
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
-  assert.equal(result.counts.kept, 1);
+  assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats }));
   assert.equal(writes.length, 1);
   assert.equal(writes[0].listing_type, 'long_term_offer');
   assert.equal(writes[0].municipality, 'Trun');
@@ -127,7 +134,7 @@ test('dry run never writes or marks seen', async () => {
   const { deps, writes, marks } = depsFor();
   const result = await runPipeline(deps, { dryRun: true, testMode: true });
   assert.equal(result.status, 'COMPLETED');
-  assert.equal(result.counts.kept, 1);
+  assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats, fetched }));
   assert.equal(result.filtered.source_locality_mismatch, 1);
   assert.equal(writes.length, 0);
   assert.equal(marks.length, 0);
