@@ -1,7 +1,6 @@
 /**
  * C131 WP3 offline pipeline: snapshot → classify → owner → level.
- * Pure, zero network. Used for invariant replay and future dry-run path.
- * Live production path remains legacy until WP5.
+ * Pure, zero network. Used by the production source-first runner and invariant replay.
  */
 
 import { classifyPage, type PageSnapshot, type ClassifyConfig, type ClassifyResult } from './classify.ts';
