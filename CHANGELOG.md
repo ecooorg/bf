@@ -1,7 +1,7 @@
 ## P131.8s — Evidence-first quality correction (BUGFIX)
 - Corrected locality false positives from substrings and property names; description evidence now wins over property-title mentions. Added Swiss half-room parsing (2 1/2, 4 1/2), substantive detail-page gate and agency detection.
 - Removed portal navigation as a seeker-post signal and reject sequential placeholder phone numbers. Recognize host enquiry forms.
-- HappyHoliday extracts structured descriptions and has a max-3 local Chromium fallback limited to that host. Anibis/Tutti paused after HTTP 403. Fresh defaults enable only HappyHoliday/Ferienhausmiete; schedule and all delivery channels default off. No paid provider calls enabled.
+- HappyHoliday extracts structured descriptions; Flatfox direct rental discovery now parses half rooms, monthly price and advertiser identity. Local Chromium is allowlisted only for HappyHoliday/Flatfox and capped at 3 pages/run. Anibis/Tutti paused after HTTP 403. Fresh defaults enable only HappyHoliday/Ferienhausmiete/Flatfox; schedule and all delivery channels default off. No paid provider calls enabled.
 - First pilot's hidden candidates are rechecked once; existing records recover only after a clean new fetch. Second production yield and hosted CI pending.
 
 ## P131.8r — Full-canton source expansion (EXPERIMENT)
