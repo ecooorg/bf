@@ -1,7 +1,8 @@
 /**
  * C131 source-first live ImmoFinder runtime.
  *
- * No SERP provider, LLM, reverse-image search, or browser-render spend.
+ * No SERP provider, LLM or reverse-image search. A local browser fallback is capped
+ * to three short HappyHoliday detail pages; all other hosts stay direct-fetch only.
  * Fetches configured first-party catalogue indexes and bounded detail pages,
  * then admits only fetched detail pages through the pure C131 classifier.
  */
