@@ -147,11 +147,11 @@ export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'be
   t = t.replace(/(\d{1,2})\s+1\/2/g, '$1.5');
   type Hit = { rooms: number; index: number };
   const hits: Hit[] = [];
-  for (const m of t.matchAll(/(?:zimmer|zi\.?|rooms?|pi[eè]ces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)) {
+  for (const m of t.matchAll(/(?:\bzimmer\b|\bzi\.?|\brooms?\b|\bpi[eè]ces?\b)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)) {
     const n = Number(m[1]);
     if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
   }
-  for (const m of t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pi[eè]ces?|-?zimmerwohnung)/gi)) {
+  for (const m of t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:\bzimmer\b|\bzi\b|\bzi\.|\brooms?\b|\bpi[eè]ces?\b|-?zimmerwohnung)/gi)) {
     const n = Number(m[1]);
     if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
   }
