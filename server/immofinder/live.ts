@@ -14,6 +14,7 @@ import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import { createSwissClassifiedAdapter } from './sources/swiss-classified.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
 import { buildEvidenceText, classifyType, resolveListingPrice, type ListingType } from '../immofinderCore.ts';
+import { candidateIsTarget, candidateScore, detailFetchBadWeight, shouldBlockSourceAfterDetail, normalizeSlug } from './liveFilters.ts';
 
 const MAX_INDEX_PAGES_PER_SOURCE = 6;
 const MAX_DETAILS_PER_SOURCE = 12;
@@ -65,11 +66,11 @@ function plainText(html: string): string {
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
+    .replace(/&/gi, '&')
+    .replace(/"/gi, '"')
+    .replace(/&#39;|'/gi, "'")
+    .replace(/</gi, '<')
+    .replace(/>/gi, '>')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -96,30 +97,12 @@ function photoUrls(html: string): string[] {
   } catch { return []; }
 }
 
-
-function normalizeSlug(value: string): string {
-  return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-
 function selectIndexUrls(source: { id: string; url: string; indexUrls?: string[] }, municipalities: string[]): string[] {
   const configured = source.indexUrls?.length ? source.indexUrls : [source.url];
   if (source.id !== 'ferienhausmiete') return configured.slice(0, MAX_INDEX_PAGES_PER_SOURCE);
   const slugs = municipalities.map(normalizeSlug);
   const relevant = configured.filter((url) => slugs.some((slug) => slug && url.toLowerCase().includes(slug)));
   return (relevant.length ? relevant : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
-}
-
-function candidateIsTarget(sourceId: string, url: string, municipalities: string[]): boolean {
-  if (sourceId !== 'happyholiday') return true;
-  const locality = /-graubuenden-in-([^/]+)\/?$/i.exec(url)?.[1];
-  if (!locality) return true;
-  const targets = new Set(municipalities.map(normalizeSlug));
-  return targets.size === 0 || targets.has(normalizeSlug(locality));
-}
-
-function candidateScore(candidate: { url: string; titleHint?: string }, municipalities: string[]): number {
-  const haystack = normalizeSlug(candidate.url + ' ' + (candidate.titleHint || ''));
-  return municipalities.reduce((score, municipality) => score + (haystack.includes(normalizeSlug(municipality)) ? 1 : 0), 0);
 }
 
 function matchesDetailPattern(url: string, pattern?: string): boolean {
@@ -198,7 +181,6 @@ export async function runPipeline(
         }
       } catch (error) {
         errors.push({ source: item.portal?.id || 'serper-private', code: 'serper_discovery_failed', detail: String((error as Error)?.message || error).slice(0, 140) });
-        // A quota/credit error is run-global; don't spend further calls retrying it.
         if (/not enough credits|quota|credits exhausted/i.test(String((error as Error)?.message || error))) break;
       }
     }
@@ -253,7 +235,7 @@ export async function runPipeline(
             filtered.source_detail_pattern_mismatch = (filtered.source_detail_pattern_mismatch || 0) + 1;
             continue;
           }
-          if (!candidateIsTarget(source.id, item.url, municipalities)) {
+          if (!candidateIsTarget(source.id, item.url, municipalities, item.titleHint)) {
             filtered.source_locality_mismatch = (filtered.source_locality_mismatch || 0) + 1;
             stats.geo++;
             continue;
@@ -295,10 +277,10 @@ export async function runPipeline(
         const page = await deps.fetchPage(candidate.url);
         if (!page.ok || page.status < 200 || page.status >= 400 || !page.body || page.body.length < 120) {
           counts.infra_failures++;
-          stats.consecutiveBad++;
+          stats.consecutiveBad += detailFetchBadWeight(page.status);
           errors.push({ source: source.id, code: 'detail_fetch_failed', detail: 'HTTP ' + page.status });
-          preview.push({ url: candidate.url, title: candidate.titleHint || candidate.url, source: source.id, municipality: null, rooms: null, kept: false, reason: 'fetch_blocked' });
-          if (page.status === 403 || page.status === 429) { sourceBlocked = true; break; }
+          preview.push({ url: candidate.url, title: candidate.titleHint || candidate.url, source: source.id, municipality: null, rooms: null, kept: false, reason: 'fetch_blocked', detail: 'HTTP ' + page.status });
+          if (shouldBlockSourceAfterDetail(page.status, stats.consecutiveBad)) { sourceBlocked = true; break; }
           continue;
         }
         stats.fetched++;
@@ -338,8 +320,6 @@ export async function runPipeline(
         }
 
         const owner = outcome.owner;
-        // Gemini is a bounded semantic assist for borderline private-owner evidence only.
-        // It cannot invent evidence: every accepted quote must be an exact substring of the fetched page.
         if (level === 'L1' && owner && owner.contactRoute !== 'none' && deps.llm && geminiCalls < geminiBudget) {
           geminiCalls++;
           try {
