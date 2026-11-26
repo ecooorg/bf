@@ -1,3 +1,10 @@
+## P131.8u — Actionable lead acceptance (2026-11-26)
+- **OBSERVED:** Prior run's 14 visible rows were not acceptable: several were thin portal shells, placeholder contacts or wrong locality/room data. Keep them hidden until revalidated.
+- **CHANGE:** Fresh-fetch hold + seen-cache reset; detail must pass locality, 2+ room, substantive body and direct/platform contact route. Preserve price/currency, owner name and enquiry route in the card.
+- **SOURCES:** HappyHoliday, Ferienhausmiete, Flatfox. Anibis/Tutti paused after 403. No paid discovery/LLM/Jina. Local browser max 3 pages/run.
+- **ACCEPTANCE:** >=3 unique visible leads, each with correct commune and room count, substantive detail evidence, source price/currency and actionable contact route; no agency, placeholder number or false locality. Paid-provider cost $0.00; Core CI green.
+- **STATUS:** Pending next production deployment/run. A positive count alone is not sufficient.
+
 ## P131.8t — Flatfox direct-source pilot (2026-11-26)
 - **HYPOTHESIS:** Flatfox's direct listing pages expose full rental details and monthly price without a paid search provider.
 - **CHANGE:** Added Graubünden bbox index, detail URL adapter, half-room/price/advertiser extraction and agency rejection.
