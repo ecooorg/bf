@@ -1,3 +1,10 @@
+## P131.8t — Flatfox direct-source pilot (2026-11-26)
+- **HYPOTHESIS:** Flatfox's direct listing pages expose full rental details and monthly price without a paid search provider.
+- **CHANGE:** Added Graubünden bbox index, detail URL adapter, half-room/price/advertiser extraction and agency rejection.
+- **BUDGET:** 12 detail pages/source, max 3 local Chromium renders across allowlisted hosts, zero Serper/LLM/Jina.
+- **ACCEPTANCE:** At least 3 unique visible L1/L2 leads with verified locality, >=2 rooms, monthly price and contact route; no agency/placeholder contacts; paid-provider cost $0.00.
+- **STATUS:** NOT_RUN; do not claim Flatfox yield until the next production run finishes.
+
 ## P131.8s — Detail evidence and locality correction (2026-11-26)
 - **OBSERVED:** First full-canton production run returned 87 index candidates and 24 fetched details; 16 were hidden at write time, 0 visible leads. HappyHoliday pages were short JS shells; FHM pages showed that a property name can mention another commune. Anibis/Tutti index fetches returned 403. Paid-provider estimate remained $0.00.
 - **HYPOTHESIS:** Exact locality tokens + description-first locality, Swiss half-room parsing, a substantive-detail gate, corrected seeker/agency gates and up to 3 local HappyHoliday renders will allow actual detail evidence to pass while keeping false positives hidden.
