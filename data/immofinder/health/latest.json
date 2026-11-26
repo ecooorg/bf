@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T14:16:45.243Z",
-  "verdict": "FAIL",
+  "generatedAt": "2026-11-26T14:17:09.625Z",
+  "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for a3a4e74"
+      "detail": "no check runs reported for 8ec1342"
     },
     {
       "group": "GITHUB",
@@ -17,20 +17,20 @@
     {
       "group": "RENDER",
       "name": "Service /health",
-      "status": "FAIL",
-      "detail": "unreachable: timeout"
+      "status": "OK",
+      "detail": "HTTP 200, version 131, commit d80c04c"
     },
     {
       "group": "RENDER",
       "name": "Database ready",
-      "status": "FAIL",
-      "detail": "unreachable: The operation was aborted due to timeout"
+      "status": "OK",
+      "detail": "HTTP 200"
     },
     {
       "group": "RENDER",
       "name": "Deployed commit",
-      "status": "SKIP",
-      "detail": "deployed commit or main HEAD unavailable"
+      "status": "WARN",
+      "detail": "production is 7 commit(s) behind main with 5 non-archive file(s) changed (e.g. package-lock.json, package.json, scripts/workflow-preflight.mjs); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T14:16:43.929Z",
+        "checkedAt": "2026-11-26T14:17:08.566Z",
         "steps": [
           {
             "step": "app",
