@@ -200,7 +200,7 @@ jobs:
           fi
           echo "Production health: HTTP 200"
           code=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run" \
-            -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' --data '{"wave":"full"}')
+            -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' --data '{"wave":"full","manualRun":true}')
           if [ "$code" != "202" ]; then
             jq '{success,error,code}' /tmp/trigger.json 2>/dev/null || cat /tmp/trigger.json
             echo "Production search was not queued: HTTP $code" >&2

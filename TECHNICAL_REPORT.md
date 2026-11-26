@@ -1,3 +1,7 @@
+## P131.9 live trigger correction implemented
+- **CHANGE:** Secret-authenticated automation may request `manualRun:true` to run as manual; secret calls without this flag remain schedule ticks. The CI live job now sends the flag and still requires 202 + runId. Scheduler remains `manual`.
+- **NOT_RUN:** post-fix CI/live job, provider calls, accepted L1/L2 records and owner review.
+
 ## P131.9 live trigger — schedule/manual auth mismatch
 - **OBSERVED:** Core CI #45867166358: Verification DAG SUCCESS. Production `/health` HTTP 200. The CI live job POST received HTTP 200 `{success:true, skipped:manual_only}`; Render logs show the secret-auth request was classified as `trigger=schedule` and skipped because schedule mode is manual. No runId, no search execution, no provider spend.
 - **CHANGE PLANNED:** Distinguish secret-authorized manual automation (`manualRun:true`) from schedule ticks; update the CI request and route contract tests.

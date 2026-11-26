@@ -643,7 +643,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       testMode ? 'full' : waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
       waveRaw === 'full' || waveRaw === 'extended' ? 'full' :
       defaultWave;
-    const trigger = testMode ? 'manual' : (req as any).immoCron ? 'schedule' : 'manual';
+    const trigger = testMode ? 'manual' : ((req as any).immoCron && req.body?.manualRun !== true) ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
     if (trigger === 'schedule') {
       let lastAt: Date | null = null;

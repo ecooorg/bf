@@ -1,3 +1,7 @@
+
+### Live trigger regression
+- Secret-authenticated `POST /api/immofinder/run` defaults to schedule semantics. CI production acceptance must send `{wave:"full", manualRun:true}`; expect HTTP 202 with a durable `runId`. A `200 {skipped:"manual_only"}` is NOT a successful run and means no search/provider calls occurred.
+
 ## C131 ImmoFinder current verification contract (2026-11-26)
 
 - Production entry is `server/immofinder/live.ts`; pure admission is `server/immofinder/classify.ts` + `owner.ts` + `pipeline.ts`. Current category suites are `immofinder-live.test.mjs`, `immofinder-quality.test.mjs`, `immofinder-verify.test.mjs` and `agents-contract.test.mjs`; assertions must match the production C131 path.

@@ -1,3 +1,6 @@
+## P131.9 — manual automation trigger
+- Allow explicit `manualRun:true` for the existing secret-authenticated run endpoint to bypass only the schedule-due check; normal secret requests remain schedule ticks.
+
 ## P131.9 live trigger correction
 - Distinguish explicit secret-authenticated manual automation from schedule ticks so CI can start a real production search while the scheduler remains disabled.
 

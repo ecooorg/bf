@@ -1,3 +1,9 @@
+
+## P131.9 live trigger status (2026-11-26)
+- **OBSERVED:** production health HTTP 200; the first secret-auth POST was skipped as `manual_only` because it was interpreted as a schedule tick. No search or provider calls occurred.
+- **CHANGE:** explicit secret-auth `manualRun:true` override implemented; scheduler remains disabled.
+- **NOT_RUN:** post-fix live search, provider spend, three reviewed L1/L2 leads, owner acceptance.
+
 # C131 P131.9 — Source-first replacement and live quality (2026-11-26)
 
 **Current-documentation clarification:** this file records evidence for the active ImmoFinder source-first programme. The canonical product rules remain R1–R14 in `TECHNICAL_SPECIFICATION.md`; this report does not redefine them.

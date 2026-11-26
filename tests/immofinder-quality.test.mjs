@@ -1074,6 +1074,9 @@ test('P131.9 live acceptance is CI-gated and targets the confirmed My Workspace 
   assert.match(ci, /needs: check-and-build/);
   assert.match(ci, /BASE_URL: https:\/\/bf-3tqo\.onrender\.com/);
   assert.match(ci, /secrets\.IMMOFINDER_RUN_SECRET/);
+  assert.match(ci, /manualRun":true/);
+  const route = read('server/immofinderRoutes.ts');
+  assert.match(route, /req\.body\?\.manualRun !== true/);
   assert.equal(existsSync(path.join(root, '.github/workflows/immofinder-test-search.yml')), false);
   const health = read('.github/workflows/immofinder-health.yml');
   assert.match(health, /RENDER_OWNER_ID: tea-dbbjfi7avr4c73e32e8g/);
