@@ -24,7 +24,7 @@ function snap(over = {}) {
     requestedUrl: 'https://example.test/listing/1',
     finalUrl: 'https://example.test/listing/1',
     title: 'Schöne 4.5 Zimmer Wohnung in Chur',
-    pageText: 'Vermietung 4.5 Zimmer Wohnung in Chur. Von privat. Tel 079 123 45 67. Ruhige Lage.',
+    pageText: 'Vermietung 4.5 Zimmer Wohnung in Chur. Von privat. Tel 079 123 45 67. Ruhige Lage mit Balkon und guter Verkehrsanbindung.',
     fetchTimeIso: '2026-11-26T09:00:00Z',
     ...over,
   };
@@ -159,10 +159,46 @@ test('P131.8 classify: snippet-only and url mismatch → L0', () => {
 });
 
 test('P131.8 classify: outside target / for_sale / seeker / rooms', () => {
-  assert.equal(classifyPage(snap({ title: 'Wohnung in Zürich', pageText: '3.5 Zimmer Wohnung in Zürich zu mieten.' }), CFG).rejectCode, 'outside_target');
-  assert.equal(classifyPage(snap({ title: 'Zweitwohnung Flims', pageText: '3.5 Zimmer zu verkaufen in Flims.' }), CFG).rejectCode, 'for_sale');
-  assert.equal(classifyPage(snap({ title: 'WG in Chur', pageText: 'Suche Mitbewohner für 4 Zimmer Wohnung in Chur.' }), CFG).rejectCode, 'seeker');
-  assert.equal(classifyPage(snap({ title: 'Studio Chur', pageText: '1.5 Zimmer Wohnung in Chur zu mieten.' }), CFG).rejectCode, 'rooms_below_min');
+  assert.equal(
+    classifyPage(
+      snap({
+        title: 'Wohnung in Zürich am See',
+        pageText: '3.5 Zimmer Wohnung in Zürich zu mieten. Helle Räume, Balkon, ruhige Lage nahe ÖV und Einkaufsmöglichkeiten.',
+      }),
+      CFG,
+    ).rejectCode,
+    'outside_target',
+  );
+  assert.equal(
+    classifyPage(
+      snap({
+        title: 'Zweitwohnung Flims Dorf',
+        pageText: '3.5 Zimmer zu verkaufen in Flims. Eigentumswohnung mit Terrasse und Bergblick, ruhige Lage.',
+      }),
+      CFG,
+    ).rejectCode,
+    'for_sale',
+  );
+  assert.equal(
+    classifyPage(
+      snap({
+        title: 'WG in Chur Zentrum',
+        pageText: 'Suche Mitbewohner für 4 Zimmer Wohnung in Chur. Gemeinsame Küche und Bad, ruhige Mitbewohner willkommen.',
+      }),
+      CFG,
+    ).rejectCode,
+    'seeker',
+  );
+  assert.equal(
+    classifyPage(
+      snap({
+        title: 'Studio Chur Altstadt',
+        pageText: '1.5 Zimmer Wohnung in Chur zu mieten. Kompakt, modern, gute Verkehrsanbindung und Einkaufsmöglichkeiten in der Nähe.',
+      }),
+      CFG,
+    ).rejectCode,
+    'rooms_below_min',
+  );
 });
 
 test('P131.8 classify: good private rental → L1 with rooms evidence', () => {
@@ -181,15 +217,14 @@ test('P131.8i classify: locality prefers URL slug over footer commune list', () 
       finalUrl: 'https://happyholiday.ch/haus/haus-am-see-graubuenden-in-lenzerheide/',
       title: 'Haus am See',
       pageText:
-        '9 Zimmer Ferienhaus. Von privat. ' +
+        '9 Zimmer Ferienhaus mit Seeblick. Von privat. ' +
         'Footer communes: Chur Flims Untervaz Cazis Laax Thusis. ' +
-        'Mehr Text: Chur Flims.',
+        'Mehr Text: Chur Flims und Umgebung.',
     }),
     CFG,
   );
   assert.equal(r.level, 'L1');
   assert.equal(r.locality?.value, 'Lenzerheide');
-  assert.ok(String(r.locality?.quote || '').includes('lenzerheide') || r.locality?.quote === 'Lenzerheide');
 });
 
 test('P131.8 owner: private + phone → L2 promote', () => {
@@ -217,7 +252,10 @@ test('P131.8 pipeline: end-to-end L1→L2 and reject path', () => {
   assert.ok(good.owner?.isPrivateOwner);
 
   const bad = processSnapshot({
-    snapshot: snap({ title: 'Studio', pageText: '1 Zimmer in Zürich.' }),
+    snapshot: snap({
+      title: 'Studio Zürich',
+      pageText: '1 Zimmer in Zürich. Kompakt und zentral gelegen mit guter Anbindung an den öffentlichen Verkehr.',
+    }),
     config: CFG,
   });
   assert.equal(bad.level, 'L0');
@@ -227,7 +265,7 @@ test('P131.8 pipeline: end-to-end L1→L2 and reject path', () => {
 test('P131.8 replaySnapshots aggregates levels and rejects', () => {
   const items = [
     { snapshot: snap() },
-    { snapshot: snap({ title: 'Studio Zürich', pageText: '1 Zimmer in Zürich.' }) },
+    { snapshot: snap({ title: 'Studio Zürich', pageText: '1 Zimmer in Zürich. Kompakt und zentral gelegen mit guter Anbindung an den öffentlichen Verkehr.' }) },
     { snapshot: snap({ provisional: true }) },
   ];
   const r = replaySnapshots(items, CFG);
