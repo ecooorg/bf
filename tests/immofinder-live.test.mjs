@@ -28,7 +28,7 @@ function depsFor({ dryStore = false } = {}) {
       municipalities: ['Chur', 'Lenzerheide'],
       minRooms: 3,
       stopAgencies: ['Interhome', 'Holidu'],
-      sources: [{ id: 'happyholiday', url: indexUrl, indexUrls: [indexUrl], detailPattern: '^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?
+      sources: [{ id: 'happyholiday', url: indexUrl, indexUrls: [indexUrl], detailPattern: '^https://happyholiday\.ch/haus/[^/]+-graubuenden-in-[^/]+/?
       limits: { maxDetailPagesPerSource: 6, recheckAfterDays: 7, fetchTimeoutMs: 10000, maxPageBytes: 100000 },
       fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
     },
