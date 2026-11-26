@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 2,
+  "kind": "immofinder_post_run_bundle",
+  "generatedAt": "2026-11-26T23:35:52.482Z",
+  "runId": "9139c9da-fba4-4dd2-ba6b-0df587fc47a7",
+  "traceId": null,
+  "runtime": {
+    "generatedAt": "2026-11-26T23:35:52.482Z",
+    "commit": "a719693",
+    "node": "v22.12.0",
+    "uptimeSec": 117,
+    "keepAliveEnv": "true",
+    "keepAliveDisabled": false,
+    "renderExternalUrlSet": true,
+    "serperConfigured": true,
+    "geminiConfigured": true,
+    "diagnosticDbWriteFailures": 0
+  },
+  "settingsSummary": {
+    "scheduleMode": "manual",
+    "everyHours": 3,
+    "profile": "burst",
+    "minRooms": 3,
+    "communeCount": 1,
+    "communeSample": [
+      "Chur"
+    ],
+    "enabledSources": [
+      "search",
+      "portal-immoscout24",
+      "portal-homegate",
+      "portal-newhome",
+      "portal-flatfox",
+      "portal-tutti",
+      "portal-anibis",
+      "portal-petitesannonces",
+      "portal-immobilier",
+      "portal-acheter-louer",
+      "portal-immostreet",
+      "portal-home",
+      "portal-icasa",
+      "portal-urbanhome",
+      "ferienhausmiete",
+      "happyholiday",
+      "landwirtschaft-gr"
+    ],
+    "municipalityGroups": {
+      "group1": true,
+      "group2": false
+    },
+    "maxAiPages": 200
+  },
+  "configSummary": {
+    "municipalityCount": 121,
+    "sourceIds": [
+      "ferienhausmiete",
+      "happyholiday",
+      "landwirtschaft-gr",
+      "portal-tutti",
+      "portal-homegate",
+      "portal-anibis",
+      "portal-flatfox"
+    ],
+    "browserRenderHosts": [
+      "happyholiday.ch",
+      "flatfox.ch",
+      "homegate.ch",
+      "immoscout24.ch",
+      "newhome.ch",
+      "urbanhome.ch"
+    ],
+    "discoveryEnabled": true,
+    "portalSourceIds": [
+      "portal-immoscout24",
+      "portal-homegate",
+      "portal-newhome",
+      "portal-flatfox",
+      "portal-tutti",
+      "portal-anibis",
+      "portal-petitesannonces",
+      "portal-immobilier",
+      "portal-acheter-louer",
+      "portal-immostreet",
+      "portal-home",
+      "portal-icasa",
+      "portal-urbanhome"
+    ],
+    "minRoomsFloor": 3
+  },
+  "database": {
+    "status": "ok",
+    "database": "bf_81oe",
+    "databaseTime": "2026-11-26T23:35:52.480Z",
+    "listings": {
+      "total": 0,
+      "visible": 0,
+      "hidden": 0
+    },
+    "seen": {
+      "total": 594,
+      "checked_24h": 54
+    },
+    "pool": {
+      "total": 3,
+      "idle": 3,
+      "waiting": 0
+    },
+    "latencyMs": 1
+  },
+  "result": {
+    "counts": {
+      "index_pages": 0,
+      "candidates": 0,
+      "fetched": 0,
+      "kept": 0,
+      "kept_l1": 0,
+      "kept_l2": 0,
+      "new": 0,
+      "updated": 0,
+      "skipped": 0,
+      "infra_failures": 0,
+      "serper_calls": 2,
+      "gemini_calls": 0,
+      "serper_available": 1,
+      "gemini_available": 1
+    },
+    "filtered": {},
+    "estCostUsd": 0.002,
+    "errors": [],
+    "sourceStats": [],
+    "wavesRun": [
+      "extended"
+    ],
+    "preview": []
+  },
+  "quality": {
+    "runId": "9139c9da-fba4-4dd2-ba6b-0df587fc47a7",
+    "wave": "extended",
+    "counts": {
+      "index_pages": 0,
+      "candidates": 0,
+      "fetched": 0,
+      "kept": 0,
+      "kept_l1": 0,
+      "kept_l2": 0,
+      "new": 0,
+      "updated": 0,
+      "skipped": 0,
+      "infra_failures": 0,
+      "serper_calls": 2,
+      "gemini_calls": 0,
+      "serper_available": 1,
+      "gemini_available": 1
+    },
+    "filtered": {},
+    "errors": 0,
+    "sourceStats": [],
+    "wavesRun": [
+      "extended"
+    ],
+    "completeness": {
+      "total": 0,
+      "hidden": 0,
+      "with": {
+        "published": 0,
+        "price": 0,
+        "priceMonthly": 0,
+        "rooms": 0,
+        "phone": 0,
+        "email": 0,
+        "contact": 0,
+        "photos": 0,
+        "owner": 0,
+        "specificLink": 0
+      },
+      "pct": {
+        "published": 0,
+        "price": 0,
+        "rooms": 0,
+        "contact": 0,
+        "photos": 0
+      },
+      "fullCards": 0,
+      "fullCardsPct": 0,
+      "dateSource": {},
+      "bySource": [],
+      "weakHosts": []
+    },
+    "cardQuality": {
+      "visible": 0,
+      "withAbout": 0,
+      "aboutDup": 0,
+      "titleEcho": 0,
+      "genericLink": 0,
+      "evidenceOnly": 0,
+      "issueCounts": {},
+      "weakSamples": [],
+      "pct": {
+        "aboutDup": 0,
+        "genericLink": 0,
+        "noContact": 0,
+        "noPublished": 0
+      }
+    },
+    "previewSamples": []
+  },
+  "assistantHints": [
+    "zero_kept_no_specific_signal — expand portal rotation or commune set"
+  ],
+  "eventCount": 0,
+  "logSource": "process_trace_buffer+application_logs+console",
+  "events": [],
+  "applicationLogCount": 2,
+  "applicationLogs": [
+    {
+      "timestamp": "2026-11-26T23:35:52.471Z",
+      "level": "info",
+      "component": "console",
+      "event": "console_output",
+      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"9139c9da-fba4-4dd2-ba6b-0df587fc47a7\",\"wave\":\"full\",\"counts\":{\"index_pages\":0,\"candidates\":0,\"fetched\":0,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":0,\"serper_calls\":2,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{},\"errors\":0,\"sourceStats\":[],\"wavesRun\":[\"extended\"],\"completeness\":{\"total\":0,\"hidden\":0,\"with\":{\"published\":0,\"price\":0,\"priceMonthly\":0,\"rooms\":0,\"phone\":0,\"email\":0,\"contact\":0,\"photos\":0,\"owner\":0,\"specificLink\":0},\"pct\":{\"published\":0,\"price\":0,\"rooms\":0,\"contact\":0,\"photos\":0},\"fullCards\":0,\"fullCardsPct\":0,\"dateSource\":{},\"bySource\":[],\"weakHosts\":[]},\"cardQuality\":{\"visible\":0,\"withAbout\":0,\"aboutDup\":0,\"titleEcho\":0,\"genericLink\":0,\"evidenceOnly\":0,\"issu"
+    },
+    {
+      "timestamp": "2026-11-26T23:35:52.472Z",
+      "level": "info",
+      "component": "immofinder",
+      "event": "search_quality_summary",
+      "message": "Search quality, card completeness and weak-sample summary for All Logs",
+      "details": {
+        "runId": "9139c9da-fba4-4dd2-ba6b-0df587fc47a7",
+        "wave": "full",
+        "counts": {
+          "index_pages": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "kept": 0,
+          "kept_l1": 0,
+          "kept_l2": 0,
+          "new": 0,
+          "updated": 0,
+          "skipped": 0,
+          "infra_failures": 0,
+          "serper_calls": 2,
+          "gemini_calls": 0,
+          "serper_available": 1,
+          "gemini_available": 1
+        },
+        "filtered": {},
+        "errors": 0,
+        "sourceStats": [],
+        "wavesRun": [
+          "extended"
+        ],
+        "completeness": {
+          "total": 0,
+          "hidden": 0,
+          "with": {
+            "published": 0,
+            "price": 0,
+            "priceMonthly": 0,
+            "rooms": 0,
+            "phone": 0,
+            "email": 0,
+            "contact": 0,
+            "photos": 0,
+            "owner": 0,
+            "specificLink": 0
+          },
+          "pct": {
+            "published": 0,
+            "price": 0,
+            "rooms": 0,
+            "contact": 0,
+            "photos": 0
+          },
+          "fullCards": 0,
+          "fullCardsPct": 0,
+          "dateSource": {},
+          "bySource": [],
+          "weakHosts": []
+        },
+        "cardQuality": {
+          "visible": 0,
+          "withAbout": 0,
+          "aboutDup": 0,
+          "titleEcho": 0,
+          "genericLink": 0,
+          "evidenceOnly": 0,
+          "issueCounts": {},
+          "weakSamples": [],
+          "pct": {
+            "aboutDup": 0,
+            "genericLink": 0,
+            "noContact": 0,
+            "noPublished": 0
+          }
+        },
+        "previewSamples": []
+      }
+    }
+  ],
+  "consoleTail": [
+    "[phone]T23:34:06.522Z [info] {\"type\":\"immofinder_durable_worker_started\",\"workerId\":\"immo-86-9b0f9e[phone]ede-8f68-237cf0a08d87\",\"pollMs\":15000}",
+    "[phone]T23:34:07.672Z [log] Project Mode worker started",
+    "[phone]T23:34:07.674Z [log] BiForge v131 (a719693) on :10000 (production)",
+    "[phone]T23:34:07.674Z [log] [KeepAlive] started, target: https://bf-3tqo.onrender.com, cadence 11–13 min (hard schedule, timed visits)",
+    "[phone]T23:34:21.525Z [info] {\"type\":\"immofinder_immofinder_scope_expansion_skipped\",\"reason\":\"settings_already_updated\",\"updatedAt\":\"[phone]T17:59:26.308Z\"}",
+    "[phone]T23:34:36.525Z [info] {\"type\":\"immofinder_immofinder_boot_run_skipped\",\"reason\":\"threshold_already_satisfied\",\"lastRealRunAt\":\"[phone]T23:32:17.568Z\"}",
+    "[phone]T23:34:42.116Z [log] [KeepAlive] ok #1 health=200 in 468ms; cadence 11–13 min",
+    "[phone]T23:35:06.621Z [info] {\"type\":\"immofinder_database_diagnostics_start\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:35:06.543Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":93}",
+    "[phone]T23:35:21.524Z [info] {\"type\":\"immofinder_internal_schedule_started\",\"checkEveryMin\":10,\"bootDelaySec\":75}",
+    "[phone]T23:35:21.527Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:32:17.568Z\",\"now\":\"[phone]T23:35:21.527Z\"}",
+    "[phone]T23:35:29.460Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":9,\"failedRows\":1,\"durationMs\":20002,\"retryAfter\":61,\"parallel\":true}",
+    "[phone]T23:35:52.241Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":7,\"failedRows\":1,\"durationMs\":20002,\"retryAfter\":70,\"parallel\":true}",
+    "[phone]T23:35:52.422Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:35:52.252Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":3,\"idle\":3,\"waiting\":0},\"latencyMs\":171}",
+    "[phone]T23:35:52.471Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"9139c9da-fba4-4dd2-ba6b-0df587fc47a7\",\"wave\":\"full\",\"counts\":{\"index_pages\":0,\"candidates\":0,\"fetched\":0,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":0,\"serper_calls\":2,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{},\"errors\":0,\"sourceStats\":[],\"wavesRun\""
+  ]
+}
