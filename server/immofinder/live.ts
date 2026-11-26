@@ -275,9 +275,17 @@ export async function runPipeline(
         const owner = outcome.owner;
         const directPhone = owner?.phone || null;
         const directEmail = owner?.email || null;
+        if (!owner || owner.contactRoute === 'none') {
+          filtered.no_contact_route = (filtered.no_contact_route || 0) + 1;
+          stats.consecutiveBad++;
+          if (!opts.dryRun) { try { await deps.store.markSeen(candidate.url, source.id, 'rejected', 'no_contact_route'); } catch { /* non-critical cache */ } }
+          continue;
+        }
+        const parsedPrice = resolveListingPrice(text, extracted.priceText);
         const contactEvidence: ListingRecord['contact_evidence'] = [];
         if (directPhone) contactEvidence.push({ type: 'phone', value: directPhone, url: candidate.url });
         if (directEmail) contactEvidence.push({ type: 'email', value: directEmail, url: candidate.url });
+        if (owner.platformFormPresent) contactEvidence.push({ type: 'platform_message', value: 'Contact via source listing form', url: candidate.url });
         const record: ListingRecord = {
           listing_type: classifyType(title, candidate.url, text) as ListingType,
           canonical_key: canonicalKey(source.id, candidate.url),
@@ -294,15 +302,15 @@ export async function runPipeline(
           description_de: evidenceText,
           description_ru: '',
           title_ru: title,
-          owner_name: null,
-          rent_monthly_chf: null,
-          pricing_unit: null,
+          owner_name: owner.ownerName,
+          rent_monthly_chf: parsedPrice?.monthlyChf ?? null,
+          pricing_unit: parsedPrice?.unit ?? null,
           listed_at: null,
           direct_phone: directPhone,
           direct_email: directEmail,
           contact_evidence: contactEvidence,
-          contact_status: directPhone || directEmail ? 'found' : owner?.platformFormPresent ? 'platform_only' : 'not_found',
-          contact_advice: owner?.contactRoute === 'none' ? 'No direct contact evidence found on the fetched detail page.' : '',
+          contact_status: directPhone || directEmail ? 'found' : 'platform_only',
+          contact_advice: owner.platformFormPresent ? 'Use the source listing enquiry form.' : '',
           private_signals: owner?.markers || [],
           draft_message_de: '',
           raw: {
@@ -318,6 +326,9 @@ export async function runPipeline(
             owner_markers: owner?.markers || [],
             contact_route: owner?.contactRoute || 'none',
             source_price_text: extracted.priceText,
+            monthly_price_chf: parsedPrice?.monthlyChf ?? null,
+            pricing_unit: parsedPrice?.unit ?? null,
+            owner_name: owner.ownerName,
             locality_quote: outcome.classify.locality?.quote || null,
           },
         };
