@@ -1,3 +1,6 @@
+## P131.7a — Closed reject taxonomy and source-yield audit
+- Every persisted run report now carries `qualityAudit`: legacy reject reasons mapped to the closed R7 code list (`server/immofinder/taxonomy.ts`, same list in `config/immofinder.json`), a fixed 10-item reject sample for false-reject audit, and advisory R9 zero-kept source evidence. RELIABILITY; no search, admission or scoring behaviour changes.
+
 ## P131.7a — Stop data commits from redeploying the service
 - Every bot commit (diagnostics, encrypted snapshot, archive) triggered a Render deploy, up to dozens per night, able to interrupt a running search. Add `[skip render]` to the server-written diagnostics and snapshot commit messages (the Actions archive commit is unchanged); no search or admission logic changes.
 
