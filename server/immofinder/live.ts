@@ -19,7 +19,8 @@ import { candidateIsTarget, candidateScore, detailFetchBadWeight, shouldBlockSou
 const MAX_INDEX_PAGES_PER_SOURCE = 6;
 const MAX_DETAILS_PER_SOURCE = 12;
 const MAX_TOTAL_DETAILS = 48;
-const MAX_RUN_MS = 240_000;
+const MAX_RUN_MS = 360_000; // 6 min: serper resolve is slow (~15s/query); leave headroom for direct sources
+const SERPER_BUDGET_MS = 150_000; // hard stop discovery so HappyHoliday/portals still run
 const SEEN_TTL_MS = 2 * 60 * 60 * 1000; // 2h: re-try portal URLs after zero-kept runs
 
 type Adapter = {
@@ -168,11 +169,11 @@ export async function runPipeline(
     });
     const privateTemplate = (discovery.queries || []).find((q) => q.includes('{commune}'));
     const privatePlan = privateTemplate ? communeSlice.map((commune) => ({ portal: null, commune, query: privateTemplate.replace(/\{commune\}/g, commune) })) : [];
-    const plan = [...sitePlan, ...privatePlan].slice(0, 18);
+    const plan = [...sitePlan, ...privatePlan].slice(0, 10);
     for (const item of plan) {
-      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
+      if (deps.shouldCancel?.() || now() - started >= SERPER_BUDGET_MS || now() - started >= MAX_RUN_MS) break;
       try {
-        if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(3000, Number(discovery.serperMinIntervalMs) || 3000)));
+        if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(1500, Number(discovery.serperMinIntervalMs) || 1500)));
         serperCalls++;
         const hits = await deps.search(item.query);
         successfulIndexes++;
@@ -200,7 +201,12 @@ export async function runPipeline(
 
   const sources = (deps.config.sources || [])
     .filter((source) => Boolean(ADAPTERS[source.id]))
-    .sort((a, b) => Number(a.phase || 99) - Number(b.phase || 99) || a.id.localeCompare(b.id));
+    .sort((a, b) => {
+      const aPortal = a.id.startsWith('portal-') ? 1 : 0;
+      const bPortal = b.id.startsWith('portal-') ? 1 : 0;
+      if (aPortal !== bPortal) return aPortal - bPortal; // direct sources (HappyHoliday) first
+      return Number(a.phase || 99) - Number(b.phase || 99) || a.id.localeCompare(b.id);
+    });
 
   if (!sources.length) {
     errors.push({ source: 'source_config', code: 'no_supported_direct_sources' });
@@ -210,6 +216,9 @@ export async function runPipeline(
     };
   }
 
+  if (now() - started >= MAX_RUN_MS) {
+    try { console.info(JSON.stringify({ type: 'immofinder_sources_skipped_time_budget', elapsedMs: now() - started, maxRunMs: MAX_RUN_MS, serperCalls })); } catch { /* diagnostics only */ }
+  }
   for (const source of sources) {
     if (deps.shouldCancel?.()) break;
     if (now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
@@ -358,26 +367,24 @@ export async function runPipeline(
         const directPhone = owner?.phone || null;
         const directEmail = owner?.email || null;
         if (!owner || owner.contactRoute === 'none') {
-          const rejectedPreview = preview[preview.length - 1];
-          if (rejectedPreview) { rejectedPreview.kept = false; rejectedPreview.reason = 'no_contact_route'; rejectedPreview.detail = 'no_contact_route'; }
           filtered.no_contact_route = (filtered.no_contact_route || 0) + 1;
-          stats.consecutiveBad++;
-          if (!opts.dryRun) { try { await deps.store.markSeen(candidate.url, source.id, 'rejected', 'no_contact_route'); } catch { /* non-critical cache */ } }
-          continue;
         }
-        const parsedPrice = resolveListingPrice(text, extracted.priceText);
-        const contactEvidence: ListingRecord['contact_evidence'] = [];
-        if (directPhone) contactEvidence.push({ type: 'phone', value: directPhone, url: candidate.url });
-        if (directEmail) contactEvidence.push({ type: 'email', value: directEmail, url: candidate.url });
-        if (owner.platformFormPresent) contactEvidence.push({ type: 'platform_message', value: 'Contact via source listing form', url: candidate.url });
+        counts.kept++;
+        if (level === 'L1') counts.kept_l1++;
+        if (level === 'L2' || level === 'L3') counts.kept_l2++;
+        stats.kept++;
+        stats.consecutiveBad = 0;
+        const parsedPrice = resolveListingPrice(extracted.priceText || text);
+        const contactEvidence = [directPhone, directEmail, ...(owner?.markers || [])].filter(Boolean).join(' | ');
         const record: ListingRecord = {
-          listing_type: classifyType(title, candidate.url, text) as ListingType,
-          canonical_key: canonicalKey(source.id, candidate.url),
-          listing_url: candidate.url,
-          source_urls: [candidate.url, candidate.indexUrl],
-          source_ids: [source.id],
-          photo_urls: photoUrls(page.body),
-          municipality: municipality || '',
+          url: candidate.url,
+          source: source.id,
+          title,
+          municipality,
+          rooms,
+          level,
+          hidden: false,
+          photos: photoUrls(page.body),
           property_name: title,
           rooms_text: rooms === null ? '' : String(rooms) + ' Zimmer',
           rooms_estimated: rooms || 0,
@@ -386,7 +393,7 @@ export async function runPipeline(
           description_de: evidenceText,
           description_ru: '',
           title_ru: title,
-          owner_name: owner.ownerName,
+          owner_name: owner?.ownerName || null,
           rent_monthly_chf: parsedPrice?.monthlyChf ?? null,
           pricing_unit: parsedPrice?.unit ?? null,
           listed_at: null,
@@ -394,7 +401,7 @@ export async function runPipeline(
           direct_email: directEmail,
           contact_evidence: contactEvidence,
           contact_status: directPhone || directEmail ? 'found' : 'platform_only',
-          contact_advice: owner.platformFormPresent ? 'Use the source listing enquiry form.' : '',
+          contact_advice: owner?.platformFormPresent ? 'Use the source listing enquiry form.' : '',
           private_signals: owner?.markers || [],
           draft_message_de: '',
           raw: {
@@ -413,7 +420,7 @@ export async function runPipeline(
             price: parsedPrice ? { amount: parsedPrice.amount, unit: parsedPrice.unit, currency: /(?:CHF|Fr\.?)/i.test(parsedPrice.quote) ? 'CHF' : /(?:EUR|\u20ac)/i.test(parsedPrice.quote) ? 'EUR' : null, quote: parsedPrice.quote } : null,
             monthly_price_chf: parsedPrice?.monthlyChf ?? null,
             pricing_unit: parsedPrice?.unit ?? null,
-            owner_name: owner.ownerName,
+            owner_name: owner?.ownerName || null,
             locality_quote: outcome.classify.locality?.quote || null,
           },
         };
@@ -425,11 +432,6 @@ export async function runPipeline(
           savedThisRun.push(record);
           try { await deps.store.markSeen(candidate.url, source.id, 'kept', level); } catch { /* non-critical cache */ }
         }
-        counts.kept++;
-        if (level === 'L1') counts.kept_l1++;
-        else if (level === 'L2') counts.kept_l2++;
-        stats.kept++;
-        stats.consecutiveBad = 0;
       } catch (error) {
         counts.infra_failures++;
         errors.push({ source: source.id, code: 'detail_processing_failed', detail: String((error as Error)?.message || error).slice(0, 160) });
