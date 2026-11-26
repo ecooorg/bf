@@ -1,3 +1,10 @@
+## P131.8k — Prefetch geo skips must not trigger source early-stop (BUGFIX)
+- **PROBLEM/EVIDENCE:** catalogue sources early-stop after 14 consecutive non-keeps (`consecutiveStopFor`). URL/title geo rejects happen before any fetch yet increment `consecutiveBad`, so a wide index (HappyHoliday: 738 candidates, 20 fetched, 0 kept over 4 runs; run `038d1c87` stopped after 14 skips, 14 locale rejects) ends before in-area listings are reached.
+- **HYPOTHESIS:** prefetch geo skips cost no fetch/LLM budget, so they must not count toward the streak; the streak keeps counting fetched non-keeps.
+- **METRIC/ACCEPT:** a catalogue source with >14 out-of-area items before in-area ones is no longer stopped by geo skips alone; fetched candidates per source rise in the next live run. Baseline: 20 fetched / 738 candidates. Live run: NOT_RUN (Serper credits; source-first pilot usable).
+- **SCOPE:** `server/immofinderPipeline.ts` (2 lines), `tests/immofinder-p0.test.mjs`. **ROLLBACK:** revert if fetched-per-source does not rise or budget use grows without kept gain.
+- **CLASSIFICATION:** BUGFIX; user value NOT_RUN.
+
 ## C131 reconciliation — ledger corrections (non-product, no answer-path change)
 - **SUPERSEDED:** "C131 WP1 — Owner-labelled baseline and offline replay (BLOCKED)" no longer blocks C131: D-2026-11-25-03 replaced the owner gold set with no-label invariant replay; its ≥60-label acceptance is void and no precision/recall may be claimed.
 - **CORRECTED:** the three P131.5j and two P131.5i entries below describe one patch each; the final wording is "Place bounded testMode in PipelineOptions". The "C131 WP4/WP5 implementation audit" entry's acceptance (Gold replay) is superseded the same way.
