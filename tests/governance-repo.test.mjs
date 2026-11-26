@@ -129,3 +129,10 @@ test('config has single model-sources.json (no yaml twin)', () => {
   assert.ok(!existsSync(path.join(root, 'config/model-sources.yml')));
 });
 
+test('workflow preflight is read-only and never rewrites verification tests', () => {
+  const preflight = read('scripts/workflow-preflight.mjs');
+  assert.doesNotMatch(preflight, /restore-verify-test|immofinder-verify\\.test\\.mjs/);
+  assert.equal((preflight.match(/writeFileSync\\(/g) || []).length, 1,
+    'preflight may write only its diagnostic log');
+  assert.match(preflight, /writeFileSync\\(path\\.join\\(logDir, '00-preflight\\.log'/);
+});
