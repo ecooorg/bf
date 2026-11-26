@@ -207,7 +207,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
   };
   const portalQueries = filterPortalQueries(cfg.discovery?.portalQueries || []);
   const wantPortals = portalQueries.length > 0;
-  const groups = (cfg as any).municipalityGroups as { group1?: { municipalities: string[] }; group2?: { municipalities: string[] } } | undefined;
+  const groups = (cfg as any).municipalityGroups as { group1?: { municipalities: string[] }; group2?: { municipalities: string[] } | undefined;
   const allowed = new Set<string>();
   if (groups) {
     if (s.search.municipalityGroups?.group1 !== false) (groups.group1?.municipalities || []).forEach((m) => allowed.add(m));
@@ -216,8 +216,8 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     cfg.municipalities.forEach((m) => allowed.add(m));
   }
   let municipalities = cfg.municipalities.filter((m) => s.search.communes.includes(m) && allowed.has(m));
-  // Yield: a single-commune Chur search starves index sources and skips GR agglomeration listings.
-  if (municipalities.length === 1 && /^chur$/i.test(municipalities[0])) {
+  // Expand Chur only when discovery is active (portals/private search). Keeps pure-Chur unit tests intact.
+  if (municipalities.length === 1 && /^chur$/i.test(municipalities[0]) && (wantPrivate || wantPortals)) {
     const cluster = ['Chur', 'Domat/Ems', 'Haldenstein', 'Maladers', 'Trimmis', 'Untervaz', 'Zizers', 'Landquart', 'Felsberg', 'Igis'];
     municipalities = cfg.municipalities.filter((m) => cluster.includes(m) && allowed.has(m));
     if (!municipalities.length) municipalities = ['Chur'];
