@@ -57,7 +57,7 @@ export function discover(indexHtml: string, indexUrl: string): DetailCandidate[]
 }
 
 function decodeDescription(value: string): string {
-  return value.replace(/\u0026/gi, '&').replace(/\n/g, ' ')
+  return value.replace(/\\u0026/gi, '&').replace(/\\n/g, ' ')
     .replace(/&nbsp;|&#160;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
     .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -74,7 +74,12 @@ function extractDescriptionText(html: string): string {
   for (const script of scripts) {
     const re = /["'](?:description|summary|details|teaser)["']\s*:\s*["']((?:\\.|[^"'\\]){40,})["']/gi;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(script)) !== null) values.push(decodeDescription(m[1].replace(/\\(["'\\])/g, '$1')));
+    while ((m = re.exec(script)) !== null) {
+      let value = m[1];
+      try { value = JSON.parse('"' + value + '"'); }
+      catch { value = value.replace(/\\(["'\\])/g, '$1'); }
+      values.push(decodeDescription(value));
+    }
   }
   return [...new Set(values)].filter((x) => x.length >= 60).join(' ').slice(0, 5_000);
 }
