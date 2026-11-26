@@ -667,8 +667,9 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   const ui = read('src/ImmoFinderSettings.tsx');
 
   assert.equal(defaults.schedule.everyHours, 3);
-  assert.equal(defaults.search.minRooms, 3);
-  assert.equal(defaults.search.carouselCommunesPerRun, 12);
+  assert.equal(defaults.schedule.mode, 'manual');
+  assert.equal(defaults.search.minRooms, 2);
+  assert.equal(defaults.search.carouselCommunesPerRun, cfg.municipalities.length);
   assert.equal(defaults.search.privateQueryTemplates, 2);
   assert.equal(defaults.search.maxAiPages, 40);
   assert.equal(defaults.search.enrichSearchesPerRun, 0);
@@ -678,8 +679,15 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.requireContact, false);
   assert.equal(defaults.search.maxMonthlyRentChf, 2000);
   assert.equal(defaults.search.limitPrice, false);
-  assert.equal(defaults.delivery.driveFolderId, cfg.driveFolderId);
-  assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 4);
+  assert.equal(defaults.delivery.driveFolderId, '');
+  assert.equal(defaults.delivery.telegram, false);
+  assert.equal(defaults.delivery.email, false);
+  assert.equal(defaults.delivery.drive, false);
+  assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 2);
+  assert.equal(defaults.search.sources.happyholiday, true);
+  assert.equal(defaults.search.sources.ferienhausmiete, true);
+  assert.equal(defaults.search.sources['portal-anibis'], false);
+  assert.equal(defaults.search.sources['portal-tutti'], false);
 
   const applied = applySettings(cfg, defaults);
   assert.equal(applied.discovery.portalQueries.length, 2);
