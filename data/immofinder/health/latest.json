@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T10:07:12.771Z",
+  "generatedAt": "2026-11-26T10:08:14.819Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "FAIL",
-      "detail": "1 failing at 543ba22: restore"
+      "detail": "1 failing at 6b74ab2: restore"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 5 commit(s) behind main with 3 non-archive file(s) changed (e.g. server/immofinderRepair.ts, server/immofinderRepair.ts.zlib.b64.p0, server/immofinderRepair.ts.zlib.b64.p7); deploy may be pending or failed"
+      "detail": "production is 7 commit(s) behind main with 3 non-archive file(s) changed (e.g. server/immofinderRepair.ts, server/immofinderRepair.ts.zlib.b64.p0, server/immofinderRepair.ts.zlib.b64.p7); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T10:07:11.705Z",
+        "checkedAt": "2026-11-26T10:08:13.658Z",
         "steps": [
           {
             "step": "app",
