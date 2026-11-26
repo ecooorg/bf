@@ -1,3 +1,8 @@
+## P131.8r — Full-canton source expansion (EXPERIMENT)
+- Expanded locality scope to all 100 current Graubünden municipalities plus 19 locality aliases; one-time startup migration enables all configured sources, sets 2+ rooms, keeps scheduling and delivery off, and queues one bounded production run.
+- Added Anibis adapter and enabled Tutti direct adapter; widened bounded source-first coverage to 4 adapters and 48 detail attempts/run. Improved postcode locality, hyphenated room-count and false agency rejection.
+- Paid discovery/model/browser fallbacks remain disabled. Production deployment, live lead yield, CI and source fetchability pending.
+
 ## P131.8q — Source-first ImmoFinder cut-over (EXPERIMENT)
 - Added bounded direct-source live runner and switched production route to it; paid search/model and Jina/browser fallbacks disabled for this path. Added locality/evidence/no-write regression tests and provider-free route guard. Deployment, hosted CI and live lead yield pending verification.
 - Removed per-run GitHub snapshot/diagnostic writes, disabled scheduled diagnostic/health Actions, prevented health snapshots from triggering Render, and reduced idle worker DB polling to 15s.
