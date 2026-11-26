@@ -1,3 +1,9 @@
+## P131.8r — Full-canton source expansion
+- Configured all 100 official Graubünden municipalities (14.09.2026 list) plus 19 locality aliases. Saved production settings are migrated once to full scope, 2+ rooms, all configured sources enabled, manual schedule and delivery disabled.
+- Direct-only live adapters: HappyHoliday, Ferienhausmiete, Anibis and Tutti. Caps: 6 index pages/source, 12 detail pages/source, 48 details/run, 240 seconds. 1.5s per-host delay and robots/SSRF guards retained.
+- Fixed locality matching for Swiss postcode commas, hyphenated Zimmer labels and broad false agency matches. Paid search/LLM/Jina/browser fallback remains off.
+- Production deployment, real source fetchability, accepted lead yield, hosted CI: NOT_RUN at report time.
+
 ## P131.8q — Source-first production path (EXPERIMENT)
 - Added bounded live runner in `server/immofinder/live.ts`; production route now uses it. Only direct HappyHoliday/Ferienhausmiete source adapters; no Serper, LLM, Jina or browser fallback. Strict fetched-page evidence, locality/rooms/agency/seeker gates; max 12 detail fetches and 180s/run; recent results cached and blocked sources stopped early.
 - Runtime GitHub commits disabled; DB/Render logs remain. Diagnostics/health Actions manual-only; health commits use `[skip render] [skip ci]`. Idle worker polling reduced to 15s. Production deployment and CI/user-value: NOT_RUN at report time.
