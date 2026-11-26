@@ -364,7 +364,10 @@
       "seeker",
       "expired",
       "fetch_blocked",
-      "duplicate"
+      "duplicate",
+      "snippet_only",
+      "for_sale",
+      "retired_gate"
     ],
     "legacyRuntimeUntilWp5": false
   },
