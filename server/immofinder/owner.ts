@@ -32,6 +32,11 @@ const PLATFORM_FORM_RE = /(?:kontaktformular|nachricht\s+senden|send\s+message|c
 function normalizePhone(raw: string): string | null {
   const digits = raw.replace(/\D/g, '');
   if (digits.length < 9 || digits.length > 13) return null;
+  // Reject common page placeholders and sequential demo numbers before treating them as owner contact.
+  if (/(?:1234567890|9876543210|0123456789|000000|111111|999999)/.test(digits)) return null;
+  const validSwiss = /^(?:0\d{9}|41\d{9}|0041\d{9})$/.test(digits);
+  const validNeighbour = /^(?:43|49)\d{8,12}$/.test(digits) || /^004(?:3|9)\d{8,12}$/.test(digits);
+  if (!validSwiss && !validNeighbour) return null;
   return digits;
 }
 
