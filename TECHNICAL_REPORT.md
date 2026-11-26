@@ -1,3 +1,7 @@
+## P131.8q — Source-first production path (EXPERIMENT)
+- Added bounded live runner in `server/immofinder/live.ts`; production route now uses it. Only direct HappyHoliday/Ferienhausmiete source adapters; no Serper, LLM, Jina or browser fallback. Strict fetched-page evidence, locality/rooms/agency/seeker gates; max 12 detail fetches and 180s/run; recent results cached and blocked sources stopped early.
+- Runtime GitHub commits disabled; DB/Render logs remain. Diagnostics/health Actions manual-only; health commits use `[skip render] [skip ci]`. Idle worker polling reduced to 15s. Production deployment and CI/user-value: NOT_RUN at report time.
+
 ## P131.8p — Preflight immutability
 - **OBSERVED in source:** Preflight patched `immofinderRepair.ts` and invoked a test-restoration script. Both mutations removed; regression guard added. Hosted CI: NOT_RUN.
 
