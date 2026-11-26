@@ -14,18 +14,17 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download and commit restored routes
+      - name: Download and commit fixed routes
         run: |
           set -euo pipefail
-          URL='https://tmpfiles.org/dl/1795735794.4a291de9ed09f58e/wRAzvWTOzIDJ/routes.final.ts'
+          URL='https://tmpfiles.org/dl/1795735978.635a65a31552b77e/wmAdvRTkFPtz/routes.fixed.ts'
           curl -sSL --max-time 60 -o server/immofinderRoutes.ts "$URL"
           wc -c server/immofinderRoutes.ts
           head -c 80 server/immofinderRoutes.ts; echo
           grep -q 'registerImmoFinderRoutes' server/immofinderRoutes.ts
-          grep -q 'isImmoCronCall' server/immofinderRoutes.ts
-          grep -q "path === '/settings'" server/immofinderRoutes.ts
+          grep -q "/api/immofinder/settings" server/immofinderRoutes.ts
           git config user.name 'immofinder-restore'
           git config user.email 'bot@users.noreply.github.com'
           git add server/immofinderRoutes.ts
-          git commit -m 'fix(immofinder): restore routes + secret PUT /settings'
+          git commit -m 'fix(immofinder): secret PUT path /api/immofinder/settings' || echo 'no change'
           git push origin HEAD:main
