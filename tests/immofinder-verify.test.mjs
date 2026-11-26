@@ -4,14 +4,35 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { R7_REJECT_CODES, classifyReject, summarizeRejects, sampleRejects, sourceDemotionCandidates, buildRunQualityAudit } from '../server/immofinder/taxonomy.ts';
+import { classifyPage } from '../server/immofinder/classify.ts';
+import { extractOwnerEvidence, promoteLevel } from '../server/immofinder/owner.ts';
+import { processSnapshot, replaySnapshots } from '../server/immofinder/pipeline.ts';
+import { discover as hhDiscover, extract as hhExtract } from '../server/immofinder/sources/happyholiday.ts';
+import { discover as fhDiscover, extract as fhExtract } from '../server/immofinder/sources/ferienhausmiete.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const coreSrc = readFileSync(path.join(root, 'server/immofinderCore.ts'), 'utf8');
 
+const CFG = {
+  municipalities: ['Chur', 'Flims', 'Untervaz', 'Cazis'],
+  minRooms: 3,
+  stopAgencies: ['Interhome', 'Holidu', 'Belvilla'],
+};
+
+function snap(over = {}) {
+  return {
+    requestedUrl: 'https://example.test/listing/1',
+    finalUrl: 'https://example.test/listing/1',
+    title: 'Schöne 4.5 Zimmer Wohnung in Chur',
+    pageText: 'Vermietung 4.5 Zimmer Wohnung in Chur. Von privat. Tel 079 123 45 67. Ruhige Lage.',
+    fetchTimeIso: '2026-11-26T09:00:00Z',
+    ...over,
+  };
+}
+
 test('P130.16 core exposes sale-verify helpers or payload pending', () => {
   const ready = coreSrc.includes('verifyListingFromPageText') && coreSrc.includes('zweitwohnung');
   if (!ready) {
-    // Payload restore via ensure-repair not applied yet on this checkout.
     assert.ok(true);
     return;
   }
@@ -64,7 +85,6 @@ test('P130.16 Flims Zweitwohnung is for_sale when helpers live', async () => {
     'for_sale',
   );
   assert.ok(buildCrossSourceSaleQuery(title)?.includes('kaufen'));
-  // Hit must share the title key prefix used by crossSourceIndicatesSale (first 12 chars).
   assert.equal(
     crossSourceIndicatesSale(title, [
       {
@@ -77,7 +97,6 @@ test('P130.16 Flims Zweitwohnung is for_sale when helpers live', async () => {
   );
 });
 
-// Reject reasons observed in the retained run diagnostics (system codes, not user text).
 const OBSERVED_REJECT_REASONS = ['trust_snippet_only', 'not_single_listing', 'municipality_not_whitelisted', 'rooms_below_min', 'agency', 'rooms_unknown', 'list_or_search_page', 'listing_unavailable', 'contact_required', 'for_sale', 'seeker_post', 'municipality_mismatch', 'price_not_confirmed_on_detail_page', 'short_stay_price_period_required', 'price_above_max', 'temporary_furnished', 'development_project', 'shared_room', 'short_stay_page_evidence_required', 'holiday_tourism', 'municipality_collage', 'price_ambiguous_on_detail_page', 'rooms_too_many', 'rooms_conflict', 'price_not_in_evidence', 'short_stay_specific_link_required', 'price_calendar_year_as_price', 'trust_not_rental', 'trust_not_residential', 'price_from_parking', 'detail_page_evidence_too_short'];
 
 test('P131.7a R7 taxonomy is closed: config list equals code list and every observed reason maps', () => {
@@ -129,4 +148,98 @@ test('P131.7a run diagnostics persistence attaches the quality audit without mak
   const store = readFileSync(path.join(root, 'server/immofinderRunDiagnostics.ts'), 'utf8');
   assert.match(store, /buildRunQualityAudit\(id, /);
   assert.match(store, /catch \{ \/\* audit block is optional \*\/ \}/);
+});
+
+// ---- P131.8 WP3 pure engine ----
+
+test('P131.8 classify: snippet-only and url mismatch → L0', () => {
+  assert.equal(classifyPage(snap({ provisional: true }), CFG).level, 'L0');
+  assert.equal(classifyPage(snap({ provisional: true }), CFG).rejectCode, 'snippet_only');
+  assert.equal(classifyPage(snap({ finalUrl: 'https://other.test/x' }), CFG).level, 'L0');
+});
+
+test('P131.8 classify: outside target / for_sale / seeker / rooms', () => {
+  assert.equal(classifyPage(snap({ title: 'Wohnung in Zürich', pageText: '3.5 Zimmer Wohnung in Zürich zu mieten.' }), CFG).rejectCode, 'outside_target');
+  assert.equal(classifyPage(snap({ title: 'Zweitwohnung Flims', pageText: '3.5 Zimmer zu verkaufen in Flims.' }), CFG).rejectCode, 'for_sale');
+  assert.equal(classifyPage(snap({ title: 'WG in Chur', pageText: 'Suche Mitbewohner für 4 Zimmer Wohnung in Chur.' }), CFG).rejectCode, 'seeker');
+  assert.equal(classifyPage(snap({ title: 'Studio Chur', pageText: '1.5 Zimmer Wohnung in Chur zu mieten.' }), CFG).rejectCode, 'rooms_below_min');
+});
+
+test('P131.8 classify: good private rental → L1 with rooms evidence', () => {
+  const r = classifyPage(snap(), CFG);
+  assert.equal(r.level, 'L1');
+  assert.equal(r.rejectCode, null);
+  assert.ok(r.rooms && r.rooms.value >= 3);
+  assert.equal(r.locality?.value, 'Chur');
+  assert.equal(r.isResidential, true);
+});
+
+test('P131.8 owner: private + phone → L2 promote', () => {
+  const o = extractOwnerEvidence(
+    'Schöne Wohnung',
+    'Von privat. Tel 079 123 45 67. Ruhige Lage in Chur.',
+    CFG.stopAgencies,
+  );
+  assert.equal(o.isPrivateOwner, true);
+  assert.equal(o.contactRoute, 'direct');
+  assert.ok(o.phone);
+  assert.equal(promoteLevel('L1', o), 'L2');
+  assert.equal(promoteLevel('L0', o), 'L0');
+});
+
+test('P131.8 owner: agency markers block private', () => {
+  const o = extractOwnerEvidence('Ferienwohnung', 'Interhome object in Flims. 4 Zimmer.', CFG.stopAgencies);
+  assert.equal(o.isPrivateOwner, false);
+});
+
+test('P131.8 pipeline: end-to-end L1→L2 and reject path', () => {
+  const good = processSnapshot({ snapshot: snap(), config: CFG, sourceId: 'happyholiday' });
+  assert.equal(good.level, 'L2');
+  assert.equal(good.rejectCode, null);
+  assert.ok(good.owner?.isPrivateOwner);
+
+  const bad = processSnapshot({
+    snapshot: snap({ title: 'Studio', pageText: '1 Zimmer in Zürich.' }),
+    config: CFG,
+  });
+  assert.equal(bad.level, 'L0');
+  assert.ok(bad.rejectCode);
+});
+
+test('P131.8 replaySnapshots aggregates levels and rejects', () => {
+  const items = [
+    { snapshot: snap() },
+    { snapshot: snap({ title: 'Studio Zürich', pageText: '1 Zimmer in Zürich.' }) },
+    { snapshot: snap({ provisional: true }) },
+  ];
+  const r = replaySnapshots(items, CFG);
+  assert.equal(r.total, 3);
+  assert.ok(r.byLevel.L0 >= 2);
+  assert.ok(r.byLevel.L2 >= 1 || r.byLevel.L1 >= 1);
+});
+
+test('P131.8 happyholiday adapter discover + extract', () => {
+  const html = `
+    <a href="/haus/chalet-in-flims">Chalet</a>
+    <a href="https://happyholiday.ch/haus/wohnung-in-chur">Wohnung</a>
+    <h1>4.5 Zimmer in Chur</h1>
+    <p>Von privat. 4.5 Zimmer Wohnung.</p>
+  `;
+  const found = hhDiscover(html, 'https://happyholiday.ch/suche');
+  assert.ok(found.some((c) => c.url.includes('/haus/')));
+  const fields = hhExtract(html, 'https://happyholiday.ch/haus/wohnung-in-chur');
+  assert.ok(fields.title || fields.rooms);
+  if (fields.rooms) assert.ok(fields.rooms.value >= 3);
+});
+
+test('P131.8 ferienhausmiete adapter discover + extract', () => {
+  const html = `
+    <a href="https://www.ferienhausmiete.ch/objekt/12345-chalet-flims">Chalet</a>
+    <h1>Chalet 5 Zimmer Flims</h1>
+    <p>5 Zimmer Ferienhaus in Flims.</p>
+  `;
+  const found = fhDiscover(html, 'https://www.ferienhausmiete.ch/suche');
+  assert.ok(Array.isArray(found));
+  const fields = fhExtract(html, 'https://www.ferienhausmiete.ch/objekt/12345');
+  assert.ok(fields);
 });
