@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-11-26T11:27:02.640Z",
-  "verdict": "FAIL",
+  "generatedAt": "2026-11-26T11:45:00.596Z",
+  "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "1 checks at 5da70d1, 1 still running"
+      "detail": "no check runs reported for 07196f7"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-26T02:29:45Z"
+      "detail": "last completed run success at 2026-11-26T11:27:05Z"
     },
     {
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit 7fe9fcb"
+      "detail": "HTTP 200, version 131, commit d9b45a2"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T11:27:01.500Z",
+        "checkedAt": "2026-11-26T11:44:59.568Z",
         "steps": [
           {
             "step": "app",
@@ -116,32 +116,29 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 7.2 h old"
+      "detail": "b8e86208-3ff5-42c1-92fa-1afd1b8fe0ad, 0.2 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "113 candidates, 0 quality of target 10, 6 snippet-only, 0 fallback, LLM calls 0, failing sources: happyholiday, search",
+      "detail": "90 candidates, 0 quality of target 10, 7 snippet-only, 0 fallback, LLM calls 0",
       "data": {
-        "candidates": 113,
+        "candidates": 90,
         "quality": 0,
         "target": 10,
-        "snippetOnly": 6,
+        "snippetOnly": 7,
         "llmCalls": 0,
         "fallback": 0,
         "errors": 3,
-        "failingSources": [
-          "happyholiday",
-          "search"
-        ]
+        "failingSources": []
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "FAIL",
-      "detail": "latest run 038d1c87-0774-49ee-adf5-3ae28a91f12c is not archived (archive holds dc384d8f-0278-44a4-a4d7-315b830ce173); poller runs every 10 minutes (GitHub may delay schedules)"
+      "status": "WARN",
+      "detail": "latest run b8e86208-3ff5-42c1-92fa-1afd1b8fe0ad is not archived (archive holds 25b61ffc-43e2-4938-955d-36932c934bfd); poller runs every 10 minutes (GitHub may delay schedules)"
     }
   ]
 }
