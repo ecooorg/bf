@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T05:59:46.679Z",
+  "generatedAt": "2026-11-26T07:50:44.625Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at 2bf1e23, 1 still running"
+      "detail": "2 checks at f9c36bc, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 130, commit 2ee99cb"
+      "detail": "HTTP 200, version 131, commit 1ec7488"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 695 commit(s) behind main with 88 non-archive file(s) changed (e.g. .github/workflows/ci.yml, .github/workflows/codeql.yml, .github/workflows/emergency-fix-list-urls.yml); deploy may be pending or failed"
+      "detail": "production is 2 commit(s) behind main with 3 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, config/immofinder.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T05:59:45.699Z",
+        "checkedAt": "2026-11-26T07:50:43.621Z",
         "steps": [
           {
             "step": "app",
@@ -116,29 +116,32 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "7ac72b03-ed90-404e-8acf-2782dfca77b6, 2.3 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 3.6 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "0 candidates, 0 quality of target 10, 0 snippet-only, 0 fallback, LLM calls 0",
+      "detail": "113 candidates, 0 quality of target 10, 6 snippet-only, 0 fallback, LLM calls 0, failing sources: happyholiday, search",
       "data": {
-        "candidates": 0,
+        "candidates": 113,
         "quality": 0,
         "target": 10,
-        "snippetOnly": 0,
+        "snippetOnly": 6,
         "llmCalls": 0,
         "fallback": 0,
-        "errors": 21,
-        "failingSources": []
+        "errors": 3,
+        "failingSources": [
+          "happyholiday",
+          "search"
+        ]
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
       "status": "FAIL",
-      "detail": "latest run 7ac72b03-ed90-404e-8acf-2782dfca77b6 is not archived (archive holds 038d1c87-0774-49ee-adf5-3ae28a91f12c); poller runs every 10 minutes (GitHub may delay schedules)"
+      "detail": "latest run 038d1c87-0774-49ee-adf5-3ae28a91f12c is not archived (archive holds 02ee3459-4ac3-4a86-ade4-db808cdc737e); poller runs every 10 minutes (GitHub may delay schedules)"
     }
   ]
 }
