@@ -22,7 +22,7 @@ export interface ExtractedFields {
 
 const DETAIL_RE = /https:\/\/happyholiday\.ch\/haus\/[^"'>\s]+/gi;
 const TITLE_RE = /<h1[^>]*>([^<]+)<\/h1>/i;
-const ROOMS_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:\bzimmer\b|\bzi\.)/i;
+const ROOMS_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:\bzimmer\b|\bzi\.|-?zimmerwohnung)/i;
 const PRIVATE_RE = /von\s+privat/i;
 
 export function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
