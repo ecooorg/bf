@@ -12,47 +12,40 @@ const dir = join(root, 'server');
 {
   const target = join(dir, 'immofinderRepair.ts');
   let text = existsSync(target) ? readFileSync(target, 'utf8') : '';
-  const needs =
-    text.length < 20000 ||
-    !text.includes('export function hardRejectReason') ||
-    !text.includes('export function sanitizeNewRecord') ||
-    text.includes('Temporary stub') ||
-    text.includes('PLACEHOLDER') ||
-    text.includes('SEE_ARTIFACT');
+  const needs = text.length < 20000 || !text.includes('export function hardRejectReason') || !text.includes('export function sanitizeNewRecord') || text.includes('PLACEHOLDER') || text.includes('SEE_ARTIFACT') || text.includes('Temporary stub');
   if (needs) {
-    let restored = false;
+    // Prefer historical known-good body (post-gate retirement) when local payload is corrupt/truncated.
     try {
-      const parts = readdirSync(dir).filter((f) => /^immofinderRepair\.ts\.zlib\.b64\.p\d+$/.test(f)).sort();
-      if (parts.length) {
-        const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8').trim()).join('').replace(/\s+/g, '');
-        const buf = inflateSync(Buffer.from(b64, 'base64'));
-        if (buf.length > 20000 && buf.toString('utf8').includes('export function hardRejectReason')) {
-          text = buf.toString('utf8');
-          writeFileSync(target, text);
-          console.log('Restored server/immofinderRepair.ts (%d bytes from %d parts)', buf.length, parts.length);
-          restored = true;
-        }
+      const histUrl = 'https://raw.githubusercontent.com/ecooorg/bf/3c4ce5733b1da7532501966e831923041928a8ca/server/immofinderRepair.ts';
+      const res = await (async () => {
+        const r = await fetch(histUrl);
+        if (!r.ok) throw new Error('hist fetch ' + r.status);
+        return await r.text();
+      })();
+      if (res && res.length > 20000 && res.includes('export function hardRejectReason') && res.includes('export function sanitizeNewRecord')) {
+        writeFileSync(target, res);
+        text = res;
+        console.log('Restored server/immofinderRepair.ts from historical commit (%d bytes)', res.length);
       }
     } catch (e) {
-      console.warn('zlib restore failed', e && e.message ? e.message : e);
+      console.warn('Historical repair fetch failed:', String(e?.message || e).slice(0, 120));
     }
-    if (!restored) {
-      try {
-        const url =
-          'https://raw.githubusercontent.com/ecooorg/bf/3c4ce5733b1da7532501966e831923041928a8ca/server/immofinderRepair.ts';
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(String(res.status));
-        const good = await res.text();
-        if (good.length > 20000) {
-          writeFileSync(target, good);
-          text = good;
-          console.log('Restored server/immofinderRepair.ts from historical commit (%d bytes)', good.length);
-          restored = true;
-        }
-      } catch (e) {
-        console.error('historical restore failed', e && e.message ? e.message : e);
-        process.exit(1);
-      }
+  }
+  text = existsSync(target) ? readFileSync(target, 'utf8') : '';
+  const stillNeeds = text.length < 20000 || !text.includes('export function hardRejectReason') || !text.includes('export function sanitizeNewRecord') || text.includes('PLACEHOLDER') || text.includes('SEE_ARTIFACT') || text.includes('Temporary stub');
+  if (stillNeeds) {
+    const parts = readdirSync(dir).filter((f) => /^immofinderRepair\.ts\.zlib\.b64\.p\d+$/.test(f)).sort();
+    if (!parts.length) { console.error('immofinderRepair payload parts missing'); process.exit(1); }
+    try {
+      const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8').trim()).join('').replace(/\s+/g, '');
+      const buf = inflateSync(Buffer.from(b64, 'base64'));
+      text = buf.toString('utf8');
+      writeFileSync(target, text);
+      console.log('Restored server/immofinderRepair.ts (%d bytes from %d parts)', buf.length, parts.length);
+    } catch (e) {
+      console.error('immofinderRepair inflate failed:', String(e?.message || e).slice(0, 200));
+      if (text.length < 1000) process.exit(1);
+      console.warn('Keeping existing repair body despite inflate failure');
     }
   }
 }
@@ -60,12 +53,7 @@ const dir = join(root, 'server');
 {
   const target = join(dir, 'immofinderStore.ts');
   let st = existsSync(target) ? readFileSync(target, 'utf8') : '';
-  const bad =
-    st.length < 5000 ||
-    st.trim() === 'PLACEHOLDER' ||
-    !st.includes('async upsert') ||
-    !st.includes('createPgStore') ||
-    !st.includes('getSettings');
+  const bad = st.length < 5000 || st.trim() === 'PLACEHOLDER' || !st.includes('async upsert') || !st.includes('createPgStore') || !st.includes('getSettings');
   if (bad) {
     const names = ['part0', 'part1', 'part2', 'part3a', 'part3b'];
     const paths = names.map((n) => join(dir, `immofinderStore.ts.${n}`));
@@ -87,25 +75,25 @@ try {
   const lockPath = join(root, 'package-lock.json');
   const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
   const want = String(pkg.patch || '');
-  if (want && (lock.patch !== want || (lock.packages && lock.packages[''] && lock.packages[''].patch !== want))) {
+  if (want && (lock.patch !== want || lock.packages?.['']?.patch !== want)) {
     lock.patch = want;
     if (lock.packages && lock.packages['']) lock.packages[''].patch = want;
     writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
     console.log('Synced package-lock patch to', want);
   }
   // Keep REPAIR_RULES_VERSION aligned with product patch so seen-cache tests pass.
-  const repairPath = join(dir, 'immofinderRepair.ts');
-  if (existsSync(repairPath) && want) {
-    let rt = readFileSync(repairPath, 'utf8');
+  const rt = join(dir, 'immofinderRepair.ts');
+  if (existsSync(rt) && want) {
+    let text = readFileSync(rt, 'utf8');
     const wantVer = want + '.5';
-    const next = rt.replace(/REPAIR_RULES_VERSION = '[^']+'/, "REPAIR_RULES_VERSION = '" + wantVer + "'");
-    if (next !== rt) {
-      writeFileSync(repairPath, next);
+    const next = text.replace(/REPAIR_RULES_VERSION = '[^']+'/, "REPAIR_RULES_VERSION = '" + wantVer + "'");
+    if (next !== text) {
+      writeFileSync(rt, next);
       console.log('Synced REPAIR_RULES_VERSION to', wantVer);
     }
   }
 } catch (e) {
-  console.warn('package-lock / rules-version sync skipped');
+  console.warn('package-lock / version sync skipped');
 }
 
 // C131: contact is optional for short-stay L1. Always strip residual gate.
@@ -119,11 +107,36 @@ try {
       "\n      // C131: short_stay_contact_required retired (optionalForL1)",
     );
     text = text.replace(/why = 'short_stay_contact_required';/g, '// C131: short_stay_contact_required retired');
+    // Soft price ambiguity: never hard-reject on optional price
+    const hardNeedle = "if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;";
+    if (text.includes(hardNeedle)) {
+      text = text.replace(
+        hardNeedle,
+        `if (pv.status === 'suspect') {
+      // C131: price optionalForL1 — ambiguity is soft, never hide a verified listing
+      if (pv.why !== 'price_ambiguous_on_detail_page' && !/ambiguous/i.test(String(pv.why || ''))) {
+        why = pv.why.startsWith('price_') ? pv.why : \`price_\${pv.why}\`;
+      }
+    }`,
+      );
+    }
+    if (!text.includes('price_cleared:') && text.includes("if (pv.status === 'repair')")) {
+      text = text.replace(
+        "  const pv = priceVerdict(row);\n  if (pv.status === 'repair') {",
+        `  const pv = priceVerdict(row);
+  if (pv.status === 'suspect' && (pv.why === 'price_ambiguous_on_detail_page' || /ambiguous/i.test(String(pv.why || '')))) {
+    next.rent_monthly_chf = null;
+    next.pricing_unit = null;
+    next.raw = { ...obj(rec.raw), price: null, price_quote: null };
+    notes.push(\`price_cleared:\${pv.why}\`);
+  } else if (pv.status === 'repair') {`,
+      );
+    }
     if (text !== before) {
       writeFileSync(target, text);
-      console.log('C131: retired short_stay_contact_required gate');
+      console.log('C131: retired contact gate / soft price ambiguity applied');
     } else {
-      console.log('C131: short_stay_contact_required already absent');
+      console.log('C131: contact/price soft gates already applied');
     }
   }
 }
@@ -132,8 +145,8 @@ for (const script of [
   'scripts/immofinder-core-restore.mjs',
   'scripts/immofinder-p0-feed-hygiene.mjs',
   'scripts/immofinder-recheck-feed.mjs',
-  'scripts/form-agents-contract.mjs',
-  'scripts/form-ci-scripts.mjs',
+  'scripts/fix-agents-contract.mjs',
+  'scripts/fix-ci-scripts.mjs',
   'scripts/immofinder-p1-rooms-hygiene.mjs',
   'scripts/immofinder-p2-junk-hosts.mjs',
   'scripts/immofinder-p3-version.mjs',
