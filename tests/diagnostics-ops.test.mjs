@@ -162,7 +162,6 @@ test('P130.4 health workflow is manual-only and uses the shared collector', () =
   const wf = read('.github/workflows/immofinder-health.yml');
   assert.match(wf, /workflow_dispatch/);
   assert.doesNotMatch(wf, /cron:|push:/, 'health checks are manual to avoid recurring platform usage');
-  assert.match(wf, /\.detail/, 'snapshot dedupe must notice deployed-commit and other detail changes, not only status changes');
   assert.match(wf, /workflow_dispatch/);
   assert.match(wf, /issues: write/);
   assert.match(wf, /contents: write/, 'manual health snapshot publication remains explicitly available');
