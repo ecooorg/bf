@@ -1,3 +1,11 @@
+## P131.8u — Actionable evidence gate and pilot revalidation
+- Earlier live runs exposed weak rows: 14 cards were visible but included title/navigation-only HappyHoliday shells, placeholder phone numbers and wrong locality/room counts. These are not counted as quality leads.
+- P131.8u hides all exploratory rows pending fresh fetch, clears their seen-cache, and only allows recovery when the new detail passes classifier and write-time hard gates. The new pipeline also requires an actionable direct or platform contact route.
+- Added named-host extraction, platform enquiry/contact-details recognition, parsed price/currency storage and UI display; fixed "Schlafzimmer" being parsed as total rooms; added Flatfox direct rental adapter.
+- Active sources: HappyHoliday, Ferienhausmiete, Flatfox. Anibis/Tutti and all unsupported legacy/paid sources disabled. Serper/LLM/Jina calls remain 0; local browser fallback capped at 3 pages/run.
+- Render `KEEP_ALIVE=false` confirmed in production logs; schedule manual and delivery off.
+- **P131.8u live revalidation:** PENDING after deploy. **Hosted Core CI:** NOT_CONFIRMED; GitHub status connector returns no check statuses. Do not mark WP5 acceptance complete yet.
+
 ## P131.8t — Flatfox source expansion
 - Added Flatfox direct rental index/detail adapter, price/rooms/advertiser parsing and host allowlist. Active direct sources are now HappyHoliday, Ferienhausmiete and Flatfox; Anibis/Tutti paused after 403.
 - Manual-only, no delivery, no Serper/LLM/Jina. Local Chromium cap 3 renders/run on allowlisted hosts only.
