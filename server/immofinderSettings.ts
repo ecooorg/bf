@@ -186,7 +186,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       requireContact: bool(se.requireContact, d.search.requireContact),
       defaultWave: se.defaultWave === 'carousel' ? 'carousel' : 'full',
       profile: se.profile === 'carousel' ? 'carousel' : 'burst',
-      carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 4, 12, Math.max(4, d.search.carouselCommunesPerRun)),
+      carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 4, Math.max(12, d.search.carouselCommunesPerRun), d.search.carouselCommunesPerRun),
       privateQueryTemplates: clampInt(se.privateQueryTemplates, 1, 4, d.search.privateQueryTemplates),
       enrichSearchesPerRun: clampInt(se.enrichSearchesPerRun, 0, 35, d.search.enrichSearchesPerRun),
       recheckContactSearch: bool(se.recheckContactSearch, d.search.recheckContactSearch),
