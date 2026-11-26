@@ -1,3 +1,9 @@
+## D-2026-11-26-01 — Connected tools and direct-main execution
+
+**Owner direction (2026-11-26):** When a suitable connected plugin/connector is available, the Assistant executes the Owner's requested work directly through it; repository changes go straight to `main` without branches or PRs when specified. This does not waive §8 authorization, security, secret-handling or evidence gates.
+
+**Effect:** Binding execution rule added to `AGENTS.md`; push, CI, deploy and live acceptance remain separately verified.
+
 ## D-2026-11-25-03 — C131 execution without an owner-labelled Gold Set
 
 **Owner direction (2026-11-25):** The Navigator confirms that no 60-record Gold Set or further owner-supplied labels will be provided and directs autonomous completion of WP0–WP7 using repository data and documented evidence.

@@ -17,6 +17,10 @@ All standard session-start procedures, including full project analysis and auton
 
 The Assistant executes the Navigator’s explicit task. Before executing, it MUST state in writing, in at most five lines, if the task conflicts with §1, the C127 rules or measured data, and propose an alternative. If the Navigator then repeats the instruction, it stands. The Assistant MUST NOT replace the task with its own priorities.
 
+### OWNER-REQUESTED CONNECTOR EXECUTION (owner, 2026-11-26)
+
+When a suitable connected plugin or connector is available, the Assistant MUST use it to execute the Owner's requested work directly rather than merely describing manual steps. For repository work, make the requested changes directly on `main` when the Owner specifies that workflow; do not create branches or PRs unless requested. This rule does not bypass repository hard gates, least-privilege access, secret handling, or the explicit authorization required by §8 for production deploys, destructive operations, billing, or data mutation. After pushing, verify the exact commit's CI and deployment; a successful trigger is not a successful release.
+
 ### A gate is **failed** if any MUST/MUST NOT below is violated. 
 
 **MUST NOT** deliver a patch ZIP, claim a task complete, or give Navigator procedures until failed gates are fixed.

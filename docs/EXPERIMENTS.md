@@ -1,3 +1,11 @@
+## P131.9 — Retire legacy search path and repair source-first acceptance (2026-11-26)
+- **OBSERVED:** Core CI #45862026277 fails 15 ImmoFinder assertions: short index fixtures are rejected by the production 300-character index gate; legacy P129/P130 expectations conflict with C131's 121-locality, 3-room, source-first contract; old TrustEngine/pipeline tests are not the production admission path.
+- **HYPOTHESIS:** Make category tests exercise the current C131 classifier/owner/live runner, fix fixture realism without weakening fetch/detail gates, remove the obsolete legacy pipeline and automated payload restoration path, and preserve only shared runtime/storage/fetch utilities still imported by the live route.
+- **METRICS / ACCEPTANCE:** Core CI and full verification DAG green on exact main commit; ImmoFinder live workflow completes; production deploy is live and health-verified; at least 3 unique live L1/L2 records are reviewed for locality, rooms, detail evidence, owner/contact provenance and actual provider spend. Zero accepted results remains a failure of user-value acceptance, not a green outcome.
+- **SCOPE:** C131 source-first runner, category tests, obsolete legacy search/recovery artifacts, canonical docs and deployment evidence. No relaxation of R1–R14, no auto-send, schedule or delivery enablement.
+- **ROLLBACK:** Revert only new-engine regressions; do not restore the retired legacy search engine or its payload backups. Keep strict rejection and record low/zero yield honestly.
+- **CLASSIFICATION:** RELIABILITY.
+
 ## P131.8x — C131 settings and owner-evidence CI repair (2026-11-26)
 - **OBSERVED:** Core CI 45861105055 on 5dc286b reports a malformed Homegate test fixture, settings/default-profile mismatches (runtime clamps rooms to 3 while settings expose 2; default private-query toggle is off), and owner-name extraction that includes the "Kontaktdaten" UI label.
 - **HYPOTHESIS:** Align settings/UI with the approved 3-room floor, enable the bounded private-query templates expected by the current full-search profile, trim page-chrome from owner names, and repair the fixture; deterministic page-admission rules remain unchanged.
