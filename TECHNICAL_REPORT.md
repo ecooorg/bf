@@ -1,3 +1,8 @@
+## P131.8k — Early-stop streak excludes prefetch geo skips
+- **OBSERVED:** HappyHoliday 738 candidates / 20 fetched / 0 kept over 4 runs; early stop after 14 skips.
+- **CHANGE:** URL/title geo skips no longer count toward `consecutiveBad`.
+- **NOT_RUN:** live yield change; hosted CI.
+
 ## C131 state snapshot (docs only)
 - **OBSERVED:** WP0 done; WP1-WP4 partial; WP5-WP7 not started; new engine under `server/immofinder/` exists but legacy is live.
 - **CHANGE:** roadmap status and open-work list recorded in `docs/ROADMAP_C131.md`.

@@ -1,3 +1,8 @@
+## P131.8k — Prefetch geo skips no longer trigger source early-stop
+- **PROBLEM:** out-of-area URL/title skips counted as a bad streak and stopped catalogue sources after 14 items.
+- **CHANGE:** those two skips no longer increment `consecutiveBad`; fetched non-keeps still do.
+- **SCOPE:** BUGFIX, `server/immofinderPipeline.ts`; no version bump.
+
 ## P131.8j+ — C131 state snapshot (docs only)
 - **PROBLEM:** roadmap status and open WP0-WP7 work were scattered across entries.
 - **CHANGE:** added one status and open-work entry to `docs/ROADMAP_C131.md`; no code change, no version bump.
