@@ -1,13 +1,1 @@
-{
-  "schema": 1,
-  "municipalities": ["Albula/Alvra", "Andeer", "Arosa", "Avers", "Bergün Filisur", "Bever", "Bonaduz", "Bregaglia", "Breil/Brigels", "Brusio", "Buseno", "Calanca", "Cama", "Castaneda", "Cazis", "Celerina/Schlarigna", "Chur", "Domleschg", "Fideris", "Fläsch", "Flims", "Furna", "Fürstenau", "Grono", "Grüsch", "Ilanz/Glion", "Jenaz", "Jenins", "Klosters", "Küblis", "Laax", "Landquart", "Lostallo", "Lüen", "Luzein", "Madulain", "Maienfeld", "Malans", "Masein", "Medel (Lucmagn)", "Mesocco", "Mulegns", "Mutten", "Nufenen", "Obersaxen Mundaun", "Pontresina", "Poschiavo", "Rhäzüns", "Rongellen", "Roveredo", "Safien", "Sagogn", "Samedan", "Samnaun", "San Vittore", "Santa Maria in Calanca", "Schiers", "Schmitten", "Scuol", "Seewis im Prättigau", "Siat", "Silvaplana", "Soazza", "St. Antönien", "St. Moritz", "Sufers", "Sumvitg", "Suraua", "Tamins", "Thusis", "Tiefencastel", "Trimmis", "Trin", "Trun", "Tschappina", "Tschiertschen-Praden", "Tujetsch", "Untervaz", "Urmein", "Val Müstair", "Vals", "Valsot", "Vaz/Obervaz", "Vignogn", "Vrin", "Wartau", "Zernez", "Zillis-Reischen", "Zizers", "Zuoz", "Sils im Engadin/Segl", "Sils im Domleschg", "Davos", "Churwalden", "Haldenstein", "Maladers", "Say", "Tersnaus", "Domat/Ems", "Felsberg", "Cunter", "Riom-Parsonz", "Salouf", "Savognin", "Tinizong-Rona", "Bivio", "Marmorera", "Mulegns", "Stierva", "Sur", "Tinizong", "Rona", "Parsonz", "Salouf", "Cunter"],
-  "minRooms": 3,
-  "fetch": {
-    "userAgent": "Mozilla/5.0 (compatible; BiForgeImmoFinder/131; +https://biforge.onrender.com)",
-    "perHostDelayMs": 1200,
-    "respectRobotsTxt": true,
-    "browserRenderHosts": ["happyholiday.ch", "flatfox.ch", "homegate.ch", "immoscout24.ch", "newhome.ch", "urbanhome.ch"],
-    "browserRenderMinTextChars": 400,
-    "maxBrowserRendersPerRun": 8
-  }
-}
+SEE_ARTIFACT
