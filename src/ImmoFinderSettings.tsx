@@ -29,7 +29,7 @@ type S = {
 };
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
 
-/** Search targets: portal entries are Google site: queries, not independent portal crawlers. */
+/** Production sources: each enabled row is a direct index/detail adapter, not a search-engine snippet. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'ferienhausmiete', label: 'Ferienhausmiete', hint: 'Directly fetched holiday-home listings', priority: true },
   { id: 'happyholiday', label: 'HappyHoliday', hint: 'Directly fetched regional owner listings', priority: true },
