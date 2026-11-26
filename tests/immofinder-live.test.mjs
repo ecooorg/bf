@@ -129,7 +129,7 @@ test('production ImmoFinder route uses only the source-first, provider-free runt
   const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
   assert.match(runCall, /llm: null/);
   assert.match(runCall, /search: null/);
-  assert.match(runCall, /allowJina: false, allowBrowser: false/);
+  assert.match(runCall, /allowJina: false, allowBrowser: true/);
   assert.doesNotMatch(runCall, /deps\.llm|createSerperSearch/);
   assert.match(route, /pollMs: 15_000/);
 });
