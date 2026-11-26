@@ -883,6 +883,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         discoveryProcessedItems = processedItems;
       }
     };
+    const prefetchedSearch = new Map<string, Promise<SearchHit[]>>();
     for (const q of slice) {
       if (processedItems >= pageLimit) {
         diag('discovery_stopped_page_limit', { processedItems, pageLimit, queryOffset: discoveryQueryOffset, remainingQueries: slice.length - qi });
@@ -921,11 +922,19 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         // qdr:m hid valid ads before fetch/verification could inspect them.
         const serperCall = async (label: string) => {
           res.counts.serper_calls = (res.counts.serper_calls || 0) + 1;
-          try { return await withStepTimeout(label, () => deps.search!(q), SERPER_STEP_MS); }
+          const early = prefetchedSearch.get(q); prefetchedSearch.delete(q);
+          try { return await withStepTimeout(label, () => early ?? deps.search!(q), SERPER_STEP_MS); }
           finally { serperTimestamps.push((deps.now ?? Date.now)()); }
         };
         batch = await serperCall('serper');
         querySucceeded = true;
+        // Pipeline: start the next SERP call (slow /resolve, ~15-23 s) while this query's candidates are processed.
+        const nextQ = slice[qi];
+        if (nextQ && !completedQueryKeys.has(nextQ) && !prefetchedSearch.has(nextQ) && !finishAll && timeLeft() > 90_000 && processedItems < pageLimit) {
+          const started = (async () => { await paceSerper(); return deps.search!(nextQ); })();
+          started.catch(() => { /* surfaced when the query is consumed */ });
+          prefetchedSearch.set(nextQ, started);
+        }
         getStat(currentSourceId).hits += batch.length;
         const pickDecisions: { accepted: boolean; reason: string; host: string; url: string; title: string }[] = [];
         const picked = pickItems(batch, cfg, (decision) => { if (pickDecisions.length < 30) pickDecisions.push({ ...decision, url: safeDiagUrl(decision.url), title: safeDiagText(decision.title, 180) }); });
