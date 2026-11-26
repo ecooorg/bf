@@ -254,7 +254,7 @@ test('P131.6 settings UI exposes optional price/contact filters and a complete C
   assert.match(ui, /id: 'portal-tutti'/);
   assert.doesNotMatch(ui, /id: 'landwirtschaft-gr'/);
   assert.match(ui, /AI extraction is disabled/i);
-  assert.match(ui, /\[3, 4, 5, 6, 7, 8\]/);
+  assert.match(ui, /\[2, 3, 4, 5, 6, 7, 8\]/);
 });
 
 test('C131 source-first production scope covers all Graubunden communes and locality aliases', () => {
