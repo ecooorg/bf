@@ -28,7 +28,7 @@ const PRIVATE_MARKERS = [
 
 const PHONE_RE = /(?:\+|00)?(?:41|43|49)?[\s.\/-]*(?:\d[\s.\/-]*){9,12}/g;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi;
-const PLATFORM_FORM_RE = /(?:kontaktformular|nachricht\s+senden|send\s+message|contact\s+form|écrire\s+un\s+message)/i;
+const PLATFORM_FORM_RE = /(?:kontaktformular|nachricht\s+senden|send\s+message|contact\s+form|écrire\s+un\s+message|unverbindlich\s+anfragen|kontaktdaten\s+anzeigen)/i;
 
 function normalizePhone(raw: string): string | null {
   const digits = raw.replace(/\D/g, '');
