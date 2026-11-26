@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T11:45:00.596Z",
+  "generatedAt": "2026-11-26T12:31:02.951Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 07196f7"
+      "detail": "2 checks at 3b31071, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit d9b45a2"
+      "detail": "HTTP 200, version 131, commit f954e16"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 4 commit(s) behind main with 5 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, docs/EXPERIMENTS.md); deploy may be pending or failed"
+      "detail": "production is 3 commit(s) behind main with 4 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, docs/EXPERIMENTS.md); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T11:44:59.568Z",
+        "checkedAt": "2026-11-26T12:31:01.932Z",
         "steps": [
           {
             "step": "app",
@@ -116,18 +116,18 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "b8e86208-3ff5-42c1-92fa-1afd1b8fe0ad, 0.2 h old"
+      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 0.1 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "90 candidates, 0 quality of target 10, 7 snippet-only, 0 fallback, LLM calls 0",
+      "detail": "91 candidates, 0 quality of target 10, 6 snippet-only, 0 fallback, LLM calls 0",
       "data": {
-        "candidates": 90,
+        "candidates": 91,
         "quality": 0,
         "target": 10,
-        "snippetOnly": 7,
+        "snippetOnly": 6,
         "llmCalls": 0,
         "fallback": 0,
         "errors": 3,
@@ -137,8 +137,8 @@
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "WARN",
-      "detail": "latest run b8e86208-3ff5-42c1-92fa-1afd1b8fe0ad is not archived (archive holds 25b61ffc-43e2-4938-955d-36932c934bfd); poller runs every 10 minutes (GitHub may delay schedules)"
+      "status": "OK",
+      "detail": "run d470cbb4-4dad-4ef9-b3e0-0c2284065295 is archived in the repository"
     }
   ]
 }
