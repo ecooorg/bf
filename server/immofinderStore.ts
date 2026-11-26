@@ -499,7 +499,7 @@ export async function clearC131PilotSeen(): Promise<number> {
          raw = COALESCE(raw, '{}'::jsonb) || jsonb_build_object(
            'write_time_quality',
            COALESCE(raw->'write_time_quality', '{}'::jsonb) ||
-             jsonb_build_object('hardReason', 'c131_revalidation_pending', 'rules', $1)
+             jsonb_build_object('hardReason', 'c131_revalidation_pending', 'rules', $1::text)
          ),
          updated_at = now()
      WHERE first_seen_at >= '2026-11-26T15:21:58Z'
