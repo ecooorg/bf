@@ -3,6 +3,7 @@
 ## Quick orientation
 
 - **Primary deploy: Render** (live URL historically `https://biforge.onrender.com/`) — reconfirm before ops work. `railway.toml` / `nixpacks.toml` are secondary/legacy, not the production contract.
+- **ImmoFinder live acceptance host:** `https://bf-3tqo.onrender.com` (Core CI job `immofinder-live-acceptance`, opt-in via commit message `[immofinder-live]`).
 - Non-secret Render settings: table in **Render environment contract** below; secrets never in docs or logs.
 - Artifact download = SUCCESS only after validators + verified archive; PARTIAL/FAILED must be honest.
 - Production deploy, DB mutation, destructive restore require explicit owner authorization.
