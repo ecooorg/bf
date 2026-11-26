@@ -14,7 +14,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const coreSrc = readFileSync(path.join(root, 'server/immofinderCore.ts'), 'utf8');
 
 const CFG = {
-  municipalities: ['Chur', 'Flims', 'Untervaz', 'Cazis'],
+  municipalities: ['Chur', 'Flims', 'Untervaz', 'Cazis', 'Lenzerheide'],
   minRooms: 3,
   stopAgencies: ['Interhome', 'Holidu', 'Belvilla'],
 };
@@ -172,6 +172,24 @@ test('P131.8 classify: good private rental → L1 with rooms evidence', () => {
   assert.ok(r.rooms && r.rooms.value >= 3);
   assert.equal(r.locality?.value, 'Chur');
   assert.equal(r.isResidential, true);
+});
+
+test('P131.8i classify: locality prefers URL slug over footer commune list', () => {
+  const r = classifyPage(
+    snap({
+      requestedUrl: 'https://happyholiday.ch/haus/haus-am-see-graubuenden-in-lenzerheide/',
+      finalUrl: 'https://happyholiday.ch/haus/haus-am-see-graubuenden-in-lenzerheide/',
+      title: 'Haus am See',
+      pageText:
+        '9 Zimmer Ferienhaus. Von privat. ' +
+        'Footer communes: Chur Flims Untervaz Cazis Laax Thusis. ' +
+        'Mehr Text: Chur Flims.',
+    }),
+    CFG,
+  );
+  assert.equal(r.level, 'L1');
+  assert.equal(r.locality?.value, 'Lenzerheide');
+  assert.ok(String(r.locality?.quote || '').includes('lenzerheide') || r.locality?.quote === 'Lenzerheide');
 });
 
 test('P131.8 owner: private + phone → L2 promote', () => {
