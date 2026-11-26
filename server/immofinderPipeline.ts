@@ -277,7 +277,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (place.outside) {
         diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: 'municipality_not_whitelisted', stage: 'url_geo', placeHint: place.hint });
         res.counts.skipped_geo = (res.counts.skipped_geo || 0) + 1;
-        st.geo++; st.consecutiveBad++;
+        st.geo++; /* prefetch geo skip costs no fetch: not a bad streak */
         drop('municipality_not_whitelisted');
         res.preview.push({ url: it.url, title: (it.hit?.title || place.hint || it.url).slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'municipality_not_whitelisted', detail: `url_place:${place.hint}` });
         /* insufficient location evidence: do not poison seen */
@@ -288,7 +288,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (titleGeo.outside) {
         diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: 'municipality_not_whitelisted', stage: 'title_snippet_geo', placeHint: titleGeo.hint });
         res.counts.skipped_geo = (res.counts.skipped_geo || 0) + 1;
-        st.geo++; st.consecutiveBad++;
+        st.geo++; /* prefetch geo skip costs no fetch: not a bad streak */
         drop('municipality_not_whitelisted');
         res.preview.push({ url: it.url, title: (it.hit?.title || titleGeo.hint || it.url).slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'municipality_not_whitelisted', detail: `title_place:${titleGeo.hint}` });
         /* insufficient location evidence: do not poison seen */
