@@ -27,7 +27,7 @@ function plainText(html: string): string {
 }
 
 export function createSwissClassifiedAdapter(id: 'portal-anibis' | 'portal-tutti', host: string) {
-  const detailPath = id === 'portal-anibis' ? /^\/de\/vi\/.+\/\d+\/?$/i : /^\/de\/vi\/\d+\/?$/i;
+  const detailPath = /^\/de\/vi\/(?:.*\/)?\d+\/?$/i;
   function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
     const found = new Map<string, string>();
     const re = /<a\b([^>]*?)href=["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
