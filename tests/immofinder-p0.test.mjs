@@ -60,6 +60,12 @@ test('C131 defaults enable the bounded source-first full run', () => {
   assert.equal(settings.search.privateQueryTemplates, 2);
   assert.equal(settings.search.enrichSearchesPerRun, 0);
   assert.equal(settings.search.maxAiPages, 40);
+  assert.equal(settings.schedule.mode, 'manual');
+  assert.equal(settings.delivery.telegram, false);
+  assert.equal(settings.delivery.email, false);
+  assert.equal(settings.delivery.drive, false);
+  assert.equal(settings.search.minRooms, 2);
+  assert.equal(settings.search.maxListingAgeDays, 0);
   assert.equal(settings.schedule.everyHours, 3);
   const enrichment = resolveEnrichmentConfig(cfg);
   assert.deepEqual([enrichment.enabled, enrichment.maxExtraSearchesPerRun, enrichment.maxReverseImagePerRun, enrichment.useReverseImage, enrichment.useSecondarySearch], [false, 0, 0, false, false]);
