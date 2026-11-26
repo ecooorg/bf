@@ -119,7 +119,9 @@
     "Valendas",
     "Castrisch",
     "Realta",
-    "Seewis-Pardisla"
+    "Seewis-Pardisla",
+    "Savognin",
+    "Schmitten"
   ],
   "stopAgencies": [
     "Interhome",
@@ -200,10 +202,10 @@
     "perHostDelayMs": 1500,
     "respectRobotsTxt": true,
     "browserRenderHosts": [
-      "newhome.ch"
+      "happyholiday.ch"
     ],
     "browserRenderMinTextChars": 1200,
-    "maxBrowserRendersPerRun": 2
+    "maxBrowserRendersPerRun": 3
   },
   "schedule": {
     "cron": "0 */3 * * *"
@@ -570,7 +572,7 @@
       ]
     },
     "group2": {
-      "label": "Group 2 (legacy and local-area aliases)",
+      "label": "Group 2 (legacy and locality aliases)",
       "municipalities": [
         "Haldenstein",
         "Igis",
@@ -590,7 +592,9 @@
         "Valendas",
         "Castrisch",
         "Realta",
-        "Seewis-Pardisla"
+        "Seewis-Pardisla",
+        "Savognin",
+        "Schmitten"
       ]
     }
   }
