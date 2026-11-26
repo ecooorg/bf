@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T08:25:24.986Z",
+  "generatedAt": "2026-11-26T09:00:04.491Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at b75165e, 2 still running"
+      "detail": "no check runs reported for a43b1e4"
     },
     {
       "group": "GITHUB",
@@ -17,8 +17,8 @@
     {
       "group": "RENDER",
       "name": "Service /health",
-      "status": "OK",
-      "detail": "HTTP 200, version 131, commit 5da2e00"
+      "status": "FAIL",
+      "detail": "unreachable: timeout"
     },
     {
       "group": "RENDER",
@@ -29,14 +29,14 @@
     {
       "group": "RENDER",
       "name": "Deployed commit",
-      "status": "WARN",
-      "detail": "production is 13 commit(s) behind main with 13 non-archive file(s) changed (e.g. CHANGELOG.md, docs/ROADMAP_C131.md, package-lock.json); deploy may be pending or failed"
+      "status": "SKIP",
+      "detail": "deployed commit or main HEAD unavailable"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
-      "status": "SKIP",
-      "detail": "Render logs were not collected (RENDER_API_KEY / RENDER_OWNER_ID / RENDER_SERVICE_ID)"
+      "status": "WARN",
+      "detail": "Render log collection failed: HTTP 403 from /v1/logs; publisher errors and runtime signals are unchecked"
     },
     {
       "group": "PUBLISHING",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T08:25:24.045Z",
+        "checkedAt": "2026-11-26T09:00:02.936Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 4.2 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 4.8 h old"
     },
     {
       "group": "SEARCH",
