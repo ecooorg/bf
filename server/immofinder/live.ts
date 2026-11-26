@@ -165,30 +165,34 @@ export async function runPipeline(
   if (deps.search && discovery?.enabled && supportedPortalSources.length) {
     const cycle = Math.max(0, Number(deps.cycle || 0));
     const communeSlice = communesForRun(municipalities, Math.min(6, municipalities.length), cycle);
-    const portalStart = (cycle * 3) % supportedPortalSources.length;
-    const selectedPortals = Array.from({ length: Math.min(3, supportedPortalSources.length) }, (_, offset) => supportedPortalSources[(portalStart + offset) % supportedPortalSources.length]);
-    const plan = selectedPortals.flatMap((portal) => {
+    const portalStart = (cycle * 2) % supportedPortalSources.length;
+    const selectedPortals = Array.from({ length: Math.min(2, supportedPortalSources.length) }, (_, offset) => supportedPortalSources[(portalStart + offset) % supportedPortalSources.length]);
+    const sitePlan = selectedPortals.flatMap((portal) => {
       const template = (discovery.portalQueries || []).find((q) => q.toLowerCase().includes('site:' + portal.host.toLowerCase()));
       return template ? communeSlice.map((commune) => ({ portal, commune, query: template.replace(/\{commune\}/g, commune) })) : [];
     });
-    for (const item of plan.slice(0, 18)) {
+    const privateTemplate = (discovery.queries || []).find((q) => q.includes('{commune}'));
+    const privatePlan = privateTemplate ? communeSlice.map((commune) => ({ portal: null, commune, query: privateTemplate.replace(/\{commune\}/g, commune) })) : [];
+    const plan = [...sitePlan, ...privatePlan].slice(0, 18);
+    for (const item of plan) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
       try {
         if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(3000, Number(discovery.serperMinIntervalMs) || 3000)));
         serperCalls++;
         const hits = await deps.search(item.query);
         successfulIndexes++;
-        serperQueriesBySource.set(item.portal.id, (serperQueriesBySource.get(item.portal.id) || 0) + 1);
+        if (item.portal) serperQueriesBySource.set(item.portal.id, (serperQueriesBySource.get(item.portal.id) || 0) + 1);
         const selected = pickItems(hits, deps.config);
         for (const candidate of selected) {
           const host = new URL(candidate.url).hostname.replace(/^www\./i, '').toLowerCase();
-          if (host !== item.portal.host.replace(/^www\./i, '').toLowerCase()) continue;
-          const sourceConfig = (deps.config.sources || []).find((source) => source.id === item.portal.id);
+          const portal = item.portal || supportedPortalSources.find((p) => p.host.replace(/^www\./i, '').toLowerCase() === host);
+          if (!portal || host !== portal.host.replace(/^www\./i, '').toLowerCase()) continue;
+          const sourceConfig = (deps.config.sources || []).find((source) => source.id === portal.id);
           if (sourceConfig?.detailPattern && !matchesDetailPattern(candidate.url, sourceConfig.detailPattern)) continue;
-          const bucket = serpCandidates.get(item.portal.id) || [];
+          const bucket = serpCandidates.get(portal.id) || [];
           if (!bucket.some((x) => x.url === candidate.url)) {
             bucket.push({ url: candidate.url, indexUrl: sourceConfig?.url || candidate.url, titleHint: candidate.hit.title });
-            serpCandidates.set(item.portal.id, bucket);
+            serpCandidates.set(portal.id, bucket);
           }
         }
       } catch (error) {
