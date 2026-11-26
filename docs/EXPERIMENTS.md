@@ -1,3 +1,11 @@
+## P131.8v — Bounded Serper discovery + Gemini owner review (2026-11-26)
+- **HYPOTHESIS:** the previous zero-yield runs were partly caused by a source-only runner that did not use the configured portal search catalogue. A rotating SERP layer can expose direct detail pages across more active portals without relaxing the page-evidence gates.
+- **SCOPE:** 121 saved localities, 6 rotating communes/run, Flatfox/Anibis/Tutti query templates, maximum 18 Serper calls/run and >=3s spacing. Candidate pages must pass host/detail-pattern checks and then be fetched directly.
+- **QUALITY:** hard minimum 3 rooms; verified locality and residential listing from fetched page; actionable contact route; L2 requires private-owner evidence. Gemini is allowed only for up to 3 ambiguous L1 candidates with an existing contact route; its exact quote must occur in page text and pass a deterministic semantic phrase check.
+- **COST:** estimated ceiling $0.018 Serper + $0.006 Gemini = $0.024/run. No Jina, reverse image, schedule, email, Telegram or Drive. Detail fetches remain capped at 48/run and 240s.
+- **ACCEPTANCE:** at least 3 unique reviewed L1/L2 leads, no false locality/room/owner/contact evidence, production run completes and actual provider spend is recorded. If yield remains low, add sources based on observed reachability; never weaken hard quality checks.
+- **STATUS:** code and regression fixtures committed; production deployment, actual provider availability/spend and lead yield PENDING.
+
 ## P131.8u — Actionable lead acceptance (2026-11-26)
 - **OBSERVED:** Prior run's 14 visible rows were not acceptable: several were thin portal shells, placeholder contacts or wrong locality/room data. Keep them hidden until revalidated.
 - **CHANGE:** Fresh-fetch hold + seen-cache reset; detail must pass locality, 2+ room, substantive body and direct/platform contact route. Preserve price/currency, owner name and enquiry route in the card.
