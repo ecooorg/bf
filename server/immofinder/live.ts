@@ -8,6 +8,7 @@
  */
 
 import { processSnapshot } from './pipeline.ts';
+import { communesForRun, pickItems } from '../immofinderDiscovery.ts';
 import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import { createSwissClassifiedAdapter } from './sources/swiss-classified.ts';
@@ -141,6 +142,39 @@ export async function runPipeline(
   const processedUrls = new Set<string>();
   let totalDetails = 0;
   let successfulIndexes = 0;
+  let serperCalls = 0;
+  const serpCandidates = new Map<string, Array<{ url: string; indexUrl: string; titleHint?: string }>>();
+  const discovery = deps.config.discovery;
+  const supportedPortalSources = (discovery?.portalSources || []).filter((p) => Boolean(ADAPTERS[p.id]));
+  if (deps.search && discovery?.enabled && supportedPortalSources.length) {
+    const communeSlice = communesForRun(municipalities, Math.min(6, municipalities.length), Number(deps.cycle || 0));
+    const plan = supportedPortalSources.flatMap((portal) => {
+      const template = (discovery.portalQueries || []).find((q) => q.toLowerCase().includes('site:' + portal.host.toLowerCase()));
+      return template ? communeSlice.map((commune) => ({ portal, commune, query: template.replace(/\{commune\}/g, commune) })) : [];
+    });
+    for (const item of plan.slice(0, 18)) {
+      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
+      try {
+        if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(1500, Number(discovery.serperMinIntervalMs) || 1500)));
+        const hits = await deps.search(item.query);
+        serperCalls++;
+        const selected = pickItems(hits, deps.config);
+        for (const candidate of selected) {
+          const host = new URL(candidate.url).hostname.replace(/^www\./i, '').toLowerCase();
+          if (host !== item.portal.host.replace(/^www\./i, '').toLowerCase()) continue;
+          const bucket = serpCandidates.get(item.portal.id) || [];
+          if (!bucket.some((x) => x.url === candidate.url)) {
+            bucket.push({ url: candidate.url, indexUrl: 'serper:' + item.query, titleHint: candidate.hit.title });
+            serpCandidates.set(item.portal.id, bucket);
+          }
+        }
+      } catch (error) {
+        errors.push({ source: item.portal.id, code: 'serper_discovery_failed', detail: String((error as Error)?.message || error).slice(0, 140) });
+        // A quota/credit error is run-global; don't spend further calls retrying it.
+        if (/not enough credits|quota|credits exhausted/i.test(String((error as Error)?.message || error))) break;
+      }
+    }
+  }
 
   const sources = (deps.config.sources || [])
     .filter((source) => Boolean(ADAPTERS[source.id]))
@@ -165,7 +199,8 @@ export async function runPipeline(
     };
     sourceStats.push(stats);
     const indexUrls = selectIndexUrls(source, municipalities);
-    const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [];
+    const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [...(serpCandidates.get(source.id) || [])];
+    stats.queries += candidates.length ? 1 : 0;
     let sourceBlocked = false;
     for (const indexUrl of indexUrls) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
@@ -365,7 +400,7 @@ export async function runPipeline(
     errors,
     newListings,
     preview,
-    estCostUsd: 0,
+    estCostUsd: Number((serperCalls * (Number(deps.config.estCostPerSearchUsd) || 0.001)).toFixed(4)),
     sourceStats,
     wavesRun,
   };
