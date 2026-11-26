@@ -1,3 +1,7 @@
+## P131.8t — Add Flatfox direct rentals (FEATURE)
+- Added a bounded Flatfox Graubünden rental source and detail adapter, including monthly price, ½-room and advertiser extraction. Enabled only alongside HappyHoliday/Ferienhausmiete.
+- Production remains manual-only with all delivery channels off. No Serper, LLM or Jina spend; local Chromium fallback remains capped at 3 pages/run.
+
 ## P131.8s — Evidence-first quality correction (BUGFIX)
 - Corrected locality false positives from substrings and property names; description evidence now wins over property-title mentions. Added Swiss half-room parsing (2 1/2, 4 1/2), substantive detail-page gate and agency detection.
 - Removed portal navigation as a seeker-post signal and reject sequential placeholder phone numbers. Recognize host enquiry forms.
