@@ -42,7 +42,7 @@ export interface ClassifyResult {
   isAgency: boolean;
 }
 
-const ROOM_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*(?:zimmer|zi\.|rooms?|chambres?|camere)/i;
+const ROOM_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*[-–]?\s*(?:zimmer|zi\.|rooms?|chambres?|camere)/i;
 /** Seeker posts only — not site nav ("Haus suchen") or marketing ("Starte deine Suche"). */
 const SEEKER_RE =
   /(?:\bwg[\s-]?gesucht\b|\bmitbewohner(?:in)?\b|\broommate\b|\bflatshare\b|\bwohngemeinschaft\b|\b(?:suche|sucht)\s+(?:mitbewohner|nachmieter|wohnung|zimmer|wg)\b|\blooking\s+for\s+(?:a\s+)?(?:room|flat|roommate)\b|\b(?:cerco|cherche)\s+(?:colocation|chambre|appartement)\b)/i;
