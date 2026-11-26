@@ -931,7 +931,7 @@ export function isSeekerPost(title: string, text: string): boolean {
   if (offer) return false;
   if (/\b(wohnung gesucht|haus gesucht|zimmer gesucht|suche wohnung|suche haus|suche zimmer|wir suchen (eine )?wohnung|ich suche (eine )?wohnung|looking for (a )?(flat|apartment|house))\b/i.test(h)) return true;
   // "Suche ganz dringend … Wohnung … zu mieten" / "Wer hat eine … Wohnung"
-  if (/\bsuche\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h) && !/nachmieter|mieter gesucht/i.test(h)) return true;
+  // Do not classify portal navigation such as 'Haus suchen' as a seeker post.
   if (/\bwer hat\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h)) return true;
   if (/\bzu mieten\b/i.test(h) && /\b(suche|suchen|dringend|gesucht)\b/i.test(h)) return true;
   if (/^\s*suche\b/i.test(title) && /wohnung|haus|zimmer/i.test(title) && !/nachmieter|mieter/i.test(title)) return true;
@@ -1024,7 +1024,7 @@ export function qualityRejectReason(
 // ---------------------------------------------------------------------------
 /** Detects temporary/holiday inventory separately from long-term rental offers. */
 const SHORT_STAY_HINT = /\b(ferien(?:wohnung|haus|unterkunft)|holiday\s+(?:rental|home)|saison\w*|kurzzeit\w*|kurzfristig|wochenweise|nachtweise|ferienzeit)\b/i;
-const SHORT_STAY_HOST = /\b(airbnb|booking|vrbo|interhome|belvilla|e-domizil|fewo-direkt|traum-ferienwohnungen)\b/i;
+const SHORT_STAY_HOST = /\b(airbnb|booking|vrbo|interhome|belvilla|e-domizil|fewo-direkt|traum-ferienwohnungen|happyholiday)\b/i;
 export function isShortStayListing(title: string, url: string, text: string, price: ParsedPrice | null): boolean {
   let host = '';
   try { host = new URL(url).hostname.replace(/^www\./, ''); } catch { /* invalid URLs fail the link gate separately */ }
