@@ -41,6 +41,7 @@ const ADAPTERS: Record<string, Adapter> = {
   ferienhausmiete: ferienhausmieteAdapter,
   'portal-anibis': createSwissClassifiedAdapter('portal-anibis', 'anibis.ch'),
   'portal-tutti': createSwissClassifiedAdapter('portal-tutti', 'tutti.ch'),
+  'portal-flatfox': createSwissClassifiedAdapter('portal-flatfox', 'flatfox.ch'),
 };
 
 function plainText(html: string): string {
