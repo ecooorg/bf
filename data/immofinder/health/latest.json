@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T13:02:13.676Z",
-  "verdict": "WARN",
+  "generatedAt": "2026-11-26T14:16:45.243Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 7793b16"
+      "detail": "no check runs reported for a3a4e74"
     },
     {
       "group": "GITHUB",
@@ -17,20 +17,20 @@
     {
       "group": "RENDER",
       "name": "Service /health",
-      "status": "OK",
-      "detail": "HTTP 200, version 131, commit bdead7f"
+      "status": "FAIL",
+      "detail": "unreachable: timeout"
     },
     {
       "group": "RENDER",
       "name": "Database ready",
-      "status": "OK",
-      "detail": "HTTP 200"
+      "status": "FAIL",
+      "detail": "unreachable: The operation was aborted due to timeout"
     },
     {
       "group": "RENDER",
       "name": "Deployed commit",
-      "status": "WARN",
-      "detail": "production is 2 commit(s) behind main with 7 non-archive file(s) changed (e.g. AGENTS.md, CHANGELOG.md, ROADMAP.md); deploy may be pending or failed"
+      "status": "SKIP",
+      "detail": "deployed commit or main HEAD unavailable"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T13:02:12.602Z",
+        "checkedAt": "2026-11-26T14:16:43.929Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 0.6 h old"
+      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 1.9 h old"
     },
     {
       "group": "SEARCH",
