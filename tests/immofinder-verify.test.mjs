@@ -345,7 +345,7 @@ test('C131 locality matching uses token boundaries and description location befo
     requestedUrl: 'https://www.ferienhausmiete.de/11561.htm',
     finalUrl: 'https://www.ferienhausmiete.de/11561.htm',
     title: 'Tga Davos Nord',
-    pageText: 'Tga Davos Nord. Beschreibung: Die 4 1/2 Zimmer Ferienwohnung liegt in Savognin. 6 Gäste, 104 CHF pro Nacht. Balkon und Küche.',
+    pageText: 'Tga Davos Nord. Beschreibung: Drei Schlafzimmer, die 4 1/2 Zimmer Ferienwohnung liegt in Savognin. 6 Gäste, 104 CHF pro Nacht. Balkon und Küche.',
   }), cfg);
   assert.equal(tga.locality?.value, 'Savognin');
   assert.equal(tga.rooms?.value, 4.5);
