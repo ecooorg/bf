@@ -948,6 +948,33 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 15_000 }));
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
+// One-time production smoke hook. It is inert unless an explicit ISO threshold is set in Render.
+  // lastRealRunAt is persisted in PostgreSQL, so later restarts cannot repeat this run.
+  const bootRunAfterMs = Date.parse(String(process.env.IMMOFINDER_BOOT_RUN_AFTER || ''));
+  if (Number.isFinite(bootRunAfterMs) && process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT && process.env.DATABASE_URL) {
+    const bootRunTimer = setTimeout(() => {
+      void (async () => {
+        try {
+          const lastAt = await lastRealRunAt();
+          if (lastAt && lastAt.getTime() >= bootRunAfterMs) {
+            immoLog('info', 'immofinder_boot_run_skipped', { reason: 'threshold_already_satisfied', lastRealRunAt: lastAt.toISOString() });
+            return;
+          }
+          const settings = await getSettings(loadImmoConfig());
+          const runId = await startRun('manual', false, { settings, wave: 'full', cycle: await realRunCount() });
+          if (!runId) {
+            immoLog('warn', 'immofinder_boot_run_skipped', { reason: 'another_run_is_active' });
+            return;
+          }
+          immoLog('info', 'immofinder_boot_run_accepted', { runId, wave: 'full', dryRun: false });
+        } catch (error) {
+          immoLog('error', 'immofinder_boot_run_failed', { error: String((error as Error)?.message || error).slice(0, 180) });
+        }
+      })();
+    }, 30_000);
+    bootRunTimer.unref();
+  }
+
 // --- In-process schedule (default hourly carousel; no external cron required) ---
   // Checks every 10 minutes; isDue() enforces everyHours / dailyAt. Manual mode still disables auto-runs.
   // Do not start timers under node:test / explicit disable — they keep the event loop alive and time out CI.
