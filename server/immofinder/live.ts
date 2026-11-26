@@ -79,7 +79,7 @@ function photoUrls(html: string): string[] {
 function selectIndexUrls(source: { id: string; url: string; indexUrls?: string[] }, municipalities: string[]): string[] {
   const configured = source.indexUrls?.length ? source.indexUrls : [source.url];
   if (source.id !== 'ferienhausmiete') return configured.slice(0, MAX_INDEX_PAGES_PER_SOURCE);
-  const slugs = municipalities.map((name) => name.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+  const slugs = municipalities.map((name) => name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
   const relevant = configured.filter((url) => slugs.some((slug) => slug && url.toLowerCase().includes(slug)));
   return (relevant.length ? relevant : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
 }
