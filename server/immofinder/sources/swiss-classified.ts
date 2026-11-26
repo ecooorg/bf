@@ -46,7 +46,7 @@ export function createSwissClassifiedAdapter(id: 'portal-anibis' | 'portal-tutti
     return [...found].map(([url, titleHint]) => ({ url, titleHint }));
   }
 
-  function extract(html: string, pageUrl: string): ExtractedFields {
+  function extract(html: string, _pageUrl: string): ExtractedFields {
     const plain = plainText(html);
     const titleRaw = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(html)?.[1]
       || /<meta[^>]+(?:property|name)=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1]
