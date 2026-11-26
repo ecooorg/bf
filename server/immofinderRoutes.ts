@@ -732,6 +732,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           const source = fullCatalogue.sources.find((item) => item.id === id);
           if (source && !baseCfg.sources.some((item) => item.id === id)) baseCfg.sources.push(source);
         }
+        // Add seed-only configs for every portal in the catalogue; Serper results are fetched as detail pages.
+        for (const portal of baseCfg.discovery?.portalSources || []) {
+          if (!baseCfg.sources.some((item) => item.id === portal.id)) {
+            baseCfg.sources.push({ id: portal.id, url: 'https://' + portal.host + '/', phase: 1, maxDetailPages: 12 });
+          }
+        }
         const cfg = progress.testMode === true ? applyImmoFinderTestBudget(baseCfg) : baseCfg;
         if (progress.testMode !== true) {
           try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
@@ -969,7 +975,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           return;
         }
         const current = await getSettings(cfg);
-        const sourceIds = [...new Set([...Object.keys(current.search.sources), ...(cfg.sources || []).map((s) => s.id)])];
+        const sourceIds = [...new Set([...Object.keys(current.search.sources), ...(cfg.sources || []).map((s) => s.id), ...(cfg.discovery?.portalSources || []).map((s) => s.id)])];
         const expanded = await saveSettings(cfg, {
           ...current,
           schedule: { ...current.schedule, mode: 'manual' },
@@ -979,7 +985,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             communes: [...cfg.municipalities],
             minRooms: 3,
             municipalityGroups: { group1: true, group2: true },
-            sources: Object.fromEntries(sourceIds.map((id) => [id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox', 'portal-anibis', 'portal-tutti'].includes(id)])),
+            sources: Object.fromEntries(sourceIds.map((id) => [id, ['happyholiday', 'ferienhausmiete', ...(cfg.discovery?.portalSources || []).map((s) => s.id)].includes(id)])),
             profile: 'burst',
             defaultWave: 'full',
             carouselCommunesPerRun: Math.min(6, cfg.municipalities.length),
