@@ -393,7 +393,7 @@ export async function runPipeline(
             owner_markers: owner?.markers || [],
             contact_route: owner?.contactRoute || 'none',
             source_price_text: extracted.priceText,
-            price: parsedPrice ? { amount: parsedPrice.amount, unit: parsedPrice.unit, currency: /(?:CHF|Fr\\.?)/i.test(parsedPrice.quote) ? 'CHF' : /(?:EUR|€)/i.test(parsedPrice.quote) ? 'EUR' : null, quote: parsedPrice.quote } : null,
+            price: parsedPrice ? { amount: parsedPrice.amount, unit: parsedPrice.unit, currency: /(?:CHF|Fr\.?)/i.test(parsedPrice.quote) ? 'CHF' : /(?:EUR|€)/i.test(parsedPrice.quote) ? 'EUR' : null, quote: parsedPrice.quote } : null,
             monthly_price_chf: parsedPrice?.monthlyChf ?? null,
             pricing_unit: parsedPrice?.unit ?? null,
             owner_name: owner.ownerName,
