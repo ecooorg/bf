@@ -167,7 +167,7 @@ export async function publishGitHubRunDiagnostics(
       if (current.ok) sha = (await current.json() as { sha?: string }).sha;
       else if (current.status !== 404) throw await githubFailure('github_diagnostics_read_failed', current);
       const updated = await fetchImpl(endpoint, { method: 'PUT', headers, body: JSON.stringify({
-        message: 'chore(immofinder): publish search diagnostics ' + runId, content, branch, ...(sha ? { sha } : {}),
+        message: 'chore(immofinder): publish search diagnostics ' + runId + ' [skip render]', content, branch, ...(sha ? { sha } : {}),
       }) });
       if (updated.ok) {
         const result = await updated.json() as { commit?: { sha?: string } };
@@ -236,7 +236,7 @@ export async function publishGitHubListingsSnapshot(
     }
 
     const body: Record<string, unknown> = {
-      message: `chore(immofinder): encrypted listings snapshot ${String(meta.runId || '').slice(0, 48)}`,
+      message: `chore(immofinder): encrypted listings snapshot ${String(meta.runId || '').slice(0, 48)} [skip render]`,
       content,
       branch,
     };
