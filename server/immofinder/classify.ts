@@ -59,6 +59,11 @@ function locationTokens(value: string): string[] {
   return decoded.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
 }
+function hasLocationContext(tokens: string[], index: number): boolean {
+  const before = tokens.slice(Math.max(0, index - 3), index);
+  return before.some((token) => ['in', 'von', 'bei', 'ort', 'standort', 'adresse', 'gemeinde', 'location', 'wohnort'].includes(token))
+    || /^\\d{4}$/.test(tokens[index - 1] || '');
+}
 function findTokenSequence(haystack: string[], needle: string[]): number {
   if (!needle.length || needle.length > haystack.length) return -1;
   outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
@@ -93,7 +98,7 @@ function findMunicipality(
     if (!area.text) continue;
     const tokens = locationTokens(area.text);
     const matches = list.map((m) => ({ m, index: findTokenSequence(tokens, locationTokens(m)) }))
-      .filter((x) => x.index >= 0).sort((a, b) => a.index - b.index);
+      .filter((x) => x.index >= 0 && hasLocationContext(tokens, x.index)).sort((a, b) => a.index - b.index);
     if (matches.length) {
       const hit = matches[0];
       return { value: hit.m, quote: area.label + ':' + hit.m };
