@@ -1,14 +1,14 @@
 {
   "schemaVersion": 2,
   "kind": "immofinder_post_run_bundle",
-  "generatedAt": "2026-11-26T23:45:25.128Z",
-  "runId": "cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1",
+  "generatedAt": "2026-11-26T23:49:04.473Z",
+  "runId": "82867654-fdea-4667-a8d5-92dcb06234d2",
   "traceId": null,
   "runtime": {
-    "generatedAt": "2026-11-26T23:45:25.128Z",
+    "generatedAt": "2026-11-26T23:49:04.473Z",
     "commit": "01623cb",
     "node": "v22.12.0",
-    "uptimeSec": 591,
+    "uptimeSec": 810,
     "keepAliveEnv": "true",
     "keepAliveDisabled": false,
     "renderExternalUrlSet": true,
@@ -102,7 +102,7 @@
   "database": {
     "status": "ok",
     "database": "bf_81oe",
-    "databaseTime": "2026-11-26T23:45:25.037Z",
+    "databaseTime": "2026-11-26T23:49:04.469Z",
     "listings": {
       "total": 2,
       "visible": 0,
@@ -117,69 +117,62 @@
       "idle": 4,
       "waiting": 0
     },
-    "latencyMs": 1
+    "latencyMs": 24
   },
   "result": {
     "counts": {
       "index_pages": 9,
-      "candidates": 91,
-      "fetched": 24,
-      "kept": 2,
-      "kept_l1": 2,
+      "candidates": 88,
+      "fetched": 4,
+      "kept": 0,
+      "kept_l1": 0,
       "kept_l2": 0,
       "new": 0,
       "updated": 0,
-      "skipped": 9,
-      "infra_failures": 1,
-      "serper_calls": 7,
-      "gemini_calls": 2,
+      "skipped": 36,
+      "infra_failures": 0,
+      "serper_calls": 10,
+      "gemini_calls": 0,
       "serper_available": 1,
       "gemini_available": 1
     },
     "filtered": {
       "source_locality_mismatch": 28,
-      "rooms_below_min": 7,
-      "no_contact_route": 9,
-      "agency": 1,
-      "outside_target": 4,
-      "rooms_unknown": 1
+      "no_contact_route": 1,
+      "rooms_below_min": 1,
+      "rooms_unknown": 1,
+      "outside_target": 1
     },
-    "estCostUsd": 0.011,
-    "errors": [
-      {
-        "source": "portal-homegate",
-        "code": "detail_fetch_failed",
-        "detail": "HTTP 403"
-      }
-    ],
+    "estCostUsd": 0.01,
+    "errors": [],
     "sourceStats": [
       {
         "id": "happyholiday",
         "queries": 4,
         "hits": 90,
         "candidates": 62,
-        "fetched": 12,
+        "fetched": 2,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
-        "junk": 6,
+        "junk": 1,
         "geo": 28,
-        "consecutiveBad": 12
+        "consecutiveBad": 2
       },
       {
         "id": "ferienhausmiete",
         "queries": 4,
         "hits": 70,
         "candidates": 26,
-        "fetched": 12,
+        "fetched": 2,
         "llm": 0,
-        "kept": 2,
-        "new": 2,
-        "agencies": 1,
-        "junk": 3,
-        "geo": 4,
-        "consecutiveBad": 8
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 1,
+        "geo": 1,
+        "consecutiveBad": 2
       },
       {
         "id": "portal-acheter-louer",
@@ -240,8 +233,8 @@
       {
         "id": "portal-homegate",
         "queries": 6,
-        "hits": 3,
-        "candidates": 3,
+        "hits": 0,
+        "candidates": 0,
         "fetched": 0,
         "llm": 0,
         "kept": 0,
@@ -249,7 +242,7 @@
         "agencies": 0,
         "junk": 0,
         "geo": 0,
-        "consecutiveBad": 1
+        "consecutiveBad": 0
       },
       {
         "id": "portal-icasa",
@@ -281,7 +274,7 @@
       },
       {
         "id": "portal-immoscout24",
-        "queries": 1,
+        "queries": 4,
         "hits": 0,
         "candidates": 0,
         "fetched": 0,
@@ -369,313 +362,102 @@
     ],
     "preview": [
       {
-        "url": "happyholiday.ch/haus/ferienwohnung-solavers-graubuenden-in-klosters",
-        "title": "Monami Klosters &#8211; Solavers 2 &#8211; Bergbahn und Zentrum wenige Schritte entfernt, Hallenbad und Sauna im Haus",
-        "source": "happyholiday",
-        "municipality": "Klosters",
-        "rooms": 2,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-haus-solavers-graubuenden-in-klosters",
-        "title": "Monami Klosters &#8211; Solavers Nr. 1 &#8211; Bergbahn und Zentrum wenige Schritte entfernt, Hallenbad und Sauna im Haus",
-        "source": "happyholiday",
-        "municipality": "Klosters",
-        "rooms": 3,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienhaus-haus-am-see-graubuenden-in-lenzerheide",
-        "title": "Haus am See in Lenzerheide",
+        "url": "happyholiday.ch/haus/ferienhaus-scoldasu-graubuenden-in-lenzerheide",
+        "title": "Ferienhaus Scoldasu in Lenzerheide",
         "source": "happyholiday",
         "municipality": "Lenzerheide",
-        "rooms": 9,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-manaroel-graubuenden-in-scuol",
-        "title": "2 1/2 Zimmerwohnung Erni Manaröl in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-chasa-splerin-graubuenden-in-scuol",
-        "title": "2 1/2 Zimmerwohnung Hubacher Chasa Splerin in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-scuol-appartement-graubuenden-in-scuol",
-        "title": "2 1/2 Zimmerwohnung Winkelmann Chasa Arcada in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-chasa-arcada-canonica-graubuenden-in-scuol",
-        "title": "2 1/2 Zimmerwohnung Sonderegger Chasa Arcada in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-chasa-balcun-graubuenden-in-scuol",
-        "title": "2 1/2 Zimmerwohnung Staiger Chasa Balcun in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-erni-graubuenden-in-scuol",
-        "title": "Wohnung Erni in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 3,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-chaescha-balcun-graubuenden-in-scuol",
-        "title": "Wohnung Käch Chasa Balcun in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 3,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienwohnung-kern-graubuenden-in-scuol",
-        "title": "Wohnung Kern Chasa Arcada in Scuol",
-        "source": "happyholiday",
-        "municipality": "Scuol",
-        "rooms": 5,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "happyholiday.ch/haus/berggasthaus-albula-hospiz-graubuenden-in-la-punt-chamues-ch",
-        "title": "Berggasthaus Albula Hospiz in La Punt-Chamues-ch",
-        "source": "happyholiday",
-        "municipality": "La Punt Chamues-ch",
         "rooms": 8,
         "kept": false,
         "reason": "no_contact_route",
         "detail": "no_contact_route"
       },
       {
-        "url": "www.ferienhausmiete.de/11561.htm",
-        "title": "Tga Davos Nord",
-        "source": "ferienhausmiete",
-        "municipality": "St. Moritz",
-        "rooms": 4.5,
-        "kept": true,
-        "reason": null,
-        "detail": "L1"
-      },
-      {
-        "url": "www.ferienhausmiete.de/12696.htm",
-        "title": "Ferienwohnung Parkareal Davos Platz",
-        "source": "ferienhausmiete",
-        "municipality": "Davos",
-        "rooms": 1,
+        "url": "happyholiday.ch/haus/ferienwohnung-fadail-2-b-graubuenden-in-lenzerheide",
+        "title": "Ferienwohnung Fadail 2 B in Lenzerheide",
+        "source": "happyholiday",
+        "municipality": "Lenzerheide",
+        "rooms": 2,
         "kept": false,
         "reason": "rooms_below_min",
         "detail": "rooms_below_min"
       },
       {
-        "url": "www.ferienhausmiete.de/7644.htm",
-        "title": "Ferienwohnungen in Davos",
+        "url": "www.ferienhausmiete.de/339152.htm",
+        "title": "Gääschi Leis",
         "source": "ferienhausmiete",
-        "municipality": "Davos",
-        "rooms": 4.5,
-        "kept": false,
-        "reason": "agency",
-        "detail": "agency"
-      },
-      {
-        "url": "www.ferienhausmiete.de/7284.htm",
-        "title": "Chalet Wick, Aujiweg 17, Klosters",
-        "source": "ferienhausmiete",
-        "municipality": "Klosters",
-        "rooms": 5.5,
-        "kept": true,
-        "reason": null,
-        "detail": "L1"
-      },
-      {
-        "url": "www.ferienhausmiete.de/4737356.htm",
-        "title": "FerienWohnung mit Wellnessbereich",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
-        "rooms": 4,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "www.ferienhausmiete.de/4692333.htm",
-        "title": "FerienWohnung mit Wellness",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
-        "rooms": 3,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "www.ferienhausmiete.de/4737357.htm",
-        "title": "FerienWohnung mit Wellnessbereich",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
-        "rooms": 5,
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route"
-      },
-      {
-        "url": "www.ferienhausmiete.de/25377.htm",
-        "title": "Sycamore Lodge Braunwald - autofrei",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/30679.htm",
-        "title": "Bijouswiss.ch   Walensee mit SAUNA",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/421973.htm",
-        "title": "Casa Restelli EG -  nahe Andermatt",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/346675.htm",
-        "title": "Töniberg Lounge",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/303500.htm",
-        "title": "Wohnung in Trans Village",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
+        "municipality": "Falera",
         "rooms": null,
         "kept": false,
         "reason": "rooms_unknown",
         "detail": "rooms_unknown"
       },
       {
-        "url": "www.homegate.ch/mieten/4002868603",
-        "title": "9 Wohnung mieten in Disentis/Mustér",
-        "source": "portal-homegate",
+        "url": "www.ferienhausmiete.de/30574.htm",
+        "title": "Bohemia Apartments",
+        "source": "ferienhausmiete",
         "municipality": null,
         "rooms": null,
         "kept": false,
-        "reason": "fetch_blocked",
-        "detail": "HTTP 403"
+        "reason": "outside_target",
+        "detail": "municipality_not_whitelisted"
       }
     ]
   },
   "quality": {
-    "runId": "cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1",
+    "runId": "82867654-fdea-4667-a8d5-92dcb06234d2",
     "wave": "extended",
     "counts": {
       "index_pages": 9,
-      "candidates": 91,
-      "fetched": 24,
-      "kept": 2,
-      "kept_l1": 2,
+      "candidates": 88,
+      "fetched": 4,
+      "kept": 0,
+      "kept_l1": 0,
       "kept_l2": 0,
       "new": 0,
       "updated": 0,
-      "skipped": 9,
-      "infra_failures": 1,
-      "serper_calls": 7,
-      "gemini_calls": 2,
+      "skipped": 36,
+      "infra_failures": 0,
+      "serper_calls": 10,
+      "gemini_calls": 0,
       "serper_available": 1,
       "gemini_available": 1
     },
     "filtered": {
       "source_locality_mismatch": 28,
-      "rooms_below_min": 7,
-      "no_contact_route": 9,
-      "agency": 1,
-      "outside_target": 4,
-      "rooms_unknown": 1
+      "no_contact_route": 1,
+      "rooms_below_min": 1,
+      "rooms_unknown": 1,
+      "outside_target": 1
     },
-    "errors": 1,
+    "errors": 0,
     "sourceStats": [
       {
         "id": "happyholiday",
         "queries": 4,
         "hits": 90,
         "candidates": 62,
-        "fetched": 12,
+        "fetched": 2,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
-        "junk": 6,
+        "junk": 1,
         "geo": 28,
-        "consecutiveBad": 12
+        "consecutiveBad": 2
       },
       {
         "id": "ferienhausmiete",
         "queries": 4,
         "hits": 70,
         "candidates": 26,
-        "fetched": 12,
+        "fetched": 2,
         "llm": 0,
-        "kept": 2,
-        "new": 2,
-        "agencies": 1,
-        "junk": 3,
-        "geo": 4,
-        "consecutiveBad": 8
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 1,
+        "geo": 1,
+        "consecutiveBad": 2
       },
       {
         "id": "portal-acheter-louer",
@@ -736,8 +518,8 @@
       {
         "id": "portal-homegate",
         "queries": 6,
-        "hits": 3,
-        "candidates": 3,
+        "hits": 0,
+        "candidates": 0,
         "fetched": 0,
         "llm": 0,
         "kept": 0,
@@ -745,7 +527,7 @@
         "agencies": 0,
         "junk": 0,
         "geo": 0,
-        "consecutiveBad": 1
+        "consecutiveBad": 0
       },
       {
         "id": "portal-icasa",
@@ -777,7 +559,7 @@
       },
       {
         "id": "portal-immoscout24",
-        "queries": 1,
+        "queries": 4,
         "hits": 0,
         "candidates": 0,
         "fetched": 0,
@@ -930,119 +712,47 @@
       {
         "host": "happyholiday.ch",
         "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Klosters",
-        "rooms": 2,
-        "title": "Monami Klosters &#8211; Solavers 2 &#8211; Bergbahn und Zentrum wenige Schritte "
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route",
-        "municipality": "Klosters",
-        "rooms": 3,
-        "title": "Monami Klosters &#8211; Solavers Nr. 1 &#8211; Bergbahn und Zentrum wenige Schri"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
         "reason": "no_contact_route",
         "detail": "no_contact_route",
         "municipality": "Lenzerheide",
-        "rooms": 9,
-        "title": "Haus am See in Lenzerheide"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "title": "2 1/2 Zimmerwohnung Erni Manaröl in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "title": "2 1/2 Zimmerwohnung Hubacher Chasa Splerin in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "title": "2 1/2 Zimmerwohnung Winkelmann Chasa Arcada in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "title": "2 1/2 Zimmerwohnung Sonderegger Chasa Arcada in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "rooms_below_min",
-        "detail": "rooms_below_min",
-        "municipality": "Scuol",
-        "rooms": 2.5,
-        "title": "2 1/2 Zimmerwohnung Staiger Chasa Balcun in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route",
-        "municipality": "Scuol",
-        "rooms": 3,
-        "title": "Wohnung Erni in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route",
-        "municipality": "Scuol",
-        "rooms": 3,
-        "title": "Wohnung Käch Chasa Balcun in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route",
-        "municipality": "Scuol",
-        "rooms": 5,
-        "title": "Wohnung Kern Chasa Arcada in Scuol"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "no_contact_route",
-        "detail": "no_contact_route",
-        "municipality": "La Punt Chamues-ch",
         "rooms": 8,
-        "title": "Berggasthaus Albula Hospiz in La Punt-Chamues-ch"
+        "title": "Ferienhaus Scoldasu in Lenzerheide"
+      },
+      {
+        "host": "happyholiday.ch",
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "rooms_below_min",
+        "municipality": "Lenzerheide",
+        "rooms": 2,
+        "title": "Ferienwohnung Fadail 2 B in Lenzerheide"
+      },
+      {
+        "host": "ferienhausmiete.de",
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": "rooms_unknown",
+        "municipality": "Falera",
+        "rooms": null,
+        "title": "Gääschi Leis"
+      },
+      {
+        "host": "ferienhausmiete.de",
+        "kept": false,
+        "reason": "outside_target",
+        "detail": "municipality_not_whitelisted",
+        "municipality": null,
+        "rooms": null,
+        "title": "Bohemia Apartments"
       }
     ]
   },
   "assistantHints": [
+    "fetched_but_zero_kept — quality gates rejected all detail pages (rooms/locality/agency/for_sale)",
     "outside_target present — municipality_not_whitelisted or similar on examined pages",
-    "source_happyholiday_consecutiveBad=12",
-    "source_ferienhausmiete_consecutiveBad=8",
-    "source_portal-homegate_consecutiveBad=1",
-    "infra_failures>0 — detail fetch HTTP errors (403/410/429); check browserRenderHosts and robots"
+    "many_skipped_as_seen — clear seen or wait SEEN_TTL before expecting the same URLs again",
+    "source_happyholiday_consecutiveBad=2",
+    "source_ferienhausmiete_consecutiveBad=2"
   ],
   "eventCount": 0,
   "logSource": "process_trace_buffer+application_logs+console",
@@ -1050,81 +760,80 @@
   "applicationLogCount": 3,
   "applicationLogs": [
     {
-      "timestamp": "2026-11-26T23:41:17.314Z",
+      "timestamp": "2026-11-26T23:46:42.805Z",
       "level": "info",
       "component": "console",
       "event": "console_output",
-      "message": "{\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"dryRun\":false,\"wave\":\"full\"}"
+      "message": "{\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"[phone]-fdea-4667-a8d5-92dcb06234d2\",\"dryRun\":true,\"wave\":\"full\"}"
     },
     {
-      "timestamp": "2026-11-26T23:45:24.940Z",
+      "timestamp": "2026-11-26T23:49:04.374Z",
       "level": "info",
       "component": "console",
       "event": "console_output",
-      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"wave\":\"full\",\"counts\":{\"index_pages\":9,\"candidates\":91,\"fetched\":24,\"kept\":2,\"kept_l1\":2,\"kept_l2\":0,\"new\":2,\"updated\":0,\"skipped\":9,\"infra_failures\":1,\"serper_calls\":7,\"gemini_calls\":2,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":28,\"rooms_below_min\":7,\"no_contact_route\":9,\"agency\":1,\"outside_target\":4,\"rooms_unknown\":1},\"errors\":1,\"sourceStats\":[{\"id\":\"happyholiday\",\"queries\":4,\"hits\":90,\"candidates\":62,\"fetched\":12,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":6,\"geo\":28,\"consecutiveBad\":12},{\"id\":\"ferienhausmiete\",\"queries\":4,\"hits\":70,\"candidates\":26,\"fetched\":12,\"llm\":0,\"kept\":2,\"new\":2,\"agencies\":1,\"junk\":3,\"geo\":4,\"consecutiveBad\":8},{\"id\":\"portal-acheter-"
+      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"[phone]-fdea-4667-a8d5-92dcb06234d2\",\"wave\":\"full\",\"counts\":{\"index_pages\":9,\"candidates\":88,\"fetched\":4,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":36,\"infra_failures\":0,\"serper_calls\":10,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":28,\"no_contact_route\":1,\"rooms_below_min\":1,\"rooms_unknown\":1,\"outside_target\":1},\"errors\":0,\"sourceStats\":[{\"id\":\"happyholiday\",\"queries\":4,\"hits\":90,\"candidates\":62,\"fetched\":2,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":1,\"geo\":28,\"consecutiveBad\":2},{\"id\":\"ferienhausmiete\",\"queries\":4,\"hits\":70,\"candidates\":26,\"fetched\":2,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":1,\"geo\":1,\"consecutiveBad\":2},{\"id\":\"portal-acheter-louer\",\"querie"
     },
     {
-      "timestamp": "2026-11-26T23:45:24.940Z",
+      "timestamp": "2026-11-26T23:49:04.374Z",
       "level": "info",
       "component": "immofinder",
       "event": "search_quality_summary",
       "message": "Search quality, card completeness and weak-sample summary for All Logs",
       "details": {
-        "runId": "cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1",
+        "runId": "82867654-fdea-4667-a8d5-92dcb06234d2",
         "wave": "full",
         "counts": {
           "index_pages": 9,
-          "candidates": 91,
-          "fetched": 24,
-          "kept": 2,
-          "kept_l1": 2,
+          "candidates": 88,
+          "fetched": 4,
+          "kept": 0,
+          "kept_l1": 0,
           "kept_l2": 0,
-          "new": 2,
+          "new": 0,
           "updated": 0,
-          "skipped": 9,
-          "infra_failures": 1,
-          "serper_calls": 7,
-          "gemini_calls": 2,
+          "skipped": 36,
+          "infra_failures": 0,
+          "serper_calls": 10,
+          "gemini_calls": 0,
           "serper_available": 1,
           "gemini_available": 1
         },
         "filtered": {
           "source_locality_mismatch": 28,
-          "rooms_below_min": 7,
-          "no_contact_route": 9,
-          "agency": 1,
-          "outside_target": 4,
-          "rooms_unknown": 1
+          "no_contact_route": 1,
+          "rooms_below_min": 1,
+          "rooms_unknown": 1,
+          "outside_target": 1
         },
-        "errors": 1,
+        "errors": 0,
         "sourceStats": [
           {
             "id": "happyholiday",
             "queries": 4,
             "hits": 90,
             "candidates": 62,
-            "fetched": 12,
+            "fetched": 2,
             "llm": 0,
             "kept": 0,
             "new": 0,
             "agencies": 0,
-            "junk": 6,
+            "junk": 1,
             "geo": 28,
-            "consecutiveBad": 12
+            "consecutiveBad": 2
           },
           {
             "id": "ferienhausmiete",
             "queries": 4,
             "hits": 70,
             "candidates": 26,
-            "fetched": 12,
+            "fetched": 2,
             "llm": 0,
-            "kept": 2,
-            "new": 2,
-            "agencies": 1,
-            "junk": 3,
-            "geo": 4,
-            "consecutiveBad": 8
+            "kept": 0,
+            "new": 0,
+            "agencies": 0,
+            "junk": 1,
+            "geo": 1,
+            "consecutiveBad": 2
           },
           {
             "id": "portal-acheter-louer",
@@ -1185,8 +894,8 @@
           {
             "id": "portal-homegate",
             "queries": 6,
-            "hits": 3,
-            "candidates": 3,
+            "hits": 0,
+            "candidates": 0,
             "fetched": 0,
             "llm": 0,
             "kept": 0,
@@ -1194,7 +903,7 @@
             "agencies": 0,
             "junk": 0,
             "geo": 0,
-            "consecutiveBad": 1
+            "consecutiveBad": 0
           },
           {
             "id": "portal-icasa",
@@ -1226,7 +935,7 @@
           },
           {
             "id": "portal-immoscout24",
-            "queries": 1,
+            "queries": 4,
             "hits": 0,
             "candidates": 0,
             "fetched": 0,
@@ -1379,167 +1088,44 @@
           {
             "host": "happyholiday.ch",
             "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Klosters",
-            "rooms": 2,
-            "title": "Monami Klosters &#8211; Solavers 2 &#8211; Bergbahn und Zentrum wenige Schritte "
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "no_contact_route",
-            "detail": "no_contact_route",
-            "municipality": "Klosters",
-            "rooms": 3,
-            "title": "Monami Klosters &#8211; Solavers Nr. 1 &#8211; Bergbahn und Zentrum wenige Schri"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
             "reason": "no_contact_route",
             "detail": "no_contact_route",
             "municipality": "Lenzerheide",
-            "rooms": 9,
-            "title": "Haus am See in Lenzerheide"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Scuol",
-            "rooms": 2.5,
-            "title": "2 1/2 Zimmerwohnung Erni Manaröl in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Scuol",
-            "rooms": 2.5,
-            "title": "2 1/2 Zimmerwohnung Hubacher Chasa Splerin in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Scuol",
-            "rooms": 2.5,
-            "title": "2 1/2 Zimmerwohnung Winkelmann Chasa Arcada in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Scuol",
-            "rooms": 2.5,
-            "title": "2 1/2 Zimmerwohnung Sonderegger Chasa Arcada in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "rooms_below_min",
-            "detail": "rooms_below_min",
-            "municipality": "Scuol",
-            "rooms": 2.5,
-            "title": "2 1/2 Zimmerwohnung Staiger Chasa Balcun in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "no_contact_route",
-            "detail": "no_contact_route",
-            "municipality": "Scuol",
-            "rooms": 3,
-            "title": "Wohnung Erni in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "no_contact_route",
-            "detail": "no_contact_route",
-            "municipality": "Scuol",
-            "rooms": 3,
-            "title": "Wohnung Käch Chasa Balcun in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "no_contact_route",
-            "detail": "no_contact_route",
-            "municipality": "Scuol",
-            "rooms": 5,
-            "title": "Wohnung Kern Chasa Arcada in Scuol"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "no_contact_route",
-            "detail": "no_contact_route",
-            "municipality": "La Punt Chamues-ch",
             "rooms": 8,
-            "title": "Berggasthaus Albula Hospiz in La Punt-Chamues-ch"
+            "title": "Ferienhaus Scoldasu in Lenzerheide"
+          },
+          {
+            "host": "happyholiday.ch",
+            "kept": false,
+            "reason": "rooms_below_min",
+            "detail": "rooms_below_min",
+            "municipality": "Lenzerheide",
+            "rooms": 2,
+            "title": "Ferienwohnung Fadail 2 B in Lenzerheide"
+          },
+          {
+            "host": "ferienhausmiete.de",
+            "kept": false,
+            "reason": "rooms_unknown",
+            "detail": "rooms_unknown",
+            "municipality": "Falera",
+            "rooms": null,
+            "title": "Gääschi Leis"
+          },
+          {
+            "host": "ferienhausmiete.de",
+            "kept": false,
+            "reason": "outside_target",
+            "detail": "municipality_not_whitelisted",
+            "municipality": null,
+            "rooms": null,
+            "title": "Bohemia Apartments"
           }
         ]
       }
     }
   ],
   "consoleTail": [
-    "[phone]T23:41:52.454Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":8,\"failedRows\":1,\"durationMs\":20003,\"retryAfter\":77,\"parallel\":true}",
-    "[phone]T23:42:11.289Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:42:11.291Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
-    "[phone]T23:42:11.295Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
-    "[phone]T23:42:15.483Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":8,\"failedRows\":1,\"durationMs\":20001,\"retryAfter\":70,\"parallel\":true}",
-    "[phone]T23:42:36.402Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:42:36.404Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
-    "[phone]T23:42:36.408Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
-    "[phone]T23:42:38.165Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":8,\"failedRows\":1,\"durationMs\":20000,\"retryAfter\":67,\"parallel\":true}",
-    "[phone]T23:43:00.964Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":7,\"failedRows\":1,\"durationMs\":20002,\"retryAfter\":69,\"parallel\":true}",
-    "[phone]T23:43:01.507Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:43:01.509Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
-    "[phone]T23:43:01.514Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
-    "[phone]T23:43:20.649Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16259,\"retryAfter\":43,\"parallel\":true}",
-    "[phone]T23:43:41.127Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16326,\"retryAfter\":44,\"parallel\":true}",
-    "[phone]T23:43:55.812Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:43:55.814Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
-    "[phone]T23:43:55.818Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
-    "[phone]T23:44:00.888Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16158,\"retryAfter\":43,\"parallel\":true}",
-    "[phone]T23:44:01.227Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":339,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":417455,\"textChars\":6626,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:01.227Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":339,\"status\":200,\"directTextChars\":6626}",
-    "[phone]T23:44:01.227Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":339,\"ok\":true,\"status\":200,\"bodyChars\":417455,\"textChars\":6626,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:02.629Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1397,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":418343,\"textChars\":6372,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:02.629Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1397,\"status\":200,\"directTextChars\":6372}",
-    "[phone]T23:44:02.629Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1397,\"ok\":true,\"status\":200,\"bodyChars\":418343,\"textChars\":6372,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:04.097Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1464,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":427139,\"textChars\":7364,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:04.097Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1464,\"status\":200,\"directTextChars\":7364}",
-    "[phone]T23:44:04.098Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1465,\"ok\":true,\"status\":200,\"bodyChars\":427139,\"textChars\":7364,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:05.595Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":450614,\"textChars\":4861,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:05.595Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"status\":200,\"directTextChars\":4861}",
-    "[phone]T23:44:05.595Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"ok\":true,\"status\":200,\"bodyChars\":450614,\"textChars\":4861,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:07.826Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1892,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":595579,\"textChars\":11155,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:07.826Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1892,\"status\":200,\"directTextChars\":11155}",
-    "[phone]T23:44:07.826Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1892,\"ok\":true,\"status\":200,\"bodyChars\":595579,\"textChars\":11155,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:08.617Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":593,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":607187,\"textChars\":11482,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:08.617Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":593,\"status\":200,\"directTextChars\":11482}",
-    "[phone]T23:44:08.617Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":593,\"ok\":true,\"status\":200,\"bodyChars\":607187,\"textChars\":11482,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:10.095Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1367,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":350394,\"textChars\":5458,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:10.095Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1368,\"status\":200,\"directTextChars\":5458}",
-    "[phone]T23:44:10.095Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1368,\"ok\":true,\"status\":200,\"bodyChars\":350394,\"textChars\":5458,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:11.632Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1528,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":578267,\"textChars\":9644,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:11.632Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1528,\"status\":200,\"directTextChars\":9644}",
-    "[phone]T23:44:11.632Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1528,\"ok\":true,\"status\":200,\"bodyChars\":578267,\"textChars\":9644,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:13.105Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1331,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":579171,\"textChars\":9656,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:13.105Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1331,\"status\":200,\"directTextChars\":9656}",
-    "[phone]T23:44:13.105Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1331,\"ok\":true,\"status\":200,\"bodyChars\":579171,\"textChars\":9656,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:14.625Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":597,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":577738,\"textChars\":9893,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:14.625Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":597,\"status\":200,\"directTextChars\":9893}",
-    "[phone]T23:44:14.625Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":597,\"ok\":true,\"status\":200,\"bodyChars\":577738,\"textChars\":9893,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T23:44:16.126Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1487,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":572080,\"textChars\":9662,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T23:44:16.127Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1487,\"status\":200,\"directTextChars\":9662}",
     "[phone]T23:44:16.127Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1488,\"ok\":true,\"status\":200,\"bodyChars\":572080,\"textChars\":9662,\"fetchMode\":\"direct_challenge_blocked\"}",
     "[phone]T23:44:17.592Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1367,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":573261,\"textChars\":9715,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
     "[phone]T23:44:17.592Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1367,\"status\":200,\"directTextChars\":9715}",
@@ -1608,6 +1194,57 @@
     "[phone]T23:45:24.834Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"www.homegate.ch\",\"elapsedMs\":184,\"status\":403,\"directTextChars\":0}",
     "[phone]T23:45:24.834Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.homegate.ch\",\"elapsedMs\":184,\"ok\":false,\"status\":403,\"bodyChars\":5680,\"textChars\":0,\"fetchMode\":\"direct_challenge_blocked\"}",
     "[phone]T23:45:24.933Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:45:24.840Z\",\"listings\":{\"total\":2,\"visible\":0,\"hidden\":2},\"seen\":{\"total\":614,\"checked_24h\":74},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":94}",
-    "[phone]T23:45:24.940Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"wave\":\"full\",\"counts\":{\"index_pages\":9,\"candidates\":91,\"fetched\":24,\"kept\":2,\"kept_l1\":2,\"kept_l2\":0,\"new\":2,\"updated\":0,\"skipped\":9,\"infra_failures\":1,\"serper_calls\":7,\"gemini_calls\":2,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":28,\"rooms_b"
+    "[phone]T23:45:24.940Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"wave\":\"full\",\"counts\":{\"index_pages\":9,\"candidates\":91,\"fetched\":24,\"kept\":2,\"kept_l1\":2,\"kept_l2\":0,\"new\":2,\"updated\":0,\"skipped\":9,\"infra_failures\":1,\"serper_calls\":7,\"gemini_calls\":2,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":28,\"rooms_b",
+    "[phone]T23:45:28.072Z [info] {\"type\":\"immofinder_immofinder_diagnostics_database_committed\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"database\":\"committed\",\"local\":\"written:2\",\"github\":\"committed:0eedbd3d0fbc98b1e5dd49d2bd82671c853775b0\",\"paths\":[\"/opt/render/project/src/data/immofinder/diagnostics/runs/cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1.json\",\"/opt/render/project/src/data/immofinder/diagn",
+    "[phone]T23:45:28.072Z [info] {\"type\":\"immofinder_immofinder_snapshot_github_disabled\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"reason\":\"database_is_primary_store\"}",
+    "[phone]T23:45:28.072Z [info] {\"type\":\"immofinder_immofinder_worker_run_finalized\",\"runId\":\"cdd146fd-7f66-45cf-baa9-d5e4e59fbdd1\",\"diagnosticsStatus\":\"database:committed;local:written:2;github:committed:0eedbd3d0fbc98b1e5dd49d2bd82671c853775b0\",\"snapshotStatus\":\"skipped:database_is_primary_store\",\"counts\":{\"index_pages\":9,\"candidates\":91,\"fetched\":24,\"kept\":2,\"kept_l1\":2,\"kept_l2\":0,\"new\":0,\"update",
+    "[phone]T23:46:42.797Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
+    "[phone]T23:46:42.799Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
+    "[phone]T23:46:42.805Z [info] {\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"[phone]-fdea-4667-a8d5-92dcb06234d2\",\"dryRun\":true,\"wave\":\"full\"}",
+    "[phone]T23:46:45.971Z [info] {\"type\":\"immofinder_database_diagnostics_start\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:46:45.969Z\",\"listings\":{\"total\":2,\"visible\":0,\"hidden\":2},\"seen\":{\"total\":614,\"checked_24h\":74},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":139}",
+    "[phone]T23:47:00.730Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T23:47:00.730Z\"}",
+    "[phone]T23:47:07.710Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":2,\"after\":1,\"failedRows\":1,\"durationMs\":20008,\"retryAfter\":null,\"parallel\":true}",
+    "[phone]T23:47:25.537Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":2,\"after\":0,\"failedRows\":0,\"durationMs\":15004,\"retryAfter\":null,\"parallel\":true}",
+    "[phone]T23:47:48.702Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":2,\"after\":1,\"failedRows\":1,\"durationMs\":20000,\"retryAfter\":null,\"parallel\":true}",
+    "[phone]T23:48:03.107Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":1,\"after\":0,\"failedRows\":0,\"durationMs\":388,\"retryAfter\":null,\"parallel\":true}",
+    "[phone]T23:48:21.228Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":2,\"after\":0,\"failedRows\":0,\"durationMs\":15323,\"retryAfter\":null,\"parallel\":true}",
+    "[phone]T23:48:22.453Z [log] [KeepAlive] ok #2 health=200 in 86ms; cadence 11–13 min",
+    "[phone]T23:48:33.430Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":205,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":417455,\"textChars\":6626,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:33.430Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":205,\"status\":200,\"directTextChars\":6626}",
+    "[phone]T23:48:33.430Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":205,\"ok\":true,\"status\":200,\"bodyChars\":417455,\"textChars\":6626,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:34.919Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1485,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":418343,\"textChars\":6372,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:34.919Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1485,\"status\":200,\"directTextChars\":6372}",
+    "[phone]T23:48:34.919Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1485,\"ok\":true,\"status\":200,\"bodyChars\":418343,\"textChars\":6372,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:36.427Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1504,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":427139,\"textChars\":7364,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:36.427Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1505,\"status\":200,\"directTextChars\":7364}",
+    "[phone]T23:48:36.427Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1505,\"ok\":true,\"status\":200,\"bodyChars\":427139,\"textChars\":7364,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:37.928Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1499,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":450614,\"textChars\":4861,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:37.928Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1499,\"status\":200,\"directTextChars\":4861}",
+    "[phone]T23:48:37.928Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1499,\"ok\":true,\"status\":200,\"bodyChars\":450614,\"textChars\":4861,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:39.530Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1293,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":589773,\"textChars\":10970,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:39.530Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1293,\"status\":200,\"directTextChars\":10970}",
+    "[phone]T23:48:39.530Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1293,\"ok\":true,\"status\":200,\"bodyChars\":589773,\"textChars\":10970,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:41.025Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":598,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":650675,\"textChars\":10751,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:48:41.025Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":598,\"status\":200,\"directTextChars\":10751}",
+    "[phone]T23:48:41.026Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":598,\"ok\":true,\"status\":200,\"bodyChars\":650675,\"textChars\":10751,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:48:42.125Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1090,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":784527,\"textChars\":21447,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:42.126Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1091,\"ok\":true,\"status\":200,\"bodyChars\":784527,\"textChars\":21447,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:43.399Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1269,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":469123,\"textChars\":6932,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:43.399Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1269,\"ok\":true,\"status\":200,\"bodyChars\":469123,\"textChars\":6932,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:44.927Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1525,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":481711,\"textChars\":7158,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:44.927Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1525,\"ok\":true,\"status\":200,\"bodyChars\":481711,\"textChars\":7158,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:46.424Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1479,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":465152,\"textChars\":7371,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:46.424Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1494,\"ok\":true,\"status\":200,\"bodyChars\":465152,\"textChars\":7371,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:48.048Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1414,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":251369,\"textChars\":9779,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:48.048Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1414,\"ok\":true,\"status\":200,\"bodyChars\":251369,\"textChars\":9779,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:49.588Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1416,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":526326,\"textChars\":15519,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:48:49.588Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1417,\"ok\":true,\"status\":200,\"bodyChars\":526326,\"textChars\":15519,\"fetchMode\":\"direct\"}",
+    "[phone]T23:48:50.253Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":621,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":12352,\"textChars\":0,\"finalHost\":\"flatfox.ch\",\"error\":null}",
+    "[phone]T23:48:50.253Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"jina_fallback_failed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":621,\"directStatus\":200,\"directTextChars\":0,\"directError\":\"\\n\\n<!DOCTYPE html>\\n<html lang=\\\"de\\\">\\n    <head>\\n        <meta charset=\\\"utf-8\\\">\\n        <meta http-equiv=\\\"X-UA-Compatible\\\" content=\\\"IE=edge,chrome=1\\\">\\n        <meta name=\\\"viewport\\\" content=\\\"wid",
+    "[phone]T23:49:03.525Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_rejected\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":13893,\"status\":200,\"textChars\":0,\"challenge\":false,\"finalHost\":\"flatfox.ch\"}",
+    "[phone]T23:49:04.233Z [info] {\"type\":\"immofinder_fetch_fallback\",\"host\":\"flatfox.ch\",\"outcome\":\"jina_reader_unavailable\",\"directStatus\":200,\"directTextChars\":0}",
+    "[phone]T23:49:04.234Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":14602,\"ok\":true,\"status\":200,\"bodyChars\":12352,\"textChars\":0,\"fetchMode\":\"direct\"}",
+    "[phone]T23:49:04.356Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:49:04.235Z\",\"listings\":{\"total\":2,\"visible\":0,\"hidden\":2},\"seen\":{\"total\":614,\"checked_24h\":74},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":122}",
+    "[phone]T23:49:04.374Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"[phone]-fdea-4667-a8d5-92dcb06234d2\",\"wave\":\"full\",\"counts\":{\"index_pages\":9,\"candidates\":88,\"fetched\":4,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":36,\"infra_failures\":0,\"serper_calls\":10,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":28,\"no_cont"
   ]
 }
