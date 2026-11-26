@@ -59,11 +59,14 @@ test('P126.19 safeDetails does not turn undefined into the string undefined', ()
 
 test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Render GitHub token', () => {
   const route = read('server/immofinderRoutes.ts');
+  const bundle = read('server/immofinderPostRunBundle.ts');
   const server = read('server.ts');
   const store = read('server/immofinderRunDiagnostics.ts');
   const migration = read('migrations/028_immofinder_run_diagnostics.sql');
   const poll = read('.github/workflows/immofinder-diagnostics-poll.yml');
-  assert.match(route, /persistImmoFinderRunDiagnostics\(runId, report\)/);
+  // Persist happens in the post-run bundle (called from the durable worker completion path).
+  assert.match(bundle, /persistImmoFinderRunDiagnostics\(runId, report\)/);
+  assert.match(route, /publishPostRunBundle/);
   assert.match(route, /latestImmoFinderRunDiagnostics\(\)/);
   assert.match(route, /isImmoDiagnosticsCall/);
   assert.match(route, /if \(diagnosticsPoll\) return next\(\)/, 'read-only polling must not trigger repair bootstrap');
