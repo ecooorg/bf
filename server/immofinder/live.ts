@@ -12,7 +12,7 @@ import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import { createSwissClassifiedAdapter } from './sources/swiss-classified.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
-import { buildEvidenceText, classifyType, type ListingType } from '../immofinderCore.ts';
+import { buildEvidenceText, classifyType, resolveListingPrice, type ListingType } from '../immofinderCore.ts';
 
 const MAX_INDEX_PAGES_PER_SOURCE = 6;
 const MAX_DETAILS_PER_SOURCE = 12;
