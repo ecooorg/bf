@@ -1,6 +1,6 @@
 /**
- * C131 target engine surface (WP3/WP5). Additive; legacy server/immofinder*.ts remains the runtime
- * until WP5 switches entry points and deletes the old modules.
+ * C131 engine surface. The production search route enters through live.ts; legacy server/immofinder*.ts
+ * modules remain for shared storage, routes, repair, delivery and compatibility until WP5 retirement.
  */
 
 export * from './taxonomy.ts';

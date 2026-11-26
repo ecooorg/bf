@@ -57,11 +57,11 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
     schedule: { mode: 'manual', everyHours: 3, dailyAt: '06:00' },
     delivery: { telegram: false, email: false, emailTo: '', emailContent: 'new', drive: false, driveFolderId: '', notifyWhenEmpty: false },
     search: {
-      minRooms: 2,
+      minRooms: 3,
       communes: [...cfg.municipalities],
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
-        ...SOURCE_IDS.map((s) => [s, false] as const),
+        ...SOURCE_IDS.map((s) => [s, s === 'search'] as const),
         ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox'].includes(src.id)] as const),
       ]),
       maxAiPages: 40,
@@ -138,7 +138,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const dailyAt = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(s.dailyAt ?? '')) ? String(s.dailyAt) : d.schedule.dailyAt;
   const emailTo = typeof dl.emailTo === 'string' && /^[^\s@,;]{1,64}@[^\s@,;]{1,120}\.[^\s@,;]{2,}$/.test(dl.emailTo.trim()) ? dl.emailTo.trim().slice(0, 190) : '';
   const communes = Array.isArray(se.communes) ? cfg.municipalities.filter((m) => se.communes.includes(m)) : d.search.communes;
-  const minRooms = Number.isInteger(Number(se.minRooms)) && Number(se.minRooms) >= 1 && Number(se.minRooms) <= 8 ? Number(se.minRooms) : d.search.minRooms;
+  const minRooms = Number.isInteger(Number(se.minRooms)) && Number(se.minRooms) >= 3 && Number(se.minRooms) <= 8 ? Number(se.minRooms) : d.search.minRooms;
   const maxAiPages = [20, 40, 60, 100, 200].includes(Number(se.maxAiPages)) ? Number(se.maxAiPages) : d.search.maxAiPages;
   const srcIn = (se.sources || {}) as Record<string, unknown>;
   const catalogueIds = (cfg.sources || []).map((s) => s.id);

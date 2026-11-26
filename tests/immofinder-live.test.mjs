@@ -172,7 +172,7 @@ test('rotating Serper discovery can fetch a Homegate detail page without crawlin
   const index = 'https://www.homegate.ch/mieten/wohnung/kanton-graubuenden/trefferliste';
   const detail = 'https://www.homegate.ch/mieten/4001234567';
   deps.config.municipalities = ['Chur'];
-  deps.config.sources = [{ id: 'portal-homegate', url: index, phase: 1, maxDetailPages: 12, detailPattern: '^https://www\\.homegate\\.ch/mieten/\\d+
+  deps.config.sources = [{ id: 'portal-homegate', url: index, phase: 1, maxDetailPages: 12, detailPattern: '^https://www\\.homegate\\.ch/mieten/\\d+$' }];
   const { deps, writes } = depsFor();
   const privateQuote = 'Ich vermiete meine Wohnung selbst.';
   const html = detailHtml.replace('Das Angebot ist von privat.', privateQuote);

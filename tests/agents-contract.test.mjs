@@ -225,6 +225,7 @@ test('P129.48 settings: invalid input falls back to new defaults, scope applies,
   assert.equal(s.schedule.everyHours, 3); assert.equal(s.schedule.dailyAt, '06:00');
   assert.equal(s.delivery.email, false, 'email stays off without a valid address'); assert.equal(s.delivery.telegram, false);
   assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 40);
+  assert.equal(sanitizeSettings({ search: { minRooms: 2 } }, immoCfg).search.minRooms, 3, 'C131 hard floor cannot be lowered by saved settings');
   const eff = applySettings(immoCfg, s);
   assert.deepEqual(eff.municipalities, ['Chur']); assert.equal(eff.discovery.enabled, false);
   assert.equal(sanitizeSettings({ search: { communes: [] } }, immoCfg).search.communes.length, immoCfg.municipalities.length);

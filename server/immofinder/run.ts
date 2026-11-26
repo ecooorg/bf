@@ -1,7 +1,7 @@
 /**
  * C131 WP3 run planner skeleton — budgets, delta detection by index-page URL-set hash,
- * source ordering. Does not execute fetches or mutate store; live execution stays in
- * legacy Pipeline until WP5 switch-over.
+ * source ordering. Does not execute fetches or mutate store; the production worker
+ * enters through live.ts. This pure planner is not currently wired into that route.
  */
 
 import { contentHash, hostFromUrl, isHostBlocked, type HostState } from './access.ts';

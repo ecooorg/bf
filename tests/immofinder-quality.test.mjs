@@ -696,6 +696,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.delivery.email, false);
   assert.equal(defaults.delivery.drive, false);
   assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 3);
+  assert.equal(defaults.search.sources.search, true);
   assert.equal(defaults.search.sources.happyholiday, true);
   assert.equal(defaults.search.sources.ferienhausmiete, true);
   assert.equal(defaults.search.sources['portal-flatfox'], true);

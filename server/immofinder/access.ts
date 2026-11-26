@@ -1,7 +1,7 @@
 /**
  * C131 WP3 access stage — robots, per-host delay, timeouts, redirect resolution, snapshot.
- * Pure helpers + thin wrappers. Live fetching remains in legacy immofinderFetcher until WP5 (P131.8b).
- * Hosts with persistent 403 are marked blocked and not retried in the same run.
+ * Pure helpers + thin wrappers. The production route still injects the shared legacy polite fetcher;
+ * these access helpers are not yet the live network adapter. Hosts with persistent 403 are marked blocked.
  */
 
 export interface AccessPolicy {

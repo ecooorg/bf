@@ -1,6 +1,6 @@
 /**
  * C131 WP3 owner stage — private-vs-agency evidence, contact routes, owner key.
- * Pure functions over page text + config. No network. Live path remains legacy until WP5.
+ * Pure functions over page text + config. No network. Used by the source-first live pipeline.
  */
 
 export type ContactRoute = 'direct' | 'platform_message' | 'none';
@@ -89,7 +89,8 @@ export function extractOwnerEvidence(
   if (phone || email) contactRoute = 'direct';
   else if (platformFormPresent) contactRoute = 'platform_message';
 
-  const ownerName = /\b(?:Herr|Frau|Familie|Eheleute)\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+(?:\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+){0,2}/u.exec(text)?.[0] || null;
+  const ownerNameMatch = /\b(?:Herr|Frau|Familie|Eheleute)\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+(?:\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+){0,2}/u.exec(text)?.[0] || null;
+  const ownerName = ownerNameMatch?.replace(/\s+Kontaktdaten\b.*$/i, '') || null;
 
   let ownerKey: string | null = null;
   if (phone) ownerKey = `phone:${phone}`;
