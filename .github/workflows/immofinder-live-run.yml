@@ -1,0 +1,131 @@
+name: ImmoFinder source-first production run
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/immofinder-live-run.yml'
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: immofinder-source-first-live-run
+  cancel-in-progress: false
+jobs:
+  live-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Wait for the exact production build
+        env:
+          IMMOFINDER_BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          EXPECTED_DEPLOY_SHA: df8e03d0185ce393337105df61f4c87259d8bc33
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${IMMOFINDER_BASE_URL:-https://bf-3tqo.onrender.com}"
+          EXPECTED="${EXPECTED_DEPLOY_SHA:0:7}"
+          for attempt in $(seq 1 60); do
+            code=$(curl --connect-timeout 5 --max-time 15 -sS -o /tmp/health.json -w '%{http_code}' "$BASE/api/health" || true)
+            commit=$(jq -r '.commit // empty' /tmp/health.json 2>/dev/null || true)
+            if [ "$code" = "200" ] && [ "$commit" = "$EXPECTED" ]; then
+              echo "Production build verified: $commit"
+              exit 0
+            fi
+            echo "Waiting for production build ($attempt/60): HTTP=$code commit=${commit:-unknown}"
+            sleep 10
+          done
+          echo "::error::Production did not report expected commit $EXPECTED"
+          exit 1
+      - name: Start one bounded production search
+        id: start
+        env:
+          IMMOFINDER_BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          IMMOFINDER_RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${IMMOFINDER_BASE_URL:-https://bf-3tqo.onrender.com}"
+          test -n "$IMMOFINDER_RUN_SECRET"
+          code=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/run-start.json -w '%{http_code}' \
+            -X POST "$BASE/api/immofinder/run" \
+            -H "X-Immofinder-Secret: $IMMOFINDER_RUN_SECRET" \
+            -H 'Content-Type: application/json' \
+            --data '{"wave":"full"}')
+          if [ "$code" != "202" ]; then
+            echo "Run start returned HTTP $code"
+            jq '{success,error,code}' /tmp/run-start.json 2>/dev/null || cat /tmp/run-start.json
+            exit 1
+          fi
+          RUN_ID=$(jq -r '.runId // empty' /tmp/run-start.json)
+          [[ "$RUN_ID" =~ ^[A-Za-z0-9_-]{1,100}$ ]]
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Started bounded source-first production run $RUN_ID"
+      - name: Wait for completed run diagnostics
+        id: report
+        env:
+          IMMOFINDER_BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          IMMOFINDER_RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
+          RUN_ID: ${{ steps.start.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${IMMOFINDER_BASE_URL:-https://bf-3tqo.onrender.com}"
+          for attempt in $(seq 1 60); do
+            code=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/diagnostics.json -w '%{http_code}' \
+              "$BASE/api/immofinder/diagnostics/latest" \
+              -H "X-Immofinder-Secret: $IMMOFINDER_RUN_SECRET" -H 'Accept: application/json' || true)
+            if [ "$code" = "200" ] && jq -e --arg run "$RUN_ID" '.success == true and .report.runId == $run' /tmp/diagnostics.json >/dev/null 2>&1; then
+              jq '{
+                schemaVersion: 1,
+                generatedAt: .report.generatedAt,
+                runId: .report.runId,
+                deploymentCommit: "df8e03d0185ce393337105df61f4c87259d8bc33",
+                counts: .report.result.counts,
+                filtered: .report.result.filtered,
+                sourceStats: .report.result.sourceStats,
+                estimatedProviderCostUsd: .report.result.estCostUsd,
+                levels: {
+                  L1: ([.report.result.preview[]? | select(.kept == true and .detail == "L1")] | length),
+                  L2: ([.report.result.preview[]? | select(.kept == true and .detail == "L2")] | length)
+                },
+                errors: ([.report.result.errors[]? | {source,code}])
+              }' /tmp/diagnostics.json > /tmp/live-run-summary.json
+              L2=$(jq -r '.levels.L2' /tmp/live-run-summary.json)
+              KEPT=$(jq -r '.counts.kept // 0' /tmp/live-run-summary.json)
+              echo "kept=$KEPT" >> "$GITHUB_OUTPUT"
+              echo "l2=$L2" >> "$GITHUB_OUTPUT"
+              cat /tmp/live-run-summary.json
+              exit 0
+            fi
+            echo "Waiting for run diagnostics ($attempt/60, HTTP=$code)"
+            sleep 10
+          done
+          echo "::error::No completed diagnostics found for run $RUN_ID"
+          exit 1
+      - name: Archive aggregate run metrics without triggering a deploy
+        if: always() && steps.report.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/immofinder
+          cp /tmp/live-run-summary.json data/immofinder/live-run-latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/immofinder/live-run-latest.json
+          git commit -m "chore(immofinder): archive source-first live metrics [skip render] [skip ci]"
+          git push origin HEAD:main
+      - name: Require at least one private-owner L2 lead
+        if: steps.report.outcome == 'success'
+        env:
+          L2: ${{ steps.report.outputs.l2 }}
+        run: |
+          if [ "${L2:-0}" -lt 1 ]; then
+            echo "::error::Production search completed but found no L2 private-owner lead."
+            exit 1
+          fi
+          echo "At least one L2 private-owner lead found."
