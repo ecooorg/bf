@@ -276,8 +276,8 @@ test('C131 Swiss classifieds adapter discovers only same-host detail pages and e
 
 test('C131 classifier does not reject ordinary real-estate wording as an agency', () => {
   const r = classifyPage(snap({
-    title: 'Helle 3.5 Zimmer Wohnung in Chur',
-    pageText: 'Private Immobilienanzeige. 7000, Chur. 3.5 Zimmer Wohnung zur Miete. Kontaktformular.',
+    title: 'Helle 3.5-Zimmer-Wohnung in Chur',
+    pageText: 'Private Immobilienanzeige. 7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Kontaktformular.',
   }), CFG);
   assert.equal(r.level, 'L1');
   assert.equal(r.isAgency, false);
