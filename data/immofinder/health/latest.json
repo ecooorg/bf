@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T09:07:54.218Z",
+  "generatedAt": "2026-11-26T09:24:37.249Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "3 checks at 9ff18c9, 2 still running"
+      "detail": "3 checks at 218e1e8, 3 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit cbc25f9"
+      "detail": "HTTP 200, version 131, commit d46152a"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T09:07:53.233Z",
+        "checkedAt": "2026-11-26T09:24:36.289Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 4.9 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 5.2 h old"
     },
     {
       "group": "SEARCH",
