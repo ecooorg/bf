@@ -75,6 +75,15 @@ function photoUrls(html: string): string[] {
   } catch { return []; }
 }
 
+
+function selectIndexUrls(source: { id: string; url: string; indexUrls?: string[] }, municipalities: string[]): string[] {
+  const configured = source.indexUrls?.length ? source.indexUrls : [source.url];
+  if (source.id !== 'ferienhausmiete') return configured.slice(0, MAX_INDEX_PAGES_PER_SOURCE);
+  const slugs = municipalities.map((name) => name.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+  const relevant = configured.filter((url) => slugs.some((slug) => slug && url.toLowerCase().includes(slug)));
+  return (relevant.length ? relevant : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
+}
+
 function matchesDetailPattern(url: string, pattern?: string): boolean {
   if (!pattern) return true;
   try { return new RegExp(pattern, 'i').test(url); } catch { return false; }
@@ -131,7 +140,7 @@ export async function runPipeline(
       new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0,
     };
     sourceStats.push(stats);
-    const indexUrls = (source.indexUrls?.length ? source.indexUrls : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
+    const indexUrls = selectIndexUrls(source, municipalities);
     const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [];
     let sourceBlocked = false;
     for (const indexUrl of indexUrls) {
