@@ -20,7 +20,7 @@ export interface ExtractedFields {
 
 const DETAIL_RE = /https:\/\/www\.ferienhausmiete\.de\/\d+\.htm/gi;
 const TITLE_RE = /<h1[^>]*>([^<]+)<\/h1>/i;
-const ROOMS_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*(?:zimmer|zi\.|rooms?)/i;
+const ROOMS_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:\bzimmer\b|\bzi\.|\brooms?\b)/i;
 
 export function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
   const found = new Set<string>();
@@ -72,7 +72,10 @@ export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedField
   let rooms: ExtractedFields['rooms'] = null;
   const rm = plain.match(ROOMS_RE);
   if (rm) {
-    const n = parseFloat(rm[1].replace(',', '.'));
+    const raw = rm[1].replace(/\s+/g, '').replace(',', '.');
+    const half = raw.endsWith('1/2') || raw.endsWith('½');
+    const base = parseFloat(raw.replace(/(?:1\/2|½)$/, ''));
+    const n = half ? base + 0.5 : base;
     if (Number.isFinite(n)) rooms = { value: n, quote: rm[0].trim() };
   }
 
