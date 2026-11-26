@@ -214,7 +214,7 @@ jobs:
           for attempt in $(seq 1 60); do
             sleep 10
             status=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
-            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id' /tmp/report.json >/dev/null 2>&1; then
+            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id and (.report.result.status == "COMPLETED" or .report.result.status == "INFRA_FAIL")' /tmp/report.json >/dev/null 2>&1; then
               completed=true
               break
             fi

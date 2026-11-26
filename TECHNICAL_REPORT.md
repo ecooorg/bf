@@ -1,3 +1,8 @@
+## P131.9 follow-up — 962a00b CI evidence
+- **OBSERVED:** Core CI #45865962339 on d5abb14 SUCCESS. Core CI #45866668380 on 962a00b failed one test-only contract: it still read the deleted `.github/workflows/immofinder-test-search.yml`. The conditional live job was correctly skipped because its `needs: check-and-build` dependency failed.
+- **CHANGE:** Update the contract test to assert the new `ci.yml` live-acceptance job, explicit commit marker, production service URL, run secret and removal of the old workflow.
+- **NOT_RUN:** live production run via the new CI job.
+
 ## P131.9 — Technical CI green, live acceptance pending
 - **OBSERVED:** Core CI #45865962339 on d5abb14 SUCCESS. Render deploy `dep-dc46hmq9lscs73dukgn0` LIVE. The issue-comment live-run workflow did not execute from the connector-created comment and has zero-job push failures.
 - **CHANGE PLANNED:** Replace it with a bounded live acceptance job in Core CI, gated by an explicit commit marker and dependent on Core CI success. Report only sanitized listing evidence, result counts and actual provider-call counters.

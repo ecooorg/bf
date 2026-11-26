@@ -1067,10 +1067,14 @@ test('P131.5g agent smoke search has a strict bounded budget', async () => {
   assert.match(pipeline, /if \(!opts\.dryRun\) \{\s*try \{ await deps\.store\.markSeen/);
 });
 
-test('P131.5h agent test and health workflows target the confirmed My Workspace service', () => {
-  const smoke = read('.github/workflows/immofinder-test-search.yml');
-  assert.match(smoke, /BASE_URL: https:\/\/bf-3tqo\.onrender\.com/);
-  assert.doesNotMatch(smoke, /secrets\.IMMOFINDER_BASE_URL/);
+test('P131.9 live acceptance is CI-gated and targets the confirmed My Workspace service', () => {
+  const ci = read('.github/workflows/ci.yml');
+  assert.match(ci, /immofinder-live-acceptance:/);
+  assert.match(ci, /contains\(github\.event\.head_commit\.message, '\[immofinder-live\]'\)/);
+  assert.match(ci, /needs: check-and-build/);
+  assert.match(ci, /BASE_URL: https:\/\/bf-3tqo\.onrender\.com/);
+  assert.match(ci, /secrets\.IMMOFINDER_RUN_SECRET/);
+  assert.equal(existsSync(path.join(root, '.github/workflows/immofinder-test-search.yml')), false);
   const health = read('.github/workflows/immofinder-health.yml');
   assert.match(health, /RENDER_OWNER_ID: tea-dbbjfi7avr4c73e32e8g/);
   assert.match(health, /RENDER_SERVICE_ID: srv-dc2joprrjlhs73cuo3n0/);
