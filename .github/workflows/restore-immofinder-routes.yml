@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'server/immofinder/_restore_parts/**'
+      - '.github/trigger-restore-routes'
 permissions:
   contents: write
 jobs:
@@ -12,21 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Reconstruct routes from base64 parts
+      - name: Download and commit restored routes
         run: |
           set -euo pipefail
-          if [ ! -d server/immofinder/_restore_parts ]; then
-            echo "no parts"; exit 1
-          fi
-          cat server/immofinder/_restore_parts/part-*.b64 | tr -d '\n' | base64 -d > server/immofinderRoutes.ts
+          URL='https://tmpfiles.org/dl/1795735794.4a291de9ed09f58e/wRAzvWTOzIDJ/routes.final.ts'
+          curl -sSL --max-time 60 -o server/immofinderRoutes.ts "$URL"
           wc -c server/immofinderRoutes.ts
-          head -c 60 server/immofinderRoutes.ts; echo
-          grep -q "registerImmoFinderRoutes" server/immofinderRoutes.ts
-          grep -q "isImmoCronCall" server/immofinderRoutes.ts
-          git config user.name "immofinder-restore"
-          git config user.email "bot@users.noreply.github.com"
+          head -c 80 server/immofinderRoutes.ts; echo
+          grep -q 'registerImmoFinderRoutes' server/immofinderRoutes.ts
+          grep -q 'isImmoCronCall' server/immofinderRoutes.ts
+          grep -q "path === '/settings'" server/immofinderRoutes.ts
+          git config user.name 'immofinder-restore'
+          git config user.email 'bot@users.noreply.github.com'
           git add server/immofinderRoutes.ts
-          git commit -m "fix(immofinder): reconstruct routes from restore parts"
+          git commit -m 'fix(immofinder): restore routes + secret PUT /settings'
           git push origin HEAD:main
