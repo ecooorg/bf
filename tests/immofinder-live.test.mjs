@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { runPipeline } from '../server/immofinder/live.ts';
 
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
-const detailUrl = 'https://happyholiday.ch/haus/wohnung-graubuenden-in-chur/';
+const detailUrl = 'https://happyholiday.ch/haus/wohnung-chur-123/';
 const offTargetUrl = 'https://happyholiday.ch/haus/ferienwohnung-graubuenden-in-scuol/';
 const indexHtml = '<html><body><a href="https://happyholiday.ch/haus/ferienwohnung-in-scuol/">Ferienwohnung Scuol</a><a href="https://happyholiday.ch/haus/wohnung-in-chur/">Wohnung Chur</a></body></html>';
 const detailHtml = '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>Diese schöne Wohnung liegt in Chur. 3.5 Zimmer, helle Räume und Balkon. Das Angebot ist von privat. Für Fragen nutzen Sie bitte das Kontaktformular oder senden Sie eine Nachricht.</p></body></html>';
