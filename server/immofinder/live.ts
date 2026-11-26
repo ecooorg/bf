@@ -147,6 +147,7 @@ export async function runPipeline(
   let geminiCalls = 0;
   const geminiBudget = Math.min(3, Math.max(0, Number(deps.maxLlmCalls) || 0));
   const serpCandidates = new Map<string, Array<{ url: string; indexUrl: string; titleHint?: string }>>();
+  const serperQueriesBySource = new Map<string, number>();
   const discovery = deps.config.discovery;
   const supportedPortalSources = (discovery?.portalSources || []).filter((p) => Boolean(ADAPTERS[p.id]));
   if (deps.search && discovery?.enabled && supportedPortalSources.length) {
@@ -158,10 +159,11 @@ export async function runPipeline(
     for (const item of plan.slice(0, 18)) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
       try {
-        if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(1500, Number(discovery.serperMinIntervalMs) || 1500)));
+        if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(3000, Number(discovery.serperMinIntervalMs) || 3000)));
         const hits = await deps.search(item.query);
         serperCalls++;
         successfulIndexes++;
+        serperQueriesBySource.set(item.portal.id, (serperQueriesBySource.get(item.portal.id) || 0) + 1);
         const selected = pickItems(hits, deps.config);
         for (const candidate of selected) {
           const host = new URL(candidate.url).hostname.replace(/^www\./i, '').toLowerCase();
@@ -206,7 +208,7 @@ export async function runPipeline(
     sourceStats.push(stats);
     const indexUrls = selectIndexUrls(source, municipalities);
     const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [...(serpCandidates.get(source.id) || [])];
-    stats.queries += candidates.length ? 1 : 0;
+    stats.queries += serperQueriesBySource.get(source.id) || 0;
     let sourceBlocked = false;
     for (const indexUrl of indexUrls) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
