@@ -93,6 +93,18 @@ test('Anibis direct rental details are stored as long-term offers, not holiday-o
   assert.equal(writes[0].municipality, 'Chur');
 });
 
+test('source-first live runner rejects detail pages without an actionable contact route', async () => {
+  const { deps, writes } = depsFor();
+  deps.fetchPage = async (url) => ({
+    ok: true, status: 200, finalUrl: url,
+    body: detailHtml.replace(/Kontaktformular|Nachricht senden/gi, ''),
+  });
+  const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
+  assert.equal(result.counts.kept, 0);
+  assert.equal(writes.length, 0);
+  assert.ok(result.filtered.no_contact_route >= 1);
+});
+
 test('Flatfox direct source stores monthly price, half rooms, host and platform contact', async () => {
   const { deps, writes } = depsFor();
   const index = 'https://flatfox.ch/de/search/?offer_type=RENT&north=47.8';
