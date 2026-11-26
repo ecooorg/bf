@@ -37,12 +37,25 @@ type Adapter = {
   };
 };
 
+const PORTAL_HOSTS: Record<string, string> = {
+  'portal-immoscout24': 'immoscout24.ch',
+  'portal-homegate': 'homegate.ch',
+  'portal-newhome': 'newhome.ch',
+  'portal-flatfox': 'flatfox.ch',
+  'portal-tutti': 'tutti.ch',
+  'portal-anibis': 'anibis.ch',
+  'portal-petitesannonces': 'petitesannonces.ch',
+  'portal-immobilier': 'immobilier.ch',
+  'portal-acheter-louer': 'acheter-louer.ch',
+  'portal-immostreet': 'immostreet.ch',
+  'portal-home': 'home.ch',
+  'portal-icasa': 'icasa.ch',
+  'portal-urbanhome': 'urbanhome.ch',
+};
 const ADAPTERS: Record<string, Adapter> = {
   happyholiday: happyholidayAdapter,
   ferienhausmiete: ferienhausmieteAdapter,
-  'portal-anibis': createSwissClassifiedAdapter('portal-anibis', 'anibis.ch'),
-  'portal-tutti': createSwissClassifiedAdapter('portal-tutti', 'tutti.ch'),
-  'portal-flatfox': createSwissClassifiedAdapter('portal-flatfox', 'flatfox.ch'),
+  ...Object.fromEntries(Object.entries(PORTAL_HOSTS).map(([id, host]) => [id, createSwissClassifiedAdapter(id, host)])),
 };
 
 function plainText(html: string): string {
@@ -150,8 +163,11 @@ export async function runPipeline(
   const discovery = deps.config.discovery;
   const supportedPortalSources = (discovery?.portalSources || []).filter((p) => Boolean(ADAPTERS[p.id]));
   if (deps.search && discovery?.enabled && supportedPortalSources.length) {
-    const communeSlice = communesForRun(municipalities, Math.min(6, municipalities.length), Number(deps.cycle || 0));
-    const plan = supportedPortalSources.flatMap((portal) => {
+    const cycle = Math.max(0, Number(deps.cycle || 0));
+    const communeSlice = communesForRun(municipalities, Math.min(6, municipalities.length), cycle);
+    const portalStart = (cycle * 3) % supportedPortalSources.length;
+    const selectedPortals = Array.from({ length: Math.min(3, supportedPortalSources.length) }, (_, offset) => supportedPortalSources[(portalStart + offset) % supportedPortalSources.length]);
+    const plan = selectedPortals.flatMap((portal) => {
       const template = (discovery.portalQueries || []).find((q) => q.toLowerCase().includes('site:' + portal.host.toLowerCase()));
       return template ? communeSlice.map((commune) => ({ portal, commune, query: template.replace(/\{commune\}/g, commune) })) : [];
     });
@@ -205,9 +221,11 @@ export async function runPipeline(
       new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0,
     };
     sourceStats.push(stats);
-    const indexUrls = selectIndexUrls(source, municipalities);
+    const indexUrls = source.id.startsWith('portal-') && source.id !== 'portal-flatfox' ? [] : selectIndexUrls(source, municipalities);
     const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [...(serpCandidates.get(source.id) || [])];
     stats.queries += serperQueriesBySource.get(source.id) || 0;
+    stats.hits += candidates.length;
+    for (const candidate of candidates) processedUrls.add(candidate.url);
     let sourceBlocked = false;
     for (const indexUrl of indexUrls) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
