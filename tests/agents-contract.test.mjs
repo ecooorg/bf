@@ -321,6 +321,14 @@ test('P129.23 Show menu = current | hidden | all (default current); publication 
   assert.match(ui, /useState<'current' \| 'hidden' \| 'all'>\('current'\)/);
   assert.match(read('server/immofinderRoutes.ts'), /includeHidden: scope === 'all'/);
   const row = { id: 'p', property_name: 'Haus', municipality: 'Chur', rooms_estimated: 4, listing_url: 'https://a.example/9', photo_urls: [], private_signals: [], first_seen_at: '2026-11-17T20:37:00Z', status: 'NEW', raw: { listed_at: '2026-11-12T12:00:00.000Z' } };
+  const platformCard = immoCardModel({
+    ...row,
+    owner_name: 'Frau N. Egger',
+    contact_status: 'platform_only',
+    raw: { price: { amount: 80, unit: 'night', quote: 'ab 80 CHF pro Nacht' } },
+  });
+  assert.match(platformCard.headline, /CHF 80 per night/);
+  assert.match(platformCard.headline, /via platform enquiry · Frau N\. Egger/);
   const k = immoCardModel(row);
   assert.equal(k.published, 'published 12.11.2026');
   assert.equal(immoLinkLine(k), 'https://a.example/9 · published 12.11.2026');
