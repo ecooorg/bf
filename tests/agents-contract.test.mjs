@@ -81,6 +81,7 @@ test('P128.1 whitelist match is whole-word and accent-insensitive; rooms parse S
   assert.equal(matchMunicipality('Wohnung in Davos', immoCfg.municipalities), null);
   assert.equal(parseRooms('charmante 4½ Zimmer Wohnung').rooms, 4.5);
   assert.equal(parseRooms('3.5-Zimmer-Wohnung').rooms, 3.5);
+  assert.equal(parseRooms('3 Schlafzimmer, 2 1/2 Zimmer').rooms, 2.5);
   assert.equal(parseRooms('2 Schlafzimmer').basis, 'bedrooms');
   assert.equal(parseRooms('Studio mit Balkon'), null);
 });
