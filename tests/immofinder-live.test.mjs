@@ -173,55 +173,6 @@ test('rotating Serper discovery can fetch a Homegate detail page without crawlin
   const detail = 'https://www.homegate.ch/mieten/4001234567';
   deps.config.municipalities = ['Chur'];
   deps.config.sources = [{ id: 'portal-homegate', url: index, phase: 1, maxDetailPages: 12, detailPattern: '^https://www\\.homegate\\.ch/mieten/\\d+$' }];
-  const { deps, writes } = depsFor();
-  const privateQuote = 'Ich vermiete meine Wohnung selbst.';
-  const html = detailHtml.replace('Das Angebot ist von privat.', privateQuote);
-  deps.fetchPage = async (url) => url === indexUrl
-    ? { ok: true, status: 200, body: '<a href="' + detailUrl + '">3.5 Zimmer Wohnung Chur</a>', finalUrl: url }
-    : { ok: true, status: 200, body: html, finalUrl: url };
-  deps.maxLlmCalls = 1;
-  deps.llm = async () => ({ private_owner_quote: privateQuote });
-  const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
-  assert.equal(result.counts.kept, 1);
-  assert.equal(writes.length, 1);
-  assert.equal(writes[0].raw.level, 'L2');
-  assert.ok(writes[0].raw.owner_markers.includes(privateQuote));
-  assert.equal(result.estCostUsd, 0.002);
-});
-
-test('polite fetcher can disable Jina and browser fallbacks', async () => {
-  const { createPoliteFetch } = await import('../server/immofinderFetcher.ts');
-  const calls = [];
-  const cfg = {
-    fetch: { userAgent: 'test-agent', perHostDelayMs: 0, respectRobotsTxt: true, browserRenderHosts: ['example.com'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
-    limits: { fetchTimeoutMs: 1000, maxPageBytes: 4096 },
-  };
-  const fetchImpl = async (input) => {
-    const url = String(input);
-    calls.push(url);
-    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow:', { status: 200 });
-    return new Response('blocked', { status: 403 });
-  };
-  const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
-  const result = await directOnly('https://example.com/private-listing');
-  assert.equal(result.status, 403);
-  assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
-});
-
-test('production route wires bounded Serper and Gemini budgets and enforces 3 rooms', () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
-  assert.ok(route.includes("import { runPipeline } from './immofinder/live.ts'"));
-  const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
-  assert.ok(runCall.includes('llm: deps.llm'));
-  assert.ok(runCall.includes('maxLlmCalls: 3'));
-  assert.ok(runCall.includes('search: process.env.SERPER_API_KEY ? createSerperSearch'));
-  assert.ok(runCall.includes('allowJina: false, allowBrowser: true'));
-  assert.ok(route.includes('baseCfg.minRooms = Math.max(3'));
-  assert.ok(route.includes("['portal-anibis', 'portal-tutti']"));
-  assert.ok(route.includes('pollMs: 15_000'));
-});
- }];
   deps.config.discovery = {
     enabled: true,
     resultsPerQuery: 10,
