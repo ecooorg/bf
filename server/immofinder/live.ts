@@ -322,8 +322,8 @@ export async function runPipeline(
             );
             const parsed: any = typeof answer === 'string' ? JSON.parse(answer) : answer;
             const quote = typeof parsed?.private_owner_quote === 'string' ? parsed.private_owner_quote.trim() : '';
-            const normalizedPage = text.replace(/\\s+/g, ' ').toLowerCase();
-            const normalizedQuote = quote.replace(/\\s+/g, ' ').toLowerCase();
+            const normalizedPage = text.replace(/\s+/g, ' ').toLowerCase();
+            const normalizedQuote = quote.replace(/\s+/g, ' ').toLowerCase();
             const semanticPrivate = /(?:von\\s+privat|privatperson|private[rn]?\\s+(?:vermieter|anbieter|eigent[uü]mer)|direkt\\s+(?:vom|von\\s+dem)\\s+eigent[uü]mer|ich\\s+vermiete|wir\\s+vermieten|vermiete\\s+meine|vermieten\\s+unsere|propri[eé]taire\\s+particulier|private\\s+owner|privato)/i.test(quote);
             if (quote.length >= 6 && normalizedPage.includes(normalizedQuote) && semanticPrivate) {
               owner.isPrivateOwner = true;
