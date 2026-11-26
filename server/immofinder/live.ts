@@ -8,6 +8,7 @@
  */
 
 import { processSnapshot } from './pipeline.ts';
+import { promoteLevel } from './owner.ts';
 import { communesForRun, pickItems } from '../immofinderDiscovery.ts';
 import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
@@ -143,6 +144,8 @@ export async function runPipeline(
   let totalDetails = 0;
   let successfulIndexes = 0;
   let serperCalls = 0;
+  let geminiCalls = 0;
+  const geminiBudget = Math.min(3, Math.max(0, Number(deps.maxLlmCalls) || 0));
   const serpCandidates = new Map<string, Array<{ url: string; indexUrl: string; titleHint?: string }>>();
   const discovery = deps.config.discovery;
   const supportedPortalSources = (discovery?.portalSources || []).filter((p) => Boolean(ADAPTERS[p.id]));
@@ -286,7 +289,7 @@ export async function runPipeline(
           provisional: false,
         };
         const outcome = processSnapshot({ snapshot, config: classifyConfig, sourceId: source.id });
-        const level = outcome.level;
+        let level = outcome.level;
         const rejectCode = outcome.rejectCode;
         const municipality = typeof outcome.classify.locality?.value === 'string' ? outcome.classify.locality.value : null;
         const rooms = typeof outcome.classify.rooms?.value === 'number' ? outcome.classify.rooms.value : null;
@@ -308,6 +311,31 @@ export async function runPipeline(
         }
 
         const owner = outcome.owner;
+        // Gemini is a bounded semantic assist for borderline private-owner evidence only.
+        // It cannot invent evidence: every accepted quote must be an exact substring of the fetched page.
+        if (level === 'L1' && owner && owner.contactRoute !== 'none' && deps.llm && geminiCalls < geminiBudget) {
+          geminiCalls++;
+          try {
+            const answer = await deps.llm(
+              'You are a strict evidence extractor. Return one JSON object only. Never infer facts. Copy exact verbatim text from the supplied listing page.',
+              'Find an exact quote proving the advertiser is the private owner rather than an agency. Return {"private_owner_quote": string|null}. Use null unless the page explicitly says the advertiser personally owns or privately lets the property. Page title: ' + title + '\\nPage text: ' + text.slice(0, 5000),
+            );
+            const parsed: any = typeof answer === 'string' ? JSON.parse(answer) : answer;
+            const quote = typeof parsed?.private_owner_quote === 'string' ? parsed.private_owner_quote.trim() : '';
+            const normalizedPage = text.replace(/\\s+/g, ' ').toLowerCase();
+            const normalizedQuote = quote.replace(/\\s+/g, ' ').toLowerCase();
+            const semanticPrivate = /(?:von\\s+privat|privatperson|private[rn]?\\s+(?:vermieter|anbieter|eigent[uü]mer)|direkt\\s+(?:vom|von\\s+dem)\\s+eigent[uü]mer|ich\\s+vermiete|wir\\s+vermieten|vermiete\\s+meine|vermieten\\s+unsere|propri[eé]taire\\s+particulier|private\\s+owner|privato)/i.test(quote);
+            if (quote.length >= 6 && normalizedPage.includes(normalizedQuote) && semanticPrivate) {
+              owner.isPrivateOwner = true;
+              owner.markers = [...new Set([...owner.markers, quote])];
+              level = promoteLevel(level, owner);
+              const latestPreview = preview[preview.length - 1];
+              if (latestPreview) latestPreview.detail = level;
+            }
+          } catch (error) {
+            errors.push({ source: source.id, code: 'gemini_owner_review_failed', detail: String((error as Error)?.message || error).slice(0, 120) });
+          }
+        }
         const directPhone = owner?.phone || null;
         const directEmail = owner?.email || null;
         if (!owner || owner.contactRoute === 'none') {
@@ -400,7 +428,7 @@ export async function runPipeline(
     errors,
     newListings,
     preview,
-    estCostUsd: Number((serperCalls * (Number(deps.config.estCostPerSearchUsd) || 0.001)).toFixed(4)),
+    estCostUsd: Number((serperCalls * (Number(deps.config.estCostPerSearchUsd) || 0.001) + geminiCalls * (Number(deps.config.estCostPerLlmCallUsd) || 0.002)).toFixed(4)),
     sourceStats,
     wavesRun,
   };
