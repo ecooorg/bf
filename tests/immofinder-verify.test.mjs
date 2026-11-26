@@ -10,6 +10,7 @@ import { processSnapshot, replaySnapshots } from '../server/immofinder/pipeline.
 import { dryRunBatch } from '../server/immofinder/dryRun.ts';
 import { discover as hhDiscover, extract as hhExtract } from '../server/immofinder/sources/happyholiday.ts';
 import { discover as fhDiscover, extract as fhExtract } from '../server/immofinder/sources/ferienhausmiete.ts';
+import { createSwissClassifiedAdapter } from '../server/immofinder/sources/swiss-classified.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const coreSrc = readFileSync(path.join(root, 'server/immofinderCore.ts'), 'utf8');
@@ -252,6 +253,34 @@ test('P131.8j classify: body locality needs explicit address evidence, not foote
   );
   assert.equal(explicitAddress.level, 'L1');
   assert.equal(explicitAddress.locality?.value, 'Chur');
+});
+
+test('C131 Swiss classifieds adapter discovers only same-host detail pages and extracts evidence', () => {
+  const anibis = createSwissClassifiedAdapter('portal-anibis', 'anibis.ch');
+  const found = anibis.discover(
+    '<a href="/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783">3-Zimmer-Wohnung Chur</a>' +
+    '<a href="https://evil.example/de/vi/123">bad link</a>' +
+    '<a href="/de/q/immobilien-graubuenden">index</a>',
+    'https://www.anibis.ch/de/q/immobilien-graubuenden-wohnungen-mieten/test',
+  );
+  assert.equal(found.length, 1);
+  assert.match(found[0].url, /anibis\.ch\/de\/vi\//);
+  const fields = anibis.extract(
+    '<h1>Sonnige 3-Zimmer-Wohnung in Chur</h1><main>7000, Chur. 3-Zimmer-Wohnung. 1’400.- pro Monat. Privatperson. Kontaktformular.</main>',
+    found[0].url,
+  );
+  assert.equal(fields.rooms?.value, 3);
+  assert.match(fields.locality?.quote || '', /7000, Chur/);
+  assert.ok(fields.priceText);
+});
+
+test('C131 classifier does not reject ordinary real-estate wording as an agency', () => {
+  const r = classifyPage(snap({
+    title: 'Helle 3.5 Zimmer Wohnung in Chur',
+    pageText: 'Private Immobilienanzeige. 7000, Chur. 3.5 Zimmer Wohnung zur Miete. Kontaktformular.',
+  }), CFG);
+  assert.equal(r.level, 'L1');
+  assert.equal(r.isAgency, false);
 });
 
 test('P131.8 owner: private + phone → L2 promote', () => {
