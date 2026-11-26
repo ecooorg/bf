@@ -656,7 +656,9 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.deepEqual(testProfile.search.communes, ['Chur']);
   assert.equal(testProfile.schedule.mode, 'manual');
   assert.equal(testProfile.search.minRooms, 3);
-  assert.ok(Object.values(testProfile.search.sources).every(Boolean));
+  assert.equal(Object.values(testProfile.search.sources).filter(Boolean).length, 2);
+  assert.equal(testProfile.search.sources.happyholiday, true);
+  assert.equal(testProfile.search.sources.ferienhausmiete, true);
   assert.equal(testProfile.search.limitPrice, false);
   assert.equal(testProfile.search.requirePrice, false);
   assert.equal(testProfile.search.rejectNonMonthly, false);
