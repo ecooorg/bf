@@ -125,6 +125,7 @@ export async function runPipeline(
     if (deps.shouldCancel?.()) break;
     if (now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
     const adapter = ADAPTERS[source.id];
+    if (!adapter) continue;
     const stats: SourceStats = {
       id: source.id, queries: 0, hits: 0, candidates: 0, fetched: 0, llm: 0, kept: 0,
       new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0,
