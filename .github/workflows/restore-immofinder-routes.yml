@@ -17,14 +17,13 @@ jobs:
       - name: Download and commit fixed routes
         run: |
           set -euo pipefail
-          URL='https://tmpfiles.org/dl/1795735978.635a65a31552b77e/wmAdvRTkFPtz/routes.fixed.ts'
+          URL='https://tmpfiles.org/dl/1795736254.8dc6d534d09ecc09/wdAWvOTIr5Th/routes.fixed2.ts'
           curl -sSL --max-time 60 -o server/immofinderRoutes.ts "$URL"
           wc -c server/immofinderRoutes.ts
-          head -c 80 server/immofinderRoutes.ts; echo
+          grep -q "req.path === '/settings'" server/immofinderRoutes.ts
           grep -q 'registerImmoFinderRoutes' server/immofinderRoutes.ts
-          grep -q "/api/immofinder/settings" server/immofinderRoutes.ts
           git config user.name 'immofinder-restore'
           git config user.email 'bot@users.noreply.github.com'
           git add server/immofinderRoutes.ts
-          git commit -m 'fix(immofinder): secret PUT path /api/immofinder/settings' || echo 'no change'
+          git commit -m 'fix(immofinder): secret PUT short path /settings' || echo 'no change'
           git push origin HEAD:main
