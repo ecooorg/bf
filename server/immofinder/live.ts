@@ -9,13 +9,14 @@
 import { processSnapshot } from './pipeline.ts';
 import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
+import { createSwissClassifiedAdapter } from './sources/swiss-classified.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
 import { buildEvidenceText, type ListingType } from '../immofinderCore.ts';
 
-const MAX_INDEX_PAGES_PER_SOURCE = 4;
-const MAX_DETAILS_PER_SOURCE = 10;
-const MAX_TOTAL_DETAILS = 16;
-const MAX_RUN_MS = 180_000;
+const MAX_INDEX_PAGES_PER_SOURCE = 6;
+const MAX_DETAILS_PER_SOURCE = 18;
+const MAX_TOTAL_DETAILS = 36;
+const MAX_RUN_MS = 240_000;
 const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 type Adapter = {
@@ -35,6 +36,8 @@ type Adapter = {
 const ADAPTERS: Record<string, Adapter> = {
   happyholiday: happyholidayAdapter,
   ferienhausmiete: ferienhausmieteAdapter,
+  'portal-anibis': createSwissClassifiedAdapter('portal-anibis', 'anibis.ch'),
+  'portal-tutti': createSwissClassifiedAdapter('portal-tutti', 'tutti.ch'),
 };
 
 function plainText(html: string): string {
