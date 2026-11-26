@@ -28,10 +28,12 @@ function plainText(html: string): string {
     .replace(/\s+/g, ' ').trim();
 }
 
-export function createSwissClassifiedAdapter(id: 'portal-anibis' | 'portal-tutti' | 'portal-flatfox', host: string) {
+export function createSwissClassifiedAdapter(id: string, host: string) {
   const detailPath = id === 'portal-flatfox'
     ? /^\/(?:de\/wohnung|en\/flat)\/.+\/\d+\/?$/i
-    : /^\/de\/vi\/(?:.*\/)?\d+\/?$/i;
+    : id === 'portal-anibis' || id === 'portal-tutti'
+      ? /^\/de\/vi\/(?:.*\/)?\d+\/?$/i
+      : /^\/.+/i;
   function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
     const found = new Map<string, string>();
     const re = /<a\b([^>]*?)href=["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
