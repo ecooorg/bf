@@ -1,3 +1,11 @@
+## P131.8x — C131 settings and owner-evidence CI repair (2026-11-26)
+- **OBSERVED:** Core CI 45861105055 on 5dc286b reports a malformed Homegate test fixture, settings/default-profile mismatches (runtime clamps rooms to 3 while settings expose 2; default private-query toggle is off), and owner-name extraction that includes the "Kontaktdaten" UI label.
+- **HYPOTHESIS:** Align settings/UI with the approved 3-room floor, enable the bounded private-query templates expected by the current full-search profile, trim page-chrome from owner names, and repair the fixture; deterministic page-admission rules remain unchanged.
+- **METRICS / ACCEPTANCE:** `npm run typecheck`, `npm run test:core` and the hosted Core CI DAG pass on the exact commit; the room floor remains ≥3 and owner evidence stays page-grounded. No live-yield claim.
+- **SCOPE:** ImmoFinder settings/UI, owner extraction, affected category tests and test fixture; patch/lock/repair metadata plus concise state records.
+- **ROLLBACK:** revert only the implicated settings/owner changes if a C131 invariant regresses; never lower the approved room floor or weaken evidence gates.
+- **CLASSIFICATION:** RELIABILITY.
+
 ## P131.8v — Bounded Serper discovery + Gemini owner review (2026-11-26)
 - **HYPOTHESIS:** the previous zero-yield runs were partly caused by a source-only runner that did not use the configured portal search catalogue. A rotating SERP layer can expose direct detail pages across more active portals without relaxing the page-evidence gates.
 - **SCOPE:** 121 saved localities, 6 rotating communes/run, Flatfox/Anibis/Tutti query templates, maximum 18 Serper calls/run and >=3s spacing. Candidate pages must pass host/detail-pattern checks and then be fetched directly.
