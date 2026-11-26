@@ -330,6 +330,11 @@ test('P129.23 Show menu = current | hidden | all (default current); publication 
   });
   assert.match(platformCard.headline, /CHF 80 per night/);
   assert.match(platformCard.headline, /via platform enquiry · Frau N\. Egger/);
+  const euroCard = immoCardModel({
+    ...row,
+    raw: { price: { amount: 90, unit: 'night', currency: 'EUR', quote: '€90 per night' } },
+  });
+  assert.match(euroCard.headline, /EUR 90 per night/);
   const k = immoCardModel(row);
   assert.equal(k.published, 'published 12.11.2026');
   assert.equal(immoLinkLine(k), 'https://a.example/9 · published 12.11.2026');
