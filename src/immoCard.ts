@@ -72,8 +72,9 @@ export function immoPriceText(l: ImmoCardInput): string {
     : null;
   const rawAmt = l.raw?.price?.amount;
   const amount = rawAmt != null && Number.isFinite(Number(rawAmt)) ? Number(rawAmt) : null;
+  const currency = String(l.raw?.price?.currency || 'CHF').toUpperCase();
   const quote = typeof l.raw?.price?.quote === 'string' ? String(l.raw.price.quote).replace(/\s+/g, ' ').trim() : '';
-  if (amount != null && period) return `CHF ${amount} ${period}`;
+  if (amount != null && period) return `${currency} ${amount} ${period}`;
   if (unit === 'month' && l.rent_monthly_chf != null) return `CHF ${l.rent_monthly_chf} per month`;
   if (quote.length >= 3 && /\d/.test(quote)) {
     const hasPw = /per\s+(night|week|month)|\/(mo|wk|night)|\b(nacht|tag|woche|monat|saison)\b/i.test(quote);
