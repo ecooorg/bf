@@ -1,3 +1,10 @@
+## C131 bounded paid-discovery extension — P131.8v (2026-11-26)
+- The live source-first runner now adds a rotating Serper discovery layer for the supported Swiss classified portals (Flatfox, Anibis, Tutti). It searches 6 communes/run across the full saved 121-locality catalogue, at most 18 queries/run and at least 3 seconds between calls (<=18/min). Only matching detail URLs are fetched; index snippets are never evidence.
+- Runtime hard floor is now 3 rooms regardless of the older saved UI value. Anibis and Tutti are enabled as supported sources even if their old toggles were off; existing HappyHoliday/Ferienhausmiete/Flatfox adapters remain active.
+- Gemini LIGHT is capped at 3 logical reviews/run and is called only for borderline L1 pages that already expose an actionable contact route. A promotion to L2 requires an exact verbatim page quote plus a deterministic private-owner phrase check; Gemini cannot supply missing locality, rooms, contact or listing facts.
+- Budget ceiling from configured estimates: 18 Serper calls × $0.001 + 3 Gemini reviews × $0.002 = $0.024/run. No Jina, reverse-image search, recurring schedule or delivery enabled. Existing polite fetch, robots/SSRF, 48 detail-page total cap and 240s wall-clock cap remain.
+- **Acceptance OPEN:** implementation and tests are committed; production deploy, provider-key availability, actual cost and >=3 reviewed quality leads are not yet observed. Do not relax owner/locality/room/detail gates to force a positive count.
+
 ## C131 revalidation and actionable-card gate — P131.8u (2026-11-26)
 - Production runner now rejects a fetched detail if no direct phone/email or actionable source contact route is present. It extracts named hosts, recognizes platform enquiry/contact-details buttons, stores normalized source price/currency and renders platform-only contact distinctly on the card.
 - Corrected room parsing so "3 Schlafzimmer" is not mistaken for "3 Zimmer"; supports 2½/3½/4½ and "3.5-Zimmerwohnung". Revalidation hold hides every exploratory record from the first pilot and clears its seen-cache; only a fresh fetch with no hard reject can unhide it.
