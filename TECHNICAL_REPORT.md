@@ -1,3 +1,8 @@
+## P131.9 follow-up — 316b476 CI evidence
+- **OBSERVED:** Core CI #45865131559 passed all checks except one `test:core` assertion: Flatfox's fetched detail had one candidate and one successful detail fetch, but classifier returned `rooms_unknown` for the Swiss half-room form `3 ½ Zimmer`. Other live adapter tests (HappyHoliday, Anibis SERP-only, dry-run, Gemini) passed.
+- **CHANGE:** Extend the production room regex to accept whitespace before `½`; add an explicit classifier regression test. Remove the conditional from the workflow's push no-op so it always has a successful non-production job.
+- **NOT_RUN:** CI on this correction and live production search.
+
 ## P131.9 follow-up — 6afd6a0 CI evidence
 - **OBSERVED:** Core CI #45864768627: docs-integrity passed; test:core failed on two undefined test imports, one test's missing fetched binding and a default source-toggle assertion. The Anibis SERP-only test passed. Render build for 6afd6a0 succeeded; deploy is in progress.
 - **CHANGE:** Add explicit test imports and local diagnostics, correct the dry-run binding and default source-count expectation; make the production-run workflow's push event a successful no-op.

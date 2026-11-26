@@ -98,6 +98,7 @@ test('C131 production classifier rejects sale, seeker and unverified room facts'
   assert.equal(classifyPage({ ...base, title: 'Ich suche eine 3.5 Zimmer Wohnung' }, config).rejectCode, 'seeker');
   assert.equal(classifyPage({ ...base, title: 'Wohnung in Untervaz', pageText: base.pageText.replace('3.5 Zimmer', '3 Schlafzimmer') }, config).rejectCode, 'rooms_unknown');
   assert.equal(classifyPage(base, config).level, 'L1', 'price and publication date remain optional in C131 L1');
+  assert.equal(classifyPage({ ...base, title: '3 ½ Zimmer Wohnung in Untervaz' }, config).rooms?.value, 3.5, 'Swiss half-room notation with whitespace must parse');
 });
 
 test('P130.17 search planner ignores legacy query wording and generates rental-intent searches', async () => {

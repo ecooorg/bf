@@ -1,3 +1,6 @@
+## P131.9 follow-up — Swiss half-room parsing
+- Fix the production classifier's room evidence regex for whitespace-separated `3 ½ Zimmer`; add regression coverage. Make the source-first workflow's push no-op unconditional while keeping production runs owner-comment-gated.
+
 ## P131.9 follow-up — CI harness and workflow trigger
 - Correct test-only imports/destructuring and source-toggle expectation; make push-triggered production workflow a green no-op, retaining owner-comment-only production execution.
 

@@ -12,7 +12,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   push-noop:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Keep push-triggered workflow green without starting a production run
