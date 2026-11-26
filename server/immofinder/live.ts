@@ -30,6 +30,7 @@ type Adapter = {
     contactPhone: string | null;
     contactEmail: string | null;
     evidenceQuotes: string[];
+    descriptionText?: string;
   };
 };
 
@@ -236,7 +237,7 @@ export async function runPipeline(
         counts.fetched++;
         const extracted = adapter.extract(page.body, page.finalUrl || candidate.url);
         const title = extracted.title || pageTitle(page.body, candidate.titleHint || candidate.url);
-        const text = plainText(page.body).slice(0, 12_000);
+        const text = plainText([page.body, extracted.descriptionText || ''].filter(Boolean).join(' ')).slice(0, 12_000);
         const evidenceText = buildEvidenceText(title, text, 4_000);
         const snapshot = {
           requestedUrl: candidate.url,
