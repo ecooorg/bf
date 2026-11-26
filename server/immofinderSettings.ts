@@ -62,7 +62,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
         ...SOURCE_IDS.map((s) => [s, false] as const),
-        ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'ferienhausmiete'].includes(src.id)] as const),
+        ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox'].includes(src.id)] as const),
       ]),
       maxAiPages: 40,
       limitPrice: false,
@@ -95,7 +95,7 @@ export function churTestSettings(cfg: ImmoConfig): ImmoSettings {
       minRooms: 3,
       communes: ['Chur'],
       municipalityGroups: { group1: true, group2: false },
-      sources: Object.fromEntries(Object.keys(d.search.sources).map((id) => [id, ['happyholiday', 'ferienhausmiete'].includes(id)])),
+      sources: Object.fromEntries(Object.keys(d.search.sources).map((id) => [id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox'].includes(id)])),
       maxAiPages: 200,
       limitPrice: false,
       maxListingAgeDays: 0,
