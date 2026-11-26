@@ -493,7 +493,7 @@ export async function clearC131PilotSeen(): Promise<number> {
   // Hide every exploratory pilot row until the current classifier re-fetches and revalidates it.
   // The matching write-time hold is recoverable only when the next clean fetch has no hard reject.
   const held = await p.query(
-    \`UPDATE immofinder_listings
+    `UPDATE immofinder_listings
      SET hidden = true,
          hide_reason = 'c131_revalidation_pending',
          raw = COALESCE(raw, '{}'::jsonb) || jsonb_build_object(
@@ -503,7 +503,7 @@ export async function clearC131PilotSeen(): Promise<number> {
          ),
          updated_at = now()
      WHERE first_seen_at >= '2026-11-26T15:21:58Z'
-     RETURNING listing_url\`,
+     RETURNING listing_url`,
     [REPAIR_RULES_VERSION],
   );
   const urls = held.rows.map((row: { listing_url: string | null }) => row.listing_url).filter((url: string | null): url is string => Boolean(url));
