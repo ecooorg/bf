@@ -189,6 +189,7 @@ export async function runPipeline(
           if (!portal || host !== portal.host.replace(/^www\./i, '').toLowerCase()) continue;
           const sourceConfig = (deps.config.sources || []).find((source) => source.id === portal.id);
           if (sourceConfig?.detailPattern && !matchesDetailPattern(candidate.url, sourceConfig.detailPattern)) continue;
+          if (!item.portal) serperQueriesBySource.set(portal.id, (serperQueriesBySource.get(portal.id) || 0) + 1);
           const bucket = serpCandidates.get(portal.id) || [];
           if (!bucket.some((x) => x.url === candidate.url)) {
             bucket.push({ url: candidate.url, indexUrl: sourceConfig?.url || candidate.url, titleHint: candidate.hit.title });
