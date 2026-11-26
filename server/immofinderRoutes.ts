@@ -826,7 +826,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         };
         result = await runPipeline({
           config: cfg,
-          fetchPage: createPoliteFetch(cfg),
+          fetchPage: createPoliteFetch(cfg, fetch, undefined, { allowJina: false, allowBrowser: false }),
           llm: null,
           store: createPgStore(),
           onProgress: push,
