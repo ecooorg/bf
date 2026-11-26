@@ -174,3 +174,98 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+  immofinder-live-acceptance:
+    # A one-shot production search is opt-in by commit message and runs only after the full Core CI job succeeds.
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[immofinder-live]') }}
+    needs: check-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Health-check and start one bounded source-first production run
+        id: run
+        env:
+          BASE_URL: https://bf-3tqo.onrender.com
+          RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${RUN_SECRET:?Missing IMMOFINDER_RUN_SECRET}"
+          BASE="${BASE_URL%/}"
+          health_code=$(curl --connect-timeout 5 --max-time 15 -sS -o /tmp/health.json -w '%{http_code}' "$BASE/health")
+          if [ "$health_code" != "200" ]; then
+            echo "Production health check failed: HTTP $health_code" >&2
+            cat /tmp/health.json || true
+            exit 1
+          fi
+          echo "Production health: HTTP 200"
+          code=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run" \
+            -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' --data '{"wave":"full"}')
+          if [ "$code" != "202" ]; then
+            jq '{success,error,code}' /tmp/trigger.json 2>/dev/null || cat /tmp/trigger.json
+            echo "Production search was not queued: HTTP $code" >&2
+            exit 1
+          fi
+          RUN_ID=$(jq -r '.runId // empty' /tmp/trigger.json)
+          if [ -z "$RUN_ID" ]; then echo "No runId returned by production API." >&2; exit 1; fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Started bounded source-first production run: $RUN_ID"
+          completed=false
+          for attempt in $(seq 1 60); do
+            sleep 10
+            status=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
+            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id' /tmp/report.json >/dev/null 2>&1; then
+              completed=true
+              break
+            fi
+          done
+          if [ "$completed" != true ]; then
+            echo "Run $RUN_ID did not produce completed diagnostics within 600 seconds." >&2
+            exit 1
+          fi
+          mkdir -p artifacts/immofinder-live
+          jq '{
+            runId: .report.runId,
+            completedAt: .report.completedAt,
+            status: .report.result.status,
+            counts: .report.result.counts,
+            filtered: .report.result.filtered,
+            sourceStats: .report.result.sourceStats,
+            estimatedProviderCostUsd: .report.result.estCostUsd,
+            qualityLevels: {
+              L1: ([.report.result.preview[]? | select(.kept == true and .detail == "L1")] | unique_by(.url) | length),
+              L2: ([.report.result.preview[]? | select(.kept == true and .detail == "L2")] | unique_by(.url) | length)
+            },
+            leadEvidence: ([.report.result.preview[]? | select(.kept == true) | {source,municipality,rooms,level:.detail}] | unique),
+            providerCalls: {
+              serper: (.report.result.counts.serper_calls // 0),
+              gemini: (.report.result.counts.gemini_calls // 0)
+            },
+            errors: ([.report.result.errors[]? | {source,code}])
+          }' /tmp/report.json > artifacts/immofinder-live/summary.json
+          L1=$(jq -r '.qualityLevels.L1' artifacts/immofinder-live/summary.json)
+          L2=$(jq -r '.qualityLevels.L2' artifacts/immofinder-live/summary.json)
+          TOTAL=$((L1 + L2))
+          {
+            echo "### ImmoFinder production live acceptance"
+            echo "- Run: $RUN_ID"
+            echo "- L1 leads: $L1"
+            echo "- L2 private-owner leads: $L2"
+            echo "- Total kept leads: $TOTAL (acceptance minimum: 3)"
+            echo "- Fetched detail pages: $(jq -r '.counts.fetched // 0' artifacts/immofinder-live/summary.json)"
+            echo "- Serper/Gemini calls: $(jq -r '.providerCalls.serper' artifacts/immofinder-live/summary.json)/$(jq -r '.providerCalls.gemini' artifacts/immofinder-live/summary.json)"
+            echo "- Estimated provider cost: USD $(jq -r '.estimatedProviderCostUsd // 0' artifacts/immofinder-live/summary.json)"
+            echo "- Source stats: `$(jq -c '.sourceStats' artifacts/immofinder-live/summary.json)`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$TOTAL" -lt 3 ]; then
+            echo "Live acceptance failed: fewer than 3 unique L1/L2 results." >&2
+            exit 1
+          fi
+      - name: Upload sanitized live acceptance summary
+        if: always() && steps.run.outputs.run_id != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: immofinder-live-acceptance-${{ steps.run.outputs.run_id }}
+          path: artifacts/immofinder-live/summary.json
+          if-no-files-found: warn
+          retention-days: 14
