@@ -14,13 +14,14 @@ const offTargetHtml = '<html><head><title>3.5 Zimmer Ferienwohnung in Scuol</tit
 
 function depsFor({ dryStore = false } = {}) {
   const writes = [];
+  const marks = [];
   const fetched = [];
   const store = {
     async findByUrl() { return null; },
     async touch() {},
     async upsert(record) { writes.push(record); return 'new'; },
     async getSeen() { return null; },
-    async markSeen() {},
+    async markSeen(...args) { marks.push(args); },
   };
   const deps = {
     config: {
@@ -42,7 +43,7 @@ function depsFor({ dryStore = false } = {}) {
     search: async () => { throw new Error('Paid search must not be called'); },
     store,
   };
-  return { deps, writes, fetched };
+  return { deps, writes, marks, fetched };
 }
 
 test('source-first live pipeline admits a fetched private listing and persists traceable evidence', async () => {
@@ -64,12 +65,13 @@ test('source-first live pipeline admits a fetched private listing and persists t
 });
 
 test('source-first dry run never writes and off-target pages are never admitted', async () => {
-  const { deps, writes } = depsFor();
+  const { deps, writes, marks } = depsFor();
   const result = await runPipeline(deps, { dryRun: true, testMode: true });
   assert.equal(result.status, 'COMPLETED');
   assert.equal(result.counts.kept, 1);
   assert.equal(result.filtered.outside_target, 1);
   assert.equal(writes.length, 0);
+  assert.equal(marks.length, 0, 'dry run must not mutate the seen cache');
 });
 
 test('production source fetch mode never invokes Jina or browser fallbacks', async () => {
