@@ -1,3 +1,8 @@
+## P131.8l — Parallel Serper redirect resolution
+- **PROBLEM:** serial `/goto` resolution took 15-23 s per query and consumed ≈65% of the run budget (9 of 17 queries skipped).
+- **CHANGE:** each goto row is resolved in its own parallel call; a failed row keeps its original link.
+- **SCOPE:** RELIABILITY, `server/immofinderDiscovery.ts`; no version bump.
+
 ## P131.8k — Prefetch geo skips no longer trigger source early-stop
 - **PROBLEM:** out-of-area URL/title skips counted as a bad streak and stopped catalogue sources after 14 items.
 - **CHANGE:** those two skips no longer increment `consecutiveBad`; fetched non-keeps still do.

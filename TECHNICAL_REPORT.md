@@ -1,3 +1,8 @@
+## P131.8l — Parallel Serper resolve
+- **OBSERVED:** run `b8e86208` (c78fa4e): resolve ≈93 s of 142.6 s, 8/17 queries, 0 kept; HappyHoliday 82/82 geo skips, no early stop.
+- **CHANGE:** per-row parallel `/resolve`.
+- **NOT_RUN:** live re-measure; hosted CI.
+
 ## P131.8k — Early-stop streak excludes prefetch geo skips
 - **OBSERVED:** HappyHoliday 738 candidates / 20 fetched / 0 kept over 4 runs; early stop after 14 skips.
 - **CHANGE:** URL/title geo skips no longer count toward `consecutiveBad`.
