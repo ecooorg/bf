@@ -284,6 +284,10 @@ test('C131 browser fallback is local, host-allowlisted and hard-capped', () => {
   assert.match(routes, /clearC131PilotSeen/);
   assert.match(routes, /\['happyholiday', 'ferienhausmiete'\]\.includes\(id\)/);
   assert.match(routes, /mode: 'manual'/);
+  const store = read('server/immofinderStore.ts');
+  assert.match(store, /hide_reason = 'c131_revalidation_pending'/);
+  assert.match(store, /DELETE FROM immofinder_seen/);
+  assert.match(store, /writeGateAutoHide/);
 });
 
 test('config prioritises long-term Swiss rental discovery portals', () => {
