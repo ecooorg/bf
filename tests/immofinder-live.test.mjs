@@ -82,7 +82,7 @@ test('production source fetch mode never invokes Jina or browser fallbacks', asy
   const fetchImpl = async (input) => {
     const url = String(input);
     calls.push(url);
-    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow:', { status: 200 });
+    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow:', { status: 200 });
     return new Response('blocked', { status: 403 });
   };
   const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
@@ -94,11 +94,11 @@ test('production source fetch mode never invokes Jina or browser fallbacks', asy
 test('production ImmoFinder route uses only the source-first, provider-free runtime', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
-  assert.match(route, /import \\{ runPipeline \\} from '\\.\/immofinder\/live\\.ts'/);
+  assert.match(route, /import \{ runPipeline \} from '\.\/immofinder\/live\.ts'/);
   const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
   assert.match(runCall, /llm: null/);
   assert.match(runCall, /search: null/);
   assert.match(runCall, /allowJina: false, allowBrowser: false/);
-  assert.doesNotMatch(runCall, /deps\\.llm|createSerperSearch/);
+  assert.doesNotMatch(runCall, /deps\.llm|createSerperSearch/);
   assert.match(route, /pollMs: 15_000/);
 });
