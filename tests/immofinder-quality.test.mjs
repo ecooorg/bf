@@ -215,7 +215,7 @@ test('ImmoFinder controls reflect live discovery behaviour and run duration', ()
   const settings = read('server/immofinderSettings.ts');
   const core = read('server/immofinderCore.ts');
   const app = read('src/ImmoFinder.tsx');
-  assert.match(settingsUi, /Direct classified listing details/);
+  assert.match(settingsUi, /Paused after HTTP 403/);
   assert.match(settingsUi, /HappyHoliday/);
   assert.match(settingsUi, /Anibis/);
   assert.doesNotMatch(settingsUi, /Private-owner web search|Google owner-direct ads/);
