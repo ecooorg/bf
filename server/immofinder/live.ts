@@ -12,9 +12,9 @@ import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
 import { buildEvidenceText, type ListingType } from '../immofinderCore.ts';
 
-const MAX_INDEX_PAGES_PER_SOURCE = 2;
-const MAX_DETAILS_PER_SOURCE = 6;
-const MAX_TOTAL_DETAILS = 12;
+const MAX_INDEX_PAGES_PER_SOURCE = 4;
+const MAX_DETAILS_PER_SOURCE = 10;
+const MAX_TOTAL_DETAILS = 16;
 const MAX_RUN_MS = 180_000;
 const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -177,7 +177,10 @@ export async function runPipeline(
         const found = adapter.discover(page.body, indexUrl);
         stats.hits += found.length;
         for (const item of found) {
-          if (!matchesDetailPattern(item.url, source.detailPattern)) continue;
+          if (source.id !== 'happyholiday' && !matchesDetailPattern(item.url, source.detailPattern)) {
+            filtered.source_detail_pattern_mismatch = (filtered.source_detail_pattern_mismatch || 0) + 1;
+            continue;
+          }
           if (!candidateIsTarget(source.id, item.url, municipalities)) {
             filtered.source_locality_mismatch = (filtered.source_locality_mismatch || 0) + 1;
             stats.geo++;
