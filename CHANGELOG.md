@@ -1,3 +1,8 @@
+## P131.8d — Preflight allows server/immofinder/ layout
+- **PROBLEM:** test:models preflight treated `server/immofinder/*` and `sources/*` as forbidden nested folders (only `server/appBuilder` was excepted).
+- **CHANGE:** Extend preflight exceptions for C131 target layout; remove empty `server/immofinder/1` placeholder. No product behaviour change.
+- **SCOPE:** RELIABILITY / CI. `scripts/patch-tools.mjs`.
+
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
 
 - **PROBLEM:** Two buttons (Recheck filters / Recheck list) split offline rules from page re-fetch; delisted ads (e.g. urbanhome «Inserat gelöscht») stayed in the agent feed unless the user knew to press Recheck list.
