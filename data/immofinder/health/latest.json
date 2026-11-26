@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T09:55:41.345Z",
+  "generatedAt": "2026-11-26T10:02:22.364Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "WARN",
-      "detail": "no check runs reported for d1c3b1b"
+      "status": "FAIL",
+      "detail": "1 failing at 1f57149: restore"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit 0d6fbc2"
+      "detail": "HTTP 200, version 131, commit c42933b"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 3 commit(s) behind main with 1 non-archive file(s) changed (e.g. scripts/scripts-integrity.mjs); deploy may be pending or failed"
+      "detail": "production is 1 commit(s) behind main with 2 non-archive file(s) changed (e.g. scripts/ensure-repair.mjs, server/immofinderRepair.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T09:55:40.076Z",
+        "checkedAt": "2026-11-26T10:02:21.333Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 5.7 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 5.8 h old"
     },
     {
       "group": "SEARCH",
