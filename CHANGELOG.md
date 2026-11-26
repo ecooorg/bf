@@ -1,3 +1,6 @@
+## P131.8i — Repair restore + locality prefers URL/title
+- Restored full `immofinderRepair.ts` via ensure-repair historical fetch; short_stay_contact_required permanently retired. Classify locality prefers URL slug and title over footer chrome. RELIABILITY.
+
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
 
 - **PROBLEM:** Two buttons (Recheck filters / Recheck list) split offline rules from page re-fetch; delisted ads (e.g. urbanhome «Inserat gelöscht») stayed in the agent feed unless the user knew to press Recheck list.

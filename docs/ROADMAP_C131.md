@@ -1,3 +1,7 @@
+## C131 P131.8i — Repair body restored; locality prefers URL/title — 2026-11-26
+- **Fixed:** `immofinderRepair.ts` restored from historical good commit when stub/placeholder; `short_stay_contact_required` permanently stripped. Classify locality: URL slug → title → body head (not footer).
+- **Still open:** WP5 cut-over (wire dry-run path), package-lock stamp, full green CI, more live L1/L2 from pilot, Serper credits.
+
 ## C131 P131.8g — Source-first pilot produces L2 listings — 2026-11-26
 - **Live pilot (no Serper):** HappyHoliday GR index → 6 detail pages → new `processSnapshot` engine.
 - **OBSERVED kept:** L2 «Haus am See» Lenzerheide (9 Zi, von privat, direct contact); L2 «Scoldasu» Lenzerheide (8 Zi, von privat, direct); L1 Berggasthaus / Posta Veglia.
