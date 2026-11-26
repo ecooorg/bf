@@ -19,7 +19,7 @@ function immofinderWaveLabel(wave: string): string {
 }
 import { TIMEZONE, applySettings, churTestSettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, getSettingsUpdatedAt, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, getSettingsUpdatedAt, clearC131PilotSeen, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
@@ -949,7 +949,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
 // One-time owner-approved scope expansion. A persisted updated_at guard prevents repeats after restarts.
-  const scopeExpandAfterMs = Date.parse('2026-11-26T15:00:00Z');
+  const scopeExpandAfterMs = Date.parse('2026-11-26T15:24:00Z');
   if (Number.isFinite(scopeExpandAfterMs) && process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT && process.env.DATABASE_URL) {
     const scopeExpandTimer = setTimeout(() => {
       void (async () => {
@@ -970,7 +970,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             communes: [...cfg.municipalities],
             minRooms: 2,
             municipalityGroups: { group1: true, group2: true },
-            sources: Object.fromEntries(sourceIds.map((id) => [id, true])),
+            sources: Object.fromEntries(sourceIds.map((id) => [id, !['portal-anibis', 'portal-tutti'].includes(id)])),
             profile: 'burst',
             defaultWave: 'full',
             carouselCommunesPerRun: cfg.municipalities.length,
@@ -984,12 +984,14 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             rejectSeekerPosts: true,
           },
         });
+        const clearedSeen = await clearC131PilotSeen();
         const runId = await startRun('manual', false, { settings: expanded, wave: 'full', cycle: await realRunCount() });
         immoLog('info', 'immofinder_scope_expansion_applied', {
           communes: expanded.search.communes.length,
           minRooms: expanded.search.minRooms,
           enabledSources: Object.entries(expanded.search.sources).filter(([, enabled]) => enabled).map(([id]) => id),
           runId,
+          clearedSeen,
           deliveryDisabled: true,
           paidDiscoveryDisabled: true,
         });
