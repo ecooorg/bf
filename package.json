@@ -3,7 +3,7 @@
   "description": "BiForge",
   "private": true,
   "version": "131",
-  "patch": "131.8f",
+  "patch": "131.8g",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -54,7 +54,8 @@
     "test:carousel": "node --import tsx --test tests/providers-models.test.mjs --test-name-pattern=carousel|Carousel|allowlist || node --test tests/governance-repo.test.mjs",
     "carousel:live": "node --import tsx scripts/carousel-live-smoke.mjs",
     "test:search-heuristics": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/search-decoupling.test.mjs",
-    "workflow:preflight": "node scripts/workflow-preflight.mjs"
+    "workflow:preflight": "node scripts/workflow-preflight.mjs",
+    "immofinder:pilot": "node --import tsx scripts/immofinder-source-pilot.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
