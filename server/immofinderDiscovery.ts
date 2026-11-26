@@ -168,32 +168,30 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
     const gotoCount = organic.filter((o: any) => isGoogleGotoLink(o?.link)).length;
     if (gotoCount > 0) {
       const resolveStarted = Date.now();
-      try {
-        // Serper's free /resolve endpoint accepts the original search response and replaces Google /goto URLs.
-        const resolvedResponse = await fetchImpl('https://google.serper.dev/resolve', {
-          method: 'POST',
-          headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.fromEntries(Object.entries(d).filter(([name]) => !['credits', 'retryAfter', 'provider', 'cache_hit'].includes(name)))),
-          signal: AbortSignal.timeout(35_000),
-        });
-        if (resolvedResponse.ok) {
+      // /resolve follows every /goto link server-side (~8 s each), so one call per query serialises the waits.
+      // Resolve each goto row in its own parallel call; a row that fails keeps its original link.
+      const base = Object.fromEntries(Object.entries(d).filter(([name]) => !['credits', 'retryAfter', 'provider', 'cache_hit', 'organic'].includes(name)));
+      let failedRows = 0; let retryAfter: number | null = null;
+      const resolvedRows = await Promise.all(organic.map(async (row: any) => {
+        if (!isGoogleGotoLink(row?.link)) return row;
+        try {
+          const resolvedResponse = await fetchImpl('https://google.serper.dev/resolve', {
+            method: 'POST',
+            headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...base, organic: [row] }),
+            signal: AbortSignal.timeout(20_000),
+          });
+          if (!resolvedResponse.ok) { failedRows++; return row; }
           const resolved: any = await resolvedResponse.json();
-          if (Array.isArray(resolved.organic) && resolved.organic.length === organic.length) {
-            d.organic = organic.map((row: any, index: number) => ({
-              ...row,
-              link: typeof resolved.organic[index]?.link === 'string' ? resolved.organic[index].link : row.link,
-            }));
-            const remaining = d.organic.filter((o: any) => isGoogleGotoLink(o?.link)).length;
-            console.info(JSON.stringify({ type: 'immofinder_serper_redirect_resolution', before: gotoCount, after: remaining, durationMs: Date.now() - resolveStarted, retryAfter: typeof resolved.retryAfter === 'number' ? resolved.retryAfter : null }));
-          } else {
-            console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_shape_mismatch', before: gotoCount, organicExpected: organic.length, organicReturned: Array.isArray(resolved.organic) ? resolved.organic.length : null }));
-          }
-        } else {
-          console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_failed', status: resolvedResponse.status, before: gotoCount }));
-        }
-      } catch (error) {
-        console.warn(JSON.stringify({ type: 'immofinder_serper_redirect_resolution_failed', before: gotoCount, error: String((error as Error)?.message || error).slice(0, 160) }));
-      }
+          if (typeof resolved.retryAfter === 'number') retryAfter = resolved.retryAfter;
+          const link = Array.isArray(resolved.organic) && resolved.organic.length === 1 ? resolved.organic[0]?.link : null;
+          if (typeof link !== 'string' || !link) { failedRows++; return row; }
+          return { ...row, link };
+        } catch { failedRows++; return row; }
+      }));
+      d.organic = resolvedRows;
+      const remaining = resolvedRows.filter((o: any) => isGoogleGotoLink(o?.link)).length;
+      console.info(JSON.stringify({ type: 'immofinder_serper_redirect_resolution', before: gotoCount, after: remaining, failedRows, durationMs: Date.now() - resolveStarted, retryAfter, parallel: true }));
     }
     return (d.organic || []).map((o: any) => ({
       title: String(o.title || ''),
