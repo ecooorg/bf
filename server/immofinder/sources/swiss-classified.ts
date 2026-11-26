@@ -68,11 +68,11 @@ export function createSwissClassifiedAdapter(id: string, host: string) {
     }
     const loc = /\b(\d{4})\s*,?\s*([A-ZÄÖÜ][\p{L}’'/-]*(?:\s+[A-ZÄÖÜ][\p{L}’'/-]*){0,3})\b/u.exec(plain);
     const locality = loc ? { value: loc[2].trim(), quote: loc[0] } : null;
-    const price = /(?:CHF\s*)?\d[\d'’., ]{1,10}\s*(?:(?:inkl\.?\s*(?:NK|Nebenkosten)\s*)?pro\s+(?:Monat|Woche|Tag)|CHF|\/\s*(?:Mt\.?|Monat|Woche))/i.exec(plain)?.[0] || null;
+    const price = /(?:CHF\s*)?\d[\d'’., ]{1,10}(?:[.–-])?\s*(?:(?:inkl\.?\s*(?:NK|Nebenkosten)\s*)?pro\s+(?:Monat|Woche|Tag)|CHF|\/\s*(?:Mt\.?|Monat|Woche))/i.exec(plain)?.[0] || null;
     const phone = /(?:\+41|0041|0)\s*\d{2}\s*(?:\d{3}|\d{2})\s*\d{2}\s*\d{2}/.exec(plain)?.[0] || null;
     const email = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.exec(plain)?.[0] || null;
     const privateMarker = /(?:von\s+privat|privatperson|private\s+anbieter|privater\s+anbieter|privat\s+inseriert)/i.exec(plain)?.[0] || null;
-    const sellerSection = /(?:Inserent|Anbieter|Advertiser)[\s\S]{0,220}/i.exec(plain)?.[0] || '';
+    const sellerSection = (/\b(?:Inserent|Anbieter|Advertiser)\b[\s\S]{0,220}/i.exec(plain)?.[0] || '').replace(/^\s*(?:Inserent|Anbieter|Advertiser)\s*/i, '');
     const agencyName = /\b([A-ZÄÖÜ][\p{L}\p{N}&'’.-]+(?:\s+[A-ZÄÖÜ][\p{L}\p{N}&'’.-]+){0,4}\s+(?:AG|GmbH|SA|Sàrl|KG|Ltd\.?))\b/u.exec(sellerSection)?.[1] || null;
     const evidenceQuotes = [rooms?.quote, locality?.quote, price, privateMarker, agencyName].filter((x): x is string => Boolean(x));
     return { title, rooms, locality, priceText: price, privateMarker, contactPhone: phone, contactEmail: email, agencyName, evidenceQuotes };
