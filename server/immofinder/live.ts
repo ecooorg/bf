@@ -39,9 +39,9 @@ const ADAPTERS: Record<string, Adapter> = {
 
 function plainText(html: string): string {
   return String(html || '')
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')
-    .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
@@ -49,20 +49,20 @@ function plainText(html: string): string {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 function pageTitle(html: string, fallback: string): string {
-  const title = /<h1[^>]*>([\\s\\S]*?)<\\/h1>/i.exec(html)?.[1]
-    || /<title[^>]*>([\\s\\S]*?)<\\/title>/i.exec(html)?.[1]
+  const title = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html)?.[1]
+    || /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1]
     || '';
   return plainText(title).slice(0, 240) || fallback;
 }
 
 function canonicalKey(sourceId: string, url: string): string {
   const u = new URL(url);
-  return sourceId + ':' + u.hostname.replace(/^www\\./i, '').toLowerCase() + u.pathname.replace(/\\/+$/, '').toLowerCase();
+  return sourceId + ':' + u.hostname.replace(/^www\./i, '').toLowerCase() + u.pathname.replace(/\/+$/, '').toLowerCase();
 }
 
 function photoUrls(html: string): string[] {
