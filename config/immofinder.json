@@ -156,10 +156,7 @@
       "url": "https://happyholiday.ch/area/graubuenden/",
       "phase": 1,
       "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
-      "cutMarkers": [
-        "Andere Häuser",
-        "Ausgewählte Unterkünfte"
-      ],
+      "cutMarkers": ["Andere Häuser", "Ausgewählte Unterkünfte"],
       "privateTitleHint": "von privat",
       "maxDetailPages": 35,
       "indexUrls": [
@@ -211,7 +208,11 @@
     "respectRobotsTxt": true,
     "browserRenderHosts": [
       "happyholiday.ch",
-      "flatfox.ch"
+      "flatfox.ch",
+      "homegate.ch",
+      "immoscout24.ch",
+      "newhome.ch",
+      "urbanhome.ch"
     ],
     "browserRenderMinTextChars": 1200,
     "maxBrowserRendersPerRun": 3
@@ -259,50 +260,14 @@
       "\"{commune}\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
       "\"{commune}\" (Wohnung OR Haus) (Mietzins OR Miete OR CHF) (privat OR direkt OR vermieten) -kaufen -verkaufen"
     ],
-    "snippetOnlyHosts": [
-      "facebook.com",
-      "instagram.com",
-      "tripadvisor.ch",
-      "tripadvisor.com"
-    ],
+    "snippetOnlyHosts": ["facebook.com", "instagram.com", "tripadvisor.ch", "tripadvisor.com"],
     "skipHosts": [
-      "wikipedia.org",
-      "youtube.com",
-      "pinterest.com",
-      "reddit.com",
-      "graubuenden.ch",
-      "myswitzerland.com",
-      "holidu.ch",
-      "holidu.com",
-      "trivago.ch",
-      "kayak.ch",
-      "kayak.com",
-      "google.com",
-      "expedia.com",
-      "hotels.com",
-      "nestoria.ch",
-      "nestoria.com",
-      "immowelt.ch",
-      "cozycozy.com",
-      "cozycozy.ch",
-      "realadvisor.ch",
-      "realadvisor.com",
-      "hometogo.ch",
-      "hometogo.com",
-      "check24.de",
-      "comparis.ch",
-      "properstar.ch",
-      "rentumo.ch",
-      "moving24.ch",
-      "homematch.ch",
-      "roomlala.de",
-      "bedandbreakfast.eu",
-      "shop.heidiland.com",
-      "flat-hunt.com",
-      "ferienhausmiete.de",
-      "adankanhaenger.ch",
-      "happyholiday.ch",
-      "hometogo.de"
+      "wikipedia.org", "youtube.com", "pinterest.com", "reddit.com", "graubuenden.ch", "myswitzerland.com",
+      "holidu.ch", "holidu.com", "trivago.ch", "kayak.ch", "kayak.com", "google.com", "expedia.com",
+      "hotels.com", "nestoria.ch", "nestoria.com", "immowelt.ch", "cozycozy.com", "cozycozy.ch",
+      "realadvisor.ch", "realadvisor.com", "hometogo.ch", "hometogo.com", "check24.de", "comparis.ch",
+      "properstar.ch", "rentumo.ch", "moving24.ch", "homematch.ch", "roomlala.de", "bedandbreakfast.eu",
+      "shop.heidiland.com", "flat-hunt.com", "ferienhausmiete.de", "adankanhaenger.ch", "happyholiday.ch", "hometogo.de"
     ],
     "portalQueries": [
       "site:homegate.ch \"{commune}\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
@@ -320,88 +285,25 @@
       "site:icasa.ch \"{commune}\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung"
     ],
     "portalHosts": [
-      "immoscout24.ch",
-      "homegate.ch",
-      "newhome.ch",
-      "flatfox.ch",
-      "tutti.ch",
-      "anibis.ch",
-      "petitesannonces.ch",
-      "immobilier.ch",
-      "acheter-louer.ch",
-      "immostreet.ch",
-      "home.ch",
-      "icasa.ch",
-      "urbanhome.ch"
+      "immoscout24.ch", "homegate.ch", "newhome.ch", "flatfox.ch", "tutti.ch", "anibis.ch",
+      "petitesannonces.ch", "immobilier.ch", "acheter-louer.ch", "immostreet.ch", "home.ch", "icasa.ch", "urbanhome.ch"
     ],
     "serperMinIntervalMs": 1500,
     "serperMaxPerMinute": 20,
     "portalSources": [
-      {
-        "id": "portal-immoscout24",
-        "label": "ImmoScout24",
-        "host": "immoscout24.ch"
-      },
-      {
-        "id": "portal-homegate",
-        "label": "Homegate",
-        "host": "homegate.ch"
-      },
-      {
-        "id": "portal-newhome",
-        "label": "Newhome",
-        "host": "newhome.ch"
-      },
-      {
-        "id": "portal-flatfox",
-        "label": "Flatfox",
-        "host": "flatfox.ch"
-      },
-      {
-        "id": "portal-tutti",
-        "label": "Tutti",
-        "host": "tutti.ch"
-      },
-      {
-        "id": "portal-anibis",
-        "label": "Anibis",
-        "host": "anibis.ch"
-      },
-      {
-        "id": "portal-petitesannonces",
-        "label": "Petites Annonces",
-        "host": "petitesannonces.ch"
-      },
-      {
-        "id": "portal-immobilier",
-        "label": "Immobilier.ch",
-        "host": "immobilier.ch"
-      },
-      {
-        "id": "portal-acheter-louer",
-        "label": "Acheter-Louer",
-        "host": "acheter-louer.ch"
-      },
-      {
-        "id": "portal-immostreet",
-        "label": "ImmoStreet",
-        "host": "immostreet.ch"
-      },
-      {
-        "id": "portal-home",
-        "label": "Home.ch",
-        "host": "home.ch"
-      },
-      {
-        "id": "portal-icasa",
-        "label": "ICasa",
-        "host": "icasa.ch"
-      },
-      {
-        "id": "portal-urbanhome",
-        "label": "UrbanHome",
-        "host": "urbanhome.ch"
-      }
+      {"id": "portal-immoscout24", "label": "ImmoScout24", "host": "immoscout24.ch"},
+      {"id": "portal-homegate", "label": "Homegate", "host": "homegate.ch"},
+      {"id": "portal-newhome", "label": "Newhome", "host": "newhome.ch"},
+      {"id": "portal-flatfox", "label": "Flatfox", "host": "flatfox.ch"},
+      {"id": "portal-tutti", "label": "Tutti", "host": "tutti.ch"},
+      {"id": "portal-anibis", "label": "Anibis", "host": "anibis.ch"},
+      {"id": "portal-petitesannonces", "label": "Petites Annonces", "host": "petitesannonces.ch"},
+      {"id": "portal-immobilier", "label": "Immobilier.ch", "host": "immobilier.ch"},
+      {"id": "portal-acheter-louer", "label": "Acheter-Louer", "host": "acheter-louer.ch"},
+      {"id": "portal-immostreet", "label": "ImmoStreet", "host": "immostreet.ch"},
+      {"id": "portal-home", "label": "Home.ch", "host": "home.ch"},
+      {"id": "portal-icasa", "label": "ICasa", "host": "icasa.ch"},
+      {"id": "portal-urbanhome", "label": "UrbanHome", "host": "urbanhome.ch"}
     ]
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
@@ -413,10 +315,7 @@
     "rejectSeekerPosts": true,
     "requireContact": false,
     "policyVersion": "C131-R1-R14",
-    "resultTypes": [
-      "tourist_owner",
-      "direct_offer"
-    ],
+    "resultTypes": ["tourist_owner", "direct_offer"],
     "requiredForL1": [
       "fetched_detail_page",
       "final_url_matches_record_url",
@@ -427,13 +326,7 @@
       "not_stop_list_agency_or_company_operated",
       "not_expired_when_date_visible"
     ],
-    "optionalForL1": [
-      "price_any_period",
-      "publication_date",
-      "direct_contact",
-      "phone",
-      "photos"
-    ],
+    "optionalForL1": ["price_any_period", "publication_date", "direct_contact", "phone", "photos"],
     "levels": {
       "L0": "candidate_only_not_shown_or_counted",
       "L1": "verified_listing",
@@ -441,26 +334,10 @@
       "L3": "letter_ready"
     },
     "snippetPolicy": "discovery_only_never_evidence",
-    "provenance": [
-      "value",
-      "verbatim_quote",
-      "source_url",
-      "fetch_time"
-    ],
+    "provenance": ["value", "verbatim_quote", "source_url", "fetch_time"],
     "rejectCodes": [
-      "not_detail_page",
-      "agency",
-      "outside_target",
-      "rooms_below_min",
-      "rooms_unknown",
-      "not_residential",
-      "seeker",
-      "expired",
-      "fetch_blocked",
-      "duplicate",
-      "snippet_only",
-      "for_sale",
-      "retired_gate"
+      "not_detail_page", "agency", "outside_target", "rooms_below_min", "rooms_unknown",
+      "not_residential", "seeker", "expired", "fetch_blocked", "duplicate", "snippet_only", "for_sale", "retired_gate"
     ],
     "legacyRuntimeUntilWp5": false
   },
@@ -478,133 +355,29 @@
     "group1": {
       "label": "Group 1 (all official Graubünden municipalities)",
       "municipalities": [
-        "Albula/Alvra",
-        "Andeer",
-        "Arosa",
-        "Avers",
-        "Bergün Filisur",
-        "Bever",
-        "Bonaduz",
-        "Bregaglia",
-        "Breil/Brigels",
-        "Brusio",
-        "Buseno",
-        "Calanca",
-        "Cama",
-        "Castaneda",
-        "Cazis",
-        "Celerina/Schlarigna",
-        "Chur",
-        "Churwalden",
-        "Conters im Prättigau",
-        "Davos",
-        "Disentis/Mustér",
-        "Domat/Ems",
-        "Domleschg",
-        "Falera",
-        "Felsberg",
-        "Ferrera",
-        "Fideris",
-        "Fläsch",
-        "Flerden",
-        "Flims",
-        "Furna",
-        "Fürstenau",
-        "Grono",
-        "Grüsch",
-        "Ilanz/Glion",
-        "Jenaz",
-        "Jenins",
-        "Klosters",
-        "Küblis",
-        "La Punt Chamues-ch",
-        "Laax",
-        "Landquart",
-        "Lantsch/Lenz",
-        "Lostallo",
-        "Lumnezia",
-        "Luzein",
-        "Madulain",
-        "Maienfeld",
-        "Malans",
-        "Masein",
-        "Medel (Lucmagn)",
-        "Mesocco",
-        "Muntogna da Schons",
-        "Obersaxen Mundaun",
-        "Pontresina",
-        "Poschiavo",
-        "Rhäzüns",
-        "Rheinwald",
-        "Rongellen",
-        "Rossa",
-        "Rothenbrunnen",
-        "Roveredo (GR)",
-        "Safiental",
-        "Sagogn",
-        "Samedan",
-        "Samnaun",
-        "San Vittore",
-        "Santa Maria in Calanca",
-        "S-chanf",
-        "Scharans",
-        "Schiers",
-        "Schluein",
-        "Schmitten (GR)",
-        "Scuol",
-        "Seewis im Prättigau",
-        "Sils im Domleschg",
-        "Sils im Engadin/Segl",
-        "Silvaplana",
-        "Soazza",
-        "St. Moritz",
-        "Sufers",
-        "Sumvitg",
-        "Surses",
-        "Tamins",
-        "Thusis",
-        "Trimmis",
-        "Trin",
-        "Trun",
-        "Tschappina",
-        "Tujetsch",
-        "Untervaz",
-        "Urmein",
-        "Val Müstair",
-        "Vals",
-        "Valsot",
-        "Vaz/Obervaz",
-        "Zernez",
-        "Zillis-Reischen",
-        "Zizers",
-        "Zuoz"
+        "Albula/Alvra", "Andeer", "Arosa", "Avers", "Bergün Filisur", "Bever", "Bonaduz", "Bregaglia",
+        "Breil/Brigels", "Brusio", "Buseno", "Calanca", "Cama", "Castaneda", "Cazis", "Celerina/Schlarigna",
+        "Chur", "Churwalden", "Conters im Prättigau", "Davos", "Disentis/Mustér", "Domat/Ems", "Domleschg",
+        "Falera", "Felsberg", "Ferrera", "Fideris", "Fläsch", "Flerden", "Flims", "Furna", "Fürstenau",
+        "Grono", "Grüsch", "Ilanz/Glion", "Jenaz", "Jenins", "Klosters", "Küblis", "La Punt Chamues-ch",
+        "Laax", "Landquart", "Lantsch/Lenz", "Lostallo", "Lumnezia", "Luzein", "Madulain", "Maienfeld",
+        "Malans", "Masein", "Medel (Lucmagn)", "Mesocco", "Muntogna da Schons", "Obersaxen Mundaun",
+        "Pontresina", "Poschiavo", "Rhäzüns", "Rheinwald", "Rongellen", "Rossa", "Rothenbrunnen",
+        "Roveredo (GR)", "Safiental", "Sagogn", "Samedan", "Samnaun", "San Vittore", "Santa Maria in Calanca",
+        "S-chanf", "Scharans", "Schiers", "Schluein", "Schmitten (GR)", "Scuol", "Seewis im Prättigau",
+        "Sils im Domleschg", "Sils im Engadin/Segl", "Silvaplana", "Soazza", "St. Moritz", "Sufers",
+        "Sumvitg", "Surses", "Tamins", "Thusis", "Trimmis", "Trin", "Trun", "Tschappina", "Tujetsch",
+        "Untervaz", "Urmein", "Val Müstair", "Vals", "Valsot", "Vaz/Obervaz", "Zernez",
+        "Zillis-Reischen", "Zizers", "Zuoz"
       ]
     },
     "group2": {
       "label": "Group 2 (legacy and locality aliases)",
       "municipalities": [
-        "Haldenstein",
-        "Igis",
-        "Lenzerheide",
-        "Maladers",
-        "Parpan",
-        "Valbella",
-        "Passugg",
-        "Araschgen",
-        "Praden",
-        "Tschiertschen",
-        "Castiel",
-        "Lüen",
-        "St. Peter-Molinis",
-        "Peist",
-        "Versam",
-        "Valendas",
-        "Castrisch",
-        "Realta",
-        "Seewis-Pardisla",
-        "Savognin",
-        "Schmitten"
+        "Haldenstein", "Igis", "Lenzerheide", "Maladers", "Parpan", "Valbella", "Passugg", "Araschgen",
+        "Praden", "Tschiertschen", "Castiel", "Lüen", "St. Peter-Molinis", "Peist", "Versam", "Valendas",
+        "Castrisch", "Realta", "Seewis-Pardisla", "Savognin", "Schmitten"
       ]
     }
   }
-    }
+}
