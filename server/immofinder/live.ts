@@ -76,12 +76,29 @@ function photoUrls(html: string): string[] {
 }
 
 
+function normalizeSlug(value: string): string {
+  return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
 function selectIndexUrls(source: { id: string; url: string; indexUrls?: string[] }, municipalities: string[]): string[] {
   const configured = source.indexUrls?.length ? source.indexUrls : [source.url];
   if (source.id !== 'ferienhausmiete') return configured.slice(0, MAX_INDEX_PAGES_PER_SOURCE);
-  const slugs = municipalities.map((name) => name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+  const slugs = municipalities.map(normalizeSlug);
   const relevant = configured.filter((url) => slugs.some((slug) => slug && url.toLowerCase().includes(slug)));
   return (relevant.length ? relevant : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
+}
+
+function candidateIsTarget(sourceId: string, url: string, municipalities: string[]): boolean {
+  if (sourceId !== 'happyholiday') return true;
+  const locality = /-graubuenden-in-([^/]+)\/?$/i.exec(url)?.[1];
+  if (!locality) return true;
+  const targets = new Set(municipalities.map(normalizeSlug));
+  return targets.size === 0 || targets.has(normalizeSlug(locality));
+}
+
+function candidateScore(candidate: { url: string; titleHint?: string }, municipalities: string[]): number {
+  const haystack = normalizeSlug(candidate.url + ' ' + (candidate.titleHint || ''));
+  return municipalities.reduce((score, municipality) => score + (haystack.includes(normalizeSlug(municipality)) ? 1 : 0), 0);
 }
 
 function matchesDetailPattern(url: string, pattern?: string): boolean {
@@ -158,8 +175,14 @@ export async function runPipeline(
         }
         successfulIndexes++;
         const found = adapter.discover(page.body, indexUrl);
+        stats.hits += found.length;
         for (const item of found) {
           if (!matchesDetailPattern(item.url, source.detailPattern)) continue;
+          if (!candidateIsTarget(source.id, item.url, municipalities)) {
+            filtered.source_locality_mismatch = (filtered.source_locality_mismatch || 0) + 1;
+            stats.geo++;
+            continue;
+          }
           if (processedUrls.has(item.url)) continue;
           processedUrls.add(item.url);
           candidates.push({ ...item, indexUrl });
@@ -170,15 +193,14 @@ export async function runPipeline(
       }
       if (sourceBlocked) break;
     }
-    stats.hits = candidates.length;
+    candidates.sort((a, b) => candidateScore(b, municipalities) - candidateScore(a, municipalities));
     stats.candidates = candidates.length;
     counts.candidates += candidates.length;
     const sourceLimit = Math.min(MAX_DETAILS_PER_SOURCE, Math.max(1, Number(source.maxDetailPages) || MAX_DETAILS_PER_SOURCE));
-    const selected = candidates.slice(0, sourceLimit);
+    let sourceAttempts = 0;
 
-    for (const candidate of selected) {
-      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
-      totalDetails++;
+    for (const candidate of candidates) {
+      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS || sourceAttempts >= sourceLimit) break;
       try {
         const existing = await deps.store.findByUrl(candidate.url);
         if (existing && !existing.hidden && now() - new Date(existing.last_seen_at).getTime() < SEEN_TTL_MS) {
@@ -192,6 +214,8 @@ export async function runPipeline(
         }
       } catch { /* seen-cache failure must not prevent a bounded source fetch */ }
 
+      totalDetails++;
+      sourceAttempts++;
       try {
         const page = await deps.fetchPage(candidate.url);
         if (!page.ok || page.status < 200 || page.status >= 400 || !page.body || page.body.length < 120) {
