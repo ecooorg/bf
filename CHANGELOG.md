@@ -1,3 +1,8 @@
+## P131.8m — Pipeline next SERP call
+- **PROBLEM:** run `d470cbb4` still hit the time budget at 12/17 queries; /goto resolve costs 15-23 s per call regardless of link count (P131.8l parallelism did not help).
+- **CHANGE:** the next query's Serper call starts while the current query's candidates are processed.
+- **SCOPE:** RELIABILITY, `server/immofinderPipeline.ts`; no version bump.
+
 ## P131.8l — Parallel Serper redirect resolution
 - **PROBLEM:** serial `/goto` resolution took 15-23 s per query and consumed ≈65% of the run budget (9 of 17 queries skipped).
 - **CHANGE:** each goto row is resolved in its own parallel call; a failed row keeps its original link.

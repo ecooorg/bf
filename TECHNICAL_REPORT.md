@@ -1,3 +1,8 @@
+## P131.8m — SERP pipelining
+- **OBSERVED:** run `d470cbb4`: 12/17 queries, 0 kept; resolve latency fixed 15-23 s per goto query; P131.8l parallel resolve not confirmed as cause of the gain.
+- **CHANGE:** next Serper call prefetched during candidate processing.
+- **NOT_RUN:** live re-measure; hosted CI.
+
 ## P131.8l — Parallel Serper resolve
 - **OBSERVED:** run `b8e86208` (c78fa4e): resolve ≈93 s of 142.6 s, 8/17 queries, 0 kept; HappyHoliday 82/82 geo skips, no early stop.
 - **CHANGE:** per-row parallel `/resolve`.
