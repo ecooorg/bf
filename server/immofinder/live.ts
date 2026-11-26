@@ -1,10 +1,9 @@
 /**
  * C131 source-first live ImmoFinder runtime.
  *
- * No SERP provider, LLM or reverse-image search. A local browser fallback is capped
- * to three short HappyHoliday detail pages; all other hosts stay direct-fetch only.
- * Fetches configured first-party catalogue indexes and bounded detail pages,
- * then admits only fetched detail pages through the pure C131 classifier.
+ * Uses a small rotating Serper budget for supported Swiss portals and up to three
+ * Gemini quote reviews for borderline owner evidence. Snippets never become evidence:
+ * every admitted record still comes from a fetched detail page and deterministic gates.
  */
 
 import { processSnapshot } from './pipeline.ts';
@@ -160,8 +159,8 @@ export async function runPipeline(
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
       try {
         if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(3000, Number(discovery.serperMinIntervalMs) || 3000)));
-        const hits = await deps.search(item.query);
         serperCalls++;
+        const hits = await deps.search(item.query);
         successfulIndexes++;
         serperQueriesBySource.set(item.portal.id, (serperQueriesBySource.get(item.portal.id) || 0) + 1);
         const selected = pickItems(hits, deps.config);
@@ -327,7 +326,7 @@ export async function runPipeline(
             );
             const parsed: any = typeof answer === 'string' ? JSON.parse(answer) : answer;
             const quote = typeof parsed?.private_owner_quote === 'string' ? parsed.private_owner_quote.trim() : '';
-            const normalizedPage = text.replace(/\s+/g, ' ').toLowerCase();
+            const normalizedPage = text.slice(0, 4000).replace(/\s+/g, ' ').toLowerCase();
             const normalizedQuote = quote.replace(/\s+/g, ' ').toLowerCase();
             const semanticPrivate = /(?:von\s+privat|privatperson|private[rn]?\s+(?:vermieter|anbieter|eigent[uü]mer)|direkt\s+(?:vom|von\s+dem)\s+eigent[uü]mer|ich\s+vermiete|wir\s+vermieten|vermiete\s+meine|vermieten\s+unsere|propri[eé]taire\s+particulier|private\s+owner|privato)/i.test(quote);
             if (quote.length >= 6 && normalizedPage.includes(normalizedQuote) && semanticPrivate) {
