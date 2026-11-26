@@ -10,7 +10,7 @@ import { processSnapshot } from './pipeline.ts';
 import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
-import type { ListingType } from '../immofinderCore.ts';
+import { buildEvidenceText, type ListingType } from '../immofinderCore.ts';
 
 const MAX_INDEX_PAGES_PER_SOURCE = 2;
 const MAX_DETAILS_PER_SOURCE = 6;
@@ -198,6 +198,7 @@ export async function runPipeline(
         const extracted = adapter.extract(page.body, page.finalUrl || candidate.url);
         const title = extracted.title || pageTitle(page.body, candidate.titleHint || candidate.url);
         const text = plainText(page.body).slice(0, 12_000);
+        const evidenceText = buildEvidenceText(title, text, 4_000);
         const snapshot = {
           requestedUrl: candidate.url,
           finalUrl: page.finalUrl || candidate.url,
@@ -247,7 +248,7 @@ export async function runPipeline(
           rooms_estimated: rooms || 0,
           rooms_basis: rooms === null ? '' : 'zimmer',
           street_address: null,
-          description_de: text,
+          description_de: evidenceText,
           description_ru: '',
           title_ru: title,
           owner_name: null,
@@ -269,7 +270,7 @@ export async function runPipeline(
             fetched_at: snapshot.fetchTimeIso,
             evidence_kind: 'page_text',
             evidence_url: candidate.url,
-            evidence_text: text,
+            evidence_text: evidenceText,
             evidence_quotes: outcome.classify.rooms?.quote ? [outcome.classify.rooms.quote] : [],
             owner_markers: owner?.markers || [],
             contact_route: owner?.contactRoute || 'none',
