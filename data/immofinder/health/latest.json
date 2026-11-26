@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T10:02:22.364Z",
+  "generatedAt": "2026-11-26T10:03:07.498Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "FAIL",
-      "detail": "1 failing at 1f57149: restore"
+      "detail": "1 failing at 896db72: restore"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 1 commit(s) behind main with 2 non-archive file(s) changed (e.g. scripts/ensure-repair.mjs, server/immofinderRepair.ts); deploy may be pending or failed"
+      "detail": "production is 3 commit(s) behind main with 2 non-archive file(s) changed (e.g. scripts/ensure-repair.mjs, server/immofinderRepair.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T10:02:21.333Z",
+        "checkedAt": "2026-11-26T10:03:06.467Z",
         "steps": [
           {
             "step": "app",
