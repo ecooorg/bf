@@ -1,3 +1,7 @@
+## P131.8o — Single roadmap
+- **CHANGE:** `docs/ROADMAP_C131.md` retired from the allowlists; `ROADMAP.md` is the only roadmap.
+- **NOT_RUN:** hosted CI after the manual deletion.
+
 ## P131.8n — Roadmap consolidation
 - **CHANGE:** C131 log and ordered quality plan recorded in `ROADMAP.md`; version metadata 131.8n.
 - **NOT_RUN:** hosted CI for 131.8j–131.8n; Render commit identity; live yield (last short tests: 0 kept).

@@ -1,3 +1,8 @@
+## P131.8o — Retire docs/ROADMAP_C131.md
+- **PROBLEM:** a second roadmap file made assistants read two sources of truth.
+- **CHANGE:** removed it from the `docs/` allowlists (AGENTS §6, docs-integrity, governance test); its content already lives in `ROADMAP.md`. Navigator deletes the file in the same commit; patch 131.8o.
+- **SCOPE:** MAINTENANCE.
+
 ## P131.8n — Roadmap consolidation and version bump (docs only)
 - **PROBLEM:** C131 status lived only in `docs/ROADMAP_C131.md`; the root roadmap lagged and `package.json` still said 131.8i.
 - **CHANGE:** C131 log imported into `ROADMAP.md` with an ordered quality-search plan; patch 131.8n synced to lockfile; `REPAIR_RULES_VERSION` follows it (seen-cache invalidated once).
