@@ -661,3 +661,28 @@ test('P131.8k prefetch geo skips do not count toward the source early-stop strea
     assert.doesNotMatch(block, /consecutiveBad\+\+/);
   }
 });
+
+test('P131.8l Serper goto links are resolved in parallel and a failed row keeps its link', async () => {
+  const previousKey = process.env.SERPER_API_KEY;
+  process.env.SERPER_API_KEY = 'test-key';
+  const goto = (n) => `https://www.google.com/goto?url=tok${n}`;
+  const rowsIn = [1, 2, 3].map((n) => ({ title: `T${n}`, link: goto(n), snippet: 's' }));
+  let inFlight = 0; let maxInFlight = 0;
+  try {
+    const search = createSerperSearch(async (url, init) => {
+      if (!String(url).endsWith('/resolve')) return new Response(JSON.stringify({ organic: rowsIn }), { status: 200 });
+      const row = JSON.parse(init.body).organic[0];
+      inFlight++; maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setTimeout(r, 30));
+      inFlight--;
+      if (row.title === 'T2') return new Response('{}', { status: 500 });
+      return new Response(JSON.stringify({ organic: [{ ...row, link: `https://example.ch/${row.title}` }] }), { status: 200 });
+    });
+    const rows = await search('Chur Wohnung mieten');
+    assert.equal(maxInFlight, 3, 'all goto rows resolve concurrently');
+    assert.deepEqual(rows.map((r) => r.link), ['https://example.ch/T1', goto(2), 'https://example.ch/T3']);
+  } finally {
+    if (previousKey === undefined) delete process.env.SERPER_API_KEY;
+    else process.env.SERPER_API_KEY = previousKey;
+  }
+});
