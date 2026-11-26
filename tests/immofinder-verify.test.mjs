@@ -284,6 +284,28 @@ test('C131 classifier does not reject ordinary real-estate wording as an agency'
   assert.equal(r.isAgency, false);
 });
 
+test('C131 Flatfox adapter discovers rental details and extracts price, half rooms and advertiser', () => {
+  const flatfox = createSwissClassifiedAdapter('portal-flatfox', 'flatfox.ch');
+  const indexUrl = 'https://flatfox.ch/de/search/?offer_type=RENT&north=47.8';
+  const detail = 'https://flatfox.ch/de/wohnung/via-sogn-martin-1-7166-trun/86331649/';
+  const found = flatfox.discover('<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a>', indexUrl);
+  assert.equal(found.length, 1);
+  assert.equal(found[0].url, detail.replace(/\/$/, ''));
+
+  const html = '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1>' +
+    '<h2>Via Sogn Martin 1, 7166 Trun - CHF 1’520 inkl. NK pro Monat</h2>' +
+    '<p>Beschreibung: Moderne 3.5-Zimmerwohnung in Trun mit Terrasse, Küche, Waschmaschine und Parkplatz.</p>' +
+    '<h3>Inserent</h3><p>Herr Max Muster</p>';
+  const fields = flatfox.extract(html, detail);
+  assert.equal(fields.rooms?.value, 3.5);
+  assert.equal(fields.locality?.value, 'Trun');
+  assert.match(fields.priceText || '', /CHF/);
+  assert.equal(fields.agencyName, null);
+
+  const agency = flatfox.extract('<h1>3.5 Zimmer Wohnung</h1><h3>Inserent</h3><p>Apleona Schweiz AG</p>', detail);
+  assert.equal(agency.agencyName, 'Apleona Schweiz AG');
+});
+
 test('C131 HappyHoliday adapter extracts structured page descriptions', () => {
   const fields = hhExtract(
     '<h1>Wohnung Erni in Scuol</h1>' +
