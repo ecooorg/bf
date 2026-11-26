@@ -1,3 +1,6 @@
+## P131.9 — Production live acceptance orchestration
+- Replace the ineffective issue-comment production-run workflow with a conditional, CI-gated live acceptance job. Preserve strict quality thresholds and sanitize listing evidence in artifacts.
+
 ## P131.9 follow-up — owner name boundary
 - Prevent contact-page labels such as `Kontaktformular` and `Kontaktdaten` from being appended to extracted owner names; preserve conservative page-text extraction.
 

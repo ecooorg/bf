@@ -1,3 +1,8 @@
+## P131.9 — Technical CI green, live acceptance pending
+- **OBSERVED:** Core CI #45865962339 on d5abb14 SUCCESS. Render deploy `dep-dc46hmq9lscs73dukgn0` LIVE. The issue-comment live-run workflow did not execute from the connector-created comment and has zero-job push failures.
+- **CHANGE PLANNED:** Replace it with a bounded live acceptance job in Core CI, gated by an explicit commit marker and dependent on Core CI success. Report only sanitized listing evidence, result counts and actual provider-call counters.
+- **NOT_RUN:** post-change live run, >=3 unique L1/L2 leads, owner review and actual billing spend.
+
 ## P131.9 follow-up — 4bb7de3 CI evidence
 - **OBSERVED:** Core CI #45865555998 passed all checks except the Flatfox owner-name assertion: parser returned `Herr Max Muster Kontaktformular` instead of `Herr Max Muster`. The Swiss `3 ½ Zimmer` parser regression passed. Production build for 4bb7de3 succeeded; deployment is rolling out.
 - **CHANGE:** Add a negative stop-token boundary for contact-page chrome in owner-name extraction; retain exact page-grounded name extraction.
