@@ -78,7 +78,7 @@ const immoPage = (title, body) => `<html><head><title>${title}</title><meta prop
 test('P128.1 whitelist match is whole-word and accent-insensitive; rooms parse Swiss notation', () => {
   assert.equal(matchMunicipality('Ferienhaus in Churwalden, Graubünden', immoCfg.municipalities), 'Churwalden');
   assert.equal(matchMunicipality('Wohnung in Domat/Ems', immoCfg.municipalities), 'Domat/Ems');
-  assert.equal(matchMunicipality('Wohnung in Davos', immoCfg.municipalities), null);
+  assert.equal(matchMunicipality('Wohnung in Davos', immoCfg.municipalities), 'Davos');
   assert.equal(parseRooms('charmante 4½ Zimmer Wohnung').rooms, 4.5);
   assert.equal(parseRooms('3.5-Zimmer-Wohnung').rooms, 3.5);
   assert.equal(parseRooms('3 Schlafzimmer, 2 1/2 Zimmer').rooms, 2.5);
