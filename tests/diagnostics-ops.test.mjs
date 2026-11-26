@@ -202,3 +202,9 @@ test('P130.5 workflows: health commits its snapshot, the poller no longer collec
   assert.match(poll, /Collect Render and GitHub Actions logs\n\s+if: \$\{\{ failure\(\) \|\| github\.event_name == 'workflow_dispatch' \}\}/);
   assert.doesNotMatch(poll, /cron: '\*\/5/);
 });
+
+test('P131.7a bot data commits carry [skip render] so they do not redeploy a running service', () => {
+  const snap = read('server/immofinderSnapshot.ts');
+  assert.match(snap, /publish search diagnostics ' \+ runId \+ ' \[skip render\]'/);
+  assert.match(snap, /encrypted listings snapshot [^`]*\[skip render\]`/);
+});
