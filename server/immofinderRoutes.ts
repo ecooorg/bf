@@ -938,14 +938,14 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         await active;
       } finally { polling = false; }
     };
-    const timer = setInterval(() => { void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) }))); }, 2_000);
+    const timer = setInterval(() => { void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) }))); }, 15_000);
     timer.unref();
     stopImmoFinderWorkerImpl = async () => {
       workerStopping = true;
       clearInterval(timer);
       if (active) await Promise.race([active, new Promise((resolve) => setTimeout(resolve, 20_000))]);
     };
-    console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 2_000 }));
+    console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 15_000 }));
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
 // --- In-process schedule (default hourly carousel; no external cron required) ---
