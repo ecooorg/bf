@@ -1146,12 +1146,9 @@ export function roomsEvidenceConflict(title: string, evidence: string, roomsEsti
 /** Card municipality does not appear in evidence, but another whitelist place does. */
 export function municipalityEvidenceMismatch(cardMuni: string | null | undefined, evidence: string, list: string[]): boolean {
   if (!cardMuni || !list?.length) return false;
-  const ev = evidence.toLowerCase();
   const card = cardMuni.toLowerCase();
-  if (ev.includes(card)) return false;
-  // Also accept hyphen/slash variants (Domat/Ems)
-  const cardNorm = card.replace(/[/-]/g, ' ');
-  if (cardNorm.length > 3 && ev.replace(/[/-]/g, ' ').includes(cardNorm)) return false;
+  // Token-aware matching prevents "Avers" inside "Solavers" and "Trin" inside "Katrin".
+  if (matchMunicipality(evidence, [cardMuni])) return false;
   const matched = matchMunicipality(evidence, list);
   if (!matched) return false;
   return matched.toLowerCase() !== card;
@@ -1209,6 +1206,9 @@ export function fieldCollageMismatch(opts: {
   const hay = `${opts.title || ''}\n${opts.evidence || ''}`.replace(/\s+/g, ' ');
   if (!muni || !hay) return null;
   const list = opts.municipalities || [];
+  // If the card's municipality is explicitly present anywhere in fetched evidence, a property name
+  // mentioning another town (e.g. "Tga Davos Nord in Savognin") is not a collage.
+  if (matchMunicipality(hay, [muni])) return null;
   // Another whitelist commune appears as the primary place while card is labelled differently
   for (const other of list) {
     if (!other || other.toLowerCase() === muni.toLowerCase()) continue;
