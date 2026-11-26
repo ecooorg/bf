@@ -284,6 +284,16 @@ test('C131 classifier does not reject ordinary real-estate wording as an agency'
   assert.equal(r.isAgency, false);
 });
 
+test('C131 HappyHoliday adapter extracts structured page descriptions', () => {
+  const fields = hhExtract(
+    '<h1>Wohnung Erni in Scuol</h1>' +
+    '<meta name="description" content="Helle 2 1/2 Zimmerwohnung mit Balkon, Küche und Bergblick. Direkt beim privaten Gastgeber anfragen.">',
+    'https://happyholiday.ch/haus/ferienwohnung-erni-graubuenden-in-scuol',
+  );
+  assert.match(fields.descriptionText || '', /Bergblick/);
+  assert.match(fields.descriptionText || '', /privaten Gastgeber/);
+});
+
 test('C131 owner evidence rejects sequential phone placeholders and recognizes host enquiry forms', () => {
   const fake = extractOwnerEvidence('Private holiday home', 'Von privat. Telefon 123456789101.', [], 'happyholiday');
   assert.equal(fake.phone, null);
