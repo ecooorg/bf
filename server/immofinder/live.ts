@@ -14,8 +14,8 @@ import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats
 import { buildEvidenceText, type ListingType } from '../immofinderCore.ts';
 
 const MAX_INDEX_PAGES_PER_SOURCE = 6;
-const MAX_DETAILS_PER_SOURCE = 18;
-const MAX_TOTAL_DETAILS = 36;
+const MAX_DETAILS_PER_SOURCE = 12;
+const MAX_TOTAL_DETAILS = 48;
 const MAX_RUN_MS = 240_000;
 const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
 
