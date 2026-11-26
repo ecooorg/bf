@@ -42,19 +42,22 @@ export interface ClassifyResult {
   isAgency: boolean;
 }
 
-const ROOM_RE = /(\\d+(?:[.,]\\d+)?(?:\\s*1\\/2|½)?)(?:\\s*[-–]\\s*\\d+(?:[.,]\\d+)?)?\\s*[-–]?\\s*(?:zimmer|zi\\.?|rooms?|chambres?|camere)/i;
+const ROOM_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*[-–]?\s*(?:zimmer|zi\.|rooms?|chambres?|camere)/i;
+/** Seeker posts only — not site nav ("Haus suchen") or marketing ("Starte deine Suche"). */
 const SEEKER_RE =
   /(?:\bwg[\s-]?gesucht\b|\bmitbewohner(?:in)?\b|\broommate\b|\bflatshare\b|\bwohngemeinschaft\b|\b(?:suche|sucht)\s+(?:mitbewohner|nachmieter|wohnung|zimmer|wg)\b|\blooking\s+for\s+(?:a\s+)?(?:room|flat|roommate)\b|\b(?:cerco|cherche)\s+(?:colocation|chambre|appartement)\b)/i;
 const SALE_RE = /(?:zu\s+verkaufen|for\s+sale|verkauf|proprietà\s+in\s+vendita|à\s+vendre|zweitwohnung|eigentumswohnung)/i;
 const RESIDENTIAL_RE = /(?:wohnung|haus|apartment|ferienwohnung|ferienhaus|chalet|maison|appartamento|casa|rental|miete|mieten)/i;
-const AGENCY_MARKERS = /(?:immobilienmakler|immobilienverwaltung|immobilienbüro|makler(?:in)?|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
+const AGENCY_MARKERS = /(?:immobilienmakler|immobilienverwaltung|immobilienbüro|makler(?:in)?|agentur|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
 
-/** Prefer URL slug and title over full page text (footer often lists many communes). */
+function escapeRegExp(value: string): string {
+  return value.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
+}
 function locationTokens(value: string): string[] {
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { /* retain original */ }
-  return decoded.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ').trim().split(/\\s+/).filter(Boolean);
+  return decoded.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
 }
 function findTokenSequence(haystack: string[], needle: string[]): number {
   if (!needle.length || needle.length > haystack.length) return -1;
@@ -74,12 +77,12 @@ function findMunicipality(
 ): { value: string; quote: string } | null {
   const urlTokens = locationTokens(url);
   for (const m of list) {
-    const hit = findTokenSequence(urlTokens, locationTokens(m));
-    if (hit >= 0) return { value: m, quote: `url-token:${m}` };
+    if (findTokenSequence(urlTokens, locationTokens(m)) >= 0) {
+      return { value: m, quote: 'url-token:' + m };
+    }
   }
 
-  const escapedTitle = title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
-  const body = String(pageText || '').replace(new RegExp(escapedTitle, 'gi'), ' ');
+  const body = title ? String(pageText || '').replace(new RegExp(escapeRegExp(title), 'gi'), ' ') : String(pageText || '');
   const marker = body.toLowerCase().indexOf('beschreibung');
   const description = marker >= 0 ? body.slice(marker, marker + 8_000) : '';
   const searchAreas = [
@@ -93,33 +96,32 @@ function findMunicipality(
       .filter((x) => x.index >= 0).sort((a, b) => a.index - b.index);
     if (matches.length) {
       const hit = matches[0];
-      return { value: hit.m, quote: `${area.label}:${hit.m}` };
+      return { value: hit.m, quote: area.label + ':' + hit.m };
     }
   }
 
   const titleTokens = locationTokens(title);
   const titleMatches = list.map((m) => ({ m, index: findTokenSequence(titleTokens, locationTokens(m)) }))
     .filter((x) => x.index >= 0).sort((a, b) => a.index - b.index);
-  if (titleMatches.length) return { value: titleMatches[0].m, quote: `title:${titleMatches[0].m}` };
+  if (titleMatches.length) return { value: titleMatches[0].m, quote: 'title:' + titleMatches[0].m };
   return null;
 }
 
 function hasSubstantiveDetail(title: string, pageText: string): boolean {
-  const escapedTitle = title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
-  const body = String(pageText || '')
-    .replace(new RegExp(escapedTitle, 'gi'), ' ')
+  const body = title ? String(pageText || '').replace(new RegExp(escapeRegExp(title), 'gi'), ' ') : String(pageText || '');
+  const clean = body
     .replace(/haus suchen|wohnung suchen|kontakt|über uns|agb|impressum|haus registrieren|anmelden|login|wunschliste|reisemagazin|navigation/gi, ' ')
     .replace(/[|•·]/g, ' ');
-  const words = body.match(/[\\p{L}\\p{N}]{3,}/gu) || [];
-  return words.length >= 10 || /(?:CHF|EUR|€|m²|schlafzimmer|badezimmer|ausstattung|verfügbarkeit|preis pro|pro nacht)/i.test(body);
+  const words = clean.match(/[\p{L}\p{N}]{3,}/gu) || [];
+  return words.length >= 10 || /(?:CHF|EUR|€|m²|schlafzimmer|badezimmer|ausstattung|verfügbarkeit|preis pro|pro nacht)/i.test(clean);
 }
 
 function extractRooms(text: string): { rooms: number; quote: string } | null {
   const m = text.match(ROOM_RE);
   if (!m) return null;
-  const raw = m[1].replace(/\\s+/g, '').replace(',', '.');
+  const raw = m[1].replace(/\s+/g, '').replace(',', '.');
   const half = raw.endsWith('1/2') || raw.endsWith('½');
-  const base = parseFloat(raw.replace(/(?:1\\/2|½)$/, ''));
+  const base = parseFloat(raw.replace(/(?:1\/2|½)$/, ''));
   const n = half ? base + 0.5 : base;
   if (!Number.isFinite(n) || n < 1) return null;
   return { rooms: n, quote: m[0].trim() };
