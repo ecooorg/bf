@@ -22,7 +22,7 @@ const DETAIL_RE = /https:\/\/www\.ferienhausmiete\.de\/\d+\.htm/gi;
 const TITLE_RE = /<h1[^>]*>([^<]+)<\/h1>/i;
 const ROOMS_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*(?:zimmer|zi\.|rooms?)/i;
 
-export function discover(indexHtml: string, _indexUrl: string): DetailCandidate[] {
+export function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
   const found = new Set<string>();
   const out: DetailCandidate[] = [];
   let m: RegExpExecArray | null;
@@ -40,7 +40,17 @@ export function discover(indexHtml: string, _indexUrl: string): DetailCandidate[
     found.add(url);
     out.push({ url });
   }
-  return out;
+  const hints = new Map<string, string>();
+  const anchors = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  while ((m = anchors.exec(indexHtml)) !== null) {
+    try {
+      const url = new URL(m[1], indexUrl).toString();
+      if (!new RegExp(DETAIL_RE.source, 'i').test(url)) continue;
+      const hint = m[2].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim().slice(0, 160);
+      if (hint) hints.set(url, hint);
+    } catch { /* ignore malformed index links */ }
+  }
+  return out.map((item) => ({ ...item, titleHint: hints.get(item.url) }));
 }
 
 export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedFields {
