@@ -406,10 +406,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
         ? pv.price.unit
         : (['month', 'week', 'night', 'season'].includes(rawUnit) ? rawUnit : rowUnit);
       if (!shortStay && ['week', 'night', 'season'].includes(unit)) why = 'non_monthly_price';
-      if (shortStay) {
-        const contacts = contactVerdict(row);
-        if (contacts.phone !== 'verified' && contacts.email !== 'verified') why = 'short_stay_contact_required';
-      }
+      // C131: short_stay_contact_required retired (optionalForL1)
     }
   }
   return why;
