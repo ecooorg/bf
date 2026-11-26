@@ -42,8 +42,7 @@ export interface ClassifyResult {
   isAgency: boolean;
 }
 
-const ROOM_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*[-–]?\s*(?:zimmer|zi\.|rooms?|chambres?|camere)/i;
-/** Seeker posts only — not site nav ("Haus suchen") or marketing ("Starte deine Suche"). */
+const ROOM_RE = /(\\d+(?:[.,]\\d+)?(?:\\s*1\\/2|½)?)(?:\\s*[-–]\\s*\\d+(?:[.,]\\d+)?)?\\s*[-–]?\\s*(?:zimmer|zi\\.?|rooms?|chambres?|camere)/i;
 const SEEKER_RE =
   /(?:\bwg[\s-]?gesucht\b|\bmitbewohner(?:in)?\b|\broommate\b|\bflatshare\b|\bwohngemeinschaft\b|\b(?:suche|sucht)\s+(?:mitbewohner|nachmieter|wohnung|zimmer|wg)\b|\blooking\s+for\s+(?:a\s+)?(?:room|flat|roommate)\b|\b(?:cerco|cherche)\s+(?:colocation|chambre|appartement)\b)/i;
 const SALE_RE = /(?:zu\s+verkaufen|for\s+sale|verkauf|proprietà\s+in\s+vendita|à\s+vendre|zweitwohnung|eigentumswohnung)/i;
@@ -51,49 +50,77 @@ const RESIDENTIAL_RE = /(?:wohnung|haus|apartment|ferienwohnung|ferienhaus|chale
 const AGENCY_MARKERS = /(?:immobilienmakler|immobilienverwaltung|immobilienbüro|makler(?:in)?|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
 
 /** Prefer URL slug and title over full page text (footer often lists many communes). */
+function locationTokens(value: string): string[] {
+  let decoded = value;
+  try { decoded = decodeURIComponent(value); } catch { /* retain original */ }
+  return decoded.normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim().split(/\\s+/).filter(Boolean);
+}
+function findTokenSequence(haystack: string[], needle: string[]): number {
+  if (!needle.length || needle.length > haystack.length) return -1;
+  outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
+    for (let j = 0; j < needle.length; j++) if (haystack[i + j] !== needle[j]) continue outer;
+    return i;
+  }
+  return -1;
+}
+
+/** URL and description evidence beat property-name mentions and footer chrome. */
 function findMunicipality(
   title: string,
   pageText: string,
   url: string,
   list: string[],
 ): { value: string; quote: string } | null {
-  const urlLower = url.toLowerCase();
-  const titleLower = title.toLowerCase();
-  // 1) URL path / query (e.g. ...-in-lenzerheide, /flims/)
+  const urlTokens = locationTokens(url);
   for (const m of list) {
-    const slug = m.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-');
-    const plain = m.toLowerCase();
-    if (urlLower.includes(slug) || urlLower.includes(plain.replace(/\s+/g, ''))) {
-      return { value: m, quote: `url:${slug}` };
+    const hit = findTokenSequence(urlTokens, locationTokens(m));
+    if (hit >= 0) return { value: m, quote: `url-token:${m}` };
+  }
+
+  const escapedTitle = title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+  const body = String(pageText || '').replace(new RegExp(escapedTitle, 'gi'), ' ');
+  const marker = body.toLowerCase().indexOf('beschreibung');
+  const description = marker >= 0 ? body.slice(marker, marker + 8_000) : '';
+  const searchAreas = [
+    { text: description, label: 'description' },
+    { text: body.slice(0, 2_500), label: 'body' },
+  ];
+  for (const area of searchAreas) {
+    if (!area.text) continue;
+    const tokens = locationTokens(area.text);
+    const matches = list.map((m) => ({ m, index: findTokenSequence(tokens, locationTokens(m)) }))
+      .filter((x) => x.index >= 0).sort((a, b) => a.index - b.index);
+    if (matches.length) {
+      const hit = matches[0];
+      return { value: hit.m, quote: `${area.label}:${hit.m}` };
     }
   }
-  // 2) Title
-  for (const m of list) {
-    if (titleLower.includes(m.toLowerCase())) {
-      return { value: m, quote: m };
-    }
-  }
-  // 3) Body fallback requires explicit address/location evidence. A commune name
-  // in generic copy or a footer is not sufficient to assign a listing's locality.
-  const head = pageText.slice(0, 8_000);
-  for (const m of list) {
-    const escaped = m.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
-    const patterns = [
-      new RegExp('\\b(?:ort|standort|adresse|location|objektstandort|gemeinde)\s*[:\\-]\s*(?:\\d{4}\s*)?' + escaped + '\\b', 'i'),
-      new RegExp('\\b\\d{4}\s*,?\s*' + escaped + '\\b', 'i'),
-    ];
-    for (const pattern of patterns) {
-      const match = pattern.exec(head);
-      if (match) return { value: m, quote: match[0] };
-    }
-  }
+
+  const titleTokens = locationTokens(title);
+  const titleMatches = list.map((m) => ({ m, index: findTokenSequence(titleTokens, locationTokens(m)) }))
+    .filter((x) => x.index >= 0).sort((a, b) => a.index - b.index);
+  if (titleMatches.length) return { value: titleMatches[0].m, quote: `title:${titleMatches[0].m}` };
   return null;
+}
+
+function hasSubstantiveDetail(title: string, pageText: string): boolean {
+  const escapedTitle = title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');
+  const body = String(pageText || '')
+    .replace(new RegExp(escapedTitle, 'gi'), ' ')
+    .replace(/haus suchen|wohnung suchen|kontakt|über uns|agb|impressum|haus registrieren|anmelden|login|wunschliste|reisemagazin|navigation/gi, ' ')
+    .replace(/[|•·]/g, ' ');
+  const words = body.match(/[\\p{L}\\p{N}]{3,}/gu) || [];
+  return words.length >= 10 || /(?:CHF|EUR|€|m²|schlafzimmer|badezimmer|ausstattung|verfügbarkeit|preis pro|pro nacht)/i.test(body);
 }
 
 function extractRooms(text: string): { rooms: number; quote: string } | null {
   const m = text.match(ROOM_RE);
   if (!m) return null;
-  const n = parseFloat(m[1].replace(',', '.'));
+  const raw = m[1].replace(/\\s+/g, '').replace(',', '.');
+  const half = raw.endsWith('1/2') || raw.endsWith('½');
+  const base = parseFloat(raw.replace(/(?:1\\/2|½)$/, ''));
+  const n = half ? base + 0.5 : base;
   if (!Number.isFinite(n) || n < 1) return null;
   return { rooms: n, quote: m[0].trim() };
 }
@@ -120,6 +147,9 @@ export function classifyPage(snapshot: PageSnapshot, config: ClassifyConfig): Cl
 
   if (text.length < 80) {
     return { ...base, level: 'L0', rejectCode: 'not_detail_page', legacyReason: 'trust_page_too_short' };
+  }
+  if (!hasSubstantiveDetail(snapshot.title, snapshot.pageText || '')) {
+    return { ...base, level: 'L0', rejectCode: 'not_detail_page', legacyReason: 'insufficient_detail_content' };
   }
 
   const locHit = findMunicipality(snapshot.title, snapshot.pageText || '', snapshot.finalUrl, config.municipalities);
