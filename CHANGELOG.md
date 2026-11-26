@@ -1,3 +1,6 @@
+## P131.8p — Make Preflight read-only (MAINTENANCE)
+- Removed source/test mutation and automatic verification-test restoration from Preflight; added an immutable-test regression guard.
+
 ## P131.8o — Retire docs/ROADMAP_C131.md
 - **PROBLEM:** a second roadmap file made assistants read two sources of truth.
 - **CHANGE:** removed it from the `docs/` allowlists (AGENTS §6, docs-integrity, governance test); its content already lives in `ROADMAP.md`. Navigator deletes the file in the same commit; patch 131.8o.
