@@ -17,6 +17,7 @@ export interface ExtractedFields {
   contactPhone: string | null;
   contactEmail: string | null;
   evidenceQuotes: string[];
+  descriptionText?: string;
 }
 
 const DETAIL_RE = /https:\/\/happyholiday\.ch\/haus\/[^"'>\s]+/gi;
@@ -55,6 +56,29 @@ export function discover(indexHtml: string, indexUrl: string): DetailCandidate[]
   return out.map((item) => ({ ...item, titleHint: hints.get(item.url) }));
 }
 
+function decodeDescription(value: string): string {
+  return value.replace(/\\u0026/gi, '&').replace(/\\n/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+    .replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();
+}
+function extractDescriptionText(html: string): string {
+  const values: string[] = [];
+  const tags = html.match(/<meta\\b[^>]*>/gi) || [];
+  for (const tag of tags) {
+    if (!/(?:name|property)=["'](?:description|og:description)["']/i.test(tag)) continue;
+    const m = /content=["']([^"']{40,})["']/i.exec(tag);
+    if (m) values.push(decodeDescription(m[1]));
+  }
+  const scripts = html.match(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi) || [];
+  for (const script of scripts) {
+    const re = /["'](?:description|summary|details|teaser)["']\\s*:\\s*["']((?:\\\\.|[^"'\\\\]){40,})["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(script)) !== null) values.push(decodeDescription(m[1].replace(/\\\\(["'\\\\])/g, '$1')));
+  }
+  return [...new Set(values)].filter((x) => x.length >= 60).join(' ').slice(0, 5_000);
+}
+
 export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedFields {
   const text = pageHtmlOrText.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ');
   const plain = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -68,7 +92,9 @@ export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedField
   }
 
   let rooms: ExtractedFields['rooms'] = null;
-  const rm = plain.match(ROOMS_RE);
+  const descriptionText = extractDescriptionText(pageHtmlOrText);
+  const searchable = plain + ' ' + descriptionText;
+  const rm = searchable.match(ROOMS_RE);
   if (rm) {
     const n = parseFloat(rm[1].replace(',', '.'));
     if (Number.isFinite(n)) rooms = { value: n, quote: rm[0].trim() };
@@ -98,6 +124,7 @@ export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedField
     contactPhone: null,
     contactEmail: null,
     evidenceQuotes,
+    descriptionText,
   };
 }
 
