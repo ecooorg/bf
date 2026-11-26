@@ -490,16 +490,31 @@ export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
 }
 export async function clearC131PilotSeen(): Promise<number> {
   const p = await getPool();
-  const r = await p.query(
-    `DELETE FROM immofinder_seen
-     WHERE url IN (
-       SELECT listing_url FROM immofinder_listings
-       WHERE first_seen_at >= '2026-11-26T15:21:58Z'
-         AND listing_url IS NOT NULL
-     ) RETURNING url`,
+  // Hide every exploratory pilot row until the current classifier re-fetches and revalidates it.
+  // The matching write-time hold is recoverable only when the next clean fetch has no hard reject.
+  const held = await p.query(
+    \`UPDATE immofinder_listings
+     SET hidden = true,
+         hide_reason = 'c131_revalidation_pending',
+         raw = COALESCE(raw, '{}'::jsonb) || jsonb_build_object(
+           'write_time_quality',
+           COALESCE(raw->'write_time_quality', '{}'::jsonb) ||
+             jsonb_build_object('hardReason', 'c131_revalidation_pending', 'rules', $1)
+         ),
+         updated_at = now()
+     WHERE first_seen_at >= '2026-11-26T15:21:58Z'
+     RETURNING listing_url\`,
+    [REPAIR_RULES_VERSION],
   );
-  return r.rowCount || 0;
+  const urls = held.rows.map((row: { listing_url: string | null }) => row.listing_url).filter((url: string | null): url is string => Boolean(url));
+  if (!urls.length) return 0;
+  const cleared = await p.query(
+    'DELETE FROM immofinder_seen WHERE url = ANY($1::text[]) RETURNING url',
+    [urls],
+  );
+  return cleared.rowCount || 0;
 }
+
 export async function getSettingsUpdatedAt(): Promise<Date | null> {
   const p = await getPool();
   const r = await p.query("SELECT updated_at FROM immofinder_settings WHERE id = 'main'");
