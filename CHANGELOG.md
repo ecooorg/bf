@@ -1,3 +1,9 @@
+## P131.8v — Bounded provider-assisted discovery (FEATURE)
+- Add a rotating, 18-query maximum Serper layer across Flatfox, Anibis and Tutti; respect a 3-second minimum spacing and fetch only validated detail URLs.
+- Enforce a runtime minimum of 3 rooms and activate the remaining supported classified adapters.
+- Add at most 3 Gemini LIGHT borderline owner-evidence reviews/run; only exact, semantically validated page quotes can promote L1 to L2.
+- Estimated provider budget <=$0.024/run; no recurring schedule or notification delivery is enabled. Production yield remains unverified until deployment and live review.
+
 ## P131.8u — Actionable evidence gate (BUGFIX)
 - Do not admit listings without a direct contact or source-platform enquiry route. Extract named hosts, preserve source price/currency and show platform enquiry as actionable contact on cards.
 - Fix bedroom-vs-room false positives; support half-room and hyphenated Zimmerwohnung labels. Hold exploratory rows hidden until a clean fresh fetch revalidates them.
