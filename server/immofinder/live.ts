@@ -132,6 +132,7 @@ export async function runPipeline(
     sourceStats.push(stats);
     const indexUrls = (source.indexUrls?.length ? source.indexUrls : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
     const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [];
+    let sourceBlocked = false;
     for (const indexUrl of indexUrls) {
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
       stats.queries++;
@@ -141,6 +142,8 @@ export async function runPipeline(
         if (!page.ok || page.status < 200 || page.status >= 400 || !page.body || page.body.length < 300) {
           counts.infra_failures++;
           errors.push({ source: source.id, code: 'index_fetch_failed', detail: 'HTTP ' + page.status });
+          if (page.status === 403 || page.status === 429) sourceBlocked = true;
+          if (sourceBlocked) break;
           continue;
         }
         successfulIndexes++;
@@ -155,6 +158,7 @@ export async function runPipeline(
         counts.infra_failures++;
         errors.push({ source: source.id, code: 'index_fetch_error', detail: String((error as Error)?.message || error).slice(0, 140) });
       }
+      if (sourceBlocked) break;
     }
     stats.hits = candidates.length;
     stats.candidates = candidates.length;
@@ -166,6 +170,11 @@ export async function runPipeline(
       if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
       totalDetails++;
       try {
+        const existing = await deps.store.findByUrl(candidate.url);
+        if (existing && !existing.hidden && now() - new Date(existing.last_seen_at).getTime() < SEEN_TTL_MS) {
+          counts.skipped++;
+          continue;
+        }
         const prior = await deps.store.getSeen(candidate.url);
         if (prior && now() - new Date(prior.checked_at).getTime() < SEEN_TTL_MS) {
           counts.skipped++;
@@ -180,6 +189,7 @@ export async function runPipeline(
           stats.consecutiveBad++;
           errors.push({ source: source.id, code: 'detail_fetch_failed', detail: 'HTTP ' + page.status });
           preview.push({ url: candidate.url, title: candidate.titleHint || candidate.url, source: source.id, municipality: null, rooms: null, kept: false, reason: 'fetch_blocked' });
+          if (page.status === 403 || page.status === 429) { sourceBlocked = true; break; }
           continue;
         }
         stats.fetched++;
