@@ -1,15 +1,5 @@
 name: ImmoFinder health
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'server/immofinder*.ts'
-      - 'config/immofinder.json'
-      - 'src/ImmoFinder.tsx'
-      - 'package.json'
-      - 'package-lock.json'
-  schedule:
-    - cron: '17 */6 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -76,7 +66,7 @@ jobs:
             mkdir -p data/immofinder/health
             cp /tmp/health-latest.json data/immofinder/health/latest.json
             git add data/immofinder/health/latest.json
-            git commit -m "chore(immofinder): health snapshot [skip ci]"
+            git commit -m "chore(immofinder): health snapshot [skip render] [skip ci]"
             if git push origin HEAD:main; then echo "Health snapshot published."; exit 0; fi
             sleep $((attempt * 2))
           done
