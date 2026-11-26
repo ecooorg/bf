@@ -1,3 +1,9 @@
+## C131 update — P131.8q source-first cut-over code staged (2026-11-26, EXPERIMENT)
+- Production run entry now imports `server/immofinder/live.ts`: direct HappyHoliday/Ferienhausmiete indexes → bounded detail fetch → C131 locality/rooms/agency/seeker + owner gates → evidence-backed DB upsert. Serper/LLM/Jina/browser fallbacks disabled for search; cap 2 indexes/source, 6 details/source, 12 total, 180s. Rejected pages never write.
+- Runtime GitHub snapshots/diagnostic commits disabled; PostgreSQL + Render logs are primary. Diagnostics/health workflows manual-only; health snapshots skip Render. Worker idle polling 15s. Render auto-deploy is pending the final release commit; latest observed live deploy is still a pre-cut-over health-snapshot build. Hosted CI NOT_RUN; new production yield NOT_RUN.
+- Existing DB settings inspected read-only: manual schedule, Chur, 3+ rooms; HappyHoliday and Ferienhausmiete enabled. No settings or secrets changed.
+- Legacy pipeline file retained temporarily as a type/storage compatibility dependency; old search algorithm is no longer the production route. Removal follows after new runtime/CI verification.
+
 ## C131 update — P131.8p (2026-11-26, MAINTENANCE)
 - **Fixed:** Preflight now reads repository source/tests without modifying them; only its diagnostic log is written. Added regression coverage. Direct commits to `main`; hosted CI and Render deployment identity NOT_RUN.
 - **WP5 remains OPEN:** new `server/immofinder/` engine is not yet the production path. Owner approved revisiting the sequence, but live baseline, ≥5 source fixtures, same-snapshot legacy comparison and acceptance gates remain prerequisites. No cut-over or quality claim made.
