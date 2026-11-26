@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T14:36:22.377Z",
+  "generatedAt": "2026-11-26T20:39:04.236Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "WARN",
-      "detail": "no check runs reported for f307225"
+      "status": "FAIL",
+      "detail": "1 failing at b2b62ee: check-and-build"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit 2842d50"
+      "detail": "HTTP 200, version 131, commit 09be048"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 15 commit(s) behind main with 7 non-archive file(s) changed (e.g. package-lock.json, package.json, server/immofinder/live.ts); deploy may be pending or failed"
+      "detail": "production is 1 commit(s) behind main with 1 non-archive file(s) changed (e.g. server/immofinder/live.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T14:36:21.441Z",
+        "checkedAt": "2026-11-26T20:39:03.353Z",
         "steps": [
           {
             "step": "app",
@@ -116,29 +116,29 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 2.2 h old"
+      "detail": "e20ea545-95f5-4edb-a3c2-2d53a2b50007, 0.2 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "91 candidates, 0 quality of target 10, 6 snippet-only, 0 fallback, LLM calls 0",
+      "detail": "0 candidates, 0 quality of target 10, 0 snippet-only, 0 fallback, LLM calls 0",
       "data": {
-        "candidates": 91,
+        "candidates": 0,
         "quality": 0,
         "target": 10,
-        "snippetOnly": 6,
+        "snippetOnly": 0,
         "llmCalls": 0,
         "fallback": 0,
-        "errors": 3,
+        "errors": 0,
         "failingSources": []
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "FAIL",
-      "detail": "latest run d470cbb4-4dad-4ef9-b3e0-0c2284065295 is not archived (archive holds c2ba3861-05c3-41e7-8963-5a09097352f6); poller runs every 10 minutes (GitHub may delay schedules)"
+      "status": "OK",
+      "detail": "run e20ea545-95f5-4edb-a3c2-2d53a2b50007 is archived in the repository"
     }
   ]
 }
