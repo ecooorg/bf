@@ -104,7 +104,7 @@ test('Flatfox parser retains half rooms, monthly price and platform contact', as
     if (url === index) return { ok: true, status: 200, body: '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a>', finalUrl: url };
     if (url === detail) return {
       ok: true, status: 200, finalUrl: url,
-      body: '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1><p>Via Sogn Martin 1, 7166 Trun. CHF 1’520 inkl. NK pro Monat.</p><h2>Beschreibung</h2><p>Moderne Wohnung mit Terrasse, Küche, Waschmaschine, Keller und Parkplatz.</p><h3>Inserent</h3><p>Herr Max Muster</p><p>Kontaktanfrage erstellen</p>',
+      body: '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1><p>Via Sogn Martin 1, 7166 Trun. CHF 1’520 inkl. NK pro Monat.</p><h2>Beschreibung</h2><p>Moderne Wohnung mit Terrasse, Küche, Waschmaschine, Keller und Parkplatz.</p><h3>Inserent</h3><p>Herr Max Muster</p><p>Kontaktformular erstellen</p>',
     };
     return { ok: false, status: 404, body: '', finalUrl: url };
   };
