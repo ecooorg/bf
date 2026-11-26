@@ -1,3 +1,8 @@
+## C131 source expansion — P131.8t (2026-11-26)
+- Added Flatfox direct rental search for Graubünden, with detail URL discovery, CHF/month parsing, 3½/2½ room parsing, locality/postcode evidence and advertiser legal-entity detection. It is enabled alongside HappyHoliday and Ferienhausmiete.
+- Active production sources: HappyHoliday, Ferienhausmiete, Flatfox. Anibis/Tutti remain paused after 403; legacy paid discovery, LLM, Jina, recurring schedules and delivery remain disabled. Local browser rendering is allowlisted only for HappyHoliday/Flatfox, max 3 renders/run.
+- Full 121-locality scope, 2+ rooms, no age filter. **Flatfox live yield and hosted CI are still NOT_RUN/NOT_CONFIRMED**; WP5 quality acceptance remains OPEN until >=3 reviewed visible leads and green Core CI.
+
 ## C131 quality correction — P131.8s (2026-11-26)
 - The first full-canton run fetched 24 details from 87 candidates. Sixteen records were persisted hidden by the write-time quality gate; none were exposed as verified leads. HappyHoliday and Ferienhausmiete detail evidence exposed four concrete bugs: substring locality collisions (Solavers→Avers; Haus Katrin→Trin), Swiss half-room parsing (2 1/2→2), portal navigation mistaken for seeker text, and a placeholder phone number. Ferienwohnungen in Davos was also agency/list-page content. Anibis and Tutti returned HTTP 403 and are now paused.
 - Fixed exact token-based locality matching across classifier and write-time collage checks; description location now outranks property-name mentions. Added 2 1/2 / 4 1/2 room parsing, substantive detail-page gate, explicit Agentur rejection, false seeker-navigation removal, and placeholder-phone rejection. FHM enquiry-form wording is recognized as a platform contact route.
