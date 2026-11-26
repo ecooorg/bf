@@ -197,7 +197,7 @@ export async function runPipeline(
           }
         }
       } catch (error) {
-        errors.push({ source: item.portal.id, code: 'serper_discovery_failed', detail: String((error as Error)?.message || error).slice(0, 140) });
+        errors.push({ source: item.portal?.id || 'serper-private', code: 'serper_discovery_failed', detail: String((error as Error)?.message || error).slice(0, 140) });
         // A quota/credit error is run-global; don't spend further calls retrying it.
         if (/not enough credits|quota|credits exhausted/i.test(String((error as Error)?.message || error))) break;
       }
