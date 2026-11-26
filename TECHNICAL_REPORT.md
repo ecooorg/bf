@@ -1,3 +1,10 @@
+## P131.8s — Production quality correction
+- **P131.8r live run:** 87 candidates, 24 detail fetches, 16 rows written hidden by write-time quality rules; 0 visible verified leads. HappyHoliday 12/12 classifier-kept but hidden by quality repair (holiday/locality/room reasons); Ferienhausmiete 4/4 classifier-kept but hidden (three false seeker flags, one agency/list page). Anibis and Tutti both HTTP 403; no detail fetches. Estimated paid-provider cost: $0.00.
+- Reviewed records exposed locality substring errors (Solavers/Avers, Haus Katrin/Trin, Tga Davos Nord/Savognin), Swiss half-room parsing and a placeholder phone number. No bad rows were presented as visible leads.
+- P131.8s fixes token-aware locality in both classifiers and write-time gates, prioritizes description locality, parses 2 1/2 and 4 1/2 rooms, requires substantive page detail, rejects agency listings and placeholder numbers, and removes the generic seeker-nav false positive.
+- HappyHoliday short pages can use at most 3 local Chromium renders per run; only `happyholiday.ch` is allowlisted. Serper, LLM, Jina, recurring schedules and notifications remain disabled. Anibis/Tutti paused after 403.
+- **Second live run:** NOT_RUN at report time. **Hosted Core CI:** NOT_CONFIRMED; GitHub status connector returned no check statuses. Render build/TypeScript succeeded for P131.8r.
+
 ## P131.8r — Full-canton source expansion
 - Configured all 100 official Graubünden municipalities (14.09.2026 list) plus 19 locality aliases. Saved production settings are migrated once to full scope, 2+ rooms, all configured sources enabled, manual schedule and delivery disabled.
 - Direct-only live adapters: HappyHoliday, Ferienhausmiete, Anibis and Tutti. Caps: 6 index pages/source, 12 detail pages/source, 48 details/run, 240 seconds. 1.5s per-host delay and robots/SSRF guards retained.
