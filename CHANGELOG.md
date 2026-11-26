@@ -1,3 +1,7 @@
+## P131.8q — Source-first ImmoFinder cut-over (EXPERIMENT)
+- Added bounded direct-source live runner and switched production route to it; paid search/model and Jina/browser fallbacks disabled for this path. Added locality/evidence/no-write regression tests and provider-free route guard. Deployment, hosted CI and live lead yield pending verification.
+- Removed per-run GitHub snapshot/diagnostic writes, disabled scheduled diagnostic/health Actions, prevented health snapshots from triggering Render, and reduced idle worker DB polling to 15s.
+
 ## P131.8p — Make Preflight read-only (MAINTENANCE)
 - Removed source/test mutation and automatic verification-test restoration from Preflight; added an immutable-test regression guard.
 
