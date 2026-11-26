@@ -78,7 +78,7 @@ export function isImmoCronCall(req: Request): boolean {
   if (!secretPresent) return false;
   if (req.method === 'POST' && ['/api/immofinder/run', '/api/immofinder/settings/prepare-chur-test'].includes(path)) return true;
   // Test/ops: allow secret-authenticated settings updates without a browser session.
-  if (req.method === 'PUT' && path === '/api/immofinder/settings') return true;
+  if (req.method === 'PUT' && (path === '/settings' || path === '/api/immofinder/settings')) return true;
   return false;
 }
 
@@ -152,7 +152,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.use('/api/immofinder', (req, res, next) => {
     const isRunPost = req.method === 'POST' && req.path === '/run';
     const isTestProfilePost = req.method === 'POST' && req.path === '/settings/prepare-chur-test';
-    const isSettingsPut = req.method === 'PUT' && req.path === '/api/immofinder/settings';
+    const isSettingsPut = req.method === 'PUT' && req.path === '/settings';
     const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
     const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
     const cron = (isRunPost || isTestProfilePost || isSettingsPut) && secretOk(req);
