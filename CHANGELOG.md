@@ -1,3 +1,9 @@
+## P131.8s — Evidence-first quality correction (BUGFIX)
+- Corrected locality false positives from substrings and property names; description evidence now wins over property-title mentions. Added Swiss half-room parsing (2 1/2, 4 1/2), substantive detail-page gate and agency detection.
+- Removed portal navigation as a seeker-post signal and reject sequential placeholder phone numbers. Recognize host enquiry forms.
+- HappyHoliday extracts structured descriptions and has a max-3 local Chromium fallback limited to that host. Anibis/Tutti paused after HTTP 403. No paid provider calls enabled.
+- First pilot's hidden candidates are rechecked once; existing records recover only after a clean new fetch. Second production yield and hosted CI pending.
+
 ## P131.8r — Full-canton source expansion (EXPERIMENT)
 - Expanded locality scope to all 100 current Graubünden municipalities plus 19 locality aliases; one-time startup migration enables all configured sources, sets 2+ rooms, keeps scheduling and delivery off, and queues one bounded production run.
 - Added Anibis adapter and enabled Tutti direct adapter; widened bounded source-first coverage to 4 adapters and 48 detail attempts/run. Improved postcode locality, hyphenated room-count and false agency rejection.
