@@ -1,3 +1,7 @@
+## P131.8f — WP3 engine unit coverage
+- **CHANGE:** Add classify/owner/pipeline/adapter tests in immofinder-verify; preflight allows server/immofinder layout; remove empty placeholder.
+- **SCOPE:** RELIABILITY. Patch 131.8f.
+
 ## P131.8d — Preflight allows server/immofinder/ layout
 - **PROBLEM:** test:models preflight treated `server/immofinder/*` and `sources/*` as forbidden nested folders (only `server/appBuilder` was excepted).
 - **CHANGE:** Extend preflight exceptions for C131 target layout; remove empty `server/immofinder/1` placeholder. No product behaviour change.
@@ -17,18 +21,6 @@
 
 ## P131.7a — Closed reject taxonomy and source-yield audit
 - Every persisted run report now carries `qualityAudit`: legacy reject reasons mapped to the closed R7 code list (`server/immofinder/taxonomy.ts`, same list in `config/immofinder.json`), a fixed 10-item reject sample for false-reject audit, and advisory R9 zero-kept source evidence. RELIABILITY; no search, admission or scoring behaviour changes.
-
-## P131.7a — Stop data commits from redeploying the service
-- Every bot commit (diagnostics, encrypted snapshot, archive) triggered a Render deploy, up to dozens per night, able to interrupt a running search. Add `[skip render]` to the server-written diagnostics and snapshot commit messages; no search or admission logic changes.
-
-## P131.7a — Consistency corrections (docs/scripts, no behaviour change)
-- Fix `version:sync`/`version:check` to call `scripts/version-metadata.mjs`; dedupe the ImmoFinder pointer in `docs/ARCHITECTURE.md`; add status reconciliation to roadmap/experiments.
-
-## P131.7a — Extend bounded Chur test duration to 180 seconds
-- Allow the full configured query set more time while preserving page, candidate, detail-fetch, browser, provider-rate and no-write limits.
-
-## P131.7 — Reject shared-flat seeker posts
-- Classify shared-household pages that are seeking occupants as seeker posts before L1 admission; retain ordinary rental offers.
 
 ## Session governance and documentation consolidation
 - AGENTS.md, ROADMAP, TECHNICAL_REPORT, CHANGELOG and related docs remain the single source of truth; append-only history; no NEXT_PATCH assignment file.
