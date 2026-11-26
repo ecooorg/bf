@@ -256,6 +256,8 @@ export async function runPipeline(
             source_id: source.id,
             index_url: candidate.indexUrl,
             fetched_at: snapshot.fetchTimeIso,
+            evidence_kind: 'page_text',
+            evidence_url: candidate.url,
             evidence_text: text,
             evidence_quotes: outcome.classify.rooms?.quote ? [outcome.classify.rooms.quote] : [],
             owner_markers: owner?.markers || [],
