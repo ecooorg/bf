@@ -1,6 +1,6 @@
 /**
  * C131 target engine surface (WP3). Additive; legacy server/immofinder*.ts remains the runtime
- * until WP5 switches entry points and deletes the old modules.
+ * until WP5 switches (P131.8b CI restore) entry points and deletes the old modules.
  */
 
 export * from './taxonomy.ts';
