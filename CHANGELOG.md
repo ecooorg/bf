@@ -1,3 +1,6 @@
+## P131.9 follow-up — owner name boundary
+- Prevent contact-page labels such as `Kontaktformular` and `Kontaktdaten` from being appended to extracted owner names; preserve conservative page-text extraction.
+
 ## P131.9 follow-up — Swiss half-room parsing
 - Fix the production classifier's room evidence regex for whitespace-separated `3 ½ Zimmer`; add regression coverage. Make the source-first workflow's push no-op unconditional while keeping production runs owner-comment-gated.
 

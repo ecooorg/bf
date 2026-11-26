@@ -89,7 +89,7 @@ export function extractOwnerEvidence(
   if (phone || email) contactRoute = 'direct';
   else if (platformFormPresent) contactRoute = 'platform_message';
 
-  const ownerNameMatch = /\b(?:Herr|Frau|Familie|Eheleute)\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+(?:\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+){0,2}/u.exec(text)?.[0] || null;
+  const ownerNameMatch = /\b(?:Herr|Frau|Familie|Eheleute)\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+(?:\s+(?!(?:Kontaktdaten|Kontaktformular|Kontakt|Nachricht|Anfrage|Inserent)\b)[A-ZÄÖÜ][\p{L}\p{M}.'’-]+){0,2}/u.exec(text)?.[0] || null;
   const ownerName = ownerNameMatch?.replace(/\s+Kontaktdaten\b.*$/i, '') || null;
 
   let ownerKey: string | null = null;

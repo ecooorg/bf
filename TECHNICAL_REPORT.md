@@ -1,3 +1,8 @@
+## P131.9 follow-up — 4bb7de3 CI evidence
+- **OBSERVED:** Core CI #45865555998 passed all checks except the Flatfox owner-name assertion: parser returned `Herr Max Muster Kontaktformular` instead of `Herr Max Muster`. The Swiss `3 ½ Zimmer` parser regression passed. Production build for 4bb7de3 succeeded; deployment is rolling out.
+- **CHANGE:** Add a negative stop-token boundary for contact-page chrome in owner-name extraction; retain exact page-grounded name extraction.
+- **NOT_RUN:** CI on this correction and live production search.
+
 ## P131.9 follow-up — 316b476 CI evidence
 - **OBSERVED:** Core CI #45865131559 passed all checks except one `test:core` assertion: Flatfox's fetched detail had one candidate and one successful detail fetch, but classifier returned `rooms_unknown` for the Swiss half-room form `3 ½ Zimmer`. Other live adapter tests (HappyHoliday, Anibis SERP-only, dry-run, Gemini) passed.
 - **CHANGE:** Extend the production room regex to accept whitespace before `½`; add an explicit classifier regression test. Remove the conditional from the workflow's push no-op so it always has a successful non-production job.

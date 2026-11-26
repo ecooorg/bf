@@ -4,7 +4,7 @@
 
 Evidence is labeled **OBSERVED, INFERRED, and NOT_RUN**. No precision/recall or owner-confirmed quality claim is made without independent owner labels.
 
-- **OBSERVED:** Three earlier bounded source-first production runs admitted 0 listings; Core CI #45865131559 on 316b476 passed docs-integrity and all but one half-room parser test. The production classifier fix is committed; no live source quality result yet.
+- **OBSERVED:** Three earlier bounded source-first production runs admitted 0 listings; Core CI #45865555998 on 4bb7de3 passed all but one owner-name UI-chrome assertion. Half-room parsing passed; the owner-name boundary fix is committed. No live source quality result yet.
 - **CHANGE:** C131 tests are being aligned with the actual source-first runner; automatic legacy-search restoration and backup payloads have been removed.
 - **NOT_RUN:** post-fix CI, live source workflow, production search result review, provider availability/spend, three reviewed L1/L2 leads and owner task outcome.
 
