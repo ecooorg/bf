@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T14:17:09.625Z",
-  "verdict": "WARN",
+  "generatedAt": "2026-11-26T14:33:39.959Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 8ec1342"
+      "detail": "2 checks at 782b9e2, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit d80c04c"
+      "detail": "HTTP 200, version 131, commit 2842d50"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 7 commit(s) behind main with 5 non-archive file(s) changed (e.g. package-lock.json, package.json, scripts/workflow-preflight.mjs); deploy may be pending or failed"
+      "detail": "production is 3 commit(s) behind main with 3 non-archive file(s) changed (e.g. server/immofinder/live.ts, server/immofinderRoutes.ts, tests/immofinder-live.test.mjs); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T14:17:08.566Z",
+        "checkedAt": "2026-11-26T14:33:38.751Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 1.9 h old"
+      "detail": "d470cbb4-4dad-4ef9-b3e0-0c2284065295, 2.2 h old"
     },
     {
       "group": "SEARCH",
@@ -137,8 +137,8 @@
     {
       "group": "PUBLISHING",
       "name": "Archive",
-      "status": "OK",
-      "detail": "run d470cbb4-4dad-4ef9-b3e0-0c2284065295 is archived in the repository"
+      "status": "FAIL",
+      "detail": "latest run d470cbb4-4dad-4ef9-b3e0-0c2284065295 is not archived (archive holds c2ba3861-05c3-41e7-8963-5a09097352f6); poller runs every 10 minutes (GitHub may delay schedules)"
     }
   ]
 }
