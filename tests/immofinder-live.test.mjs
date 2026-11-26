@@ -206,13 +206,13 @@ test('polite fetcher can disable Jina and browser fallbacks', async () => {
 test('production route wires bounded Serper and Gemini budgets and enforces 3 rooms', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
-  assert.match(route, /import \\{ runPipeline \\} from '\\.\\/immofinder\\/live\\.ts'/);
+  assert.ok(route.includes("import { runPipeline } from './immofinder/live.ts'"));
   const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
-  assert.match(runCall, /llm: deps\\.llm/);
-  assert.match(runCall, /maxLlmCalls: 3/);
-  assert.match(runCall, /search: process\\.env\\.SERPER_API_KEY \\? createSerperSearch/);
-  assert.match(runCall, /allowJina: false, allowBrowser: true/);
-  assert.match(route, /baseCfg\\.minRooms = Math\\.max\\(3/);
-  assert.match(route, /portal-anibis', 'portal-tutti/);
-  assert.match(route, /pollMs: 15_000/);
+  assert.ok(runCall.includes('llm: deps.llm'));
+  assert.ok(runCall.includes('maxLlmCalls: 3'));
+  assert.ok(runCall.includes('search: process.env.SERPER_API_KEY ? createSerperSearch'));
+  assert.ok(runCall.includes('allowJina: false, allowBrowser: true'));
+  assert.ok(route.includes('baseCfg.minRooms = Math.max(3'));
+  assert.ok(route.includes("['portal-anibis', 'portal-tutti']"));
+  assert.ok(route.includes('pollMs: 15_000'));
 });
