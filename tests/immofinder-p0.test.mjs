@@ -46,17 +46,17 @@ test('C131 source pilot fixtures cover five real detail pages per direct portal'
 
 test('C131 defaults enable the bounded source-first full run', () => {
   const settings = defaultSettings(cfg);
-  assert.equal(settings.search.carouselCommunesPerRun, 12);
+  assert.equal(settings.search.carouselCommunesPerRun, cfg.municipalities.length);
   assert.deepEqual(
     Object.entries(settings.search.sources).filter(([, enabled]) => enabled).map(([id]) => id).sort(),
-    ['happyholiday', 'portal-homegate', 'portal-tutti', 'search'],
+    ['ferienhausmiete', 'happyholiday'],
   );
   assert.equal(settings.search.defaultWave, 'full');
   assert.equal(settings.search.profile, 'burst');
   assert.equal(settings.search.requirePrice, false);
   assert.equal(settings.search.rejectNonMonthly, false);
   assert.equal(settings.search.requireContact, false);
-  assert.equal(sanitizeSettings({}, cfg).search.carouselCommunesPerRun, 12);
+  assert.equal(sanitizeSettings({}, cfg).search.carouselCommunesPerRun, cfg.municipalities.length);
   assert.equal(settings.search.privateQueryTemplates, 2);
   assert.equal(settings.search.enrichSearchesPerRun, 0);
   assert.equal(settings.search.maxAiPages, 40);
