@@ -949,7 +949,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
 // One-time owner-approved scope expansion. A persisted updated_at guard prevents repeats after restarts.
-  const scopeExpandAfterMs = Date.parse(String(process.env.IMMOFINDER_SCOPE_EXPAND_AFTER || ''));
+  const scopeExpandAfterMs = Date.parse('2026-11-26T15:00:00Z');
   if (Number.isFinite(scopeExpandAfterMs) && process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT && process.env.DATABASE_URL) {
     const scopeExpandTimer = setTimeout(() => {
       void (async () => {
