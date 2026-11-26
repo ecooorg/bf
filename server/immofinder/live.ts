@@ -321,13 +321,13 @@ export async function runPipeline(
           try {
             const answer = await deps.llm(
               'You are a strict evidence extractor. Return one JSON object only. Never infer facts. Copy exact verbatim text from the supplied listing page.',
-              'Find an exact quote proving the advertiser is the private owner rather than an agency. Return {"private_owner_quote": string|null}. Use null unless the page explicitly says the advertiser personally owns or privately lets the property. Page title: ' + title + '\\nPage text: ' + text.slice(0, 5000),
+              'Find an exact quote proving the advertiser is the private owner rather than an agency. Return {"private_owner_quote": string|null}. Use null unless the page explicitly says the advertiser personally owns or privately lets the property. Page title: ' + title + '\nPage text: ' + text.slice(0, 5000),
             );
             const parsed: any = typeof answer === 'string' ? JSON.parse(answer) : answer;
             const quote = typeof parsed?.private_owner_quote === 'string' ? parsed.private_owner_quote.trim() : '';
             const normalizedPage = text.replace(/\s+/g, ' ').toLowerCase();
             const normalizedQuote = quote.replace(/\s+/g, ' ').toLowerCase();
-            const semanticPrivate = /(?:von\\s+privat|privatperson|private[rn]?\\s+(?:vermieter|anbieter|eigent[uü]mer)|direkt\\s+(?:vom|von\\s+dem)\\s+eigent[uü]mer|ich\\s+vermiete|wir\\s+vermieten|vermiete\\s+meine|vermieten\\s+unsere|propri[eé]taire\\s+particulier|private\\s+owner|privato)/i.test(quote);
+            const semanticPrivate = /(?:von\s+privat|privatperson|private[rn]?\s+(?:vermieter|anbieter|eigent[uü]mer)|direkt\s+(?:vom|von\s+dem)\s+eigent[uü]mer|ich\s+vermiete|wir\s+vermieten|vermiete\s+meine|vermieten\s+unsere|propri[eé]taire\s+particulier|private\s+owner|privato)/i.test(quote);
             if (quote.length >= 6 && normalizedPage.includes(normalizedQuote) && semanticPrivate) {
               owner.isPrivateOwner = true;
               owner.markers = [...new Set([...owner.markers, quote])];
