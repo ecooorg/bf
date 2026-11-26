@@ -1,3 +1,9 @@
+## C131 reconciliation — ledger corrections (non-product, no answer-path change)
+- **SUPERSEDED:** "C131 WP1 — Owner-labelled baseline and offline replay (BLOCKED)" no longer blocks C131: D-2026-11-25-03 replaced the owner gold set with no-label invariant replay; its ≥60-label acceptance is void and no precision/recall may be claimed.
+- **CORRECTED:** the three P131.5j and two P131.5i entries below describe one patch each; the final wording is "Place bounded testMode in PipelineOptions". The "C131 WP4/WP5 implementation audit" entry's acceptance (Gold replay) is superseded the same way.
+- **OBSERVED:** run `038d1c87` (full, 44 communes): 113 candidates, 13 fetched, 0 kept, 20 Serper queries, 483 s; filters: 16 municipality_not_whitelisted, 7 rooms_unknown, 4 trust_snippet_only; Tutti/Homegate 403; HappyHoliday early stop after 14 non-keeps. Source yield, not recall; no hypothesis opened here.
+- **CLASSIFICATION:** MAINTENANCE (docs + script path fix). Next answer-path change needs its own entry first (C127 rule 1).
+
 ## P131.7a — Give all-source Chur discovery enough bounded time
 - **OBSERVED:** run `2acc4c0e-e085-4945-8c96-a8ff17fb59c5`: 91 candidates, 8/17 Serper queries, 5 index pages, 1 fetched detail page, 0 kept, 14 out-of-commune rejects, 7 snippet-only rejects, 1 shared-flat seeker rejected, Homegate/Tutti HTTP 403, 9 queries left at the 120-second test cap; USD 0.008.
 - **HYPOTHESIS:** raise only the test duration ceiling to 180 seconds. The pipeline reserves 45 seconds for later stages, leaving up to 135 seconds for all 17 queries; retain one commune, 3 candidates/query, 2 detail pages/source, 2 browser renders, no contact enrichment and dry-run/no writes.

@@ -111,19 +111,15 @@ ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune
 
 ## C131 ImmoFinder search constitution
 
-The current product objective, L0–L3 result levels, per-field provenance, reject taxonomy, source admission, budgets, letter rules and change control are defined by R1–R14 in `TECHNICAL_SPECIFICATION.md`. This is a pointer, not a second policy source. Existing P128–P130 runtime code is transitional until WP1/WP2 baselines and subsequent implementation packages are complete; its behavior is not evidence of C131 compliance.
+The current product objective, L0–L3 result levels, per-field provenance, reject taxonomy, source admission, budgets, letter rules and change control are defined by R1–R14 in `TECHNICAL_SPECIFICATION.md`. This is a pointer, not a second policy source. The runtime is still the single legacy engine (`server/immofinder*.ts`, 17 modules) with C131 admission rules applied in place (TrustEngine, L1–L3, source-first run); the target `server/immofinder/` layout (WP3/WP5) does not exist, and passing tests or CI are not evidence of C131 user value.
 
 ## Historical: ImmoFinder search result quality (superseded by C131)
 
 **Status:** Historical P129–P130 contract; its “current long-term rental listings” objective and mandatory price/contact/date admission rules are superseded by the owner-approved C131 R1–R14 constitution in `TECHNICAL_SPECIFICATION.md`. Do not use this section as current policy.
 
-## C131 ImmoFinder search constitution
+### Historical body (superseded by C131; kept for history)
 
-The current product objective, L0–L3 result levels, per-field provenance, reject taxonomy, source admission, budgets, letter rules and change control are defined by R1–R14 in `TECHNICAL_SPECIFICATION.md`. This section is a pointer, not a second policy source. Existing P128–P130 runtime code is transitional until the measured WP1/WP2 baselines and later migration packages are complete; its behavior is not evidence of C131 compliance.
-
-## ImmoFinder search result quality
-
-**Status:** product contract (architecture). Does not redefine TECHNICAL_SPECIFICATION; records what *counts as value* for ImmoFinder users and which implementation directions are allowed. Written after P128–P129 operations showed that green subsystems (parsers, CI, individual fields) still produced feeds users could not trust without heavy manual cleanup.
+**Status:** historical P129–P130 contract. Does not redefine TECHNICAL_SPECIFICATION; records what *counts as value* for ImmoFinder users and which implementation directions are allowed. Written after P128–P129 operations showed that green subsystems (parsers, CI, individual fields) still produced feeds users could not trust without heavy manual cleanup.
 
 ### User goal (source of truth)
 
