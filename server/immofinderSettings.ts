@@ -207,7 +207,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
   };
   const portalQueries = filterPortalQueries(cfg.discovery?.portalQueries || []);
   const wantPortals = portalQueries.length > 0;
-  const groups = (cfg as any).municipalityGroups as { group1?: { municipalities: string[] }; group2?: { municipalities: string[] } | undefined;
+  const groups = (cfg as any).municipalityGroups as { group1?: { municipalities: string[] }; group2?: { municipalities: string[] } } | undefined;
   const allowed = new Set<string>();
   if (groups) {
     if (s.search.municipalityGroups?.group1 !== false) (groups.group1?.municipalities || []).forEach((m) => allowed.add(m));
