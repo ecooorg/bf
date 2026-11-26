@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { R7_REJECT_CODES, classifyReject, summarizeRejects, sampleRejects, sourceDemotionCandidates, buildRunQualityAudit } from '../server/immofinder/taxonomy.ts';
 import { classifyPage } from '../server/immofinder/classify.ts';
 import { extractOwnerEvidence, promoteLevel } from '../server/immofinder/owner.ts';
+import { isSeekerPost, isShortStayListing } from '../server/immofinderCore.ts';
 import { processSnapshot, replaySnapshots } from '../server/immofinder/pipeline.ts';
 import { dryRunBatch } from '../server/immofinder/dryRun.ts';
 import { discover as hhDiscover, extract as hhExtract } from '../server/immofinder/sources/happyholiday.ts';
@@ -292,6 +293,61 @@ test('C131 owner evidence rejects sequential phone placeholders and recognizes h
   assert.equal(real.contactRoute, 'direct');
   const form = extractOwnerEvidence('Haus zur Miete', 'Unverbindlich anfragen', [], 'ferienhausmiete');
   assert.equal(form.contactRoute, 'platform_message');
+});
+
+test('C131 locality matching uses token boundaries and description location before property-name place names', () => {
+  const cfg = { ...CFG, minRooms: 2, municipalities: [...CFG.municipalities, 'Avers', 'Trin', 'Klosters', 'Savognin', 'Schmitten'] };
+  const solavers = classifyPage(snap({
+    requestedUrl: 'https://happyholiday.ch/haus/ferienwohnung-solavers-graubuenden-in-klosters',
+    finalUrl: 'https://happyholiday.ch/haus/ferienwohnung-solavers-graubuenden-in-klosters',
+    title: 'Monami Klosters – Solavers Nr. 1',
+    pageText: 'Beschreibung: Die Ferienwohnung liegt in Klosters. 3 Zimmer, 4 Gäste, 120 CHF pro Nacht. Voll ausgestattete Küche und Balkon.',
+  }), cfg);
+  assert.equal(solavers.locality?.value, 'Klosters');
+  assert.equal(solavers.level, 'L1');
+
+  const tga = classifyPage(snap({
+    requestedUrl: 'https://www.ferienhausmiete.de/11561.htm',
+    finalUrl: 'https://www.ferienhausmiete.de/11561.htm',
+    title: 'Tga Davos Nord',
+    pageText: 'Tga Davos Nord. Beschreibung: Die 4 1/2 Zimmer Ferienwohnung liegt in Savognin. 6 Gäste, 104 CHF pro Nacht. Balkon und Küche.',
+  }), cfg);
+  assert.equal(tga.locality?.value, 'Savognin');
+  assert.equal(tga.rooms?.value, 4.5);
+
+  const katrin = classifyPage(snap({
+    requestedUrl: 'https://www.ferienhausmiete.de/464721.htm',
+    finalUrl: 'https://www.ferienhausmiete.de/464721.htm',
+    title: 'Haus Katrin',
+    pageText: 'Haus Katrin. Beschreibung: Entdecken Sie Schmitten in Graubünden. Die 2 1/2 Zimmer Ferienwohnung bietet 51 m² und Platz für zwei Gäste.',
+  }), cfg);
+  assert.equal(katrin.locality?.value, 'Schmitten');
+  assert.equal(katrin.rooms?.value, 2.5);
+});
+
+test('C131 thin portal shells and agency-labelled catalogue cards are rejected', () => {
+  const thin = classifyPage(snap({
+    requestedUrl: 'https://happyholiday.ch/haus/ferienwohnung-erni-graubuenden-in-scuol',
+    finalUrl: 'https://happyholiday.ch/haus/ferienwohnung-erni-graubuenden-in-scuol',
+    title: 'Wohnung Erni in Scuol – von privat',
+    pageText: 'Wohnung Erni in Scuol – von privat | HappyHoliday.ch Haus suchen Kontakt Über uns Haus registrieren AGB',
+  }), { ...CFG, minRooms: 2, municipalities: [...CFG.municipalities, 'Scuol'] });
+  assert.equal(thin.level, 'L0');
+  assert.equal(thin.legacyReason, 'insufficient_detail_content');
+
+  const agency = classifyPage(snap({
+    requestedUrl: 'https://www.ferienhausmiete.de/7644.htm',
+    finalUrl: 'https://www.ferienhausmiete.de/7644.htm',
+    title: 'Ferienwohnungen in Davos',
+    pageText: 'Beschreibung: Agentur Rüegg bietet Ferienwohnungen in Davos. 4.5 Zimmer, mehrere Schlafzimmer, Balkon und Parkplatz.',
+  }), { ...CFG, minRooms: 2, municipalities: [...CFG.municipalities, 'Davos'] });
+  assert.equal(agency.level, 'L0');
+  assert.equal(agency.rejectCode, 'agency');
+});
+
+test('C131 portal navigation is not a seeker and HappyHoliday is short-stay inventory', () => {
+  assert.equal(isSeekerPost('Haus Katrin', 'Haus suchen Kontakt Über uns. Beschreibung: 2 1/2 Zimmer Ferienwohnung in Schmitten.'), false);
+  assert.equal(isShortStayListing('2 1/2 Zimmerwohnung Erni in Scuol', 'https://happyholiday.ch/haus/ferienwohnung-erni-in-scuol', '2 1/2 Zimmerwohnung Erni in Scuol', null), true);
 });
 
 test('P131.8 owner: private + phone → L2 promote', () => {
