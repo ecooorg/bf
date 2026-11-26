@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import express, { type Express, type Request } from 'express';
 import { isSameOrigin } from './security.ts';
 import { createPoliteFetch } from './immofinderFetcher.ts';
-import { runPipeline } from './immofinderPipeline.ts';
+import { runPipeline } from './immofinder/live.ts';
 import { applyImmoFinderTestBudget } from './immofinderTestMode.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 
@@ -25,7 +25,7 @@ import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinde
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
 import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticRepairAudit, applyBundledRepairBatches } from './immofinderRepairStore.ts';
 import { parseRepairFile } from './immofinderRepair.ts';
-import { publishGitHubListingsSnapshot, publishGitHubRunDiagnostics } from './immofinderSnapshot.ts';
+
 import { capturedImmoFinderTrace } from './projectDiagnostics.ts';
 import { persistImmoFinderRunDiagnostics, latestImmoFinderRunDiagnostics } from './immofinderRunDiagnostics.ts';
 import { githubAppConfigFromEnv, probeGitHubAppSetup } from './githubIntegration.ts';
@@ -87,25 +87,8 @@ function driveFolder(saved: string): string {
 }
 
 async function publishGitHubSnapshotAfterRun(runId: string): Promise<string> {
-  try {
-    const rows = await listListingsForRefresh(); // complete table: visible + hidden, all contact/evidence fields
-    const result = await publishGitHubListingsSnapshot(rows as unknown as Record<string, unknown>[], {
-      runId,
-      completedAt: new Date().toISOString(),
-    });
-    if (result.status === 'committed') {
-      immoLog('info', 'immofinder_github_snapshot_committed', {
-        runId, path: result.path, rowCount: result.rowCount, commitSha: result.commitSha || null,
-      }, 'Encrypted full listing database committed to GitHub');
-      return `committed:${result.rowCount}`;
-    }
-    immoLog('warn', 'immofinder_github_snapshot_skipped', { runId, reason: result.reason || 'not_configured' });
-    return `skipped:${result.reason || 'not_configured'}`;
-  } catch (e) {
-    const detail = String((e as Error)?.message || e).slice(0, 160);
-    immoLog('error', 'immofinder_github_snapshot_failed', { runId, error: detail });
-    return `failed:${detail}`;
-  }
+  immoLog('info', 'immofinder_snapshot_github_disabled', { runId, reason: 'database_is_primary_store' });
+  return 'skipped:database_is_primary_store';
 }
 
 async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, errors: any[] = []): Promise<string> {
@@ -128,19 +111,8 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
     };
     await persistImmoFinderRunDiagnostics(runId, report);
     immoLog('info', 'immofinder_diagnostics_database_committed', { runId, traceId, eventCount: events.length }, 'Completed search diagnostics persisted for GitHub polling');
-    try {
-      const published = await publishGitHubRunDiagnostics(report, { runId });
-      if (published.status === 'committed') {
-        immoLog('info', 'immofinder_github_diagnostics_committed', { runId, traceId, paths: published.paths, eventCount: published.eventCount, commitSha: published.commitSha || null });
-        return `database:committed;github:committed:${published.eventCount}`;
-      }
-      immoLog('warn', 'immofinder_github_diagnostics_skipped', { runId, reason: published.reason || 'not_configured' });
-      return `database:committed;github:skipped:${published.reason || 'not_configured'}`;
-    } catch (publishError) {
-      const detail = String((publishError as Error)?.message || publishError).slice(0, 140);
-      immoLog('warn', 'immofinder_github_diagnostics_direct_publish_failed', { runId, error: detail }, 'Database diagnostics are safe; GitHub Actions poller will archive the report');
-      return `database:committed;github:poller_fallback:${detail}`;
-    }
+    immoLog('info', 'immofinder_github_diagnostics_disabled', { runId, reason: 'database_and_render_logs_are_primary' });
+    return 'database:committed;github:disabled_cost_policy';
   } catch (e) {
     const detail = String((e as Error)?.message || e).slice(0, 180);
     immoLog('error', 'immofinder_github_diagnostics_failed', { runId, error: detail });
