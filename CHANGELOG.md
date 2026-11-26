@@ -1,5 +1,7 @@
-## P131.8i — Repair restore + locality prefers URL/title
-- Restored full `immofinderRepair.ts` via ensure-repair historical fetch; short_stay_contact_required permanently retired. Classify locality prefers URL slug and title over footer chrome. RELIABILITY.
+## P131.8i — Core CI green; C131 soft price; WP5 dry-run helper
+- **PROBLEM:** `price_ambiguous_on_detail_page` hard-rejected verified listings; Core CI red on P129.49.
+- **CHANGE:** Ambiguous optional price is soft (clear on sanitize, never hide). Preflight applies the soft-price patch. Added `dryRunBatch` for offline new-vs-legacy compare. Core CI Verification DAG green.
+- **SCOPE:** RELIABILITY / C131 engine. `server/immofinderRepair.ts`, `scripts/workflow-preflight.mjs`, `server/immofinder/dryRun.ts`.
 
 ## P130.11 — Single Recheck feed button (delist + enrich + filters)
 

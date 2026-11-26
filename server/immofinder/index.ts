@@ -1,6 +1,6 @@
 /**
- * C131 target engine surface (WP3). Additive; legacy server/immofinder*.ts remains the runtime
- * until WP5 switches (P131.8b CI restore) entry points and deletes the old modules.
+ * C131 target engine surface (WP3/WP5). Additive; legacy server/immofinder*.ts remains the runtime
+ * until WP5 switches entry points and deletes the old modules.
  */
 
 export * from './taxonomy.ts';
@@ -19,3 +19,5 @@ export {
   extract as ferienhausmieteExtract,
 } from './sources/ferienhausmiete.ts';
 export { processSnapshot, replaySnapshots } from './pipeline.ts';
+export { dryRunBatch } from './dryRun.ts';
+export type { DryRunItem, DryRunReport, DryRunRow } from './dryRun.ts';
