@@ -189,7 +189,9 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
   const contact =
     l.contact_status === 'found'
       ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ')
-      : '';
+      : l.contact_status === 'platform_only'
+        ? ['via platform enquiry', l.owner_name].filter(Boolean).join(' · ')
+        : '';
   const rooms =
     l.rooms_estimated != null && String(l.rooms_estimated) !== ''
       ? `${l.rooms_estimated} rooms`
