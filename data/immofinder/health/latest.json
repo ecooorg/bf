@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T09:47:37.327Z",
+  "generatedAt": "2026-11-26T09:48:05.109Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for dc83d15"
+      "detail": "no check runs reported for 12689d7"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 3 commit(s) behind main with 4 non-archive file(s) changed (e.g. package-lock.json, package.json, scripts/immofinder-source-pilot.mjs); deploy may be pending or failed"
+      "detail": "production is 4 commit(s) behind main with 4 non-archive file(s) changed (e.g. package-lock.json, package.json, scripts/immofinder-source-pilot.mjs); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T09:47:36.470Z",
+        "checkedAt": "2026-11-26T09:48:04.201Z",
         "steps": [
           {
             "step": "app",
