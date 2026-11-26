@@ -135,7 +135,7 @@ test('browser fetch fallback is bounded and rejects private navigation targets',
   assert.match(fetcher, /visibleText\.length < 120/);
   assert.match(fetcher, /fetchMode: 'browser_rendered'/);
   assert.match(pipeline, /SERPER_STEP_MS = 40_000/);
-  assert.match(pipeline, /withStepTimeout\(label, \(\) => deps\.search!\(q\), SERPER_STEP_MS\)/);
+  assert.match(pipeline, /withStepTimeout\(label, \(\) => early \?\? deps\.search!\(q\), SERPER_STEP_MS\)/);
   assert.match(pipeline, /withStepTimeout\('fetch', \(\) => deps\.fetchPage\(it\.url\), 25_000\)/);
 });
 
@@ -685,4 +685,10 @@ test('P131.8l Serper goto links are resolved in parallel and a failed row keeps 
     if (previousKey === undefined) delete process.env.SERPER_API_KEY;
     else process.env.SERPER_API_KEY = previousKey;
   }
+});
+
+test('P131.8m next SERP call is started while the current query is processed', () => {
+  const pipeline = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
+  assert.match(pipeline, /prefetchedSearch\.set\(nextQ, started\)/);
+  assert.match(pipeline, /!finishAll && timeLeft\(\) > 90_000/);
 });
