@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runPipeline } from '../server/immofinder/live.ts';
+import { happyholidayAdapter } from '../server/immofinder/sources/happyholiday.ts';
+import { createSwissClassifiedAdapter } from '../server/immofinder/sources/swiss-classified.ts';
 
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
 const detailUrl = 'https://happyholiday.ch/haus/wohnung-chur-123';
@@ -131,7 +133,7 @@ test('Flatfox parser retains half rooms, monthly price and platform contact', as
 });
 
 test('dry run never writes or marks seen', async () => {
-  const { deps, writes, marks } = depsFor();
+  const { deps, writes, marks, fetched } = depsFor();
   const result = await runPipeline(deps, { dryRun: true, testMode: true });
   assert.equal(result.status, 'COMPLETED');
   assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats, fetched }));

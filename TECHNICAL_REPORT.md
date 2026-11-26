@@ -1,3 +1,8 @@
+## P131.9 follow-up — 6afd6a0 CI evidence
+- **OBSERVED:** Core CI #45864768627: docs-integrity passed; test:core failed on two undefined test imports, one test's missing fetched binding and a default source-toggle assertion. The Anibis SERP-only test passed. Render build for 6afd6a0 succeeded; deploy is in progress.
+- **CHANGE:** Add explicit test imports and local diagnostics, correct the dry-run binding and default source-count expectation; make the production-run workflow's push event a successful no-op.
+- **NOT_RUN:** CI on this correction and live production source search.
+
 ## P131.9 follow-up — bcfb7f9 CI and production deployment
 - **OBSERVED:** Render deploy `dep-dc46a58ae00c73d9km40` is LIVE; build and server TypeScript compilation succeeded, 30 DB migrations were already applied. Core CI #45863548736: 16/18 checks PASS; docs-integrity and test:core FAIL. Exact failures are recorded in the run log; do not report CI green.
 - **CHANGE:** restore canonical docs sections, correct canonical URL fixtures and SERP-only Anibis test, detect natural-language seeker intent, and expose provider-call counts for live diagnostics.

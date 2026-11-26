@@ -1,3 +1,6 @@
+## P131.9 follow-up — CI harness and workflow trigger
+- Correct test-only imports/destructuring and source-toggle expectation; make push-triggered production workflow a green no-op, retaining owner-comment-only production execution.
+
 ## P131.9 follow-up — C131 regression corrections
 - Restore required canonical documentation sections while retaining the new ImmoFinder status; fix detail URL canonicalization in tests, model Anibis as SERP-only, and reject seeker wording such as "Ich suche eine 3.5 Zimmer Wohnung". Report real Serper/Gemini call counts in production-run artifacts rather than hardcoding zero.
 

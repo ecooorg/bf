@@ -1,5 +1,7 @@
 name: ImmoFinder source-first production run
 on:
+  push:
+    branches: [main]
   issue_comment:
     types: [created]
 permissions:
@@ -9,8 +11,15 @@ concurrency:
   group: immofinder-source-first-production
   cancel-in-progress: false
 jobs:
+  push-noop:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep push-triggered workflow green without starting a production run
+        run: echo "Production runs require the explicit owner /immofinder-run issue comment."
   production-run:
     if: >-
+      github.event_name == 'issue_comment' &&
       github.event.issue.pull_request == null &&
       github.event.comment.user.login == github.repository_owner &&
       startsWith(github.event.comment.body, '/immofinder-run')
