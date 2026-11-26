@@ -20,7 +20,7 @@ export interface ExtractedFields {
 
 const DETAIL_RE = /https:\/\/www\.ferienhausmiete\.de\/\d+\.htm/gi;
 const TITLE_RE = /<h1[^>]*>([^<]+)<\/h1>/i;
-const ROOMS_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:\bzimmer\b|\bzi\.|\brooms?\b)/i;
+const ROOMS_RE = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*(?:\bzimmer\b|\bzi\.|\brooms?\b|-?zimmerwohnung)/i;
 
 export function discover(indexHtml: string, indexUrl: string): DetailCandidate[] {
   const found = new Set<string>();
