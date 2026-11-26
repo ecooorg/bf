@@ -195,6 +195,14 @@
       "phase": 1,
       "maxDetailPages": 50,
       "detailPattern": "^https://www\\.anibis\\.ch/de/vi/.*"
+    },
+    {
+      "id": "portal-flatfox",
+      "label": "Flatfox direct rentals",
+      "url": "https://flatfox.ch/de/search/?offer_type=RENT&category=apartment&north=47.8&south=46.1&east=10.7&west=9.0&take=100",
+      "phase": 1,
+      "maxDetailPages": 12,
+      "detailPattern": "^https://(?:www\\\\.)?flatfox\\\\.ch/(?:de/wohnung|en/flat)/.+/\\\\d+/?$"
     }
   ],
   "fetch": {
@@ -202,7 +210,8 @@
     "perHostDelayMs": 1500,
     "respectRobotsTxt": true,
     "browserRenderHosts": [
-      "happyholiday.ch"
+      "happyholiday.ch",
+      "flatfox.ch"
     ],
     "browserRenderMinTextChars": 1200,
     "maxBrowserRendersPerRun": 3
