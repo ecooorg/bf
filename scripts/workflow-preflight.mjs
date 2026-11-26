@@ -2,7 +2,7 @@
 /**
  * Workflow preflight: fails when a workflow references something that no longer exists
  * (files, npm scripts, exports) or when package metadata is inconsistent.
- * Writes <CI_LOGS_DIR>/00-preflight.log (PASS/FAIL lines are read by diagnostics-summary).
+ * Read-only with respect to repository source and tests; writes only its diagnostic log.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,49 +10,6 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// C131: soft price_ambiguous — never hard-reject optional price on verified listings.
-{
-  const rt = path.join(root, 'server', 'immofinderRepair.ts');
-  if (fs.existsSync(rt)) {
-    let t = fs.readFileSync(rt, 'utf8');
-    const before = t;
-    const hardNeedle = "if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;";
-    if (t.includes(hardNeedle)) {
-      t = t.replace(
-        hardNeedle,
-        `if (pv.status === 'suspect') {
-      // C131: price optionalForL1 — ambiguity is soft, never hide a verified listing
-      if (pv.why !== 'price_ambiguous_on_detail_page' && !/ambiguous/i.test(String(pv.why || ''))) {
-        why = pv.why.startsWith('price_') ? pv.why : \`price_\${pv.why}\`;
-      }
-    }`,
-      );
-    }
-    if (!t.includes('price_cleared:') && t.includes("const pv = priceVerdict(row);\n  if (pv.status === 'repair')")) {
-      t = t.replace(
-        "  const pv = priceVerdict(row);\n  if (pv.status === 'repair') {",
-        `  const pv = priceVerdict(row);
-  if (pv.status === 'suspect' && (pv.why === 'price_ambiguous_on_detail_page' || /ambiguous/i.test(String(pv.why || '')))) {
-    next.rent_monthly_chf = null;
-    next.pricing_unit = null;
-    next.raw = { ...obj(rec.raw), price: null, price_quote: null };
-    notes.push(\`price_cleared:\${pv.why}\`);
-  } else if (pv.status === 'repair') {`,
-      );
-    }
-    if (t !== before) {
-      fs.writeFileSync(rt, t);
-      console.log('preflight: C131 soft price_ambiguous applied to immofinderRepair.ts');
-    }
-  }
-}
-// Restore immofinder-verify tests if PLACEHOLDER/truncated.
-{
-  const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'restore-verify-test.mjs')], { cwd: root, encoding: 'utf8' });
-  if (r.stdout) process.stdout.write(r.stdout);
-  if (r.stderr) process.stderr.write(r.stderr);
-  if (r.status) console.warn('restore-verify-test exit', r.status);
-}
 const logDir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/diagnostics');
 fs.mkdirSync(logDir, { recursive: true });
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
