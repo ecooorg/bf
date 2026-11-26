@@ -1,3 +1,10 @@
+## C131 revalidation and actionable-card gate — P131.8u (2026-11-26)
+- Production runner now rejects a fetched detail if no direct phone/email or actionable source contact route is present. It extracts named hosts, recognizes platform enquiry/contact-details buttons, stores normalized source price/currency and renders platform-only contact distinctly on the card.
+- Corrected room parsing so "3 Schlafzimmer" is not mistaken for "3 Zimmer"; supports 2½/3½/4½ and "3.5-Zimmerwohnung". Revalidation hold hides every exploratory record from the first pilot and clears its seen-cache; only a fresh fetch with no hard reject can unhide it.
+- Flatfox source added; active sources are exactly HappyHoliday, Ferienhausmiete and Flatfox. Anibis/Tutti and all unsupported legacy sources are disabled. Serper/LLM/Jina remain off; local browser rendering only on HappyHoliday/Flatfox, max 3 pages/run.
+- Render keep-alive pinger disabled via `KEEP_ALIVE=false`; service can sleep on the free tier when idle. Search schedule is manual and all delivery channels are off.
+- **Acceptance still OPEN:** wait for the next production run, review at least 3 unique visible leads with verified locality, total rooms, source detail evidence, price/currency and actionable contact. Hosted Core CI must be green before closure.
+
 ## C131 source expansion — P131.8t (2026-11-26)
 - Added Flatfox direct rental search for Graubünden, with detail URL discovery, CHF/month parsing, 3½/2½ room parsing, locality/postcode evidence and advertiser legal-entity detection. It is enabled alongside HappyHoliday and Ferienhausmiete.
 - Active production sources: HappyHoliday, Ferienhausmiete, Flatfox. Anibis/Tutti remain paused after 403; legacy paid discovery, LLM, Jina, recurring schedules and delivery remain disabled. Local browser rendering is allowlisted only for HappyHoliday/Flatfox, max 3 renders/run.
