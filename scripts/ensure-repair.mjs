@@ -9,18 +9,54 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'server');
 
+async function fetchGoodRepair() {
+  const url = 'https://raw.githubusercontent.com/ecooorg/bf/3c4ce5733b1da7532501966e831923041928a8ca/server/immofinderRepair.ts';
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('fetch good repair failed ' + res.status);
+  return await res.text();
+}
+
 {
   const target = join(dir, 'immofinderRepair.ts');
   let text = existsSync(target) ? readFileSync(target, 'utf8') : '';
-  const needs = text.length < 20000 || !text.includes('export function hardRejectReason') || !text.includes('export function sanitizeNewRecord');
+  const needs = text.length < 20000 || !text.includes('export function hardRejectReason') || !text.includes('export function sanitizeNewRecord') || text.includes('Temporary stub') || text.includes('PLACEHOLDER') || text.includes('SEE_ARTIFACT');
   if (needs) {
-    const parts = readdirSync(dir).filter((f) => /^immofinderRepair\.ts\.zlib\.b64\.p\d+$/.test(f)).sort();
-    if (!parts.length) { console.error('immofinderRepair payload parts missing'); process.exit(1); }
-    const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8').trim()).join('').replace(/\s+/g, '');
-    const buf = inflateSync(Buffer.from(b64, 'base64'));
-    text = buf.toString('utf8');
-    writeFileSync(target, text);
-    console.log('Restored server/immofinderRepair.ts (%d bytes from %d parts)', buf.length, parts.length);
+    let restored = false;
+    try {
+      const parts = readdirSync(dir).filter((f) => /^immofinderRepair\.ts\.zlib\.b64\.p\d+$/.test(f)).sort();
+      if (parts.length) {
+        const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8').trim()).join('').replace(/\s+/g, '');
+        const buf = inflateSync(Buffer.from(b64, 'base64'));
+        if (buf.length > 20000 && buf.toString('utf8').includes('export function hardRejectReason')) {
+          text = buf.toString('utf8');
+          writeFileSync(target, text);
+          console.log('Restored server/immofinderRepair.ts (%d bytes from %d parts)', buf.length, parts.length);
+          restored = true;
+        }
+      }
+    } catch (e) {
+      console.warn('zlib restore failed', e.message || e);
+    }
+    if (!restored) {
+      // Fallback: fetch known-good from history (C131 base before accidental stubs)
+      try {
+        const good = await (async () => {
+          const url = 'https://raw.githubusercontent.com/ecooorg/bf/3c4ce5733b1da7532501966e831923041928a8ca/server/immofinderRepair.ts';
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(String(res.status));
+          return await res.text();
+        })();
+        if (good.length > 20000) {
+          writeFileSync(target, good);
+          text = good;
+          console.log('Restored server/immofinderRepair.ts from historical commit (%d bytes)', good.length);
+          restored = true;
+        }
+      } catch (e) {
+        console.error('historical restore failed', e.message || e);
+        process.exit(1);
+      }
+    }
   }
 }
 
@@ -59,7 +95,7 @@ try {
   console.warn('package-lock patch sync skipped');
 }
 
-// C131: contact is optional for short-stay L1. Always strip residual gate from payload restores.
+// C131: contact is optional for short-stay L1. Always strip residual gate.
 {
   const target = join(dir, 'immofinderRepair.ts');
   if (existsSync(target)) {
