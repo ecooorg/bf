@@ -15,8 +15,8 @@ const required = {
   'docs:check': 'node scripts/docsCheckInventories.mjs',
   'docs:generate': 'node scripts/docsGenerateInventories.mjs',
   'check': scripts.check || 'node scripts/run-dag.mjs --profile check',
-  'version:sync': scripts['version:sync'] || 'node scripts/sync-version.mjs',
-  'version:check': scripts['version:check'] || 'node scripts/sync-version.mjs --check',
+  'version:sync': scripts['version:sync'] || 'node scripts/version-metadata.mjs --write',
+  'version:check': scripts['version:check'] || 'node scripts/version-metadata.mjs',
   'test:app-builder': 'MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs',
 };
 
