@@ -49,7 +49,7 @@ test('C131 defaults enable the bounded source-first full run', () => {
   assert.equal(settings.search.carouselCommunesPerRun, cfg.municipalities.length);
   assert.deepEqual(
     Object.entries(settings.search.sources).filter(([, enabled]) => enabled).map(([id]) => id).sort(),
-    ['ferienhausmiete', 'happyholiday'],
+    ['ferienhausmiete', 'happyholiday', 'portal-flatfox'],
   );
   assert.equal(settings.search.defaultWave, 'full');
   assert.equal(settings.search.profile, 'burst');
