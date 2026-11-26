@@ -31,29 +31,16 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 
 /** Search targets: portal entries are Google site: queries, not independent portal crawlers. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
-  { id: 'search', label: 'Private-owner web search', hint: 'Google owner-direct ads and Nachmieter; social snippets are not saved as verified listings', priority: true },
-  { id: 'ferienhausmiete', label: 'Ferienhausmiete owner catalogue', hint: 'Direct holiday-home owner catalogue', priority: true },
-  { id: 'happyholiday', label: 'HappyHoliday owner catalogue', hint: 'Regional holiday-home catalogue', priority: true },
-  { id: 'landwirtschaft-gr', label: 'Graubünden agricultural / rural catalogue', hint: 'Regional rural property source', priority: false },
-  { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: false },
-  { id: 'portal-homegate', label: 'Homegate', hint: 'site:homegate.ch', priority: true },
-  { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: false },
-  { id: 'portal-flatfox', label: 'Flatfox', hint: 'site:flatfox.ch', priority: true },
-  { id: 'portal-tutti', label: 'Tutti', hint: 'site:tutti.ch', priority: true },
-  { id: 'portal-anibis', label: 'Anibis', hint: 'site:anibis.ch', priority: false },
-  { id: 'portal-petitesannonces', label: 'Petites Annonces', hint: 'site:petitesannonces.ch', priority: false },
-  { id: 'portal-immobilier', label: 'Immobilier.ch', hint: 'site:immobilier.ch', priority: false },
-  { id: 'portal-acheter-louer', label: 'Acheter-Louer', hint: 'site:acheter-louer.ch', priority: false },
-  { id: 'portal-immostreet', label: 'ImmoStreet', hint: 'site:immostreet.ch', priority: false },
-  { id: 'portal-home', label: 'Home.ch', hint: 'site:home.ch', priority: false },
-  { id: 'portal-icasa', label: 'ICasa', hint: 'site:icasa.ch', priority: false },
-  { id: 'portal-urbanhome', label: 'UrbanHome', hint: 'site:urbanhome.ch', priority: false },
+  { id: 'ferienhausmiete', label: 'Ferienhausmiete', hint: 'Directly fetched holiday-home listings', priority: true },
+  { id: 'happyholiday', label: 'HappyHoliday', hint: 'Directly fetched regional owner listings', priority: true },
+  { id: 'portal-anibis', label: 'Anibis', hint: 'Direct classified listing details; fetched and verified', priority: true },
+  { id: 'portal-tutti', label: 'Tutti', hint: 'Direct classified listing details; fetched and verified when accessible', priority: true },
 ];
 
 
-/** Fixed 22+22 groups — keep chips in sync with group checkboxes. */
-const GROUP1_COMMUNES = ["Chur", "Haldenstein", "Trimmis", "Untervaz", "Zizers", "Igis", "Landquart", "Felsberg", "Domat/Ems", "Tamins", "Trin", "Flims", "Bonaduz", "Rhäzüns", "Cazis", "Thusis", "Maladers", "Churwalden", "Passugg", "Araschgen", "Praden", "Tschiertschen"];
-const GROUP2_COMMUNES = ["Maienfeld", "Fläsch", "Jenins", "Malans", "Grüsch", "Seewis-Pardisla", "Schiers", "Laax", "Versam", "Valendas", "Castrisch", "Ilanz", "Rothenbrunnen", "Rodels", "Realta", "Parpan", "Valbella", "Lenzerheide", "Castiel", "Lüen", "St. Peter-Molinis", "Peist"];
+/** Full canton scope: 100 official municipalities plus 19 legacy/locality aliases. */
+const GROUP1_COMMUNES = ["Albula/Alvra","Andeer","Arosa","Avers","Bergün Filisur","Bever","Bonaduz","Bregaglia","Breil/Brigels","Brusio","Buseno","Calanca","Cama","Castaneda","Cazis","Celerina/Schlarigna","Chur","Churwalden","Conters im Prättigau","Davos","Disentis/Mustér","Domat/Ems","Domleschg","Falera","Felsberg","Ferrera","Fideris","Fläsch","Flerden","Flims","Furna","Fürstenau","Grono","Grüsch","Ilanz/Glion","Jenaz","Jenins","Klosters","Küblis","La Punt Chamues-ch","Laax","Landquart","Lantsch/Lenz","Lostallo","Lumnezia","Luzein","Madulain","Maienfeld","Malans","Masein","Medel (Lucmagn)","Mesocco","Muntogna da Schons","Obersaxen Mundaun","Pontresina","Poschiavo","Rhäzüns","Rheinwald","Rongellen","Rossa","Rothenbrunnen","Roveredo (GR)","Safiental","Sagogn","Samedan","Samnaun","San Vittore","Santa Maria in Calanca","S-chanf","Scharans","Schiers","Schluein","Schmitten (GR)","Scuol","Seewis im Prättigau","Sils im Domleschg","Sils im Engadin/Segl","Silvaplana","Soazza","St. Moritz","Sufers","Sumvitg","Surses","Tamins","Thusis","Trimmis","Trin","Trun","Tschappina","Tujetsch","Untervaz","Urmein","Val Müstair","Vals","Valsot","Vaz/Obervaz","Zernez","Zillis-Reischen","Zizers","Zuoz"];
+const GROUP2_COMMUNES = ["Haldenstein","Igis","Lenzerheide","Maladers","Parpan","Valbella","Passugg","Araschgen","Praden","Tschiertschen","Castiel","Lüen","St. Peter-Molinis","Peist","Versam","Valendas","Castrisch","Realta","Seewis-Pardisla"];
 function communesForGroups(g: { group1?: boolean; group2?: boolean }, all: string[]): string[] {
   const g1on = g?.group1 !== false;
   const g2on = g?.group2 !== false;
@@ -296,7 +283,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               }
               data-testid="immofinder-group1"
             />{' '}
-            Group 1 (22) — Chur / Rhine belt (Haldenstein…Tschiertschen)
+            Group 1 (100) — all official Graubünden municipalities
           </label>
           <label style={labelBlock}>
             <input
@@ -321,7 +308,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               }
               data-testid="immofinder-group2"
             />{' '}
-            Group 2 (22) — Prättigau / Surselva / south (Maienfeld…Peist)
+            Group 2 (19) — legacy and locality aliases
           </label>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '8px 0' }}>
