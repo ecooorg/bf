@@ -1,3 +1,11 @@
+## P131.8m — Pipeline the next SERP call behind candidate processing (RELIABILITY)
+- **EVIDENCE:** run `d470cbb4` (after P131.8l): queries completed 12/17 (was 8/17), still `run_time_budget`, 0 kept. Per-query step times: queries with /goto links 18-23 s (Q1, Q2, Q6, Q10, Q12), others ~4 s. Earlier resolve durations (2 links 15.2/23.4 s, 3 links 16.2 s) are not proportional to link count, so the P131.8l hypothesis (serial per-link cost) is NOT confirmed; the 8→12 gain is attributable to fewer goto queries in that run (5/12 vs 5/8), not to parallel resolve.
+- **HYPOTHESIS:** `/resolve` has ~15-23 s fixed latency per call. Starting the next SERP call while the current query's candidates are fetched/verified hides that latency (sequential wall time → max of the two).
+- **METRIC/ACCEPT:** queries completed per 180 s run ≥14/17 with the same query list; no change in rejects. Baseline 12/17. Live re-run: NOT_RUN. Guard: only when `!finishAll` and >90 s left; pacing via `paceSerper`.
+- **SCOPE:** `server/immofinderPipeline.ts`, `tests/immofinder-p0.test.mjs`. **ROLLBACK:** revert if queries completed does not rise or Serper 429s appear.
+- **OBSERVED (quality):** all 91 candidates rejected legitimately by taxonomy (82 outside target, 5 snippet_only, agency, for_sale, rooms_below_min, seeker); no L1/L2 in this short test. Homegate/Tutti 403 and list-page URLs remain open.
+- **CLASSIFICATION:** RELIABILITY; user value NOT_RUN.
+
 ## P131.8l — Resolve Serper /goto links in parallel (RELIABILITY)
 - **EVIDENCE:** short test `b8e86208` (build c78fa4e, dryRun, Chur): 8 Serper calls ok (credits restored); `immofinder_serper_redirect_resolution` took 15.2-23.4 s for 2-3 links per query, 5 of 8 queries, ≈93 s of a 142.6 s run; `run_time_budget` stopped with 9 of 17 queries left; 0 kept. HappyHoliday: 82 candidates, 82 `municipality_not_whitelisted` by URL (Scuol, Lenzerheide), `consecutiveBad` 0, no early stop: P131.8k was not the blocker in this run.
 - **HYPOTHESIS:** `/resolve` follows links serially (~8 s each); one call per goto row in parallel cuts per-query wait to the slowest link, so more queries fit the 180 s budget.
