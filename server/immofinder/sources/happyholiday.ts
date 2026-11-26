@@ -113,7 +113,7 @@ export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedField
   }
 
   let privateMarker: string | null = null;
-  const pm = plain.match(PRIVATE_RE);
+  const pm = searchable.match(PRIVATE_RE);
   if (pm) privateMarker = pm[0];
 
   const evidenceQuotes: string[] = [];
