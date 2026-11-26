@@ -61,7 +61,9 @@ function locationTokens(value: string): string[] {
 }
 function hasLocationContext(tokens: string[], index: number): boolean {
   const before = tokens.slice(Math.max(0, index - 3), index);
+  const after = tokens.slice(index + 1, index + 4);
   return before.some((token) => ['in', 'von', 'bei', 'ort', 'standort', 'adresse', 'gemeinde', 'location', 'wohnort'].includes(token))
+    || after.some((token) => ['graubunden', 'grisons'].includes(token))
     || /^\\d{4}$/.test(tokens[index - 1] || '');
 }
 function findTokenSequence(haystack: string[], needle: string[]): number {
@@ -118,7 +120,7 @@ function hasSubstantiveDetail(title: string, pageText: string): boolean {
     .replace(/haus suchen|wohnung suchen|kontakt|über uns|agb|impressum|haus registrieren|anmelden|login|wunschliste|reisemagazin|navigation/gi, ' ')
     .replace(/[|•·]/g, ' ');
   const words = clean.match(/[\p{L}\p{N}]{3,}/gu) || [];
-  return words.length >= 10 || /(?:CHF|EUR|€|m²|schlafzimmer|badezimmer|ausstattung|verfügbarkeit|preis pro|pro nacht)/i.test(clean);
+  return words.length >= 8 || /(?:CHF|EUR|€|m²|schlafzimmer|badezimmer|ausstattung|verfügbarkeit|preis pro|pro nacht)/i.test(clean);
 }
 
 function extractRooms(text: string): { rooms: number; quote: string } | null {
