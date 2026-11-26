@@ -234,7 +234,7 @@ export async function runPipeline(
           if (code === 'outside_target') stats.geo++;
           else stats.junk++;
           stats.consecutiveBad++;
-          try { await deps.store.markSeen(candidate.url, source.id, 'rejected', code); } catch { /* non-critical cache */ }
+          if (!opts.dryRun) { try { await deps.store.markSeen(candidate.url, source.id, 'rejected', code); } catch { /* non-critical cache */ } }
           continue;
         }
 
