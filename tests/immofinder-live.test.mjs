@@ -8,7 +8,7 @@ import { runPipeline } from '../server/immofinder/live.ts';
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
 const detailUrl = 'https://happyholiday.ch/haus/wohnung-in-chur/';
 const offTargetUrl = 'https://happyholiday.ch/haus/ferienwohnung-in-scuol/';
-const indexHtml = '<html><body><a href="https://happyholiday.ch/haus/wohnung-in-chur/">Wohnung Chur</a><a href="https://happyholiday.ch/haus/ferienwohnung-in-scuol/">Ferienwohnung Scuol</a></body></html>';
+const indexHtml = '<html><body><a href="https://happyholiday.ch/haus/ferienwohnung-in-scuol/">Ferienwohnung Scuol</a><a href="https://happyholiday.ch/haus/wohnung-in-chur/">Wohnung Chur</a></body></html>';
 const detailHtml = '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>Diese schöne Wohnung liegt in Chur. 3.5 Zimmer, helle Räume und Balkon. Das Angebot ist von privat. Für Fragen nutzen Sie bitte das Kontaktformular oder senden Sie eine Nachricht.</p></body></html>';
 const offTargetHtml = '<html><head><title>3.5 Zimmer Ferienwohnung in Scuol</title></head><body><h1>3.5 Zimmer Ferienwohnung in Scuol</h1><p>Ferienwohnung in Scuol mit 3.5 Zimmern, schöner Aussicht und Küche. Vermietung direkt vom privaten Eigentümer.</p></body></html>';
 
@@ -50,18 +50,19 @@ test('source-first live pipeline admits a fetched private listing and persists t
   const { deps, writes, fetched } = depsFor();
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
   assert.equal(result.status, 'COMPLETED');
-  assert.equal(result.counts.fetched, 2);
+  assert.equal(result.counts.fetched, 1);
   assert.equal(result.counts.kept, 1);
   assert.equal(result.counts.new, 1);
   assert.equal(writes.length, 1);
-  assert.equal(result.filtered.outside_target, 1);
+  assert.equal(result.filtered.source_locality_mismatch, 1);
   assert.equal(writes[0].listing_type, 'holiday_owner');
   assert.equal(writes[0].municipality, 'Chur');
   assert.match(writes[0].raw.evidence_text, /3.5 Zimmer/);
   assert.equal(writes[0].raw.evidence_kind, 'page_text');
   assert.equal(writes[0].raw.evidence_url, detailUrl);
   assert.equal(result.estCostUsd, 0);
-  assert.deepEqual(fetched, [indexUrl, detailUrl, offTargetUrl]);
+  assert.deepEqual(fetched, [indexUrl, detailUrl]);
+  assert.equal(fetched.includes(offTargetUrl), false);
 });
 
 test('source-first dry run never writes and off-target pages are never admitted', async () => {
@@ -69,7 +70,7 @@ test('source-first dry run never writes and off-target pages are never admitted'
   const result = await runPipeline(deps, { dryRun: true, testMode: true });
   assert.equal(result.status, 'COMPLETED');
   assert.equal(result.counts.kept, 1);
-  assert.equal(result.filtered.outside_target, 1);
+  assert.equal(result.filtered.source_locality_mismatch, 1);
   assert.equal(writes.length, 0);
   assert.equal(marks.length, 0, 'dry run must not mutate the seen cache');
 });
