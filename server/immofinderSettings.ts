@@ -238,7 +238,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
         communesPerRun:
           s.search.profile === 'carousel'
             ? s.search.carouselCommunesPerRun
-            : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
+            : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? municipalities.length : cfg.discovery.communesPerRun),
         queries: wantPrivate ? (cfg.discovery.queries || []).slice(0, s.search.privateQueryTemplates) : [],
         portalQueries,
         // R9: never widen into unmeasured sources as an automatic fallback.
