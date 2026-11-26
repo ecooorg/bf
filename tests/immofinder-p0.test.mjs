@@ -650,3 +650,14 @@ test('P131.3b L3 platform contact is verified against the same fetched HTML page
   assert.equal(buildC131LetterDraft({ ...input, contactRoute: 'none' }).ready, false);
   assert.equal(buildC131LetterDraft({ ...input, finalUrl: 'https://www.happyholiday.ch/ferienwohnung/99999' }).ready, false);
 });
+
+test('P131.8k prefetch geo skips do not count toward the source early-stop streak', () => {
+  const src = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
+  for (const stage of ["stage: 'url_geo'", "stage: 'title_snippet_geo'"]) {
+    const i = src.indexOf(stage);
+    assert.ok(i > 0, stage);
+    const block = src.slice(i, i + 450);
+    assert.match(block, /st\.geo\+\+;/);
+    assert.doesNotMatch(block, /consecutiveBad\+\+/);
+  }
+});
