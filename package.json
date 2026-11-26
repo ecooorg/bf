@@ -32,7 +32,10 @@
     "test:governance": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/governance-workflow-pins.test.mjs",
     "version:sync": "node scripts/version-metadata.mjs sync",
     "version:check": "node scripts/version-metadata.mjs check",
-    "docs:integrity": "node scripts/docs-integrity.mjs",
-    "docs:check": "node scripts/docs-check.mjs"
+    "docs:integrity": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs && node scripts/scripts-integrity.mjs",
+    "docs:check": "node scripts/docsCheckInventories.mjs",
+    "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-models.test.mjs",
+    "docs:generate": "node scripts/docsGenerateInventories.mjs",
+    "check": "node scripts/run-dag.mjs --profile check"
   }
 }
