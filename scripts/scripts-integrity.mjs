@@ -25,6 +25,7 @@ const ALLOW = new Set([
   'immofinder-health-check.mjs', 'immofinder-recheck-feed.mjs',
   'immofinder-p0-feed-hygiene.mjs', 'immofinder-p1-rooms-hygiene.mjs', 'immofinder-verify-hygiene.mjs',
   'immofinder-p2-junk-hosts.mjs', 'immofinder-p3-version.mjs', 'immofinder-core-restore.mjs',
+  'immofinder-source-pilot.mjs',
   'lint-copy.mjs', 'migrate.mjs', 'monitor-connections.mjs', 'pack-simple.mjs', 'patch-pack.mjs',
   'patch-quality-report.mjs', 'patch-tools.mjs', 'project-user-value-eval.mjs', 'project-user-value-live.mjs',
   'run-dag.mjs', 'schemaValidate.mjs', 'scripts-integrity.mjs', 'statusGraph.mjs', 'verify-connections.mjs',
