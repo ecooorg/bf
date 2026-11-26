@@ -42,7 +42,17 @@ export function discover(indexHtml: string, indexUrl: string): DetailCandidate[]
     found.add(url);
     out.push({ url });
   }
-  return out;
+  const hints = new Map<string, string>();
+  const anchors = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  while ((m = anchors.exec(indexHtml)) !== null) {
+    try {
+      const url = new URL(m[1], indexUrl).toString().replace(/\/$/, '');
+      if (!new RegExp(DETAIL_RE.source, 'i').test(url)) continue;
+      const hint = m[2].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim().slice(0, 160);
+      if (hint) hints.set(url, hint);
+    } catch { /* ignore malformed index links */ }
+  }
+  return out.map((item) => ({ ...item, titleHint: hints.get(item.url) }));
 }
 
 export function extract(pageHtmlOrText: string, pageUrl: string): ExtractedFields {
