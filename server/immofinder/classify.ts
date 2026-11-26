@@ -64,7 +64,7 @@ function hasLocationContext(tokens: string[], index: number): boolean {
   const after = tokens.slice(index + 1, index + 4);
   return before.some((token) => ['in', 'von', 'bei', 'ort', 'standort', 'adresse', 'gemeinde', 'location', 'wohnort'].includes(token))
     || after.some((token) => ['graubunden', 'grisons'].includes(token))
-    || /^\\d{4}$/.test(tokens[index - 1] || '');
+    || /^\d{4}$/.test(tokens[index - 1] || '');
 }
 function findTokenSequence(haystack: string[], needle: string[]): number {
   if (!needle.length || needle.length > haystack.length) return -1;
