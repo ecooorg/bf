@@ -978,6 +978,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             enrichSearchesPerRun: 0,
             recheckContactSearch: false,
             limitPrice: false,
+            maxListingAgeDays: 0,
             requirePrice: false,
             requireContact: false,
             rejectSeekerPosts: true,
