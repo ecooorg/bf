@@ -266,7 +266,7 @@ test('C131 source-first production scope covers all Graubunden communes and loca
   assert.equal(cfg.municipalities.length, 121);
   assert.match(settings, /municipalities\.length/);
   assert.doesNotMatch(settings, /Math\.min\(44, municipalities\.length\)/);
-  for (const id of ['happyholiday', 'ferienhausmiete', 'portal-anibis', 'portal-tutti']) {
+  for (const id of ['happyholiday', 'ferienhausmiete', 'portal-flatfox', 'portal-anibis', 'portal-tutti']) {
     assert.ok(cfg.sources.some((source) => source.id === id), 'missing source config: ' + id);
     assert.match(ui, new RegExp("id: '" + id + "'"));
   }
@@ -275,7 +275,7 @@ test('C131 source-first production scope covers all Graubunden communes and loca
 test('C131 browser fallback is local, host-allowlisted and hard-capped', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const live = read('server/immofinderRoutes.ts');
-  assert.deepEqual(cfg.fetch.browserRenderHosts, ['happyholiday.ch']);
+  assert.deepEqual(cfg.fetch.browserRenderHosts, ['happyholiday.ch', 'flatfox.ch']);
   assert.equal(cfg.fetch.maxBrowserRendersPerRun, 3);
   assert.match(live, /allowJina: false, allowBrowser: true/);
   assert.match(live, /maxLlmCalls: 0/);
@@ -689,9 +689,10 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.delivery.telegram, false);
   assert.equal(defaults.delivery.email, false);
   assert.equal(defaults.delivery.drive, false);
-  assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 2);
+  assert.equal(Object.values(defaults.search.sources).filter(Boolean).length, 3);
   assert.equal(defaults.search.sources.happyholiday, true);
   assert.equal(defaults.search.sources.ferienhausmiete, true);
+  assert.equal(defaults.search.sources['portal-flatfox'], true);
   assert.equal(defaults.search.sources['portal-anibis'], false);
   assert.equal(defaults.search.sources['portal-tutti'], false);
 
