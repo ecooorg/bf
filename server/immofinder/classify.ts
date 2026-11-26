@@ -1,7 +1,7 @@
 /**
  * C131 WP3 classify stage — pure R2 gates → level + closed R7 reject code.
  * Operates only on a fetched page snapshot + config; zero provider cost, offline-reproducible.
- * Does not write, fetch, or call models. Legacy TrustEngine remains the live path until WP5.
+ * Does not write, fetch, or call models. Used by the production source-first admission route.
  */
 
 import { classifyReject, type R7RejectCode } from './taxonomy.ts';
