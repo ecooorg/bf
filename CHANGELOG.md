@@ -1,3 +1,8 @@
+## P131.8j+ — C131 state snapshot (docs only)
+- **PROBLEM:** roadmap status and open WP0-WP7 work were scattered across entries.
+- **CHANGE:** added one status and open-work entry to `docs/ROADMAP_C131.md`; no code change, no version bump.
+- **SCOPE:** MAINTENANCE.
+
 ## P131.8i — Core CI green; C131 soft price; WP5 dry-run helper
 - **PROBLEM:** `price_ambiguous_on_detail_page` hard-rejected verified listings; Core CI red on P129.49.
 - **CHANGE:** Ambiguous optional price is soft (clear on sanitize, never hide). Preflight applies the soft-price patch. Added `dryRunBatch` for offline new-vs-legacy compare. Core CI Verification DAG green.

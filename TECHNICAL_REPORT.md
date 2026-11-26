@@ -1,3 +1,8 @@
+## C131 state snapshot (docs only)
+- **OBSERVED:** WP0 done; WP1-WP4 partial; WP5-WP7 not started; new engine under `server/immofinder/` exists but legacy is live.
+- **CHANGE:** roadmap status and open-work list recorded in `docs/ROADMAP_C131.md`.
+- **NOT_RUN:** hosted CI and production deploy identity on main @ 0413898.
+
 ## CURRENT EVIDENCE NOTE
 Evidence is run-scoped and labelled OBSERVED / INFERRED / NOT_RUN. Hosted CI, live search yield and owner review are reported separately from local unit results.
 
