@@ -95,7 +95,7 @@ export function churTestSettings(cfg: ImmoConfig): ImmoSettings {
       minRooms: 3,
       communes: ['Chur'],
       municipalityGroups: { group1: true, group2: false },
-      sources: Object.fromEntries(Object.keys(d.search.sources).map((id) => [id, true])),
+      sources: Object.fromEntries(Object.keys(d.search.sources).map((id) => [id, ['happyholiday', 'ferienhausmiete'].includes(id)])),
       maxAiPages: 200,
       limitPrice: false,
       maxListingAgeDays: 0,
