@@ -65,6 +65,34 @@ test('source-first live pipeline admits a fetched private listing and persists t
   assert.equal(fetched.includes(offTargetUrl), false);
 });
 
+test('Anibis direct rental details are stored as long-term offers, not holiday-owner leads', async () => {
+  const { deps, writes } = depsFor();
+  const index = 'https://www.anibis.ch/de/q/immobilien-graubuenden-wohnungen-mieten/test';
+  const detail = 'https://www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783';
+  deps.config.sources = [{
+    id: 'portal-anibis',
+    url: index,
+    maxDetailPages: 12,
+    detailPattern: '^https://www\\.anibis\\.ch/de/vi/.*',
+  }];
+  deps.fetchPage = async (url) => {
+    if (url === index) return {
+      ok: true, status: 200, body: '<a href="' + detail + '">3.5-Zimmer-Wohnung Chur</a>', finalUrl: url,
+    };
+    if (url === detail) return {
+      ok: true, status: 200,
+      body: '<h1>Helle 3.5-Zimmer-Wohnung in Chur</h1><p>7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Privatperson. Kontaktformular.</p>',
+      finalUrl: url,
+    };
+    return { ok: false, status: 404, body: '', finalUrl: url };
+  };
+  const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
+  assert.equal(result.counts.kept, 1);
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].listing_type, 'long_term_offer');
+  assert.equal(writes[0].municipality, 'Chur');
+});
+
 test('source-first dry run never writes and off-target pages are never admitted', async () => {
   const { deps, writes, marks } = depsFor();
   const result = await runPipeline(deps, { dryRun: true, testMode: true });
