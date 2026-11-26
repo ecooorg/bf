@@ -262,8 +262,8 @@ test('C131 source-first production scope covers all Graubunden communes and loca
   const settings = read('server/immofinderSettings.ts');
   const ui = read('src/ImmoFinderSettings.tsx');
   assert.equal(cfg.municipalityGroups.group1.municipalities.length, 100);
-  assert.equal(cfg.municipalityGroups.group2.municipalities.length, 19);
-  assert.equal(cfg.municipalities.length, 119);
+  assert.equal(cfg.municipalityGroups.group2.municipalities.length, 21);
+  assert.equal(cfg.municipalities.length, 121);
   assert.match(settings, /municipalities\.length/);
   assert.doesNotMatch(settings, /Math\.min\(44, municipalities\.length\)/);
   for (const id of ['happyholiday', 'ferienhausmiete', 'portal-anibis', 'portal-tutti']) {
