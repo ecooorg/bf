@@ -272,6 +272,15 @@ test('C131 source-first production scope covers all Graubunden communes and loca
   }
 });
 
+test('C131 browser fallback is local, host-allowlisted and hard-capped', () => {
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const live = read('server/immofinderRoutes.ts');
+  assert.deepEqual(cfg.fetch.browserRenderHosts, ['happyholiday.ch']);
+  assert.equal(cfg.fetch.maxBrowserRendersPerRun, 3);
+  assert.match(live, /allowJina: false, allowBrowser: true/);
+  assert.match(live, /maxLlmCalls: 0/);
+});
+
 test('config prioritises long-term Swiss rental discovery portals', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const queries = cfg.discovery.portalQueries.join(' ');
