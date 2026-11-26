@@ -1,3 +1,8 @@
+## P131.8w — ImmoFinder audit and CI reconciliation
+- **OBSERVED:** Core CI run 45857907223 failed at 5875c9a on a stale Davos assertion and lock patch mismatch; both are corrected on main @ d8298f1.
+- **CHANGE:** Reconciled module, architecture, API, test and user-value status; patch/lock/repair stamps aligned to 131.8w.
+- **NOT_RUN:** hosted CI on d8298f1 and this commit; P131.8v deployment, provider spend, post-change yield and owner review.
+
 ## P131.8v — Bounded discovery and owner-evidence assist
 - Live runner adds rotating Serper discovery for Flatfox, Anibis and Tutti. Six communes are selected per run from the persisted full 121-locality scope; at most 18 queries/run with a minimum 3s interval. Only detail URLs passing the portal allowlist and configured detail pattern are fetched.
 - Production minimum rooms is hard-clamped to 3 at run time. Anibis/Tutti are included in the active runtime source set. Existing strict page-level classifier, owner/contact gate, robots/SSRF controls and 48-detail/240s caps remain.

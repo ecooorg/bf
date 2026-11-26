@@ -1,3 +1,7 @@
+## P131.8w — ImmoFinder state audit (MAINTENANCE)
+- Reconcile the two historical red-CI causes against their fixes on main; align package, lockfile and repair-rule patch metadata.
+- Document the live-engine cut-over, remaining legacy dependencies, CI evidence and unverified production acceptance.
+
 ## P131.8v — Bounded provider-assisted discovery (FEATURE)
 - Add a rotating, 18-query maximum Serper layer across Flatfox, Anibis and Tutti; respect a 3-second minimum spacing and fetch only validated detail URLs.
 - Enforce a runtime minimum of 3 rooms and activate the remaining supported classified adapters.

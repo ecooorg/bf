@@ -1,3 +1,8 @@
+# C131 P131.8w — ImmoFinder audit snapshot (2026-11-26)
+- **OBSERVED:** P131.8q's three bounded production runs admitted 0 listings; earlier source access included 403 responses. The P131.8v implementation has no post-change live evidence.
+- **INFERRED:** wider portal discovery and bounded owner review may improve reach, but neither yield nor quality is established.
+- **NOT_RUN:** P131.8v deployment identity, provider availability and actual spend, three consecutive completed runs, review of L1+ records/letters, and successful user task outcome. No precision/recall claim: independent owner-labelled Gold data is unavailable.
+
 # P130.18a — ImmoFinder run continuity
 - **OBSERVED:** query-level checkpoints and durable delivery state are implemented in source.
 - **NOT_RUN:** recovery during an actual deploy, duplicate-notification acceptance, completed listing yield and user task outcome.

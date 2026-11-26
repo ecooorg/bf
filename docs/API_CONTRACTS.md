@@ -155,9 +155,18 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `GET` | `/ready` | `server/healthRoutes.ts` | Source inventory only; detailed request/response schema pending |
 <!-- END GENERATED ROUTE INDEX -->
 
-## ImmoFinder (planned, P128)
+## ImmoFinder current runtime (C131, inspected 2026-11-26)
 
-All routes behind app auth; English errors. Not implemented in 128.1a (verify against routes before relying on them).
+- **Search execution:** `POST /api/immofinder/run` validates a session + same-origin request or a timing-safe `X-Immofinder-Secret` (configured `IMMOFINDER_RUN_SECRET`, at least 16 characters), requires PostgreSQL, queues a durable run and returns `202 {success, runId, dryRun, wave}`; an active run returns `409 RUN_IN_PROGRESS`, missing DB returns `503 DATABASE_UNAVAILABLE`. Product waves are `full` and `carousel`; legacy `priority`/`extended` values are mapped for compatibility. Test mode requires the secret and `dryRun=true`.
+- **Diagnostics:** `GET /api/immofinder/diagnostics/latest` and `GET /api/immofinder/github/probe` are read-only secret-protected polling routes; they do not start the repair bootstrap. Run diagnostics are stored in PostgreSQL, with a bounded latest-100 history; GitHub runtime writes are disabled.
+- **Session boundary:** ordinary module routes use the application session gate; mutating requests require same-origin. The run secret bypass is limited to the explicitly recognized automation calls. Do not expose provider credentials or the run secret in settings/diagnostics.
+- **Runtime/data:** the route uses `server/immofinder/live.ts` for source-first search and the PostgreSQL-backed worker/lease for execution. PostgreSQL is the source of truth; Drive, Telegram and email are server-side delivery adapters, not automatic letter-sending. Current schedule/delivery settings are documented as off pending owner acceptance.
+- The generated route index is an inventory, not a full schema. Detailed payload/error contracts for listings, settings, recheck, repair, export and enrichment endpoints remain source-inspected / schema-pending; do not infer fields from the historical P128 examples below.
+
+
+## ImmoFinder route history (P128 baseline; superseded by the C131 runtime section above)
+
+Historical P128 planning notes retained for traceability; current implementation and auth boundary are described in the C131 section above.
 
 - `GET /api/immofinder/listings?status=&municipality=` → cards (German fields, Russian translation fields, contact status, source URLs, photo URLs); `scope=hidden` returns only hidden rows, `scope=all` current and hidden together (default: current only). Publication date of the ad, when the page states it, is `raw.listed_at`.
 - `PATCH /api/immofinder/listings/:id` → manual `status` change only.

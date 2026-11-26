@@ -1,3 +1,12 @@
+## C131 ImmoFinder audit and verification boundary (2026-11-26)
+
+- **Category suites:** `tests/agents-contract.test.mjs` retains P128 compatibility/pipeline contracts; `tests/immofinder-live.test.mjs` covers source-first adapters, fetched-page admission, locality/contact gates and bounded no-provider fixtures; `tests/immofinder-quality.test.mjs` covers R1–R14 config, TrustEngine invariants and repair/quality contracts; `tests/immofinder-verify.test.mjs` covers taxonomy, classifier and owner evidence. Extend these suites per `docs/TEST_MAP.md`; do not add patch-named tests.
+- **Historical red CI:** run 45857907223 at 5875c9a failed `test:core` on a stale Davos expectation and `test:project` on lock patch 131.8u vs package patch 131.8v. Main @ d8298f1 contains the corresponding source/test and lockfile corrections.
+- **Current-head verification:** hosted CI for d8298f1 was NOT_RUN (commit used `[skip ci]`); this audit commit must be checked in Actions. Do not report green until the Core CI DAG completes successfully on the exact commit.
+- **Required technical checks:** Core CI / `node scripts/run-dag.mjs --profile check`, `npm run version:check`, typecheck, build, architecture and docs-integrity checks. Report each result separately; a local deterministic pass does not replace hosted CI.
+- **Live acceptance:** deployment identity, P131.8v provider availability/spend, three consecutive completed runs, reviewed L1+ records, owner-reviewed letters and user outcome are NOT_RUN. The earlier P131.8q sample (three bounded runs, zero admitted records) is evidence of zero yield, not acceptance.
+- **UI surface:** home entry `data-testid="start-immofinder"` opens the ImmoFinder workspace; core screen identifiers include `immofinder-root`, `immofinder-run`, `immofinder-status-filter`, `immofinder-card`, `immofinder-last-run` and `immofinder-live`. This audit changes no UI entry, mounting, routing or completion flow; browser e2e was not run.
+
 ## P124.35 — Universal conversational retrieval regression corpus
 
 - `tests/universal-followup-regression.test.mjs` is a cross-domain contract suite. Its examples span software releases, travel schedules, product availability, public policy, business research and weather; weather is one case, not the suite's organizing domain.

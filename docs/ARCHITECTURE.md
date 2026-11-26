@@ -1,6 +1,6 @@
-## ImmoFinder evidence-first admission
-- Search queries are generated from rental intent; listing facts come only from the fetched detail page, not SERP snippets or an LLM.
-- The final gate requires matching URL, rental status, page-sourced rooms, CHF/month rent, fresh publication date and advertiser-labelled direct contact; unknown evidence fails closed.
+## ImmoFinder admission boundary (C131)
+- R1–R14 in `TECHNICAL_SPECIFICATION.md` are authoritative: L1 requires a fetched, URL-matched residential detail page, configured-locality evidence, ≥3 page-confirmed rooms and the approved exclusion checks.
+- Price, publication date, direct phone/email and photos are optional for L1; snippets are discovery-only. L2/L3 owner reachability and letters have separate evidence gates. Never reinstate superseded P129–P130 mandatory monthly-price/date/direct-contact rules.
 
 ## ImmoFinder durable run execution
 - The immofinder_runs table is the PostgreSQL queue authority; workers claim one row with SKIP LOCKED and an expiring lease renewed by heartbeat.
@@ -109,9 +109,9 @@ Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,
 
 ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune queries (rotation by finished real runs), picks hits (host policy) and feeds them to the same extraction/filter/persist function as catalogue sources. Product quality contract: see **ImmoFinder search result quality** below.
 
-## C131 ImmoFinder search constitution
+## C131 ImmoFinder search constitution and implementation status
 
-The current product objective, L0–L3 result levels, per-field provenance, reject taxonomy, source admission, budgets, letter rules and change control are defined by R1–R14 in `TECHNICAL_SPECIFICATION.md`. This is a pointer, not a second policy source. The runtime is still the single legacy engine (`server/immofinder*.ts`, 17 modules) with C131 admission rules applied in place (TrustEngine, L1–L3, source-first run); the target `server/immofinder/` layout (WP3/WP5) does not exist, and passing tests or CI are not evidence of C131 user value.
+R1–R14 in `TECHNICAL_SPECIFICATION.md` remain the sole product-policy authority. The production search route imports `runPipeline` from `server/immofinder/live.ts`; the target directory now contains access, classification, pure pipeline, owner, run, taxonomy and source-adapter modules. `server/immofinderRoutes.ts` still owns authenticated routes, the PostgreSQL worker/lease, settings, delivery, repair, refresh and diagnostics; the new runner also reuses shared legacy Core/Pipeline types and helpers. Therefore the production search cut-over is implemented, but WP5 legacy dependency retirement and snapshot/restore cleanup are only PARTIAL. WP1/WP2 evidence, WP3 gold replay, WP4 owner review and WP6 live acceptance remain open; WP7 is not triggered. CI and deterministic tests are technical evidence only, never proof of user value.
 
 ## Historical: ImmoFinder search result quality (superseded by C131)
 
