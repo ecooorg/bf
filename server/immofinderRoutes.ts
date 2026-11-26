@@ -958,7 +958,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
 // One-time owner-approved scope expansion. A persisted updated_at guard prevents repeats after restarts.
-  const scopeExpandAfterMs = Date.parse('2026-11-26T15:38:00Z');
+  const scopeExpandAfterMs = Date.parse('2026-11-26T16:20:00Z');
   if (Number.isFinite(scopeExpandAfterMs) && process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT && process.env.DATABASE_URL) {
     const scopeExpandTimer = setTimeout(() => {
       void (async () => {
@@ -977,12 +977,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           search: {
             ...current.search,
             communes: [...cfg.municipalities],
-            minRooms: 2,
+            minRooms: 3,
             municipalityGroups: { group1: true, group2: true },
-            sources: Object.fromEntries(sourceIds.map((id) => [id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox'].includes(id)])),
+            sources: Object.fromEntries(sourceIds.map((id) => [id, ['happyholiday', 'ferienhausmiete', 'portal-flatfox', 'portal-anibis', 'portal-tutti'].includes(id)])),
             profile: 'burst',
             defaultWave: 'full',
-            carouselCommunesPerRun: cfg.municipalities.length,
+            carouselCommunesPerRun: Math.min(6, cfg.municipalities.length),
             maxAiPages: 200,
             enrichSearchesPerRun: 0,
             recheckContactSearch: false,
