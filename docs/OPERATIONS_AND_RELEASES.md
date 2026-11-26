@@ -118,4 +118,4 @@ Use the existing package scripts and `.github/workflows/` definitions as the cur
 4. If verification fails, **restore** the last known-good blob (by SHA) before any further feature work.
 5. Avoid literal HTML entity tokens in source pushed via connector — they can be decoded in transit; use string concatenation (`'&' + 'amp;'`) when needed.
 
-`server/immofinder/liveFilters.ts` holds locality pre-filter and HTTP 410 demotion helpers so `live.ts` edits stay small and push-safe.
+`server/immofinder/liveFilters.ts` holds locality pre-filter and HTTP 410 demotion helpers so `server/immofinder/live.ts` edits stay small and push-safe.
