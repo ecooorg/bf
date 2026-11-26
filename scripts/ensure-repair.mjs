@@ -59,6 +59,29 @@ try {
   console.warn('package-lock patch sync skipped');
 }
 
+// C131: contact is optional for short-stay L1 (agents-contract seasonal admission).
+{
+  const target = join(dir, 'immofinderRepair.ts');
+  if (existsSync(target)) {
+    let text = readFileSync(target, 'utf8');
+    const needle = `if (shortStay) {\n        const contacts = contactVerdict(row);\n        if (contacts.phone !== 'verified' && contacts.email !== 'verified') why = 'short_stay_contact_required';\n      }`;
+    if (text.includes(needle)) {
+      text = text.replace(needle, '// C131: short_stay_contact_required retired (optionalForL1)');
+      writeFileSync(target, text);
+      console.log('C131: retired short_stay_contact_required gate');
+    } else if (text.includes("why = 'short_stay_contact_required'")) {
+      text = text.replace(
+        /if \(shortStay\) \{[\s\S]*?why = 'short_stay_contact_required';\s*\}/,
+        '// C131: short_stay_contact_required retired (optionalForL1)',
+      );
+      writeFileSync(target, text);
+      console.log('C131: retired short_stay_contact_required gate (regex)');
+    } else {
+      console.log('C131: short_stay_contact_required already absent');
+    }
+  }
+}
+
 for (const script of [
   'scripts/immofinder-core-restore.mjs',
   'scripts/immofinder-p0-feed-hygiene.mjs',
