@@ -161,6 +161,7 @@ export async function runPipeline(
         if (serperCalls > 0) await new Promise((resolve) => setTimeout(resolve, Math.max(1500, Number(discovery.serperMinIntervalMs) || 1500)));
         const hits = await deps.search(item.query);
         serperCalls++;
+        successfulIndexes++;
         const selected = pickItems(hits, deps.config);
         for (const candidate of selected) {
           const host = new URL(candidate.url).hostname.replace(/^www\./i, '').toLowerCase();
