@@ -1,3 +1,7 @@
+## C131 update — P131.8p (2026-11-26, MAINTENANCE)
+- **Fixed:** Preflight now reads repository source/tests without modifying them; only its diagnostic log is written. Added regression coverage. Direct commits to `main`; hosted CI and Render deployment identity NOT_RUN.
+- **WP5 remains OPEN:** new `server/immofinder/` engine is not yet the production path. Owner approved revisiting the sequence, but live baseline, ≥5 source fixtures, same-snapshot legacy comparison and acceptance gates remain prerequisites. No cut-over or quality claim made.
+
 ## C131 consolidated status and programme plan — 2026-11-26 (P131.8n, MAINTENANCE, docs only)
 - **Authority:** this root `ROADMAP.md` is the programme authority; `docs/ROADMAP_C131.md` was merged into this file (see "Imported C131 execution log" below) and removed in P131.8o; it is no longer an allowlisted document.
 - **Base:** main plus patches 131.8k (geo skips off the early-stop streak), 131.8l (parallel /resolve), 131.8m (next SERP call pipelined). Deployed build seen in live logs: `c78fa4e`, patch 131.8i. Hosted CI for 131.8j–131.8n and Render commit identity are NOT_RUN/unverified.
