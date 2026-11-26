@@ -60,70 +60,92 @@ export function startKeepAlive(): () => void {
     return () => undefined;
   }
 
-  let stopped = false;
-  let timer: ReturnType<typeof setTimeout> | null = null;
   let visits = 0;
   let consecutiveFails = 0;
   let inFlight = false;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const identity = (): Identity => ({ ua: pick(USER_AGENTS), lang: pick(LANGUAGES) });
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-  const schedule = (ms: number) => {
-    if (stopped) return;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => { void visit(); }, ms);
-    timer.unref?.();
-  };
+  async function request(path: string, kind: 'api' | 'html', referer?: string, parent?: AbortSignal): Promise<{ status: number }> {
+    const id: Identity = { ua: pick(USER_AGENTS), lang: pick(LANGUAGES) };
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), REQUEST_TIMEOUT_MS);
+    const onParent = () => ac.abort();
+    parent?.addEventListener('abort', onParent, { once: true });
+    try {
+      const headers: Record<string, string> = {
+        'User-Agent': id.ua,
+        'Accept-Language': id.lang,
+        Accept: kind === 'api' ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+        'Cache-Control': 'no-cache',
+      };
+      if (referer) headers.Referer = referer;
+      const res = await fetch(`${baseUrl}${path}`, { method: 'GET', headers, signal: ac.signal, redirect: 'follow' });
+      // Drain body so the connection is released promptly
+      await res.arrayBuffer().catch(() => undefined);
+      return { status: res.status };
+    } finally {
+      clearTimeout(t);
+      parent?.removeEventListener('abort', onParent);
+    }
+  }
 
-  const visit = async () => {
-    if (stopped) return;
+  async function visit(): Promise<boolean> {
     if (inFlight) {
       console.warn('[KeepAlive] skip overlapping visit');
-      schedule(nextGapMs());
-      return;
+      return false;
     }
     inFlight = true;
+    const budget = new AbortController();
+    const budgetTimer = setTimeout(() => budget.abort(), VISIT_BUDGET_MS);
+    const home = `${baseUrl}/`;
     const started = Date.now();
-    const id = identity();
-    const controller = new AbortController();
-    const kill = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const health = await fetch(`${baseUrl}/health`, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'User-Agent': id.ua,
-          'Accept-Language': id.lang,
-          'Cache-Control': 'no-cache',
-        },
-      });
-      if (!health.ok) {
+      const health = await request('/api/health', 'api', home, budget.signal);
+      if (health.status >= 500) {
         console.warn(`[KeepAlive] health HTTP ${health.status}`);
-        throw new Error(`health ${health.status}`);
+        return false;
       }
-      // Drain body so the connection can close promptly on some runtimes.
-      await health.text().catch(() => undefined);
+      // Optional soft HTML touch; ignore failures — health is the contract.
+      await request('/', 'html', home, budget.signal).catch(() => undefined);
       visits += 1;
       const ms = Date.now() - started;
-      if (ms > VISIT_BUDGET_MS) {
-        console.warn(`[KeepAlive] slow health ${ms}ms (budget ${VISIT_BUDGET_MS}ms)`);
-      }
       console.log(`[KeepAlive] ok #${visits} health=${health.status} in ${ms}ms; cadence 11–13 min`);
+      return true;
+    } catch (error) {
+      const msg = String((error as Error)?.message || error);
+      console.warn(`[KeepAlive] visit error: ${msg.slice(0, 120)}`);
+      return false;
+    } finally {
+      clearTimeout(budgetTimer);
+      inFlight = false;
+    }
+  }
+
+  const tick = async () => {
+    if (stopped) return;
+    const ok = await visit();
+    if (stopped) return;
+    if (ok) {
       if (consecutiveFails > 0) console.log(`[KeepAlive] recovered after ${consecutiveFails} failures`);
       consecutiveFails = 0;
       schedule(nextGapMs());
-    } catch (error) {
+    } else {
       consecutiveFails += 1;
-      const msg = String((error as Error)?.message || error);
-      console.warn(`[KeepAlive] visit error: ${msg.slice(0, 120)}`);
       const reason = consecutiveFails >= 3 ? 'repeated' : 'transient';
       const retry = rnd(RETRY_MIN_MS, RETRY_MAX_MS);
       console.warn(`[KeepAlive] failed (#${consecutiveFails}, ${reason}), retry in ${Math.round(retry / 1000)}s`);
       schedule(retry);
-    } finally {
-      clearTimeout(kill);
-      inFlight = false;
     }
+  };
+
+  const schedule = (ms: number) => {
+    if (stopped) return;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { void tick(); }, ms);
+    timer.unref?.();
   };
 
   console.log(`[KeepAlive] started, target: ${baseUrl}, cadence 11–13 min (hard schedule, timed visits)`);
