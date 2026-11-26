@@ -1,3 +1,6 @@
+## P131.8p — Preflight immutability
+- **OBSERVED in source:** Preflight patched `immofinderRepair.ts` and invoked a test-restoration script. Both mutations removed; regression guard added. Hosted CI: NOT_RUN.
+
 ## P131.8o — Single roadmap
 - **CHANGE:** `docs/ROADMAP_C131.md` retired from the allowlists; `ROADMAP.md` is the only roadmap.
 - **NOT_RUN:** hosted CI after the manual deletion.
