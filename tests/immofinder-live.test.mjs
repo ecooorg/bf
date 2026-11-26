@@ -152,6 +152,63 @@ test('source-first dry run never writes and off-target pages are never admitted'
   assert.equal(marks.length, 0, 'dry run must not mutate the seen cache');
 });
 
+
+test('bounded Serper discovery seeds direct Anibis detail pages and counts search cost', async () => {
+  const { deps, writes, fetched } = depsFor();
+  const index = 'https://www.anibis.ch/de/q/immobilien-graubuenden-wohnungen-mieten/test';
+  const detail = 'https://www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783';
+  deps.config.municipalities = ['Chur'];
+  deps.config.sources = [{ id: 'portal-anibis', url: index, maxDetailPages: 12, detailPattern: '^https://www\\.anibis\\.ch/de/vi/.*' }];
+  deps.config.discovery = {
+    enabled: true,
+    communesPerRun: 1,
+    resultsPerQuery: 10,
+    portalQueries: ['site:anibis.ch "{commune}" ("3.5 Zimmer" OR "4 Zimmer") Wohnung mieten'],
+    portalSources: [{ id: 'portal-anibis', host: 'anibis.ch' }],
+    portalHosts: ['anibis.ch'],
+    skipHosts: [],
+    snippetOnlyHosts: [],
+    serperMinIntervalMs: 0,
+  };
+  deps.search = async () => [{
+    title: '3.5 Zimmer Wohnung in Chur mieten',
+    link: detail,
+    snippet: '3.5 Zimmer, Chur, Wohnung zu vermieten',
+  }];
+  deps.fetchPage = async (url) => {
+    fetched.push(url);
+    if (url === index) return { ok: false, status: 403, body: '', finalUrl: url };
+    if (url === detail) return {
+      ok: true, status: 200, finalUrl: url,
+      body: '<h1>3.5-Zimmer-Wohnung in Chur</h1><p>7000 Chur. 3.5 Zimmer. Privatperson. Kontaktformular. Helle Wohnung mit Balkon und Küche.</p>',
+    };
+    return { ok: false, status: 404, body: '', finalUrl: url };
+  };
+  const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
+  assert.equal(result.counts.fetched, 1);
+  assert.equal(result.counts.kept, 1);
+  assert.equal(writes.length, 1);
+  assert.ok(fetched.includes(detail));
+  assert.equal(result.estCostUsd, 0.001);
+});
+
+test('Gemini can promote a borderline lead only with an exact private-owner quote', async () => {
+  const { deps, writes } = depsFor();
+  const privateQuote = 'Ich vermiete meine Wohnung selbst.';
+  const html = detailHtml.replace('Das Angebot ist von privat.', privateQuote);
+  deps.fetchPage = async (url) => url === indexUrl
+    ? { ok: true, status: 200, body: '<a href="' + detailUrl + '">3.5 Zimmer Wohnung Chur</a>', finalUrl: url }
+    : { ok: true, status: 200, body: html, finalUrl: url };
+  deps.maxLlmCalls = 1;
+  deps.llm = async () => ({ private_owner_quote: privateQuote });
+  const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
+  assert.equal(result.counts.kept, 1);
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].raw.level, 'L2');
+  assert.ok(writes[0].raw.owner_markers.includes(privateQuote));
+  assert.equal(result.estCostUsd, 0.002);
+});
+
 test('production source fetch mode never invokes Jina or browser fallbacks', async () => {
   const { createPoliteFetch } = await import('../server/immofinderFetcher.ts');
   const calls = [];
@@ -171,15 +228,17 @@ test('production source fetch mode never invokes Jina or browser fallbacks', asy
   assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
 });
 
-test('production ImmoFinder route uses only the source-first, provider-free runtime', () => {
+test('production ImmoFinder route uses source-first runtime with bounded Serper and Gemini budgets', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
   assert.match(route, /import \{ runPipeline \} from '\.\/immofinder\/live\.ts'/);
   const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
-  assert.match(runCall, /llm: null/);
-  assert.match(runCall, /search: null/);
-  assert.match(runCall, /allowJina: false, allowBrowser: false/);
-  assert.doesNotMatch(runCall, /deps\.llm|createSerperSearch/);
+  assert.match(runCall, /llm: deps\.llm/);
+  assert.match(runCall, /maxLlmCalls: 3/);
+  assert.match(runCall, /search: process\.env\.SERPER_API_KEY \? createSerperSearch/);
+  assert.match(runCall, /allowJina: false, allowBrowser: true/);
+  assert.match(route, /baseCfg\.minRooms = Math\.max\(3/);
+  assert.match(route, /portal-anibis', 'portal-tutti/);
   assert.match(route, /pollMs: 15_000/);
 });
 ,
