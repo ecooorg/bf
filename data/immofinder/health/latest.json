@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T08:25:01.575Z",
+  "generatedAt": "2026-11-26T08:25:24.986Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 7950c9f"
+      "detail": "2 checks at b75165e, 2 still running"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 11 commit(s) behind main with 13 non-archive file(s) changed (e.g. CHANGELOG.md, docs/ROADMAP_C131.md, package-lock.json); deploy may be pending or failed"
+      "detail": "production is 13 commit(s) behind main with 13 non-archive file(s) changed (e.g. CHANGELOG.md, docs/ROADMAP_C131.md, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T08:25:00.525Z",
+        "checkedAt": "2026-11-26T08:25:24.045Z",
         "steps": [
           {
             "step": "app",
