@@ -61,3 +61,22 @@ test('source-first dry run never writes and rejected pages never reach the store
   assert.equal(result.counts.kept, 1);
   assert.equal(writes.length, 0);
 });
+
+test('production source fetch mode never invokes Jina or browser fallbacks', async () => {
+  const { createPoliteFetch } = await import('../server/immofinderFetcher.ts');
+  const calls = [];
+  const cfg = {
+    fetch: { userAgent: 'test-agent', perHostDelayMs: 0, respectRobotsTxt: true, browserRenderHosts: ['example.com'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
+    limits: { fetchTimeoutMs: 1000, maxPageBytes: 4096 },
+  };
+  const fetchImpl = async (input) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow:', { status: 200 });
+    return new Response('blocked', { status: 403 });
+  };
+  const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
+  const result = await directOnly('https://example.com/private-listing');
+  assert.equal(result.status, 403);
+  assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
+});
