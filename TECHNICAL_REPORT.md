@@ -1,3 +1,10 @@
+## P131.8v — Bounded discovery and owner-evidence assist
+- Live runner adds rotating Serper discovery for Flatfox, Anibis and Tutti. Six communes are selected per run from the persisted full 121-locality scope; at most 18 queries/run with a minimum 3s interval. Only detail URLs passing the portal allowlist and configured detail pattern are fetched.
+- Production minimum rooms is hard-clamped to 3 at run time. Anibis/Tutti are included in the active runtime source set. Existing strict page-level classifier, owner/contact gate, robots/SSRF controls and 48-detail/240s caps remain.
+- Gemini LIGHT review is limited to 3 borderline L1 candidates/run, only when an actionable contact route already exists. An L2 promotion requires an exact quote present in the fetched page and a deterministic private-owner phrase check.
+- Estimated maximum per-run provider cost: $0.018 Serper + $0.006 Gemini = $0.024. This is a configured estimate, not an observed charge. Schedule and notifications remain off.
+- **Deployment/live result:** PENDING. **Yield acceptance:** OPEN until at least 3 unique L1/L2 listings are reviewed. **Hosted Core CI:** NOT_CONFIRMED; no workflow status is available through the current connector.
+
 ## P131.8u — Actionable evidence gate and pilot revalidation
 - Earlier live runs exposed weak rows: 14 cards were visible but included title/navigation-only HappyHoliday shells, placeholder phone numbers and wrong locality/room counts. These are not counted as quality leads.
 - P131.8u hides all exploratory rows pending fresh fetch, clears their seen-cache, and only allows recovery when the new detail passes classifier and write-time hard gates. The new pipeline also requires an actionable direct or platform contact route.
