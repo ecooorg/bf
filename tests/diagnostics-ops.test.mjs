@@ -74,11 +74,12 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(store, /INSERT INTO immofinder_run_diagnostics/);
   assert.match(store, /OFFSET 100/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immofinder_run_diagnostics/);
-  assert.match(poll, /cron: '\*\/10 \* \* \* \*'/);
-  assert.match(poll, /push:\s+branches: \[main\]/);
+  assert.match(poll, /workflow_dispatch/);
+  assert.doesNotMatch(poll, /cron:|push:/, 'diagnostics polling is manual-only to avoid recurring Actions and Render costs');
   assert.match(poll, /scripts\/collect-platform-logs\.mjs/);
   assert.match(poll, /api\/immofinder\/diagnostics\/latest/);
-  assert.match(poll, /contents: write/);
+  assert.match(poll, /contents: read/);
+  assert.doesNotMatch(poll, /contents: write|Commit new run report/, 'diagnostics no longer commits to main');
 });
 
 
@@ -157,15 +158,15 @@ test('P130.4 health check names the failing GitHub publisher and compares deploy
   assert.equal(verdict([{ status: 'FAIL' }, { status: 'OK' }]), 'FAIL');
 });
 
-test('P130.4 health workflow is scheduled, has no Actions-triggered write beyond its snapshot and uses the shared collector', () => {
+test('P130.4 health workflow is manual-only and uses the shared collector', () => {
   const wf = read('.github/workflows/immofinder-health.yml');
-  assert.match(wf, /cron: '17 \*\/6/);
-  assert.match(wf, /push:\s+branches:\s+\[main\]/, 'run a health probe after ImmoFinder code/config releases');
-  assert.match(wf, /package\.json/, 'patch metadata changes also trigger the deployment identity check');
+  assert.match(wf, /workflow_dispatch/);
+  assert.doesNotMatch(wf, /cron:|push:/, 'health checks are manual to avoid recurring platform usage');
   assert.match(wf, /\.detail/, 'snapshot dedupe must notice deployed-commit and other detail changes, not only status changes');
   assert.match(wf, /workflow_dispatch/);
   assert.match(wf, /issues: write/);
-  assert.match(wf, /contents: write/, 'needed only to commit data/immofinder/health/latest.json');
+  assert.match(wf, /contents: write/, 'manual health snapshot publication remains explicitly available');
+  assert.match(wf, /\[skip render\] \[skip ci\]/, 'health snapshots must never trigger Render deployments');
   assert.doesNotMatch(wf, /pull-requests: write|actions: write/);
   assert.match(wf, /RENDER_LOG_LOOKBACK_MINUTES: '180'/, 'a 24 h window exceeds the collector pagination limit');
   assert.match(wf, /scripts\/collect-platform-logs\.mjs/);
@@ -193,9 +194,10 @@ test('P130.5 health check reports the live probe and downgrades old log failures
   assert.equal(good.find((c) => c.name === 'Publisher github_app_token').status, 'WARN', 'old log failures are history once the probe is OK');
 });
 
-test('P130.5 workflows: health commits its snapshot, the poller no longer collects Render logs every run', () => {
+test('P130.5 workflows: health snapshots skip Render and diagnostics polling is manual-only', () => {
   const health = read('.github/workflows/immofinder-health.yml');
-  assert.match(health, /cron: '17 \*\/6 \* \* \*'/);
+  assert.match(health, /workflow_dispatch/);
+  assert.doesNotMatch(health, /cron:|push:/);
   assert.match(health, /HEALTH_SNAPSHOT_DIR: data\/immofinder\/health/);
   assert.match(health, /\[skip ci\]/);
   const poll = read('.github/workflows/immofinder-diagnostics-poll.yml');
