@@ -1,14 +1,14 @@
 {
   "schemaVersion": 2,
   "kind": "immofinder_post_run_bundle",
-  "generatedAt": "2026-11-26T23:11:44.127Z",
-  "runId": "d426768a-bb4d-4f52-96a1-b729762fbe1c",
+  "generatedAt": "2026-11-26T23:13:03.970Z",
+  "runId": "dac0f17a-9106-4818-8304-d63712427046",
   "traceId": null,
   "runtime": {
-    "generatedAt": "2026-11-26T23:11:44.127Z",
+    "generatedAt": "2026-11-26T23:13:03.970Z",
     "commit": "3a6f681",
     "node": "v22.12.0",
-    "uptimeSec": 687,
+    "uptimeSec": 767,
     "keepAliveEnv": "true",
     "keepAliveDisabled": false,
     "renderExternalUrlSet": true,
@@ -90,7 +90,7 @@
   "database": {
     "status": "ok",
     "database": "bf_81oe",
-    "databaseTime": "2026-11-26T23:11:44.085Z",
+    "databaseTime": "2026-11-26T23:13:03.968Z",
     "listings": {
       "total": 0,
       "visible": 0,
@@ -105,31 +105,29 @@
       "idle": 4,
       "waiting": 0
     },
-    "latencyMs": 1
+    "latencyMs": 29
   },
   "result": {
     "counts": {
       "index_pages": 6,
       "candidates": 14,
-      "fetched": 14,
+      "fetched": 0,
       "kept": 0,
       "kept_l1": 0,
       "kept_l2": 0,
       "new": 0,
       "updated": 0,
-      "skipped": 0,
+      "skipped": 14,
       "infra_failures": 0,
-      "serper_calls": 8,
+      "serper_calls": 10,
       "gemini_calls": 0,
       "serper_available": 1,
       "gemini_available": 1
     },
     "filtered": {
-      "source_locality_mismatch": 92,
-      "outside_target": 13,
-      "rooms_unknown": 1
+      "source_locality_mismatch": 92
     },
-    "estCostUsd": 0.008,
+    "estCostUsd": 0.01,
     "errors": [],
     "sourceStats": [
       {
@@ -137,28 +135,28 @@
         "queries": 4,
         "hits": 90,
         "candidates": 2,
-        "fetched": 2,
+        "fetched": 0,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
         "junk": 0,
-        "geo": 90,
-        "consecutiveBad": 2
+        "geo": 88,
+        "consecutiveBad": 0
       },
       {
         "id": "ferienhausmiete",
         "queries": 1,
         "hits": 16,
         "candidates": 12,
-        "fetched": 12,
+        "fetched": 0,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
-        "junk": 1,
-        "geo": 15,
-        "consecutiveBad": 12
+        "junk": 0,
+        "geo": 4,
+        "consecutiveBad": 0
       },
       {
         "id": "portal-acheter-louer",
@@ -260,7 +258,7 @@
       },
       {
         "id": "portal-immoscout24",
-        "queries": 2,
+        "queries": 4,
         "hits": 0,
         "candidates": 0,
         "fetched": 0,
@@ -346,172 +344,29 @@
     "wavesRun": [
       "extended"
     ],
-    "preview": [
-      {
-        "url": "happyholiday.ch/haus/ferienhaus-chesa-sur-alvra-graubuenden-berguen",
-        "title": "Chesa sur Alvra in Bergün",
-        "source": "happyholiday",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienhaus-muntanella-graubuenden-berguen",
-        "title": "Ferienhaus Muntanella in Bergün",
-        "source": "happyholiday",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/278114.htm",
-        "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk...",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/50275.htm",
-        "title": "Haus Culmoina, Valbella",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/464721.htm",
-        "title": "Haus Katrin",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/191606.htm",
-        "title": "Haus Salonder",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
-        "rooms": null,
-        "kept": false,
-        "reason": "rooms_unknown",
-        "detail": "rooms_unknown"
-      },
-      {
-        "url": "www.ferienhausmiete.de/26917.htm",
-        "title": "IGLSON",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/41111.htm",
-        "title": "Ferienhaus Crapanaira 2-10Personen",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/54712.htm",
-        "title": "Crap da Flem",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/16699.htm",
-        "title": "Casa al Lag",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/4868634.htm",
-        "title": "La Muotta Falera",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/50772.htm",
-        "title": "Casa Ansiel",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/43781.htm",
-        "title": "Madrisa Alm",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/87926.htm",
-        "title": "Bohemia Apartments",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      }
-    ]
+    "preview": []
   },
   "quality": {
-    "runId": "d426768a-bb4d-4f52-96a1-b729762fbe1c",
+    "runId": "dac0f17a-9106-4818-8304-d63712427046",
     "wave": "extended",
     "counts": {
       "index_pages": 6,
       "candidates": 14,
-      "fetched": 14,
+      "fetched": 0,
       "kept": 0,
       "kept_l1": 0,
       "kept_l2": 0,
       "new": 0,
       "updated": 0,
-      "skipped": 0,
+      "skipped": 14,
       "infra_failures": 0,
-      "serper_calls": 8,
+      "serper_calls": 10,
       "gemini_calls": 0,
       "serper_available": 1,
       "gemini_available": 1
     },
     "filtered": {
-      "source_locality_mismatch": 92,
-      "outside_target": 13,
-      "rooms_unknown": 1
+      "source_locality_mismatch": 92
     },
     "errors": 0,
     "sourceStats": [
@@ -520,28 +375,28 @@
         "queries": 4,
         "hits": 90,
         "candidates": 2,
-        "fetched": 2,
+        "fetched": 0,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
         "junk": 0,
-        "geo": 90,
-        "consecutiveBad": 2
+        "geo": 88,
+        "consecutiveBad": 0
       },
       {
         "id": "ferienhausmiete",
         "queries": 1,
         "hits": 16,
         "candidates": 12,
-        "fetched": 12,
+        "fetched": 0,
         "llm": 0,
         "kept": 0,
         "new": 0,
         "agencies": 0,
-        "junk": 1,
-        "geo": 15,
-        "consecutiveBad": 12
+        "junk": 0,
+        "geo": 4,
+        "consecutiveBad": 0
       },
       {
         "id": "portal-acheter-louer",
@@ -643,7 +498,7 @@
       },
       {
         "id": "portal-immoscout24",
-        "queries": 2,
+        "queries": 4,
         "hits": 0,
         "candidates": 0,
         "fetched": 0,
@@ -773,123 +628,12 @@
         "noPublished": 0
       }
     },
-    "previewSamples": [
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Chesa sur Alvra in Bergün"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Ferienhaus Muntanella in Bergün"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk..."
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Haus Culmoina, Valbella"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Haus Katrin"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "rooms_unknown",
-        "detail": "rooms_unknown",
-        "municipality": "Chur",
-        "rooms": null,
-        "title": "Haus Salonder"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "IGLSON"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Ferienhaus Crapanaira 2-10Personen"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Crap da Flem"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Casa al Lag"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "La Muotta Falera"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Casa Ansiel"
-      }
-    ]
+    "previewSamples": []
   },
   "assistantHints": [
-    "fetched_but_zero_kept — quality gates rejected all detail pages (rooms/locality/agency/for_sale)",
+    "candidates_exist_but_none_fetched — check seen-cache TTL, 403 blocks, or detail-fetch failures",
     "high_source_locality_mismatch — HappyHoliday/index inventory is mostly outside selected communes",
-    "outside_target present — municipality_not_whitelisted or similar on examined pages",
-    "source_happyholiday_consecutiveBad=2",
-    "source_ferienhausmiete_consecutiveBad=12"
+    "many_skipped_as_seen — clear seen or wait SEEN_TTL before expecting the same URLs again"
   ],
   "eventCount": 0,
   "logSource": "process_trace_buffer+application_logs+console",
@@ -897,48 +641,46 @@
   "applicationLogCount": 3,
   "applicationLogs": [
     {
-      "timestamp": "2026-11-26T23:07:50.475Z",
+      "timestamp": "2026-11-26T23:11:50.569Z",
       "level": "info",
       "component": "console",
       "event": "console_output",
-      "message": "{\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"dryRun\":false,\"wave\":\"full\"}"
+      "message": "{\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"dac0f17a-[phone]-d[phone]\",\"dryRun\":true,\"wave\":\"full\"}"
     },
     {
-      "timestamp": "2026-11-26T23:11:44.074Z",
+      "timestamp": "2026-11-26T23:13:03.933Z",
       "level": "info",
       "component": "console",
       "event": "console_output",
-      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":0,\"serper_calls\":8,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92,\"outside_target\":13,\"rooms_unknown\":1},\"errors\":0,\"sourceStats\":[{\"id\":\"happyholiday\",\"queries\":4,\"hits\":90,\"candidates\":2,\"fetched\":2,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":0,\"geo\":90,\"consecutiveBad\":2},{\"id\":\"ferienhausmiete\",\"queries\":1,\"hits\":16,\"candidates\":12,\"fetched\":12,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":1,\"geo\":15,\"consecutiveBad\":12},{\"id\":\"portal-acheter-louer\",\"queries\":0,\"hits\":0,\"candidates\":0,\"fetched\""
+      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"dac0f17a-[phone]-d[phone]\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":0,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":14,\"infra_failures\":0,\"serper_calls\":10,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92},\"errors\":0,\"sourceStats\":[{\"id\":\"happyholiday\",\"queries\":4,\"hits\":90,\"candidates\":2,\"fetched\":0,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":0,\"geo\":88,\"consecutiveBad\":0},{\"id\":\"ferienhausmiete\",\"queries\":1,\"hits\":16,\"candidates\":12,\"fetched\":0,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":0,\"geo\":4,\"consecutiveBad\":0},{\"id\":\"portal-acheter-louer\",\"queries\":0,\"hits\":0,\"candidates\":0,\"fetched\":0,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":0,\""
     },
     {
-      "timestamp": "2026-11-26T23:11:44.075Z",
+      "timestamp": "2026-11-26T23:13:03.934Z",
       "level": "info",
       "component": "immofinder",
       "event": "search_quality_summary",
       "message": "Search quality, card completeness and weak-sample summary for All Logs",
       "details": {
-        "runId": "d426768a-bb4d-4f52-96a1-b729762fbe1c",
+        "runId": "dac0f17a-9106-4818-8304-d63712427046",
         "wave": "full",
         "counts": {
           "index_pages": 6,
           "candidates": 14,
-          "fetched": 14,
+          "fetched": 0,
           "kept": 0,
           "kept_l1": 0,
           "kept_l2": 0,
           "new": 0,
           "updated": 0,
-          "skipped": 0,
+          "skipped": 14,
           "infra_failures": 0,
-          "serper_calls": 8,
+          "serper_calls": 10,
           "gemini_calls": 0,
           "serper_available": 1,
           "gemini_available": 1
         },
         "filtered": {
-          "source_locality_mismatch": 92,
-          "outside_target": 13,
-          "rooms_unknown": 1
+          "source_locality_mismatch": 92
         },
         "errors": 0,
         "sourceStats": [
@@ -947,28 +689,28 @@
             "queries": 4,
             "hits": 90,
             "candidates": 2,
-            "fetched": 2,
+            "fetched": 0,
             "llm": 0,
             "kept": 0,
             "new": 0,
             "agencies": 0,
             "junk": 0,
-            "geo": 90,
-            "consecutiveBad": 2
+            "geo": 88,
+            "consecutiveBad": 0
           },
           {
             "id": "ferienhausmiete",
             "queries": 1,
             "hits": 16,
             "candidates": 12,
-            "fetched": 12,
+            "fetched": 0,
             "llm": 0,
             "kept": 0,
             "new": 0,
             "agencies": 0,
-            "junk": 1,
-            "geo": 15,
-            "consecutiveBad": 12
+            "junk": 0,
+            "geo": 4,
+            "consecutiveBad": 0
           },
           {
             "id": "portal-acheter-louer",
@@ -1070,7 +812,7 @@
           },
           {
             "id": "portal-immoscout24",
-            "queries": 2,
+            "queries": 4,
             "hits": 0,
             "candidates": 0,
             "fetched": 0,
@@ -1200,144 +942,11 @@
             "noPublished": 0
           }
         },
-        "previewSamples": [
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Chesa sur Alvra in Bergün"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Ferienhaus Muntanella in Bergün"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk..."
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Haus Culmoina, Valbella"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Haus Katrin"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "rooms_unknown",
-            "detail": "rooms_unknown",
-            "municipality": "Chur",
-            "rooms": null,
-            "title": "Haus Salonder"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "IGLSON"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Ferienhaus Crapanaira 2-10Personen"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Crap da Flem"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Casa al Lag"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "La Muotta Falera"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Casa Ansiel"
-          }
-        ]
+        "previewSamples": []
       }
     }
   ],
   "consoleTail": [
-    "[phone]T23:00:28.334Z [info] {\"type\":\"immofinder_durable_worker_started\",\"workerId\":\"immo-85-2705f908-c429-4b3f-9869-8b30d92a29d5\",\"pollMs\":15000}",
-    "[phone]T23:00:29.170Z [log] Project Mode worker started",
-    "[phone]T23:00:29.172Z [log] BiForge v131 (3a6f681) on :10000 (production)",
-    "[phone]T23:00:29.173Z [log] [KeepAlive] started, target: https://bf-3tqo.onrender.com, cadence 11–13 min (hard schedule, timed visits)",
-    "[phone]T23:00:43.374Z [info] {\"type\":\"immofinder_immofinder_scope_expansion_skipped\",\"reason\":\"settings_already_updated\",\"updatedAt\":\"[phone]T17:59:26.308Z\"}",
-    "[phone]T23:00:58.338Z [info] {\"type\":\"immofinder_immofinder_boot_run_skipped\",\"reason\":\"threshold_already_satisfied\",\"lastRealRunAt\":\"[phone]T22:43:12.159Z\"}",
-    "[phone]T23:01:05.831Z [log] [KeepAlive] ok #1 health=200 in 360ms; cadence 11–13 min",
-    "[phone]T23:01:43.338Z [info] {\"type\":\"immofinder_internal_schedule_started\",\"checkEveryMin\":10,\"bootDelaySec\":75}",
-    "[phone]T23:01:43.341Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T22:43:12.159Z\",\"now\":\"[phone]T23:01:43.341Z\"}",
-    "[phone]T23:07:39.978Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:07:39.985Z [info] {\"type\":\"immofinder_immofinder_repair_bootstrap\",\"audit\":{\"applied\":false,\"duplicate\":true,\"summary\":{\"applied\":0,\"rejected\":0,\"not_found\":0,\"unchanged\":0}},\"bundled\":{\"bundled\":false,\"reason\":\"no_repair_file\"},\"publication\":{}}",
-    "[phone]T23:07:50.313Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:07:50.315Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"schedule\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T22:43:12.159Z\",\"now\":\"[phone]T23:07:50.315Z\",\"dueError\":null}",
-    "[phone]T23:07:50.391Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:07:50.469Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":false}",
-    "[phone]T23:07:50.475Z [info] {\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"dryRun\":false,\"wave\":\"full\"}",
-    "[phone]T23:07:50.544Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:07:50.546Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
-    "[phone]T23:07:50.572Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
-    "[phone]T23:07:50.641Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
-    "[phone]T23:07:50.643Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"schedule\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:07:50.471Z\",\"now\":\"[phone]T23:07:50.643Z\",\"dueError\":null}",
-    "[phone]T23:07:58.476Z [info] {\"type\":\"immofinder_database_diagnostics_start\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:07:58.469Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":110}",
-    "[phone]T23:08:19.759Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":8,\"failedRows\":1,\"durationMs\":20005,\"retryAfter\":76,\"parallel\":true}",
-    "[phone]T23:08:28.274Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
     "[phone]T23:08:28.276Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
     "[phone]T23:08:28.279Z [warn] {\"type\":\"immofinder_run_rejected\",\"code\":\"RUN_IN_PROGRESS\",\"trigger\":\"manual\"}",
     "[phone]T23:08:39.545Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16271,\"retryAfter\":38,\"parallel\":true}",
@@ -1428,6 +1037,35 @@
     "[phone]T23:11:43.848Z [info] {\"type\":\"immofinder_fetch_fallback\",\"host\":\"flatfox.ch\",\"outcome\":\"jina_reader_unavailable\",\"directStatus\":200,\"directTextChars\":0}",
     "[phone]T23:11:43.848Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":40909,\"ok\":true,\"status\":200,\"bodyChars\":12352,\"textChars\":0,\"fetchMode\":\"direct\"}",
     "[phone]T23:11:44.071Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:11:43.928Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":143}",
-    "[phone]T23:11:44.074Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":0,\"serper_calls\":8,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92,\"outside"
+    "[phone]T23:11:44.074Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":0,\"serper_calls\":8,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92,\"outside",
+    "[phone]T23:11:47.216Z [info] {\"type\":\"immofinder_immofinder_diagnostics_database_committed\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"database\":\"committed\",\"local\":\"written:2\",\"github\":\"committed:f79f7b4fa4de98f004d7272e0628c541cec29b36\",\"paths\":[\"/opt/render/project/src/data/immofinder/diagnostics/runs/d426768a-bb4d-4f52-96a1-b729762fbe1c.json\",\"/opt/render/project/src/data/immofinder/diagn",
+    "[phone]T23:11:47.216Z [info] {\"type\":\"immofinder_immofinder_snapshot_github_disabled\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"reason\":\"database_is_primary_store\"}",
+    "[phone]T23:11:47.216Z [info] {\"type\":\"immofinder_immofinder_worker_run_finalized\",\"runId\":\"d426768a-bb4d-4f52-96a1-b729762fbe1c\",\"diagnosticsStatus\":\"database:committed;local:written:2;github:committed:f79f7b4fa4de98f004d7272e0628c541cec29b36\",\"snapshotStatus\":\"skipped:database_is_primary_store\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"update",
+    "[phone]T23:11:50.525Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"schedule_secret\",\"secretHeaderPresent\":true,\"secretConfigured\":true,\"cronAuth\":true}",
+    "[phone]T23:11:50.528Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":true}",
+    "[phone]T23:11:50.569Z [info] {\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"dac0f17a-[phone]-d[phone]\",\"dryRun\":true,\"wave\":\"full\"}",
+    "[phone]T23:11:58.445Z [info] {\"type\":\"immofinder_database_diagnostics_start\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:11:58.443Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":4,\"idle\":3,\"waiting\":0},\"latencyMs\":3}",
+    "[phone]T23:12:40.626Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":2,\"after\":2,\"failedRows\":0,\"durationMs\":509,\"retryAfter\":38,\"parallel\":true}",
+    "[phone]T23:12:40.829Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":203,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":417455,\"textChars\":6626,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:12:40.829Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":203,\"status\":200,\"directTextChars\":6626}",
+    "[phone]T23:12:40.829Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":203,\"ok\":true,\"status\":200,\"bodyChars\":417455,\"textChars\":6626,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:12:42.326Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1495,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":418343,\"textChars\":6372,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:12:42.327Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1496,\"status\":200,\"directTextChars\":6372}",
+    "[phone]T23:12:42.327Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1496,\"ok\":true,\"status\":200,\"bodyChars\":418343,\"textChars\":6372,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:12:43.823Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":427139,\"textChars\":7364,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:12:43.823Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"status\":200,\"directTextChars\":7364}",
+    "[phone]T23:12:43.823Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1494,\"ok\":true,\"status\":200,\"bodyChars\":427139,\"textChars\":7364,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:12:45.429Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1604,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":450614,\"textChars\":4861,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
+    "[phone]T23:12:45.430Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1604,\"status\":200,\"directTextChars\":4861}",
+    "[phone]T23:12:45.430Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1605,\"ok\":true,\"status\":200,\"bodyChars\":450614,\"textChars\":4861,\"fetchMode\":\"direct_challenge_blocked\"}",
+    "[phone]T23:12:48.211Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":2776,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":469119,\"textChars\":6932,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
+    "[phone]T23:12:48.212Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":2777,\"ok\":true,\"status\":200,\"bodyChars\":469119,\"textChars\":6932,\"fetchMode\":\"direct\"}",
+    "[phone]T23:12:49.364Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":438,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":12352,\"textChars\":0,\"finalHost\":\"flatfox.ch\",\"error\":null}",
+    "[phone]T23:12:49.364Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"jina_fallback_failed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":438,\"directStatus\":200,\"directTextChars\":0,\"directError\":\"\\n\\n<!DOCTYPE html>\\n<html lang=\\\"de\\\">\\n    <head>\\n        <meta charset=\\\"utf-8\\\">\\n        <meta http-equiv=\\\"X-UA-Compatible\\\" content=\\\"IE=edge,chrome=1\\\">\\n        <meta name=\\\"viewport\\\" content=\\\"wid",
+    "[phone]T23:13:03.226Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_rejected\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":14300,\"status\":200,\"textChars\":0,\"challenge\":false,\"finalHost\":\"flatfox.ch\"}",
+    "[phone]T23:13:03.826Z [info] {\"type\":\"immofinder_fetch_fallback\",\"host\":\"flatfox.ch\",\"outcome\":\"jina_reader_unavailable\",\"directStatus\":200,\"directTextChars\":0}",
+    "[phone]T23:13:03.826Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":14900,\"ok\":true,\"status\":200,\"bodyChars\":12352,\"textChars\":0,\"fetchMode\":\"direct\"}",
+    "[phone]T23:13:03.931Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T23:13:03.827Z\",\"listings\":{\"total\":0,\"visible\":0,\"hidden\":0},\"seen\":{\"total\":594,\"checked_24h\":54},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":104}",
+    "[phone]T23:13:03.933Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"dac0f17a-[phone]-d[phone]\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":14,\"fetched\":0,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":14,\"infra_failures\":0,\"serper_calls\":10,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92},\"errors\":0,\"sourc"
   ]
 }
