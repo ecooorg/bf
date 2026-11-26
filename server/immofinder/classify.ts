@@ -43,7 +43,9 @@ export interface ClassifyResult {
 }
 
 const ROOM_RE = /(\d+(?:[.,]\d+)?)\s*(?:[-–]?\s*\d+(?:[.,]\d+)?)?\s*(?:zimmer|zi\.|rooms?|chambres?|camere)/i;
-const SEEKER_RE = /(?:suche|sucht|looking\s+for|cerco|cherche|wg[\s-]?gesucht|mitbewohner|roommate|flatshare|wohngemeinschaft|gesucht)/i;
+/** Seeker posts only — not site nav ("Haus suchen") or marketing ("Starte deine Suche"). */
+const SEEKER_RE =
+  /(?:\bwg[\s-]?gesucht\b|\bmitbewohner(?:in)?\b|\broommate\b|\bflatshare\b|\bwohngemeinschaft\b|\b(?:suche|sucht)\s+(?:mitbewohner|nachmieter|wohnung|zimmer|wg)\b|\blooking\s+for\s+(?:a\s+)?(?:room|flat|roommate)\b|\b(?:cerco|cherche)\s+(?:colocation|chambre|appartement)\b)/i;
 const SALE_RE = /(?:zu\s+verkaufen|for\s+sale|verkauf|proprietà\s+in\s+vendita|à\s+vendre|zweitwohnung|eigentumswohnung)/i;
 const RESIDENTIAL_RE = /(?:wohnung|haus|apartment|ferienwohnung|ferienhaus|chalet|maison|appartamento|casa|rental|miete|mieten)/i;
 const AGENCY_MARKERS = /(?:immobilien|makler|agentur|verwaltung|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
