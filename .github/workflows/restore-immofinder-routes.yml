@@ -1,6 +1,9 @@
 name: restore-immofinder-routes
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/trigger-restore-routes'
 permissions:
   contents: write
 jobs:
@@ -64,5 +67,5 @@ jobs:
           git config user.name "immofinder-restore"
           git config user.email "bot@users.noreply.github.com"
           git add server/immofinderRoutes.ts
-          git commit -m "fix(immofinder): restore routes + secret PUT /settings"
+          git commit -m "fix(immofinder): restore routes + secret PUT /settings" || echo "nothing to commit"
           git push origin HEAD:main
