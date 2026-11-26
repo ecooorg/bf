@@ -173,7 +173,7 @@
       "url": "https://www.anibis.ch/de/q/immobilien-graubuenden-wohnungen-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZalhcGFydG1lbnSSqXByaWNlVHlwZaRSRU5UwMCRk6hsb2NhdGlvbrVnZW8tY2FudG9uLWdyYXVidW5kZW7A",
       "phase": 1,
       "maxDetailPages": 50,
-      "detailPattern": "^https://www\\\\.anibis\\\\.ch/de/vi/.*"
+      "detailPattern": "^https://www\\.anibis\\.ch/de/vi/.*"
     }
   ],
   "fetch": {
