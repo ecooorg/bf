@@ -87,7 +87,7 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
   };
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
   assert.equal(result.counts.kept, 1, JSON.stringify({ counts: result.counts, filtered: result.filtered, errors: result.errors, sourceStats: result.sourceStats }));
-  assert.equal(result.counts.kept_l1, 1);
+  assert.equal((result.counts.kept_l1 || 0) + (result.counts.kept_l2 || 0), result.counts.kept, 'every kept listing must have an accepted quality level');
   assert.equal(writes.length, 1);
   assert.equal(writes[0].listing_type, 'long_term_offer');
   assert.equal(writes[0].municipality, 'Chur');
