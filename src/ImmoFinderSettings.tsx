@@ -33,8 +33,8 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'ferienhausmiete', label: 'Ferienhausmiete', hint: 'Directly fetched holiday-home listings', priority: true },
   { id: 'happyholiday', label: 'HappyHoliday', hint: 'Directly fetched regional owner listings', priority: true },
-  { id: 'portal-anibis', label: 'Anibis', hint: 'Direct classified listing details; fetched and verified', priority: true },
-  { id: 'portal-tutti', label: 'Tutti', hint: 'Direct classified listing details; fetched and verified when accessible', priority: true },
+  { id: 'portal-anibis', label: 'Anibis', hint: 'Paused after HTTP 403 in the live pilot; re-enable only after access changes', priority: false },
+  { id: 'portal-tutti', label: 'Tutti', hint: 'Paused after HTTP 403 in the live pilot; re-enable only after access changes', priority: false },
 ];
 
 
