@@ -108,68 +108,14 @@ Operational scripts are the executable source for the checks they perform. Histo
 
 Use the existing package scripts and `.github/workflows/` definitions as the current executable procedures. Inspect the current scripts before following historical command text. Keep evidence and logs downloadable where possible, with secrets redacted.
 
-## Render Environment
+## G6 — Connector push integrity (2026-11-26)
 
-APP_BUILDER_ENGINE="staged"
-APP_BUILDER_MODEL_SLICE="true"
-BIFORGE_GEMINI_DIRECT_MODE="true"
-CODE_APP_BUILDER_MAX_FILES="80"
-CODE_APP_BUILDER_MAX_LINES="8000"
-CODE_EXECUTOR="model_patch"
-DAILY_CALL_CAP="1000"
-ENABLE_APP_AUTH="true"
-ENABLE_EXTERNAL_MODEL_FALLBACK="true"
-ENABLE_PROJECT_MODE="true"
-ENABLE_WEB_SEARCH="true"
-GITHUB_APP_ID="5276629"
-GITHUB_APP_INSTALLATION_ID="170347326"
-GITHUB_DIFF_UPLOAD="true"
-GITHUB_REPOSITORY_NAME="bf"
-GITHUB_REPOSITORY_OWNER="ecooorg"
-GROQ_PLAN="free"
-GROUNDED_NUMBER_CHECK="true"
-IMMOFINDER_BASE_URL="https://biforge.onrender.com"
-IMMOFINDER_DRIVE_FOLDER_ID="199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT"
-IMMOFINDER_DRIVE_SHARE_EMAIL="ecooorg@gmail.com"
-JINA_READER_BASE_URL="https://r.jina.ai"
-LLM_CALL_TIMEOUT_MS="12000"
-LLM_TOTAL_DEADLINE_MS="30000"
-MAX_BODY_BYTES="262144"
-MAX_MODEL_CALLS="3"
-MODEL_CASCADE_LIGHT="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
-MODEL_CASCADE_STRONG="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
-NODE_ENV="production"
-PGSSLMODE="require"
-PLAYWRIGHT_BROWSERS_PATH="/opt/render/project/playwright-browsers"
-PROJECT_RATE_LIMIT_PER_MINUTE="300"
-PROJECT_RUNTIME_CHECK="true"
-RATE_LIMIT_PER_HOUR="200"
-SEARCH_CAROUSEL="connector,serper,gemini"
-SERVICE_URL="https://biforge.onrender.com"
-TRUST_PROXY_HOPS="1"
-UNGROUNDED_FACT_GATE="true"
-WEATHER_CONNECTOR_ENABLED="true"
-WEB_SEARCH_DEFAULT_COUNTRY="CH"
-WEB_SEARCH_FETCH_PAGES="true"
-WEB_SEARCH_MAX_PAGES="2"
-WEB_SEARCH_MAX_QUERIES="2"
-WEB_SEARCH_PLANNER="true"
-WEB_SEARCH_TIMEOUT_MS="15000"
-WORKER_POLL_MS="5000"
-APP_PASSWORD="..."
-GEMINI_API_KEY="..."
-GITHUB_WEBHOOK_SECRET="..."
-GROQ_API_KEY="..."
-IMMOFINDER_GITHUB_BRANCH="main"
-IMMOFINDER_GITHUB_REPOSITORY="ecooorg/bf"
-IMMOFINDER_GITHUB_TOKEN="..."
-IMMOFINDER_RUN_SECRET="..."
-JINA_API_KEY="..."
-RESEND_API_KEY="..."
-RESEND_API_KEY_1="..."
-SERPER_API_KEY="..."
-SESSION_SECRET="..."
-TELEGRAM_BOT_TOKEN="9024108042:..."
-TELEGRAM_CHAT_ID="825225025"
-VITE_GOOGLE_CLIENT_ID="106043998526-....apps.googleusercontent.com"
-GITHUB_APP_PRIVATE_KEY="..."
+**MUST** treat any GitHub connector write of a repository file as fail-closed:
+
+1. After every `push_files` / `create_or_update_file`, **verify** remote size and a content fingerprint match the intended local content.
+2. **MUST NOT** commit placeholder, truncated, or stub bodies.
+3. Files larger than ~15 KB: prefer extracting changed logic into a **new small module** and a minimal import edit, rather than rewriting the whole large file in one connector call.
+4. If verification fails, **restore** the last known-good blob (by SHA) before any further feature work.
+5. Avoid literal HTML entity tokens in source pushed via connector — they can be decoded in transit; use string concatenation (`'&' + 'amp;'`) when needed.
+
+`server/immofinder/liveFilters.ts` holds locality pre-filter and HTTP 410 demotion helpers so `live.ts` edits stay small and push-safe.
