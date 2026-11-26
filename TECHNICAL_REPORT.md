@@ -1,3 +1,8 @@
+## P131.9 — C131 source-first CI and recovery retirement
+- **OBSERVED:** #45862026277 on d8aa670: 15 ImmoFinder failures; 17 other DAG stages passed. Render `bf` is auto-deploy-on-push from `main`.
+- **CHANGE:** align current category tests to the production source-first path; remove automated legacy-search payload restoration and backup artifacts.
+- **NOT_RUN:** post-change CI, live source workflow, production health identity, provider spend and >=3 owner-reviewed leads.
+
 ## P131.8w — ImmoFinder audit and CI reconciliation
 - **OBSERVED:** Core CI run 45857907223 failed at 5875c9a on a stale Davos assertion and lock patch mismatch; both are corrected on main @ d8298f1.
 - **CHANGE:** Reconciled module, architecture, API, test and user-value status; patch/lock/repair stamps aligned to 131.8w.

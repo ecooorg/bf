@@ -1,3 +1,6 @@
+## P131.9 — Source-first reliability and recovery retirement (RELIABILITY)
+- Align C131 tests with the live runner without weakening fetched-page gates; remove automatic legacy payload restoration and sync patch metadata.
+
 ## P131.8w — ImmoFinder state audit (MAINTENANCE)
 - Reconcile the two historical red-CI causes against their fixes on main; align package, lockfile and repair-rule patch metadata.
 - Document the live-engine cut-over, remaining legacy dependencies, CI evidence and unverified production acceptance.

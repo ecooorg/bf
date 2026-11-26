@@ -10,13 +10,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
-test('P131.5e automatic repair preserves the current core unless force restore is explicit', () => {
-  const restore = read('scripts/immofinder-core-restore.mjs');
-  assert.match(restore, /existsSync\(target\) && process\.env\.FORCE_IMMOFINDER_CORE_RESTORE !== '1'/);
-  assert.match(restore, /writeFileSync\(target, buf\)/);
-  assert.match(restore, /Current immofinderCore\.ts preserved/);
-  const workflow = read('.github/workflows/ensure-repair.yml');
-  assert.match(workflow, /node scripts\/ensure-repair\.mjs/);
+test('C131 has no automatic legacy-search payload restoration path', () => {
+  assert.equal(existsSync(path.join(root, 'scripts/immofinder-core-restore.mjs')), false);
+  assert.equal(existsSync(path.join(root, 'scripts/ensure-repair.mjs')), false);
+  assert.equal(existsSync(path.join(root, '.github/workflows/ensure-repair.yml')), false);
+  const scripts = read('scripts/scripts-integrity.mjs');
+  assert.doesNotMatch(scripts, /ensure-repair\\.mjs|immofinder-core-restore\\.mjs/);
 });
 
 test('P131.0a C131 constitution config preserves approved result and evidence rules', () => {
@@ -26,7 +25,7 @@ test('P131.0a C131 constitution config preserves approved result and evidence ru
   assert.deepEqual(q.resultTypes, ['tourist_owner', 'direct_offer']);
   for (const field of [
     'fetched_detail_page', 'final_url_matches_record_url',
-    'locality_in_configured_44_with_page_evidence', 'residential_apartment_or_house',
+    'locality_in_configured_100_with_page_evidence', 'residential_apartment_or_house',
     'rooms_gte_3_confirmed_by_page_text', 'not_seeker_sale_parking_commercial_or_shared_room',
     'not_stop_list_agency_or_company_operated', 'not_expired_when_date_visible',
   ]) assert.ok(q.requiredForL1.includes(field), `missing L1 requirement: ${field}`);
@@ -86,25 +85,19 @@ test('C131 TrustEngine admits same-page residential rentals when price, date and
   if (wrongPriceUnit.accepted) assert.equal(wrongPriceUnit.monthlyRentChf, null);
 });
 
-test('C131 TrustEngine rejects sale, seeker, unavailable and unverified room facts while allowing unknown date', async () => {
-  const { verifyListingAdmission } = await import('../server/immofinderTrustEngine.ts');
+test('C131 production classifier rejects sale, seeker and unverified room facts', async () => {
+  const { classifyPage } = await import('../server/immofinder/classify.ts');
   const base = {
     requestedUrl: 'https://example.ch/listing/123456', finalUrl: 'https://example.ch/listing/123456',
-    title: '3.5 Zimmer Wohnung zu vermieten',
-    pageText: "3.5 Zimmer Wohnung zu vermieten in Untervaz. CHF 1'450.– pro Monat. Inseriert am: 20.11.2026. Verfügbar ab sofort. Kontakt +41 79 123 45 67. Heller Wohnbereich, Küche, Bad, Balkon und Kellerabteil.",
-    municipality: 'Untervaz', municipalities: ['Untervaz'], provisional: false, rooms: 3.5, priceMonthlyChf: 1450, priceUnit: 'month', priceQuote: "CHF 1'450.– pro Monat",
-    listedAt: '2026-11-20T10:00:00.000Z', maxAgeDays: 180, phone: '+41791234567', email: null,
-    contactEvidenceUrls: ['https://example.ch/listing/123456'], nowMs: Date.parse('2026-11-24T12:00:00.000Z'),
+    title: '3.5 Zimmer Wohnung in Untervaz',
+    pageText: 'Beschreibung: Helle Wohnung in Untervaz mit Balkon, eigener Küche, Bad, Kellerabteil und ruhiger Lage. Zu vermieten ab sofort.',
+    fetchTimeIso: '2026-11-26T12:00:00.000Z',
   };
-  assert.deepEqual(verifyListingAdmission({ ...base, title: '3.5 Zimmer Eigentumswohnung Kaufpreis CHF 450000' }), { accepted: false, reason: 'trust_for_sale' });
-  assert.deepEqual(verifyListingAdmission({ ...base, title: 'Ich suche eine 3.5 Zimmer Wohnung' }), { accepted: false, reason: 'trust_seeker_post' });
-  assert.deepEqual(verifyListingAdmission({ ...base, pageText: base.pageText + ' Inserat bereits vermietet.' }), { accepted: false, reason: 'trust_listing_unavailable' });
-  assert.deepEqual(verifyListingAdmission({ ...base, rooms: 4 }), { accepted: false, reason: 'trust_rooms_conflict' });
-  const noPageRoomQuote = verifyListingAdmission({ ...base, pageText: base.pageText.replaceAll('3.5 Zimmer', '3 Schlafzimmer') });
-  assert.deepEqual(noPageRoomQuote, { accepted: false, reason: 'trust_rooms_missing' });
-  const noPublicationDate = verifyListingAdmission({ ...base, listedAt: null });
-  assert.equal(noPublicationDate.accepted, true);
-  if (noPublicationDate.accepted) assert.equal(noPublicationDate.listedAt, null);
+  const config = { municipalities: ['Untervaz'], minRooms: 3, stopAgencies: [] };
+  assert.equal(classifyPage({ ...base, title: '3.5 Zimmer Eigentumswohnung Kaufpreis CHF 450000' }, config).rejectCode, 'for_sale');
+  assert.equal(classifyPage({ ...base, title: 'Ich suche eine 3.5 Zimmer Wohnung' }, config).rejectCode, 'seeker');
+  assert.equal(classifyPage({ ...base, title: 'Wohnung in Untervaz', pageText: base.pageText.replace('3.5 Zimmer', '3 Schlafzimmer') }, config).rejectCode, 'rooms_unknown');
+  assert.equal(classifyPage(base, config).level, 'L1', 'price and publication date remain optional in C131 L1');
 });
 
 test('P130.17 search planner ignores legacy query wording and generates rental-intent searches', async () => {
@@ -151,7 +144,10 @@ test('P130.17d ImmoFinder runs use durable PostgreSQL leases and recover after p
   assert.match(routes, /executeQueuedRun/);
   assert.match(routes, /await requestRunCancel/);
   assert.match(routes, /releaseRunForRetry/);
-  assert.doesNotMatch(routes.slice(routes.indexOf("app.post('/api/immofinder/run'"), routes.indexOf('// --- In-process schedule')), /void \(async \(\) => \{/);
+  assert.match(routes, /import \{ runPipeline \} from '\.\/immofinder\/live\.ts'/);
+  assert.match(routes, /claimNextRun\(workerId\)/);
+  assert.match(routes, /renewRunLease/);
+  assert.match(routes, /releaseRunForRetry/);
   assert.match(server, /stopImmoFinderWorker/);
 });
 
@@ -255,7 +251,7 @@ test('P131.6 settings UI exposes optional price/contact filters and a complete C
   assert.match(ui, /id: 'portal-tutti'/);
   assert.doesNotMatch(ui, /id: 'landwirtschaft-gr'/);
   assert.match(ui, /AI extraction is disabled/i);
-  assert.match(ui, /\[2, 3, 4, 5, 6, 7, 8\]/);
+  assert.match(ui, /\[3, 4, 5, 6, 7, 8\]/);
 });
 
 test('C131 source-first production scope covers all Graubunden communes and locality aliases', () => {
@@ -680,7 +676,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
 
   assert.equal(defaults.schedule.everyHours, 3);
   assert.equal(defaults.schedule.mode, 'manual');
-  assert.equal(defaults.search.minRooms, 2);
+  assert.equal(defaults.search.minRooms, 3);
   assert.equal(defaults.search.carouselCommunesPerRun, cfg.municipalities.length);
   assert.equal(defaults.search.privateQueryTemplates, 2);
   assert.equal(defaults.search.maxAiPages, 40);

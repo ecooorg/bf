@@ -8,7 +8,7 @@ import { runPipeline } from '../server/immofinder/live.ts';
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
 const detailUrl = 'https://happyholiday.ch/haus/wohnung-chur-123/';
 const offTargetUrl = 'https://happyholiday.ch/haus/ferienwohnung-graubuenden-in-scuol/';
-const indexHtml = '<html><body><a href="' + offTargetUrl + '">Ferienwohnung Scuol</a><a href="' + detailUrl + '">Wohnung Chur</a></body></html>';
+const indexHtml = '<html><body>' + '<nav>Wohnungen mieten in Graubünden. Angebote und Details. </nav>'.repeat(6) + '<a href="' + offTargetUrl + '">Ferienwohnung Scuol</a><a href="' + detailUrl + '">Wohnung Chur</a></body></html>';
 const detailHtml = '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>Diese schöne Wohnung liegt in Chur. 3.5 Zimmer, helle Räume und Balkon. Das Angebot ist von privat. Für Fragen nutzen Sie bitte das Kontaktformular oder senden Sie eine Nachricht.</p></body></html>';
 const offTargetHtml = '<html><head><title>3.5 Zimmer Ferienwohnung in Scuol</title></head><body><h1>3.5 Zimmer Ferienwohnung in Scuol</h1><p>Ferienwohnung in Scuol mit 3.5 Zimmern, schöner Aussicht und Küche. Vermietung direkt vom privaten Eigentümer.</p></body></html>';
 
@@ -71,7 +71,7 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
   const detail = 'https://www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783';
   deps.config.sources = [{ id: 'portal-anibis', url: index, maxDetailPages: 12, detailPattern: '^https://www\\.anibis\\.ch/de/vi/.*' }];
   deps.fetchPage = async (url) => {
-    if (url === index) return { ok: true, status: 200, body: '<a href="' + detail + '">3.5-Zimmer-Wohnung Chur</a>', finalUrl: url };
+    if (url === index) return { ok: true, status: 200, body: '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3.5-Zimmer-Wohnung Chur</a></main>', finalUrl: url };
     if (url === detail) return { ok: true, status: 200, body: '<h1>Helle 3.5-Zimmer-Wohnung in Chur</h1><p>7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Privatperson. Kontaktformular.</p>', finalUrl: url };
     return { ok: false, status: 404, body: '', finalUrl: url };
   };
@@ -84,10 +84,9 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
 
 test('pipeline rejects detail pages without an actionable contact route', async () => {
   const { deps, writes } = depsFor();
-  deps.fetchPage = async (url) => ({
-    ok: true, status: 200, finalUrl: url,
-    body: detailHtml.replace(/Kontaktformular|Nachricht senden/gi, ''),
-  });
+  deps.fetchPage = async (url) => url === indexUrl
+    ? { ok: true, status: 200, finalUrl: url, body: indexHtml }
+    : { ok: true, status: 200, finalUrl: url, body: detailHtml.replace(/Kontaktformular|Nachricht senden/gi, '') };
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
   assert.equal(result.counts.kept, 0);
   assert.equal(writes.length, 0);
@@ -101,7 +100,7 @@ test('Flatfox parser retains half rooms, monthly price and platform contact', as
   deps.config.municipalities = ['Trun'];
   deps.config.sources = [{ id: 'portal-flatfox', url: index, maxDetailPages: 12, detailPattern: '^https://(?:www\\.)?flatfox\\.ch/(?:de/wohnung|en/flat)/.+/\\d+/?$' }];
   deps.fetchPage = async (url) => {
-    if (url === index) return { ok: true, status: 200, body: '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a>', finalUrl: url };
+    if (url === index) return { ok: true, status: 200, body: '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a></main>', finalUrl: url };
     if (url === detail) return {
       ok: true, status: 200, finalUrl: url,
       body: '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1><p>Via Sogn Martin 1, 7166 Trun. CHF 1’520 inkl. NK pro Monat.</p><h2>Beschreibung</h2><p>Moderne Wohnung mit Terrasse, Küche, Waschmaschine, Keller und Parkplatz.</p><h3>Inserent</h3><p>Herr Max Muster</p><p>Kontaktformular erstellen</p>',
@@ -208,7 +207,7 @@ test('Gemini promotes a borderline lead only when its private-owner quote is ver
   const privateQuote = 'Ich vermiete meine Wohnung selbst.';
   const html = detailHtml.replace('Das Angebot ist von privat.', privateQuote);
   deps.fetchPage = async (url) => url === indexUrl
-    ? { ok: true, status: 200, body: '<a href="' + detailUrl + '">3.5 Zimmer Wohnung Chur</a>', finalUrl: url }
+    ? { ok: true, status: 200, body: indexHtml, finalUrl: url }
     : { ok: true, status: 200, body: html, finalUrl: url };
   deps.maxLlmCalls = 1;
   deps.llm = async () => ({ private_owner_quote: privateQuote });

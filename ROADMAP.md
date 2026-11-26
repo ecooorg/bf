@@ -1,3 +1,8 @@
+## C131 current execution — P131.9 (2026-11-26)
+- **OBSERVED:** main @ d8aa670 Core CI #45862026277 is red (15 ImmoFinder failures); Render service `bf` auto-deploys `main`, and d8aa670 was live at audit time. Failures include short index fixtures, superseded 44/12-locality assumptions, legacy TrustEngine/pipeline assertions and stale room/source defaults.
+- **CHANGE:** align tests to the C131 source-first runner and retire automated legacy-search payload restoration; no legacy algorithm is an acceptable production fallback.
+- **ACCEPTANCE OPEN:** exact-commit Core CI green, live search workflow complete, production deploy live/healthy, >=3 reviewed unique L1/L2 records with locality/rooms/detail/owner/contact provenance, and actual provider spend. Never relax hard gates to force yield.
+
 ## C131 bounded paid-discovery extension — P131.8v (2026-11-26)
 - The live source-first runner now adds a rotating Serper discovery layer for the supported Swiss classified portals (Flatfox, Anibis, Tutti). It searches 6 communes/run across the full saved 121-locality catalogue, at most 18 queries/run and at least 3 seconds between calls (<=18/min). Only matching detail URLs are fetched; index snippets are never evidence.
 - Runtime hard floor is now 3 rooms regardless of the older saved UI value. Anibis and Tutti are enabled as supported sources even if their old toggles were off; existing HappyHoliday/Ferienhausmiete/Flatfox adapters remain active.

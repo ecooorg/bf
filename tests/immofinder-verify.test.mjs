@@ -110,10 +110,11 @@ test('P131.7a R7 taxonomy is closed: config list equals code list and every obse
     assert.ok(code && R7_REJECT_CODES.includes(code), reason + ' must map to a closed code');
   }
   assert.equal(classifyReject('a_reason_nobody_defined'), null);
-  const trustSrc = readFileSync(path.join(root, 'server/immofinderTrustEngine.ts'), 'utf8');
-  const trustReasons = [...trustSrc.matchAll(/\| '(trust_[a-z_]+)'/g)].map((m) => m[1]);
-  assert.ok(trustReasons.length >= 15);
-  for (const reason of trustReasons) assert.ok(classifyReject(reason), reason + ' (TrustEngine) must map to a closed code');
+  const liveClassifier = readFileSync(path.join(root, 'server/immofinder/classify.ts'), 'utf8');
+  for (const reason of ['for_sale', 'seeker', 'outside_target', 'rooms_below_min', 'rooms_unknown', 'agency', 'not_residential']) {
+    assert.ok(liveClassifier.includes(`rejectCode: '${reason}'`), `${reason} must be emitted by the production classifier`);
+    assert.ok(R7_REJECT_CODES.includes(reason), `${reason} must map to the closed taxonomy`);
+  }
 });
 
 test('P131.7a R7 summary separates unmapped reasons and counts retired gates', () => {
