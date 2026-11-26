@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T14:33:39.959Z",
+  "generatedAt": "2026-11-26T14:34:15.398Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at 782b9e2, 1 still running"
+      "detail": "1 checks at 65a528d, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 3 commit(s) behind main with 3 non-archive file(s) changed (e.g. server/immofinder/live.ts, server/immofinderRoutes.ts, tests/immofinder-live.test.mjs); deploy may be pending or failed"
+      "detail": "production is 7 commit(s) behind main with 5 non-archive file(s) changed (e.g. package-lock.json, package.json, server/immofinder/live.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T14:33:38.751Z",
+        "checkedAt": "2026-11-26T14:34:14.430Z",
         "steps": [
           {
             "step": "app",
