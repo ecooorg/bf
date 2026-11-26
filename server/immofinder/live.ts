@@ -11,7 +11,7 @@ import { happyholidayAdapter } from './sources/happyholiday.ts';
 import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
 import { createSwissClassifiedAdapter } from './sources/swiss-classified.ts';
 import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
-import { buildEvidenceText, type ListingType } from '../immofinderCore.ts';
+import { buildEvidenceText, classifyType, type ListingType } from '../immofinderCore.ts';
 
 const MAX_INDEX_PAGES_PER_SOURCE = 6;
 const MAX_DETAILS_PER_SOURCE = 12;
@@ -275,7 +275,7 @@ export async function runPipeline(
         if (directPhone) contactEvidence.push({ type: 'phone', value: directPhone, url: candidate.url });
         if (directEmail) contactEvidence.push({ type: 'email', value: directEmail, url: candidate.url });
         const record: ListingRecord = {
-          listing_type: 'holiday_owner' as ListingType,
+          listing_type: classifyType(title, candidate.url, text) as ListingType,
           canonical_key: canonicalKey(source.id, candidate.url),
           listing_url: candidate.url,
           source_urls: [candidate.url, candidate.indexUrl],
