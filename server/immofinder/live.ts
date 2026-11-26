@@ -1,0 +1,303 @@
+/**
+ * C131 source-first live ImmoFinder runtime.
+ *
+ * No SERP provider, LLM, reverse-image search, or browser-render spend.
+ * Fetches configured first-party catalogue indexes and bounded detail pages,
+ * then admits only fetched detail pages through the pure C131 classifier.
+ */
+
+import { processSnapshot } from './pipeline.ts';
+import { happyholidayAdapter } from './sources/happyholiday.ts';
+import { ferienhausmieteAdapter } from './sources/ferienhausmiete.ts';
+import type { PipelineDeps, ListingRecord, RunResult, ProgressEvent, SourceStats } from '../immofinderPipeline.ts';
+import type { ListingType } from '../immofinderCore.ts';
+
+const MAX_INDEX_PAGES_PER_SOURCE = 2;
+const MAX_DETAILS_PER_SOURCE = 6;
+const MAX_TOTAL_DETAILS = 12;
+const MAX_RUN_MS = 180_000;
+const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
+
+type Adapter = {
+  discover: (html: string, indexUrl: string) => Array<{ url: string; titleHint?: string }>;
+  extract: (html: string, pageUrl: string) => {
+    title: string | null;
+    rooms: { value: number; quote: string } | null;
+    locality: { value: string; quote: string } | null;
+    priceText: string | null;
+    privateMarker: string | null;
+    contactPhone: string | null;
+    contactEmail: string | null;
+    evidenceQuotes: string[];
+  };
+};
+
+const ADAPTERS: Record<string, Adapter> = {
+  happyholiday: happyholidayAdapter,
+  ferienhausmiete: ferienhausmieteAdapter,
+};
+
+function plainText(html: string): string {
+  return String(html || '')
+    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')
+    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')
+    .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\\s+/g, ' ')
+    .trim();
+}
+
+function pageTitle(html: string, fallback: string): string {
+  const title = /<h1[^>]*>([\\s\\S]*?)<\\/h1>/i.exec(html)?.[1]
+    || /<title[^>]*>([\\s\\S]*?)<\\/title>/i.exec(html)?.[1]
+    || '';
+  return plainText(title).slice(0, 240) || fallback;
+}
+
+function canonicalKey(sourceId: string, url: string): string {
+  const u = new URL(url);
+  return sourceId + ':' + u.hostname.replace(/^www\\./i, '').toLowerCase() + u.pathname.replace(/\\/+$/, '').toLowerCase();
+}
+
+function photoUrls(html: string): string[] {
+  const raw = /<meta[^>]+(?:property|name)=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1]
+    || /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']og:image["']/i.exec(html)?.[1];
+  if (!raw) return [];
+  try {
+    const u = new URL(raw);
+    return ['http:', 'https:'].includes(u.protocol) ? [u.toString()] : [];
+  } catch { return []; }
+}
+
+function matchesDetailPattern(url: string, pattern?: string): boolean {
+  if (!pattern) return true;
+  try { return new RegExp(pattern, 'i').test(url); } catch { return false; }
+}
+
+function progress(deps: PipelineDeps, text: string, counts: Record<string, number>) {
+  try { deps.onProgress?.({ stage: 'search', text, counts } as ProgressEvent); } catch { /* progress must never fail a run */ }
+}
+
+export async function runPipeline(
+  deps: PipelineDeps,
+  opts: { dryRun: boolean; wave?: 'priority' | 'extended' | 'full' | 'carousel'; testMode?: boolean },
+): Promise<RunResult> {
+  const started = Date.now();
+  const now = deps.now || Date.now;
+  const municipalities = deps.config.municipalities || [];
+  const classifyConfig = {
+    municipalities,
+    minRooms: Math.max(1, Number(deps.config.minRooms) || 3),
+    stopAgencies: deps.config.stopAgencies || [],
+  };
+  const counts: Record<string, number> = {
+    index_pages: 0, candidates: 0, fetched: 0, kept: 0, new: 0, updated: 0, skipped: 0, infra_failures: 0,
+  };
+  const filtered: Record<string, number> = {};
+  const errors: RunResult['errors'] = [];
+  const preview: RunResult['preview'] = [];
+  const newListings: ListingRecord[] = [];
+  const savedThisRun: ListingRecord[] = [];
+  const sourceStats: SourceStats[] = [];
+  const processedUrls = new Set<string>();
+  let totalDetails = 0;
+  let successfulIndexes = 0;
+
+  const sources = (deps.config.sources || [])
+    .filter((source) => Boolean(ADAPTERS[source.id]))
+    .sort((a, b) => Number(a.phase || 99) - Number(b.phase || 99) || a.id.localeCompare(b.id));
+
+  if (!sources.length) {
+    errors.push({ source: 'source_config', code: 'no_supported_direct_sources' });
+    return {
+      status: 'INFRA_FAIL', counts, filtered, errors, newListings, preview, estCostUsd: 0,
+      sourceStats, wavesRun: [],
+    };
+  }
+
+  for (const source of sources) {
+    if (deps.shouldCancel?.()) break;
+    if (now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
+    const adapter = ADAPTERS[source.id];
+    const stats: SourceStats = {
+      id: source.id, queries: 0, hits: 0, candidates: 0, fetched: 0, llm: 0, kept: 0,
+      new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0,
+    };
+    sourceStats.push(stats);
+    const indexUrls = (source.indexUrls?.length ? source.indexUrls : [source.url]).slice(0, MAX_INDEX_PAGES_PER_SOURCE);
+    const candidates: Array<{ url: string; indexUrl: string; titleHint?: string }> = [];
+    for (const indexUrl of indexUrls) {
+      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS) break;
+      stats.queries++;
+      try {
+        const page = await deps.fetchPage(indexUrl);
+        counts.index_pages++;
+        if (!page.ok || page.status < 200 || page.status >= 400 || !page.body || page.body.length < 300) {
+          counts.infra_failures++;
+          errors.push({ source: source.id, code: 'index_fetch_failed', detail: 'HTTP ' + page.status });
+          continue;
+        }
+        successfulIndexes++;
+        const found = adapter.discover(page.body, indexUrl);
+        for (const item of found) {
+          if (!matchesDetailPattern(item.url, source.detailPattern)) continue;
+          if (processedUrls.has(item.url)) continue;
+          processedUrls.add(item.url);
+          candidates.push({ ...item, indexUrl });
+        }
+      } catch (error) {
+        counts.infra_failures++;
+        errors.push({ source: source.id, code: 'index_fetch_error', detail: String((error as Error)?.message || error).slice(0, 140) });
+      }
+    }
+    stats.hits = candidates.length;
+    stats.candidates = candidates.length;
+    counts.candidates += candidates.length;
+    const sourceLimit = Math.min(MAX_DETAILS_PER_SOURCE, Math.max(1, Number(source.maxDetailPages) || MAX_DETAILS_PER_SOURCE));
+    const selected = candidates.slice(0, sourceLimit);
+
+    for (const candidate of selected) {
+      if (deps.shouldCancel?.() || now() - started >= MAX_RUN_MS || totalDetails >= MAX_TOTAL_DETAILS) break;
+      totalDetails++;
+      try {
+        const prior = await deps.store.getSeen(candidate.url);
+        if (prior && now() - new Date(prior.checked_at).getTime() < SEEN_TTL_MS) {
+          counts.skipped++;
+          continue;
+        }
+      } catch { /* seen-cache failure must not prevent a bounded source fetch */ }
+
+      try {
+        const page = await deps.fetchPage(candidate.url);
+        if (!page.ok || page.status < 200 || page.status >= 400 || !page.body || page.body.length < 120) {
+          counts.infra_failures++;
+          stats.consecutiveBad++;
+          errors.push({ source: source.id, code: 'detail_fetch_failed', detail: 'HTTP ' + page.status });
+          preview.push({ url: candidate.url, title: candidate.titleHint || candidate.url, source: source.id, municipality: null, rooms: null, kept: false, reason: 'fetch_blocked' });
+          continue;
+        }
+        stats.fetched++;
+        counts.fetched++;
+        const extracted = adapter.extract(page.body, page.finalUrl || candidate.url);
+        const title = extracted.title || pageTitle(page.body, candidate.titleHint || candidate.url);
+        const text = plainText(page.body).slice(0, 12_000);
+        const snapshot = {
+          requestedUrl: candidate.url,
+          finalUrl: page.finalUrl || candidate.url,
+          title,
+          pageText: text,
+          fetchTimeIso: new Date(now()).toISOString(),
+          provisional: false,
+        };
+        const outcome = processSnapshot({ snapshot, config: classifyConfig, sourceId: source.id });
+        const level = outcome.level;
+        const rejectCode = outcome.rejectCode;
+        const municipality = typeof outcome.classify.locality?.value === 'string' ? outcome.classify.locality.value : null;
+        const rooms = typeof outcome.classify.rooms?.value === 'number' ? outcome.classify.rooms.value : null;
+        preview.push({
+          url: candidate.url, title, source: source.id, municipality, rooms,
+          kept: level !== 'L0', reason: rejectCode || undefined,
+          detail: level === 'L0' ? outcome.legacyReason || rejectCode || 'rejected' : level,
+        });
+
+        if (level === 'L0') {
+          const code = rejectCode || 'not_detail_page';
+          filtered[code] = (filtered[code] || 0) + 1;
+          if (code === 'agency') stats.agencies++;
+          if (code === 'outside_target') stats.geo++;
+          else stats.junk++;
+          stats.consecutiveBad++;
+          try { await deps.store.markSeen(candidate.url, source.id, 'rejected', code); } catch { /* non-critical cache */ }
+          continue;
+        }
+
+        const owner = outcome.owner;
+        const directPhone = owner?.phone || null;
+        const directEmail = owner?.email || null;
+        const contactEvidence: ListingRecord['contact_evidence'] = [];
+        if (directPhone) contactEvidence.push({ type: 'phone', value: directPhone, url: candidate.url });
+        if (directEmail) contactEvidence.push({ type: 'email', value: directEmail, url: candidate.url });
+        const record: ListingRecord = {
+          listing_type: 'holiday_owner' as ListingType,
+          canonical_key: canonicalKey(source.id, candidate.url),
+          listing_url: candidate.url,
+          source_urls: [candidate.url, candidate.indexUrl],
+          source_ids: [source.id],
+          photo_urls: photoUrls(page.body),
+          municipality: municipality || '',
+          property_name: title,
+          rooms_text: rooms === null ? '' : String(rooms) + ' Zimmer',
+          rooms_estimated: rooms || 0,
+          rooms_basis: rooms === null ? '' : 'zimmer',
+          street_address: null,
+          description_de: text,
+          description_ru: '',
+          title_ru: title,
+          owner_name: null,
+          rent_monthly_chf: null,
+          pricing_unit: null,
+          listed_at: null,
+          direct_phone: directPhone,
+          direct_email: directEmail,
+          contact_evidence: contactEvidence,
+          contact_status: directPhone || directEmail ? 'found' : owner?.platformFormPresent ? 'platform_only' : 'not_found',
+          contact_advice: owner?.contactRoute === 'none' ? 'No direct contact evidence found on the fetched detail page.' : '',
+          private_signals: owner?.markers || [],
+          draft_message_de: '',
+          raw: {
+            engine: 'c131-source-first',
+            level,
+            source_id: source.id,
+            index_url: candidate.indexUrl,
+            fetched_at: snapshot.fetchTimeIso,
+            evidence_text: text,
+            evidence_quotes: outcome.classify.rooms?.quote ? [outcome.classify.rooms.quote] : [],
+            owner_markers: owner?.markers || [],
+            contact_route: owner?.contactRoute || 'none',
+            source_price_text: extracted.priceText,
+            locality_quote: outcome.classify.locality?.quote || null,
+          },
+        };
+
+        if (!opts.dryRun) {
+          const stored = await deps.store.upsert(record);
+          if (stored === 'new') { counts.new++; stats.new++; newListings.push(record); }
+          else counts.updated++;
+          savedThisRun.push(record);
+          try { await deps.store.markSeen(candidate.url, source.id, 'kept', level); } catch { /* non-critical cache */ }
+        }
+        counts.kept++;
+        stats.kept++;
+        stats.consecutiveBad = 0;
+      } catch (error) {
+        counts.infra_failures++;
+        errors.push({ source: source.id, code: 'detail_processing_failed', detail: String((error as Error)?.message || error).slice(0, 160) });
+      }
+      progress(deps, source.id + ': fetched ' + stats.fetched + ', verified ' + stats.kept, counts);
+    }
+    progress(deps, source.id + ': index candidates ' + stats.candidates, counts);
+  }
+
+  const wavesRun: RunResult['wavesRun'] = successfulIndexes ? ['extended'] : [];
+  if (!opts.dryRun && savedThisRun.length && deps.onWaveComplete) {
+    try { await deps.onWaveComplete({ wave: opts.wave === 'carousel' ? 'carousel' : 'extended', newInWave: savedThisRun, counts }); }
+    catch (error) { errors.push({ source: 'delivery', code: 'wave_delivery_failed', detail: String((error as Error)?.message || error).slice(0, 160) }); }
+  }
+  return {
+    status: successfulIndexes ? 'COMPLETED' : 'INFRA_FAIL',
+    counts,
+    filtered,
+    errors,
+    newListings,
+    preview,
+    estCostUsd: 0,
+    sourceStats,
+    wavesRun,
+  };
+}
