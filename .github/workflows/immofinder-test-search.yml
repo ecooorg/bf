@@ -1,4 +1,4 @@
-name: ImmoFinder agent short test search
+name: ImmoFinder source-first production run
 on:
   issue_comment:
     types: [created]
@@ -6,18 +6,18 @@ permissions:
   contents: read
   issues: write
 concurrency:
-  group: immofinder-agent-test
+  group: immofinder-source-first-production
   cancel-in-progress: false
 jobs:
-  bounded-test:
+  production-run:
     if: >-
       github.event.issue.pull_request == null &&
       github.event.comment.user.login == github.repository_owner &&
-      startsWith(github.event.comment.body, '/immofinder-test')
+      startsWith(github.event.comment.body, '/immofinder-run')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Trigger a bounded dry-run against production
+      - name: Trigger one bounded source-first production run
         id: trigger
         env:
           BASE_URL: https://bf-3tqo.onrender.com
@@ -29,55 +29,71 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$BASE_URL" ] || [ -z "$RUN_SECRET" ]; then
-            echo "Missing IMMOFINDER_BASE_URL or IMMOFINDER_RUN_SECRET repository secret." >&2
+            echo "Missing production base URL or run secret." >&2
             exit 1
           fi
           BASE="${BASE_URL%/}"
-          profile_code=$(curl -sS -o /tmp/profile.json -w '%{http_code}' -X POST "$BASE/api/immofinder/settings/prepare-chur-test" \
-            -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' -d '{}')
-          if [ "$profile_code" != "200" ]; then
-            cat /tmp/profile.json
-            echo "Could not apply Chur-only all-source user settings profile: HTTP $profile_code" >&2
-            exit 1
-          fi
-          before=$(curl -sS -o /tmp/before.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
+          before=$(curl --connect-timeout 5 --max-time 15 -sS -o /tmp/before.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
           before_id=""
           if [ "$before" = "200" ]; then before_id=$(jq -r '.report.runId // empty' /tmp/before.json); fi
-          code=$(curl -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run" \
+          code=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/trigger.json -w '%{http_code}' -X POST "$BASE/api/immofinder/run" \
             -H "X-Immofinder-Secret: $RUN_SECRET" -H 'Content-Type: application/json' \
-            -d '{"dryRun":true,"wave":"carousel","testMode":true}')
+            --data '{"wave":"full"}')
           if [ "$code" = "409" ]; then
-            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Short ImmoFinder test was not started: another search is already running. No production data was changed."
+            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Source-first production run was not started: another search is already running. No production data was changed."
             exit 0
           fi
           if [ "$code" != "202" ]; then
-            cat /tmp/trigger.json
-            echo "Unexpected trigger response: HTTP $code" >&2
+            jq '{success,error,code}' /tmp/trigger.json 2>/dev/null || cat /tmp/trigger.json
+            echo "Unexpected production-run response: HTTP $code" >&2
             exit 1
           fi
           RUN_ID=$(jq -r '.runId // empty' /tmp/trigger.json)
           if [ -z "$RUN_ID" ]; then echo "No runId returned." >&2; exit 1; fi
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
-          echo "Triggered bounded test run $RUN_ID (previous diagnostics: ${before_id:-none})."
+          echo "Started source-first production run $RUN_ID (previous report: ${before_id:-none})."
           found=false
-          for attempt in $(seq 1 45); do
-            sleep 8
-            status=$(curl -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
-            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.report.runId == $id' /tmp/report.json >/dev/null; then found=true; break; fi
+          for attempt in $(seq 1 60); do
+            sleep 10
+            status=$(curl --connect-timeout 5 --max-time 20 -sS -o /tmp/report.json -w '%{http_code}' "$BASE/api/immofinder/diagnostics/latest" -H "X-Immofinder-Secret: $RUN_SECRET" || true)
+            if [ "$status" = "200" ] && jq -e --arg id "$RUN_ID" '.success == true and .report.runId == $id' /tmp/report.json >/dev/null 2>&1; then found=true; break; fi
           done
           if [ "$found" != true ]; then
-            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Bounded ImmoFinder test $RUN_ID was accepted but no completed diagnostics report appeared within 360 seconds. Check the Render worker logs. The run is dry-run-only."
+            gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="Source-first production run $RUN_ID was accepted but no completed diagnostics report appeared within 600 seconds. Check Render worker logs."
             exit 1
           fi
           mkdir -p artifacts
-          cp /tmp/report.json artifacts/immofinder-test-$RUN_ID.json
-          summary=$(jq -r '"**ImmoFinder short test completed**\n- Run: \(.report.runId)\n- Candidates: \(.report.result.counts.candidates // 0)\n- Pages fetched: \(.report.result.counts.fetched // 0)\n- Kept (dry-run preview): \(.report.result.counts.kept // 0)\n- Serper queries: \(.report.result.counts.search_queries // 0)\n- Estimated cost: $\(.report.result.estCostUsd // "not reported")\n- Errors: \([.report.result.errors[]?.code] | join(", "))\n- Diagnostics event count: \(.report.eventCount)\n\nNo listing rows or seen-cache entries are written by this test mode. Full report is attached as a workflow artifact."' /tmp/report.json)
+          cp /tmp/report.json "artifacts/immofinder-production-$RUN_ID.json"
+          jq '{
+            runId: .report.runId,
+            completedAt: .report.completedAt,
+            counts: .report.result.counts,
+            filtered: .report.result.filtered,
+            sourceStats: .report.result.sourceStats,
+            estimatedProviderCostUsd: .report.result.estCostUsd,
+            qualityLevels: {
+              L1: ([.report.result.preview[]? | select(.kept == true and .detail == "L1")] | length),
+              L2: ([.report.result.preview[]? | select(.kept == true and .detail == "L2")] | length)
+            },
+            paidProviderCalls: { serper: 0, llm: 0, jina: 0, browser: 0 },
+            errors: ([.report.result.errors[]? | {source,code}])
+          }' /tmp/report.json > /tmp/summary.json
+          summary=$(jq -r '"**Source-first production run completed**
+- Run: (.runId)
+- Detail pages fetched: (.counts.fetched // 0)
+- L1 leads: (.qualityLevels.L1)
+- L2 private-owner leads: (.qualityLevels.L2)
+- New records: (.counts.new // 0)
+- Rejections: (.filtered)
+- Estimated provider cost: $(.estimatedProviderCostUsd // 0)
+- Paid provider calls (Serper/LLM/Jina/browser): 0
+- Errors: ([.errors[]?.code] | join(", "))"' /tmp/summary.json)
           gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$summary"
-      - name: Upload short-search diagnostics
+      - name: Upload production diagnostics
         if: always() && steps.trigger.outputs.run_id != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: immofinder-short-test-${{ steps.trigger.outputs.run_id }}
+          name: immofinder-source-first-production-${{ steps.trigger.outputs.run_id }}
           path: artifacts/
           if-no-files-found: warn
           retention-days: 14
