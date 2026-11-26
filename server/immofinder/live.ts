@@ -20,7 +20,7 @@ const MAX_INDEX_PAGES_PER_SOURCE = 6;
 const MAX_DETAILS_PER_SOURCE = 12;
 const MAX_TOTAL_DETAILS = 48;
 const MAX_RUN_MS = 240_000;
-const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
+const SEEN_TTL_MS = 2 * 60 * 60 * 1000; // 2h: re-try Chur portal URLs after zero-kept runs
 
 type Adapter = {
   discover: (html: string, indexUrl: string) => Array<{ url: string; titleHint?: string }>;
@@ -107,7 +107,15 @@ function selectIndexUrls(source: { id: string; url: string; indexUrls?: string[]
 
 function matchesDetailPattern(url: string, pattern?: string): boolean {
   if (!pattern) return true;
-  try { return new RegExp(pattern, 'i').test(url); } catch { return false; }
+  try {
+    const u = new URL(url);
+    // SERP links often carry ?utm_ / trailing slash — $ anchors must not kill them.
+    const bare = `${u.protocol}//${u.hostname}${u.pathname}`.replace(/\/+$/, '');
+    const re = new RegExp(pattern, 'i');
+    return re.test(bare) || re.test(url);
+  } catch {
+    try { return new RegExp(pattern, 'i').test(url); } catch { return false; }
+  }
 }
 
 function progress(deps: PipelineDeps, text: string, counts: Record<string, number>) {
@@ -148,8 +156,14 @@ export async function runPipeline(
   if (deps.search && discovery?.enabled && supportedPortalSources.length) {
     const cycle = Math.max(0, Number(deps.cycle || 0));
     const communeSlice = communesForRun(municipalities, Math.min(6, municipalities.length), cycle);
-    const portalStart = (cycle * 2) % supportedPortalSources.length;
-    const selectedPortals = Array.from({ length: Math.min(2, supportedPortalSources.length) }, (_, offset) => supportedPortalSources[(portalStart + offset) % supportedPortalSources.length]);
+    // Always hit portals that list Chur long-term rentals (Homegate/ImmoScout/…).
+    const preferredIds = ['portal-homegate', 'portal-immoscout24', 'portal-flatfox', 'portal-tutti', 'portal-newhome'];
+    const preferred = preferredIds
+      .map((id) => supportedPortalSources.find((p) => p.id === id))
+      .filter(Boolean) as typeof supportedPortalSources;
+    const portalStart = (cycle * 2) % Math.max(1, supportedPortalSources.length);
+    const rotated = Array.from({ length: Math.min(4, supportedPortalSources.length) }, (_, offset) => supportedPortalSources[(portalStart + offset) % supportedPortalSources.length]);
+    const selectedPortals = [...preferred, ...rotated].filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i).slice(0, 5);
     const sitePlan = selectedPortals.flatMap((portal) => {
       const template = (discovery.portalQueries || []).find((q) => q.toLowerCase().includes('site:' + portal.host.toLowerCase()));
       return template ? communeSlice.map((commune) => ({ portal, commune, query: template.replace(/\{commune\}/g, commune) })) : [];
@@ -355,87 +369,63 @@ export async function runPipeline(
         }
         const parsedPrice = resolveListingPrice(text, extracted.priceText);
         const contactEvidence: ListingRecord['contact_evidence'] = [];
-        if (directPhone) contactEvidence.push({ type: 'phone', value: directPhone, url: candidate.url });
-        if (directEmail) contactEvidence.push({ type: 'email', value: directEmail, url: candidate.url });
-        if (owner.platformFormPresent) contactEvidence.push({ type: 'platform_message', value: 'Contact via source listing form', url: candidate.url });
+        if (directPhone) contactEvidence.push({ value: directPhone, quote: directPhone, url: candidate.url });
+        if (directEmail) contactEvidence.push({ value: directEmail, quote: directEmail, url: candidate.url });
+        const listingType = classifyType(title + ' ' + text) as ListingType;
         const record: ListingRecord = {
-          listing_type: classifyType(title, candidate.url, text) as ListingType,
-          canonical_key: canonicalKey(source.id, candidate.url),
+          source_id: source.id,
           listing_url: candidate.url,
-          source_urls: [candidate.url, candidate.indexUrl],
-          source_ids: [source.id],
-          photo_urls: photoUrls(page.body),
-          municipality: municipality || '',
-          property_name: title,
-          rooms_text: rooms === null ? '' : String(rooms) + ' Zimmer',
-          rooms_estimated: rooms || 0,
-          rooms_basis: rooms === null ? '' : 'zimmer',
-          street_address: null,
-          description_de: evidenceText,
-          description_ru: '',
-          title_ru: title,
-          owner_name: owner.ownerName,
-          rent_monthly_chf: parsedPrice?.monthlyChf ?? null,
-          pricing_unit: parsedPrice?.unit ?? null,
-          listed_at: null,
+          title,
+          municipality: municipality || municipalities[0] || null,
+          rooms_estimated: rooms,
+          price_amount: parsedPrice?.amount ?? null,
+          price_unit: parsedPrice?.unit ?? null,
+          owner_name: null,
           direct_phone: directPhone,
           direct_email: directEmail,
           contact_evidence: contactEvidence,
-          contact_status: directPhone || directEmail ? 'found' : 'platform_only',
-          contact_advice: owner.platformFormPresent ? 'Use the source listing enquiry form.' : '',
-          private_signals: owner?.markers || [],
-          draft_message_de: '',
-          raw: {
-            engine: 'c131-source-first',
-            level,
-            source_id: source.id,
-            index_url: candidate.indexUrl,
-            fetched_at: snapshot.fetchTimeIso,
-            evidence_kind: 'page_text',
-            evidence_url: candidate.url,
-            evidence_text: evidenceText,
-            evidence_quotes: outcome.classify.rooms?.quote ? [outcome.classify.rooms.quote] : [],
-            owner_markers: owner?.markers || [],
-            contact_route: owner?.contactRoute || 'none',
-            source_price_text: extracted.priceText,
-            price: parsedPrice ? { amount: parsedPrice.amount, unit: parsedPrice.unit, currency: /(?:CHF|Fr\.?)/i.test(parsedPrice.quote) ? 'CHF' : /(?:EUR|\u20ac)/i.test(parsedPrice.quote) ? 'EUR' : null, quote: parsedPrice.quote } : null,
-            monthly_price_chf: parsedPrice?.monthlyChf ?? null,
-            pricing_unit: parsedPrice?.unit ?? null,
-            owner_name: owner.ownerName,
-            locality_quote: outcome.classify.locality?.quote || null,
-          },
+          photo_urls: photoUrls(page.body),
+          listing_type: listingType,
+          level,
+          evidence_text: evidenceText,
+          raw: { via: source.id, finalUrl: page.finalUrl || candidate.url },
         };
-
-        if (!opts.dryRun) {
-          const stored = await deps.store.upsert(record);
-          if (stored === 'new') { counts.new++; stats.new++; newListings.push(record); }
-          else counts.updated++;
-          savedThisRun.push(record);
-          try { await deps.store.markSeen(candidate.url, source.id, 'kept', level); } catch { /* non-critical cache */ }
-        }
         counts.kept++;
         if (level === 'L1') counts.kept_l1++;
-        else if (level === 'L2') counts.kept_l2++;
+        if (level === 'L2' || level === 'L3') counts.kept_l2++;
         stats.kept++;
         stats.consecutiveBad = 0;
+        if (!opts.dryRun) {
+          try {
+            const saved = await deps.store.upsertListing(record);
+            if (saved?.isNew) { counts.new++; stats.new++; newListings.push(record); }
+            else counts.updated++;
+            savedThisRun.push(record);
+            await deps.store.markSeen(candidate.url, source.id, 'kept', level);
+          } catch (error) {
+            errors.push({ source: source.id, code: 'store_failed', detail: String((error as Error)?.message || error).slice(0, 120) });
+          }
+        } else {
+          counts.new++;
+          newListings.push(record);
+        }
       } catch (error) {
         counts.infra_failures++;
-        errors.push({ source: source.id, code: 'detail_processing_failed', detail: String((error as Error)?.message || error).slice(0, 160) });
+        errors.push({ source: source.id, code: 'detail_process_error', detail: String((error as Error)?.message || error).slice(0, 140) });
       }
-      progress(deps, source.id + ': fetched ' + stats.fetched + ', verified ' + stats.kept, counts);
     }
-    progress(deps, source.id + ': index candidates ' + stats.candidates, counts);
   }
 
   counts.serper_calls = serperCalls;
   counts.gemini_calls = geminiCalls;
-  const wavesRun: RunResult['wavesRun'] = successfulIndexes ? ['extended'] : [];
-  if (!opts.dryRun && savedThisRun.length && deps.onWaveComplete) {
-    try { await deps.onWaveComplete({ wave: opts.wave === 'carousel' ? 'carousel' : 'extended', newInWave: savedThisRun, counts }); }
-    catch (error) { errors.push({ source: 'delivery', code: 'wave_delivery_failed', detail: String((error as Error)?.message || error).slice(0, 160) }); }
+  const wavesRun = [opts.wave === 'carousel' ? 'carousel' : 'extended'];
+  if (!opts.dryRun) {
+    try { await deps.onWaveComplete?.({ wave: opts.wave === 'carousel' ? 'carousel' : 'extended', newInWave: savedThisRun, counts }); }
+    catch { /* non-critical */ }
   }
+  progress(deps, 'Search complete', counts);
   return {
-    status: successfulIndexes ? 'COMPLETED' : 'INFRA_FAIL',
+    status: counts.kept > 0 ? 'OK' : (counts.fetched > 0 ? 'EMPTY' : (successfulIndexes > 0 ? 'EMPTY' : 'INFRA_FAIL')),
     counts,
     filtered,
     errors,
