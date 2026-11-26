@@ -1,3 +1,8 @@
+## P131.8u — Actionable evidence gate (BUGFIX)
+- Do not admit listings without a direct contact or source-platform enquiry route. Extract named hosts, preserve source price/currency and show platform enquiry as actionable contact on cards.
+- Fix bedroom-vs-room false positives; support half-room and hyphenated Zimmerwohnung labels. Hold exploratory rows hidden until a clean fresh fetch revalidates them.
+- Keep-alive pings disabled for Render idle savings; manual schedule, no delivery and zero paid provider calls.
+
 ## P131.8t — Add Flatfox direct rentals (FEATURE)
 - Added a bounded Flatfox Graubünden rental source and detail adapter, including monthly price, ½-room and advertiser extraction. Enabled only alongside HappyHoliday/Ferienhausmiete.
 - Production remains manual-only with all delivery channels off. No Serper, LLM or Jina spend; local Chromium fallback remains capped at 3 pages/run.
