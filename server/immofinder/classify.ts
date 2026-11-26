@@ -48,7 +48,7 @@ const SEEKER_RE =
   /(?:\bwg[\s-]?gesucht\b|\bmitbewohner(?:in)?\b|\broommate\b|\bflatshare\b|\bwohngemeinschaft\b|\b(?:suche|sucht)\s+(?:mitbewohner|nachmieter|wohnung|zimmer|wg)\b|\blooking\s+for\s+(?:a\s+)?(?:room|flat|roommate)\b|\b(?:cerco|cherche)\s+(?:colocation|chambre|appartement)\b)/i;
 const SALE_RE = /(?:zu\s+verkaufen|for\s+sale|verkauf|proprietà\s+in\s+vendita|à\s+vendre|zweitwohnung|eigentumswohnung)/i;
 const RESIDENTIAL_RE = /(?:wohnung|haus|apartment|ferienwohnung|ferienhaus|chalet|maison|appartamento|casa|rental|miete|mieten)/i;
-const AGENCY_MARKERS = /(?:immobilienmakler|immobilienverwaltung|immobilienbüro|makler(?:in)?|property\\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
+const AGENCY_MARKERS = /(?:immobilienmakler|immobilienverwaltung|immobilienbüro|makler(?:in)?|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
 
 /** Prefer URL slug and title over full page text (footer often lists many communes). */
 function findMunicipality(
@@ -79,8 +79,8 @@ function findMunicipality(
   for (const m of list) {
     const escaped = m.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
     const patterns = [
-      new RegExp('\\b(?:ort|standort|adresse|location|objektstandort|gemeinde)\\s*[:\\-]\\s*(?:\\d{4}\\s*)?' + escaped + '\\b', 'i'),
-      new RegExp('\\b\\d{4}\\s*,?\\s*' + escaped + '\\b', 'i'),
+      new RegExp('\\b(?:ort|standort|adresse|location|objektstandort|gemeinde)\s*[:\\-]\s*(?:\\d{4}\s*)?' + escaped + '\\b', 'i'),
+      new RegExp('\\b\\d{4}\s*,?\s*' + escaped + '\\b', 'i'),
     ];
     for (const pattern of patterns) {
       const match = pattern.exec(head);
