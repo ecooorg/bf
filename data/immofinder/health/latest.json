@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T08:10:16.025Z",
+  "generatedAt": "2026-11-26T08:25:01.575Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "FAIL",
-      "detail": "1 failing at f589cde: check-and-build"
+      "status": "WARN",
+      "detail": "no check runs reported for 7950c9f"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit f589cde"
+      "detail": "HTTP 200, version 131, commit 5da2e00"
     },
     {
       "group": "RENDER",
@@ -29,14 +29,14 @@
     {
       "group": "RENDER",
       "name": "Deployed commit",
-      "status": "OK",
-      "detail": "production runs main HEAD"
+      "status": "WARN",
+      "detail": "production is 11 commit(s) behind main with 13 non-archive file(s) changed (e.g. CHANGELOG.md, docs/ROADMAP_C131.md, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
-      "status": "WARN",
-      "detail": "Render log collection failed: HTTP 403 from /v1/logs; publisher errors and runtime signals are unchecked"
+      "status": "SKIP",
+      "detail": "Render logs were not collected (RENDER_API_KEY / RENDER_OWNER_ID / RENDER_SERVICE_ID)"
     },
     {
       "group": "PUBLISHING",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T08:10:15.027Z",
+        "checkedAt": "2026-11-26T08:25:00.525Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 3.9 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 4.2 h old"
     },
     {
       "group": "SEARCH",
