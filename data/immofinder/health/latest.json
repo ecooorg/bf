@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T07:50:44.625Z",
+  "generatedAt": "2026-11-26T07:51:33.153Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at f9c36bc, 1 still running"
+      "detail": "2 checks at 1b38276, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit 1ec7488"
+      "detail": "HTTP 200, version 131, commit aa6884b"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 2 commit(s) behind main with 3 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, config/immofinder.json); deploy may be pending or failed"
+      "detail": "production is 4 commit(s) behind main with 3 non-archive file(s) changed (e.g. config/immofinder.json, docs/ROADMAP_C131.md, server/immofinderRunDiagnostics.ts); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T07:50:43.621Z",
+        "checkedAt": "2026-11-26T07:51:32.269Z",
         "steps": [
           {
             "step": "app",
