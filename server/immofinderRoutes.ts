@@ -19,7 +19,7 @@ function immofinderWaveLabel(wave: string): string {
 }
 import { TIMEZONE, applySettings, churTestSettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, getSettingsUpdatedAt, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveWorkerProgress, claimNextRun, renewRunLease, releaseRunForRetry, markRunCancelLocal, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
@@ -948,6 +948,55 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     console.info(JSON.stringify({ type: 'immofinder_durable_worker_started', workerId, pollMs: 15_000 }));
     void tick().catch((error) => console.warn(JSON.stringify({ type: 'immofinder_worker_initial_poll_failed', error: String((error as Error)?.message || error).slice(0, 120) })));
   }
+// One-time owner-approved scope expansion. A persisted updated_at guard prevents repeats after restarts.
+  const scopeExpandAfterMs = Date.parse(String(process.env.IMMOFINDER_SCOPE_EXPAND_AFTER || ''));
+  if (Number.isFinite(scopeExpandAfterMs) && process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT && process.env.DATABASE_URL) {
+    const scopeExpandTimer = setTimeout(() => {
+      void (async () => {
+        const cfg = loadImmoConfig();
+        const updatedAt = await getSettingsUpdatedAt();
+        if (updatedAt && updatedAt.getTime() >= scopeExpandAfterMs) {
+          immoLog('info', 'immofinder_scope_expansion_skipped', { reason: 'settings_already_updated', updatedAt: updatedAt.toISOString() });
+          return;
+        }
+        const current = await getSettings(cfg);
+        const sourceIds = [...new Set([...Object.keys(current.search.sources), ...(cfg.sources || []).map((s) => s.id)])];
+        const expanded = await saveSettings(cfg, {
+          ...current,
+          schedule: { ...current.schedule, mode: 'manual' },
+          delivery: { ...current.delivery, telegram: false, email: false, emailTo: '', drive: false, driveFolderId: '', notifyWhenEmpty: false },
+          search: {
+            ...current.search,
+            communes: [...cfg.municipalities],
+            minRooms: 2,
+            municipalityGroups: { group1: true, group2: true },
+            sources: Object.fromEntries(sourceIds.map((id) => [id, true])),
+            profile: 'burst',
+            defaultWave: 'full',
+            carouselCommunesPerRun: cfg.municipalities.length,
+            maxAiPages: 200,
+            enrichSearchesPerRun: 0,
+            recheckContactSearch: false,
+            limitPrice: false,
+            requirePrice: false,
+            requireContact: false,
+            rejectSeekerPosts: true,
+          },
+        });
+        const runId = await startRun('manual', false, { settings: expanded, wave: 'full', cycle: await realRunCount() });
+        immoLog('info', 'immofinder_scope_expansion_applied', {
+          communes: expanded.search.communes.length,
+          minRooms: expanded.search.minRooms,
+          enabledSources: Object.entries(expanded.search.sources).filter(([, enabled]) => enabled).map(([id]) => id),
+          runId,
+          deliveryDisabled: true,
+          paidDiscoveryDisabled: true,
+        });
+      })().catch((error) => immoLog('error', 'immofinder_scope_expansion_failed', { error: String((error as Error)?.message || error).slice(0, 180) }));
+    }, 15_000);
+    scopeExpandTimer.unref();
+  }
+
 // One-time production smoke hook. It is inert unless an explicit ISO threshold is set in Render.
   // lastRealRunAt is persisted in PostgreSQL, so later restarts cannot repeat this run.
   const bootRunAfterMs = Date.parse(String(process.env.IMMOFINDER_BOOT_RUN_AFTER || ''));
