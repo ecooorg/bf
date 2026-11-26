@@ -98,6 +98,7 @@ export function createPgStore(): ImmoStore {
             municipality = COALESCE(NULLIF($7,''), municipality),
             property_name = CASE WHEN length(coalesce($8,'')) >= length(coalesce(property_name,'')) THEN $8 ELSE property_name END,
             rooms_estimated = COALESCE($9, rooms_estimated),
+            rooms_text = CASE WHEN length(coalesce($19,'')) > 0 THEN $19 ELSE rooms_text END,
             description_de = CASE WHEN length(coalesce($10,'')) > length(coalesce(description_de,'')) THEN $10 ELSE description_de END,
             direct_phone = COALESCE($11, direct_phone),
             direct_email = COALESCE($12, direct_email),
@@ -123,7 +124,7 @@ export function createPgStore(): ImmoStore {
             rec.direct_email,
             rec.owner_name,
             j({ ...nextRaw, ...(sanitized.notes.length || sanitized.hardReason ? { write_time_quality: { notes: sanitized.notes, hardReason: sanitized.hardReason, rules: REPAIR_RULES_VERSION } } : {}) }),
-            Boolean(sanitized.hardReason), sanitized.hardReason || '', recoverAutomaticHide, rec.street_address || '',
+            Boolean(sanitized.hardReason), sanitized.hardReason || '', recoverAutomaticHide, rec.street_address || '', rec.rooms_text || '',
           ],
         );
         return 'updated';
@@ -486,6 +487,18 @@ export async function saveProgress(id: string, progress: unknown) {
 export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
   const p = await getPool(); const r = await p.query("SELECT data FROM immofinder_settings WHERE id = 'main'");
   return r.rows[0] ? sanitizeSettings(r.rows[0].data, cfg) : defaultSettings(cfg);
+}
+export async function clearC131PilotSeen(): Promise<number> {
+  const p = await getPool();
+  const r = await p.query(
+    `DELETE FROM immofinder_seen
+     WHERE url IN (
+       SELECT listing_url FROM immofinder_listings
+       WHERE first_seen_at >= '2026-11-26T15:21:58Z'
+         AND listing_url IS NOT NULL
+     ) RETURNING url`,
+  );
+  return r.rowCount || 0;
 }
 export async function getSettingsUpdatedAt(): Promise<Date | null> {
   const p = await getPool();
