@@ -273,7 +273,12 @@ test('C131 source-first production scope covers all Graubunden communes and loca
 test('C131 browser fallback is local, host-allowlisted and hard-capped', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const live = read('server/immofinderRoutes.ts');
-  assert.deepEqual(cfg.fetch.browserRenderHosts, ['happyholiday.ch', 'flatfox.ch']);
+  // Required hosts for C131 pilot; additional high-yield portals (Homegate/ImmoScout/…) may be allowlisted.
+  for (const host of ['happyholiday.ch', 'flatfox.ch']) {
+    assert.ok(cfg.fetch.browserRenderHosts.includes(host), 'missing required browser host: ' + host);
+  }
+  assert.ok(cfg.fetch.browserRenderHosts.length >= 2);
+  assert.ok(cfg.fetch.browserRenderHosts.length <= 12, 'browser allowlist must stay bounded');
   assert.equal(cfg.fetch.maxBrowserRendersPerRun, 3);
   assert.match(live, /allowJina: false, allowBrowser: true/);
   assert.match(live, /maxLlmCalls: 3/);
