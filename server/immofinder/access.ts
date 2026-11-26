@@ -1,6 +1,6 @@
 /**
  * C131 WP3 access stage — robots, per-host delay, timeouts, redirect resolution, snapshot.
- * Pure helpers + thin wrappers. Live fetching remains in legacy immofinderFetcher until WP5.
+ * Pure helpers + thin wrappers. Live fetching remains in legacy immofinderFetcher until WP5 (P131.8b).
  * Hosts with persistent 403 are marked blocked and not retried in the same run.
  */
 
@@ -66,7 +66,6 @@ export function hostFromUrl(url: string): string {
   }
 }
 
-/** Deterministic delay budget for a host (used by run planner). */
 export function delayForHost(host: string, policy: AccessPolicy = DEFAULT_ACCESS_POLICY): number {
   const s = getHostState(host);
   if (s.status === 'blocked') return 0;
@@ -82,7 +81,6 @@ export interface SnapshotMeta {
   contentHash: string | null;
 }
 
-/** Simple FNV-1a content hash for delta detection (R-run). */
 export function contentHash(text: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
