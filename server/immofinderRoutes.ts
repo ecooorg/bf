@@ -723,7 +723,15 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       };
       try {
         immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot before run');
-        const baseCfg = applySettings(loadImmoConfig(), settings);
+        const fullCatalogue = loadImmoConfig();
+        const baseCfg = applySettings(fullCatalogue, settings);
+        // Quality floor is a hard runtime rule; persisted UI settings cannot lower it.
+        baseCfg.minRooms = Math.max(3, Number(baseCfg.minRooms) || 3);
+        // Include the remaining supported Swiss classified sources even if their old UI toggles were off.
+        for (const id of ['portal-anibis', 'portal-tutti']) {
+          const source = fullCatalogue.sources.find((item) => item.id === id);
+          if (source && !baseCfg.sources.some((item) => item.id === id)) baseCfg.sources.push(source);
+        }
         const cfg = progress.testMode === true ? applyImmoFinderTestBudget(baseCfg) : baseCfg;
         if (progress.testMode !== true) {
           try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
@@ -831,7 +839,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           store: createPgStore(),
           onProgress: push,
           maxLlmCalls: 0,
-          search: null,
+          // Serper is used only for a small rotating set of commune × supported-portal queries.
+          search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, Math.min(10, cfg.discovery?.resultsPerQuery ?? 10)) : null,
           cycle: Number(progress.cycle ?? 0),
           resume: {
             completedQueryKeys: Array.isArray(progress.completedQueryKeys) ? progress.completedQueryKeys : [],
