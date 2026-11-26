@@ -15,7 +15,7 @@ export function isShortPageBrowserCandidate(
 }
 
 /** Polite fetcher: honest User-Agent, per-host delay, robots.txt, timeout, size cap, http(s) only. */
-export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fetch, isPublicTarget: (url: string) => Promise<boolean> = isPublicFetchTarget) {
+export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fetch, isPublicTarget: (url: string) => Promise<boolean> = isPublicFetchTarget, options: { allowJina?: boolean; allowBrowser?: boolean } = {}) {
   type RobotsRule = { allow: boolean; path: string };
   const last = new Map<string, number>(); const robots = new Map<string, RobotsRule[]>();
   let browserRenders = 0;
@@ -238,14 +238,14 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     }
     if (!direct.ok || directTextChars < 120) {
       if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
-      const fallback = await jinaFallback(url);
+      const fallback = options.allowJina === false ? null : await jinaFallback(url);
       if (fallback) {
         logFetch('jina_fallback_succeeded', { directStatus: direct.status, directTextChars, fallbackBodyChars: fallback.body.length, fallbackMode: fallback.fetchMode });
         try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_ok', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
         return fallback;
       }
       logFetch('jina_fallback_failed', { directStatus: direct.status, directTextChars, directError: String(direct.body || '').slice(0, 240), fallbackConfigured: Boolean(process.env.JINA_READER_BASE_URL), fallbackKeyConfigured: Boolean(process.env.JINA_API_KEY) });
-      const rendered = await browserFallback(url, logFetch);
+      const rendered = options.allowBrowser === false ? null : await browserFallback(url, logFetch);
       if (rendered) {
         const renderedChars = htmlToText(rendered.body).trim().length;
         logFetch('browser_fallback_succeeded', { directStatus: direct.status, directTextChars, renderedTextChars: renderedChars, fetchMode: rendered.fetchMode });
@@ -254,7 +254,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       }
       try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
     }
-    if (direct.ok && isShortPageBrowserCandidate(initial.hostname, directTextChars, cfg.fetch)) {
+    if (options.allowBrowser !== false && direct.ok && isShortPageBrowserCandidate(initial.hostname, directTextChars, cfg.fetch)) {
       logFetch('browser_short_page_render_attempt', { directStatus: direct.status, directTextChars, host: initial.hostname });
       const rendered = await browserFallback(url, logFetch);
       if (rendered) {
