@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T09:30:22.861Z",
+  "generatedAt": "2026-11-26T09:34:16.143Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "1 checks at 0a2a56e, 1 still running"
+      "detail": "no check runs reported for 6b898a2"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit ebb976e"
+      "detail": "HTTP 200, version 131, commit 8cd457d"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 2 commit(s) behind main with 6 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, docs/ROADMAP_C131.md); deploy may be pending or failed"
+      "detail": "production is 4 commit(s) behind main with 6 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T09:30:21.784Z",
+        "checkedAt": "2026-11-26T09:34:15.253Z",
         "steps": [
           {
             "step": "app",
