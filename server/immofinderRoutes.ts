@@ -28,6 +28,7 @@ import { parseRepairFile } from './immofinderRepair.ts';
 
 import { capturedImmoFinderTrace } from './projectDiagnostics.ts';
 import { persistImmoFinderRunDiagnostics, latestImmoFinderRunDiagnostics } from './immofinderRunDiagnostics.ts';
+import { publishPostRunBundle } from './immofinderPostRunBundle.ts';
 import { githubAppConfigFromEnv, probeGitHubAppSetup } from './githubIntegration.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
@@ -93,26 +94,18 @@ async function publishGitHubSnapshotAfterRun(runId: string): Promise<string> {
 
 async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, errors: any[] = []): Promise<string> {
   try {
-    const traceEvents = capturedImmoFinderTrace(20000).filter((event: any) => event?.type === 'immofinder_trace' && event.traceId);
-    const traceIds = [...new Set(traceEvents.map((e: any) => e.traceId))];
-    const traceId = traceIds[traceIds.length - 1] || null;
-    const events = traceId ? traceEvents.filter((e: any) => e.traceId === traceId) : [];
-    const cleanText = (v: unknown, max = 500) => String(v ?? '').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, '[phone]').slice(0, max);
-    const cleanUrl = (v: unknown) => { try { const u = new URL(String(v)); return `${u.hostname}${u.pathname}`; } catch { return '[invalid-url]'; } };
-    const report = {
-      schemaVersion: 1, generatedAt: new Date().toISOString(), runId, traceId,
-      eventCount: events.length, logSource: 'process_trace_buffer', databaseLogWriteFailures: null,
-      events,
-      result: {
-        counts: result?.counts || {}, filtered: result?.filtered || {}, estCostUsd: result?.estCostUsd ?? null, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
-        sourceStats: result?.sourceStats || [], wavesRun: result?.wavesRun || [],
-        preview: (result?.preview || []).slice(0, 120).map((p: any) => ({ url: cleanUrl(p.url), title: cleanText(p.title, 160), source: cleanText(p.source, 80), municipality: p.municipality || null, rooms: p.rooms ?? null, kept: Boolean(p.kept), reason: p.reason || null, detail: cleanText(p.detail, 180) })),
-      },
-    };
-    await persistImmoFinderRunDiagnostics(runId, report);
-    immoLog('info', 'immofinder_diagnostics_database_committed', { runId, traceId, eventCount: events.length }, 'Completed search diagnostics persisted for GitHub polling');
-    immoLog('info', 'immofinder_github_diagnostics_disabled', { runId, reason: 'database_and_render_logs_are_primary' });
-    return 'database:committed;github:disabled_cost_policy';
+    let savedRows: any[] = [];
+    try { savedRows = await listListings(null, { includeHidden: true }); } catch { /* optional for quality block */ }
+    const wave = result?.wavesRun?.[0] || null;
+    const published = await publishPostRunBundle({ runId, result, errors, savedRows, wave });
+    immoLog('info', 'immofinder_diagnostics_database_committed', {
+      runId,
+      database: published.database,
+      local: published.local,
+      github: published.github,
+      paths: published.paths.slice(0, 8),
+    }, 'Post-run diagnostic bundle written for assistants');
+    return `database:${published.database};local:${published.local};github:${published.github}`;
   } catch (e) {
     const detail = String((e as Error)?.message || e).slice(0, 180);
     immoLog('error', 'immofinder_github_diagnostics_failed', { runId, error: detail });
