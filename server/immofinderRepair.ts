@@ -398,7 +398,12 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   }
   if (!why) {
     const pv = priceVerdict(row);
-    if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+    if (pv.status === 'suspect') {
+      // C131: price optionalForL1 — ambiguity is soft, never hide a verified listing
+      if (pv.why !== 'price_ambiguous_on_detail_page' && !/ambiguous/i.test(String(pv.why || ''))) {
+        why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+      }
+    }
     else if (pv.status !== 'missing') {
       const rawUnit = String(obj(raw.price).unit || '').toLowerCase();
       const rowUnit = String(row.pricing_unit || '').toLowerCase();
@@ -761,7 +766,12 @@ export function sanitizeNewRecord<T extends Record<string, any>>(rec: T, ctx: Au
   if (next.direct_email && (cv.email === 'platform' || cv.email === 'not_in_evidence')) { next.direct_email = null; notes.push(`email_dropped:${cv.email}`); }
   if (notes.length && !next.direct_phone && !next.direct_email) { next.contact_status = 'platform_only'; }
   const pv = priceVerdict(row);
-  if (pv.status === 'repair') {
+  if (pv.status === 'suspect' && (pv.why === 'price_ambiguous_on_detail_page' || /ambiguous/i.test(String(pv.why || '')))) {
+    next.rent_monthly_chf = null;
+    next.pricing_unit = null;
+    next.raw = { ...obj(rec.raw), price: null, price_quote: null };
+    notes.push(`price_cleared:${pv.why}`);
+  } else if (pv.status === 'repair') {
     const evidence = String(obj(rec.raw).evidence_text || rec.description_de || '');
     const cand = priceCandidates(evidence).find((c) => c.amount === pv.price.amount);
     const monthlyChf = pv.price.unit === 'month' ? pv.price.amount : pv.price.unit === 'week' ? Math.round(pv.price.amount * (52 / 12)) : pv.price.unit === 'night' ? Math.round(pv.price.amount * 30) : null;
