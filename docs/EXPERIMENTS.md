@@ -1,3 +1,11 @@
+## P131.8s — Detail evidence and locality correction (2026-11-26)
+- **OBSERVED:** First full-canton production run returned 87 index candidates and 24 fetched details; 16 were hidden at write time, 0 visible leads. HappyHoliday pages were short JS shells; FHM pages showed that a property name can mention another commune. Anibis/Tutti index fetches returned 403. Paid-provider estimate remained $0.00.
+- **HYPOTHESIS:** Exact locality tokens + description-first locality, Swiss half-room parsing, a substantive-detail gate, corrected seeker/agency gates and up to 3 local HappyHoliday renders will allow actual detail evidence to pass while keeping false positives hidden.
+- **CHANGE:** source-first classifier, core write-time mismatch checks, owner phone validation, HappyHoliday adapter, browser allowlist and one-time seen-cache reset.
+- **ACCEPTANCE:** >=3 visible unique L1/L2 leads; correct locality and room count in every reviewed lead; >=10 substantive body words or structured price/amenity evidence; no placeholder contacts; second run cost $0.00 in paid providers; Core CI green.
+- **ROLLBACK:** keep any source paused if 403/429 persists; never relax locality, room or substantive-detail gates to force a positive count.
+- **SOURCE STATUS:** HappyHoliday local render is capped to 3 pages/run. Anibis/Tutti remain paused until access changes and fixture evidence is captured.
+
 ## P131.8r — Full-canton direct-source yield experiment (2026-11-26)
 - **HYPOTHESIS:** Replacing the one-commune saved scope with the full official Graubünden commune catalogue plus locality aliases, lowering the room threshold to 2, and adding direct Anibis/Tutti adapters will produce verified rental leads without paid search/model calls.
 - **SCOPE:** production path `server/immofinder/live.ts`; direct adapters HappyHoliday, Ferienhausmiete, Anibis, Tutti; 100 official communes + 19 locality aliases. Schedule and delivery remain manual/off. Hard caps: 6 index pages/source, 12 details/source, 48 details/run, 240s, 1.5s host pacing.
