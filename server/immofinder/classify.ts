@@ -50,10 +50,35 @@ const SALE_RE = /(?:zu\s+verkaufen|for\s+sale|verkauf|proprietà\s+in\s+vendita|
 const RESIDENTIAL_RE = /(?:wohnung|haus|apartment|ferienwohnung|ferienhaus|chalet|maison|appartamento|casa|rental|miete|mieten)/i;
 const AGENCY_MARKERS = /(?:immobilien|makler|agentur|verwaltung|property\s+management|interhome|holidu|belvilla|e-domizil|griwarent|hometogo)/i;
 
-function findMunicipality(text: string, list: string[]): string | null {
-  const lower = text.toLowerCase();
+/** Prefer URL slug and title over full page text (footer often lists many communes). */
+function findMunicipality(
+  title: string,
+  pageText: string,
+  url: string,
+  list: string[],
+): { value: string; quote: string } | null {
+  const urlLower = url.toLowerCase();
+  const titleLower = title.toLowerCase();
+  // 1) URL path / query (e.g. ...-in-lenzerheide, /flims/)
   for (const m of list) {
-    if (lower.includes(m.toLowerCase())) return m;
+    const slug = m.toLowerCase().replace(/\//g, '-').replace(/\s+/g, '-');
+    const plain = m.toLowerCase();
+    if (urlLower.includes(slug) || urlLower.includes(plain.replace(/\s+/g, ''))) {
+      return { value: m, quote: `url:${slug}` };
+    }
+  }
+  // 2) Title
+  for (const m of list) {
+    if (titleLower.includes(m.toLowerCase())) {
+      return { value: m, quote: m };
+    }
+  }
+  // 3) First 2500 chars of body only (avoid footer chrome)
+  const head = pageText.slice(0, 2500).toLowerCase();
+  for (const m of list) {
+    if (head.includes(m.toLowerCase())) {
+      return { value: m, quote: m };
+    }
   }
   return null;
 }
@@ -90,11 +115,11 @@ export function classifyPage(snapshot: PageSnapshot, config: ClassifyConfig): Cl
     return { ...base, level: 'L0', rejectCode: 'not_detail_page', legacyReason: 'trust_page_too_short' };
   }
 
-  const locality = findMunicipality(text, config.municipalities);
-  if (!locality) {
+  const locHit = findMunicipality(snapshot.title, snapshot.pageText || '', snapshot.finalUrl, config.municipalities);
+  if (!locHit) {
     return { ...base, level: 'L0', rejectCode: 'outside_target', legacyReason: 'municipality_not_whitelisted' };
   }
-  base.locality = { value: locality, quote: locality, sourceUrl: snapshot.finalUrl, fetchTime: snapshot.fetchTimeIso };
+  base.locality = { value: locHit.value, quote: locHit.quote, sourceUrl: snapshot.finalUrl, fetchTime: snapshot.fetchTimeIso };
 
   base.isForSale = SALE_RE.test(text);
   if (base.isForSale) {
