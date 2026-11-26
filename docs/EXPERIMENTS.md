@@ -1,3 +1,11 @@
+## P131.9 live-run auth correction (2026-11-26)
+- **OBSERVED:** Core CI #45867166358 passed the full Verification DAG. The new live job health-checked production successfully (HTTP 200), but POST /api/immofinder/run returned HTTP 200 with `success:true, skipped:manual_only`. Server logs confirm `X-Immofinder-Secret` is classified as a cron/schedule request; no search run was created and no provider calls were made.
+- **HYPOTHESIS:** Add an explicit `manualRun:true` override for secret-authenticated automation requests, leaving ordinary secret calls as schedule ticks and preserving schedule mode=manual. Update the CI job to request that mode and assert that the server queues a durable run (202 + runId).
+- **METRICS / ACCEPTANCE:** health HTTP 200; trigger HTTP 202 with runId; durable run terminal status; >=3 unique kept L1/L2 listings; locality/rooms/detail evidence; Serper/Gemini calls and estimated spend recorded.
+- **SCOPE:** authenticated run trigger semantics, CI automation request, API contract tests/docs. No change to schedule settings, owner UI, or quality gates.
+- **ROLLBACK:** remove only the explicit manualRun override if auth tests regress; never enable schedule or delivery to force execution.
+- **CLASSIFICATION:** RELIABILITY.
+
 ## P131.9 — Production live acceptance job (2026-11-26)
 - **OBSERVED:** Core CI #45865962339 is green on d5abb14; Render production deploy d5abb14 is LIVE. The old issue-comment search workflow produces failed zero-job push runs and the connector-created comment did not trigger it.
 - **HYPOTHESIS:** Run one bounded live source-first search as a conditional job in the verified Core CI workflow, gated by an explicit `[immofinder-live]` commit marker and dependent on the Core CI job. Remove the ineffective zero-job workflow. The live job must report actual result counts and provider-call counters, and fail acceptance if fewer than 3 unique L1/L2 results are produced.

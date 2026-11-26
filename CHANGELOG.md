@@ -1,3 +1,6 @@
+## P131.9 live trigger correction
+- Distinguish explicit secret-authenticated manual automation from schedule ticks so CI can start a real production search while the scheduler remains disabled.
+
 ## P131.9 follow-up — CI contract migration
 - Update the workflow contract test to validate the new CI-gated production live-acceptance job instead of the retired issue-comment workflow.
 

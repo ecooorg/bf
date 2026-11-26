@@ -1,3 +1,7 @@
+
+### C131 secret-authorized manual automation
+- `POST /api/immofinder/run` with `X-Immofinder-Secret` is treated as a schedule tick by default. Automation that explicitly requests a manual production run must send `{ "wave": "full", "manualRun": true }`; the same configured secret is required. This bypasses only the schedule-due check, not run concurrency, PostgreSQL queueing, R1–R14 admission gates, or owner-review requirements. `manualRun` does not enable the scheduler.
+
 # API Contracts
 
 **Authority:** Normative user-facing behavior and acceptance live in `../TECHNICAL_SPECIFICATION.md`; route ownership and input/output contracts must agree with the running source. This file is the navigation and implementation contract, not a parallel product spec.

@@ -1,3 +1,8 @@
+## P131.9 live trigger — schedule/manual auth mismatch
+- **OBSERVED:** Core CI #45867166358: Verification DAG SUCCESS. Production `/health` HTTP 200. The CI live job POST received HTTP 200 `{success:true, skipped:manual_only}`; Render logs show the secret-auth request was classified as `trigger=schedule` and skipped because schedule mode is manual. No runId, no search execution, no provider spend.
+- **CHANGE PLANNED:** Distinguish secret-authorized manual automation (`manualRun:true`) from schedule ticks; update the CI request and route contract tests.
+- **NOT_RUN:** actual production search, provider availability/calls, quality leads and owner review.
+
 ## P131.9 follow-up — 962a00b CI evidence
 - **OBSERVED:** Core CI #45865962339 on d5abb14 SUCCESS. Core CI #45866668380 on 962a00b failed one test-only contract: it still read the deleted `.github/workflows/immofinder-test-search.yml`. The conditional live job was correctly skipped because its `needs: check-and-build` dependency failed.
 - **CHANGE:** Update the contract test to assert the new `ci.yml` live-acceptance job, explicit commit marker, production service URL, run secret and removal of the old workflow.
