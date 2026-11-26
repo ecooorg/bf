@@ -827,11 +827,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         result = await runPipeline({
           config: cfg,
           fetchPage: createPoliteFetch(cfg),
-          llm: dryRun ? null : deps.llm,
+          llm: null,
           store: createPgStore(),
           onProgress: push,
-          maxLlmCalls: settings.search.maxAiPages,
-          search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
+          maxLlmCalls: 0,
+          search: null,
           cycle: Number(progress.cycle ?? 0),
           resume: {
             completedQueryKeys: Array.isArray(progress.completedQueryKeys) ? progress.completedQueryKeys : [],
