@@ -279,10 +279,10 @@ test('C131 browser fallback is local, host-allowlisted and hard-capped', () => {
   assert.deepEqual(cfg.fetch.browserRenderHosts, ['happyholiday.ch', 'flatfox.ch']);
   assert.equal(cfg.fetch.maxBrowserRendersPerRun, 3);
   assert.match(live, /allowJina: false, allowBrowser: true/);
-  assert.match(live, /maxLlmCalls: 0/);
+  assert.match(live, /maxLlmCalls: 3/);
   const routes = read('server/immofinderRoutes.ts');
   assert.match(routes, /clearC131PilotSeen/);
-  assert.match(routes, /\['happyholiday', 'ferienhausmiete'\]\.includes\(id\)/);
+  assert.match(routes, /\['happyholiday', 'ferienhausmiete', \.\.\.\(cfg\.discovery\?\.portalSources/);
   assert.match(routes, /mode: 'manual'/);
   const store = read('server/immofinderStore.ts');
   assert.match(store, /hide_reason = 'c131_revalidation_pending'/);
@@ -703,8 +703,8 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.sources['portal-tutti'], false);
 
   const applied = applySettings(cfg, defaults);
-  assert.equal(applied.discovery.portalQueries.length, 2);
-  assert.equal(applied.discovery.communesPerRun, 44, 'full profile covers all target communes');
+  assert.equal(applied.discovery.portalQueries.length, 1);
+  assert.equal(applied.discovery.communesPerRun, cfg.municipalities.length, 'full profile covers the complete configured canton list');
   assert.equal(applied.discovery.queries.length, 2);
 
   assert.match(routes, /\/api\/immofinder\/settings\/reset/);
