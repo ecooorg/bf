@@ -54,15 +54,15 @@ export interface ImmoSettings {
 export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
   const q = { ...DEFAULT_QUALITY, ...(cfg.quality || {}) };
   return {
-    schedule: { mode: 'hours', everyHours: 3, dailyAt: '06:00' },
-    delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: parseDriveFolderId(cfg.driveFolderId), notifyWhenEmpty: false },
+    schedule: { mode: 'manual', everyHours: 3, dailyAt: '06:00' },
+    delivery: { telegram: false, email: false, emailTo: '', emailContent: 'new', drive: false, driveFolderId: '', notifyWhenEmpty: false },
     search: {
-      minRooms: cfg.minRooms,
+      minRooms: 2,
       communes: [...cfg.municipalities],
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
-        ...SOURCE_IDS.map((s) => [s, ['search', 'portal-homegate', 'portal-tutti'].includes(s)] as const),
-        ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'portal-homegate', 'portal-tutti'].includes(src.id)] as const),
+        ...SOURCE_IDS.map((s) => [s, false] as const),
+        ...(cfg.sources || []).map((src) => [src.id, ['happyholiday', 'ferienhausmiete'].includes(src.id)] as const),
       ]),
       maxAiPages: 40,
       limitPrice: false,
@@ -74,7 +74,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       requireContact: false,
       defaultWave: 'full',
       profile: 'burst',
-      carouselCommunesPerRun: 12,
+      carouselCommunesPerRun: cfg.municipalities.length,
       privateQueryTemplates: 2,
       enrichSearchesPerRun: 0,
       recheckContactSearch: false,
