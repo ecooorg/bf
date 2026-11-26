@@ -325,6 +325,9 @@ test('C131 owner evidence rejects sequential phone placeholders and recognizes h
   assert.equal(real.contactRoute, 'direct');
   const form = extractOwnerEvidence('Haus zur Miete', 'Unverbindlich anfragen', [], 'ferienhausmiete');
   assert.equal(form.contactRoute, 'platform_message');
+  const host = extractOwnerEvidence('Casa Ansiel', 'Frau N. Egger Kontaktdaten anzeigen', [], 'ferienhausmiete');
+  assert.equal(host.ownerName, 'Frau N. Egger');
+  assert.equal(host.contactRoute, 'platform_message');
 });
 
 test('C131 locality matching uses token boundaries and description location before property-name place names', () => {
