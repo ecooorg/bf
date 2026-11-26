@@ -29,3 +29,24 @@
 
 ## P131.9 source-first CI alignment
 - Align category tests to the C131 source-first runner; retire automated legacy-search payload restoration.
+
+## P131.8w — ImmoFinder audit and CI reconciliation
+- Reconciled module, architecture, API, test and user-value status; patch/lock/repair stamps aligned.
+
+## P131.8v — Bounded discovery and owner-evidence assist
+- Rotating Serper discovery for Flatfox/Anibis/Tutti; Gemini LIGHT for borderline L1 with contact route; budget ceiling ~$0.024/run.
+
+## P131.8u — Actionable evidence gate and pilot revalidation
+- Require actionable contact route; hide pilot rows pending fresh fetch; Flatfox direct adapter; Anibis/Tutti paused after 403.
+
+## P131.8t — Flatfox source expansion
+- Flatfox direct rental search for Graubünden with price/room/advertiser extraction.
+
+## P131.8s — Production quality correction
+- Token locality matching; Swiss half-room parsing; agency/seeker/placeholder-phone gates; HappyHoliday meta descriptions.
+
+## P131.8r — Full-canton source expansion
+- 100 official communes + aliases; Anibis/Tutti adapters; classifier postcode and room fixes.
+
+## P131.8q — Source-first production path
+- Direct HappyHoliday/Ferienhausmiete indexes → bounded detail fetch → C131 gates; Serper/LLM/Jina disabled for search.
