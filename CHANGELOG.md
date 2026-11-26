@@ -1,3 +1,6 @@
+## P131.9 live acceptance deploy identity
+- Wait for the exact pushed commit to appear in production `/health` before starting the bounded live search.
+
 ## P131.9 — manual automation trigger
 - Allow explicit `manualRun:true` for the existing secret-authenticated run endpoint to bypass only the schedule-due check; normal secret requests remain schedule ticks.
 

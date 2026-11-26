@@ -1,3 +1,8 @@
+## P131.9 live acceptance deployment gate
+- **OBSERVED:** A generic production health HTTP 200 can come from the previous Render revision while the new commit is still deploying; it is not sufficient release identity evidence.
+- **CHANGE PLANNED:** Gate the live job on `/health.commit == GITHUB_SHA[0:7]` before posting `manualRun:true`.
+- **NOT_RUN:** post-fix CI, exact-commit health match, production search, provider calls and leads.
+
 ## P131.9 live trigger correction implemented
 - **CHANGE:** Secret-authenticated automation may request `manualRun:true` to run as manual; secret calls without this flag remain schedule ticks. The CI live job now sends the flag and still requires 202 + runId. Scheduler remains `manual`.
 - **NOT_RUN:** post-fix CI/live job, provider calls, accepted L1/L2 records and owner review.

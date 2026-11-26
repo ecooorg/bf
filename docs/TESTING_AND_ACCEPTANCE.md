@@ -1,5 +1,6 @@
 
 ### Live trigger regression
+- The live workflow must wait for `GET /health` to return the exact deployed `commit == GITHUB_SHA[0:7]`; HTTP 200 from an older Render deployment is not sufficient.
 - Secret-authenticated `POST /api/immofinder/run` defaults to schedule semantics. CI production acceptance must send `{wave:"full", manualRun:true}`; expect HTTP 202 with a durable `runId`. A `200 {skipped:"manual_only"}` is NOT a successful run and means no search/provider calls occurred.
 
 ## C131 ImmoFinder current verification contract (2026-11-26)

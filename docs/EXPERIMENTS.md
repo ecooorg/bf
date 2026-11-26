@@ -1,3 +1,11 @@
+## P131.9 production deploy identity gate (2026-11-26)
+- **OBSERVED:** The first live job reached the prior production revision: `/health` returned HTTP 200, but the app's `buildCommit()` exposes the running 7-character Render commit. A generic 200 health check does not prove the just-pushed code is deployed.
+- **HYPOTHESIS:** Wait until `GET /health` returns HTTP 200 and `.commit == substr(GITHUB_SHA,0,7)` before sending the secret-auth manual run request. This avoids triggering a stale production revision during Render's asynchronous deployment.
+- **METRICS / ACCEPTANCE:** exact commit on /health, POST 202 + runId, terminal result, >=3 unique L1/L2 leads, source stats, provider calls and estimated cost.
+- **SCOPE:** CI live-acceptance deployment gate only. No runtime product behavior or quality threshold change.
+- **ROLLBACK:** remove the exact-commit wait only if Render's commit metadata is unavailable; do not accept a stale revision as deployed.
+- **CLASSIFICATION:** RELIABILITY.
+
 ## P131.9 live-run auth correction (2026-11-26)
 - **OBSERVED:** Core CI #45867166358 passed the full Verification DAG. The new live job health-checked production successfully (HTTP 200), but POST /api/immofinder/run returned HTTP 200 with `success:true, skipped:manual_only`. Server logs confirm `X-Immofinder-Secret` is classified as a cron/schedule request; no search run was created and no provider calls were made.
 - **HYPOTHESIS:** Add an explicit `manualRun:true` override for secret-authenticated automation requests, leaving ordinary secret calls as schedule ticks and preserving schedule mode=manual. Update the CI job to request that mode and assert that the server queues a durable run (202 + runId).
