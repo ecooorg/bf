@@ -1,3 +1,10 @@
+## P131.9 production run d13257a3 — below acceptance
+- **OBSERVED:** Completed production run: 9 index pages, 87 candidates, 19 fetched detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls, 0 infra failures. HappyHoliday 90 hits/62 candidates/12 fetched/0 kept; Ferienhausmiete 69 hits/25 candidates/7 fetched/2 kept; Flatfox index 1/hits 0; remaining portals 0 queries. Rejections: locality mismatch 28, below rooms 9, no contact route 6, unknown rooms 1, agency 1.
+- **OBSERVED:** Preview showed 8 kept=true rows while authoritative counts.kept=2 because no-contact-route rejection did not update preview. Diagnostics endpoint returns only completed reports and has no result.status; CI's terminal-status poll therefore waits forever.
+- **INFERRED:** Serper not invoked (0 calls), likely SERPER_API_KEY absent/disabled. Direct source run produced no new records.
+- **CHANGE PLANNED:** Fix preview rejection state, add accepted L1/L2/provider-availability counters, use counts.kept for CI threshold, poll completed diagnostics by runId only. Do not relax contact, locality or room gates.
+- **NOT_RUN:** post-fix run with Serper, >=3 accepted unique records, owner review and actual billing spend.
+
 ## P131.9 live acceptance deployment gate
 - **OBSERVED:** A generic production health HTTP 200 can come from the previous Render revision while the new commit is still deploying; it is not sufficient release identity evidence.
 - **CHANGE PLANNED:** Gate the live job on `/health.commit == GITHUB_SHA[0:7]` before posting `manualRun:true`.

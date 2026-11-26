@@ -1,3 +1,13 @@
+## P131.9 first production yield and evidence correction (2026-11-26)
+- **OBSERVED:** Production run `d13257a3-5592-471f-9fb1-010d9440104d` completed. 9 index pages, 87 candidates, 19 fetched detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls, 0 infrastructure failures. Source stats: HappyHoliday 90 hits/62 candidates/12 fetched/0 kept; Ferienhausmiete 69 hits/25 candidates/7 fetched/2 kept (both updates); Flatfox index 1/hits 0; other portal discovery sources 0 queries. Rejections include 28 locality mismatches, 9 below-room-floor, 6 no-contact-route, 1 unknown rooms and 1 agency.
+- **OBSERVED:** The run report's `preview.kept` incorrectly marked L1 candidates as kept before the actionable-contact-route gate. Eight preview rows showed kept=true while the authoritative `counts.kept` was 2. The diagnostics API persists completed reports without a `result.status` field; the CI poll's status predicate therefore never matches.
+- **INFERRED:** Serper discovery was not invoked (0 calls); likely the production `SERPER_API_KEY` is absent/disabled. Gemini is configured and made two reviews. Direct portal fetches alone yielded two existing updates and no new records; this is below acceptance.
+- **HYPOTHESIS:** Mark preview rows rejected when contact-route admission fails; count accepted L1/L2 only after store success; expose provider availability booleans; use authoritative `counts.kept` in CI acceptance; poll diagnostics by matching runId (the endpoint only returns completed reports). Confirm Serper availability before the next production run.
+- **METRICS / ACCEPTANCE:** >=3 unique kept L1/L2 records; no preview false positives; provider availability/calls and estimated cost; new/updated counts; no automatic sending.
+- **SCOPE:** Live runner accounting, diagnostic preview, CI acceptance summary and tests. Do not relax R1–R14.
+- **ROLLBACK:** revert only diagnostics/counter changes if invariants regress; never count candidates without contact evidence as accepted.
+- **CLASSIFICATION:** RELIABILITY.
+
 ## P131.9 production deploy identity gate (2026-11-26)
 - **OBSERVED:** The first live job reached the prior production revision: `/health` returned HTTP 200, but the app's `buildCommit()` exposes the running 7-character Render commit. A generic 200 health check does not prove the just-pushed code is deployed.
 - **HYPOTHESIS:** Wait until `GET /health` returns HTTP 200 and `.commit == substr(GITHUB_SHA,0,7)` before sending the secret-auth manual run request. This avoids triggering a stale production revision during Render's asynchronous deployment.

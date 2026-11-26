@@ -1,4 +1,10 @@
 
+## P131.9 first production run — below acceptance
+- **OBSERVED:** 87 candidates, 19 detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls. Direct sources yielded no new listings. Several preview rows were false positives due to a contact-route diagnostic bug.
+- **INFERRED:** Serper discovery is not configured or not invoked; provider key availability must be confirmed.
+- **NOT_RUN:** >=3 new/unique accepted listings, owner review, actual provider billing spend, successful user task outcome.
+
+
 ## P131.9 live trigger status (2026-11-26)
 - **OBSERVED:** production health HTTP 200; the first secret-auth POST was skipped as `manual_only` because it was interpreted as a schedule tick. No search or provider calls occurred.
 - **CHANGE:** explicit secret-auth `manualRun:true` override implemented; scheduler remains disabled.

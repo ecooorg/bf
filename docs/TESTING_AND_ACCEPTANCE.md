@@ -1,4 +1,10 @@
 
+### Production run d13257a3 evidence
+- Completed run: 87 candidates, 19 detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls. This is below acceptance; no claim of user value.
+- `counts.kept` is authoritative; `preview.kept` must be false for `no_contact_route`. The diagnostics endpoint stores completed reports only and does not expose `result.status`; poll by exact runId.
+- A production search is not accepted unless >=3 unique records pass locality, room, detail and actionable-contact gates. Report new/updated separately.
+
+
 ### Live trigger regression
 - The live workflow must wait for `GET /health` to return the exact deployed `commit == GITHUB_SHA[0:7]`; HTTP 200 from an older Render deployment is not sufficient.
 - Secret-authenticated `POST /api/immofinder/run` defaults to schedule semantics. CI production acceptance must send `{wave:"full", manualRun:true}`; expect HTTP 202 with a durable `runId`. A `200 {skipped:"manual_only"}` is NOT a successful run and means no search/provider calls occurred.

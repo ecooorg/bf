@@ -1,3 +1,6 @@
+## P131.9 production yield/diagnostics correction
+- Correct preview kept flags after no-contact-route rejection; add authoritative accepted-level/provider availability counters; base CI threshold on persisted kept counts; poll completed diagnostics by runId.
+
 ## P131.9 live acceptance deploy identity
 - Wait for the exact pushed commit to appear in production `/health` before starting the bounded live search.
 
