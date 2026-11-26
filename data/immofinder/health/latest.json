@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T10:04:50.325Z",
+  "generatedAt": "2026-11-26T10:07:12.771Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "FAIL",
-      "detail": "1 failing at 7442186: restore"
+      "detail": "1 failing at 543ba22: restore"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit c42933b"
+      "detail": "HTTP 200, version 131, commit 5e37d7f"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 9 commit(s) behind main with 4 non-archive file(s) changed (e.g. scripts/ensure-repair.mjs, server/immofinderRepair.ts, server/immofinderRepair.ts.zlib.b64.p0); deploy may be pending or failed"
+      "detail": "production is 5 commit(s) behind main with 3 non-archive file(s) changed (e.g. server/immofinderRepair.ts, server/immofinderRepair.ts.zlib.b64.p0, server/immofinderRepair.ts.zlib.b64.p7); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T10:04:49.285Z",
+        "checkedAt": "2026-11-26T10:07:11.705Z",
         "steps": [
           {
             "step": "app",
