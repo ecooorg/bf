@@ -1,6 +1,6 @@
 ## P131.9a — locality pre-filter + 410 demotion + G6 push integrity (2026-11-26)
 - **Problem:** last live run 0 kept (82 locality prefilter, 19 outside_target, UrbanHome 410s); connector truncation took live.ts offline.
-- **Change:** `liveFilters.ts` (titleHint locality gate, tourist skip, 410 weight/block); wire in `live.ts`; docs/CONNECTOR_PUSH_RULES.md (G6).
+- **Change:** `liveFilters.ts` (titleHint locality gate, tourist skip, 410 weight/block); entity-safe plainText; G6 in OPERATIONS.
 - **Scope:** ImmoFinder source-first path only; hard gates unchanged.
 
 ## P131.9 production yield/diagnostics correction
@@ -50,3 +50,21 @@
 
 ## P131.8q — Source-first production path
 - Direct HappyHoliday/Ferienhausmiete indexes → bounded detail fetch → C131 gates; Serper/LLM/Jina disabled for search.
+
+## P131.8p — Classifier and contact gates
+- Deterministic rooms/locality/agency/for_sale gates; contact-route required for keep.
+
+## P131.8o — Diagnostics and preview reporting
+- Per-run diagnostics JSON; rejection taxonomy; preview of examined pages.
+
+## P131.8n — UrbanHome / swiss-classified adapter
+- Shared classified adapter for UrbanHome and related portals.
+
+## P131.8m — HappyHoliday / Ferienhausmiete adapters
+- Direct index scrape and detail extract for Graubünden holiday rentals.
+
+## P131.7a — Closed reject taxonomy and source-yield audit
+- qualityAudit on every run report; R7 codes closed. RELIABILITY.
+
+## Session governance and documentation consolidation
+- AGENTS.md, ROADMAP, TECHNICAL_REPORT, CHANGELOG remain single source of truth; append-only history.
