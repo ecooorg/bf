@@ -77,13 +77,7 @@ function findMunicipality(
   // in generic copy or a footer is not sufficient to assign a listing's locality.
   const head = pageText.slice(0, 4_000);
   for (const m of list) {
-    const escaped = m.replace(/[.*+?^$()|[\]\\]/g, '\\  // 3) First 2500 chars of body only (avoid footer chrome)
-  const head = pageText.slice(0, 2500).toLowerCase();
-  for (const m of list) {
-    if (head.includes(m.toLowerCase())) {
-      return { value: m, quote: m };
-    }
-  }');
+    const escaped = m.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
     const patterns = [
       new RegExp('\\b(?:ort|standort|adresse|location|objektstandort|gemeinde)\\s*[:\\-]\\s*(?:\\d{4}\\s*)?' + escaped + '\\b', 'i'),
       new RegExp('\\b\\d{4}\\s+' + escaped + '\\b', 'i'),
