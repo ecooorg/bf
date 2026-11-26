@@ -75,7 +75,7 @@ function findMunicipality(
   }
   // 3) Body fallback requires explicit address/location evidence. A commune name
   // in generic copy or a footer is not sufficient to assign a listing's locality.
-  const head = pageText.slice(0, 4_000);
+  const head = pageText.slice(0, 8_000);
   for (const m of list) {
     const escaped = m.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
     const patterns = [
