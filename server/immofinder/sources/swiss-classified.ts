@@ -56,7 +56,7 @@ export function createSwissClassifiedAdapter(id: 'portal-anibis' | 'portal-tutti
       || /<meta[^>]+(?:property|name)=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1]
       || /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] || '';
     const title = plainText(titleRaw).slice(0, 240) || null;
-    const rm = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*[-–]?\s*(?:zimmer|zi\.?|rooms?|chambres?|camere)\b/i.exec(plain);
+    const rm = /(\d+(?:[.,]\d+)?(?:\s*1\/2|½)?)(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?\s*[-–]?\s*(?:\bzimmer\b|\bzi\.?|\brooms?\b|\bchambres?\b|\bcamere\b)/i.exec(plain);
     let rooms: { value: number; quote: string } | null = null;
     if (rm) {
       const raw = rm[1].replace(/\s+/g, '').replace(',', '.');
