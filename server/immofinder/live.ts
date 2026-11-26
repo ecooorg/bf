@@ -165,9 +165,11 @@ export async function runPipeline(
         for (const candidate of selected) {
           const host = new URL(candidate.url).hostname.replace(/^www\./i, '').toLowerCase();
           if (host !== item.portal.host.replace(/^www\./i, '').toLowerCase()) continue;
+          const sourceConfig = (deps.config.sources || []).find((source) => source.id === item.portal.id);
+          if (sourceConfig?.detailPattern && !matchesDetailPattern(candidate.url, sourceConfig.detailPattern)) continue;
           const bucket = serpCandidates.get(item.portal.id) || [];
           if (!bucket.some((x) => x.url === candidate.url)) {
-            bucket.push({ url: candidate.url, indexUrl: 'serper:' + item.query, titleHint: candidate.hit.title });
+            bucket.push({ url: candidate.url, indexUrl: sourceConfig?.url || candidate.url, titleHint: candidate.hit.title });
             serpCandidates.set(item.portal.id, bucket);
           }
         }
