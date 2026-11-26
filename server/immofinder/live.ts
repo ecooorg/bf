@@ -65,12 +65,12 @@ function plainText(html: string): string {
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&/gi, '&')
-    .replace(/"/gi, '"')
-    .replace(/&#39;|'/gi, "'")
-    .replace(/</gi, '<')
-    .replace(/>/gi, '>')
+    .replace(new RegExp('&' + 'nbsp;', 'gi'), ' ')
+    .replace(new RegExp('&' + 'amp;', 'gi'), '&')
+    .replace(new RegExp('&' + 'quot;', 'gi'), '"')
+    .replace(new RegExp('&#39;|&' + 'apos;', 'gi'), "'")
+    .replace(new RegExp('&' + 'lt;', 'gi'), '<')
+    .replace(new RegExp('&' + 'gt;', 'gi'), '>')
     .replace(/\s+/g, ' ')
     .trim();
 }
