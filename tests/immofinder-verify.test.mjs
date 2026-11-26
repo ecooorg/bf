@@ -228,6 +228,32 @@ test('P131.8i classify: locality prefers URL slug over footer commune list', () 
   assert.equal(r.locality?.value, 'Lenzerheide');
 });
 
+test('P131.8j classify: body locality needs explicit address evidence, not footer mentions', () => {
+  const falsePositive = classifyPage(
+    snap({
+      requestedUrl: 'https://www.ferienhausmiete.de/123.htm',
+      finalUrl: 'https://www.ferienhausmiete.de/123.htm',
+      title: 'Ferienhaus Muntanella in Bergün',
+      pageText: '4 Zimmer Ferienhaus. Die Region Chur ist gut erreichbar. Footer communes: Chur, Flims, Laax.',
+    }),
+    CFG,
+  );
+  assert.equal(falsePositive.level, 'L0');
+  assert.equal(falsePositive.rejectCode, 'outside_target');
+
+  const explicitAddress = classifyPage(
+    snap({
+      requestedUrl: 'https://www.ferienhausmiete.de/456.htm',
+      finalUrl: 'https://www.ferienhausmiete.de/456.htm',
+      title: 'Helle Wohnung mit Balkon',
+      pageText: '4 Zimmer Wohnung zu mieten. Ort: 7000 Chur. Privat vermietet, Kontakt direkt.',
+    }),
+    CFG,
+  );
+  assert.equal(explicitAddress.level, 'L1');
+  assert.equal(explicitAddress.locality?.value, 'Chur');
+});
+
 test('P131.8 owner: private + phone → L2 promote', () => {
   const o = extractOwnerEvidence(
     'Schöne Wohnung',
