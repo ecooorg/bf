@@ -835,10 +835,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         result = await runPipeline({
           config: cfg,
           fetchPage: createPoliteFetch(cfg, fetch, undefined, { allowJina: false, allowBrowser: true }),
-          llm: null,
+          llm: deps.llm,
           store: createPgStore(),
           onProgress: push,
-          maxLlmCalls: 0,
+          maxLlmCalls: 3,
           // Serper is used only for a small rotating set of commune × supported-portal queries.
           search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, Math.min(10, cfg.discovery?.resultsPerQuery ?? 10)) : null,
           cycle: Number(progress.cycle ?? 0),
