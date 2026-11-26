@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-26T09:34:16.143Z",
+  "generatedAt": "2026-11-26T09:47:37.327Z",
   "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "no check runs reported for 6b898a2"
+      "detail": "no check runs reported for dc83d15"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 131, commit 8cd457d"
+      "detail": "HTTP 200, version 131, commit 6b029f0"
     },
     {
       "group": "RENDER",
@@ -30,7 +30,7 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 4 commit(s) behind main with 6 non-archive file(s) changed (e.g. CHANGELOG.md, TECHNICAL_REPORT.md, package-lock.json); deploy may be pending or failed"
+      "detail": "production is 3 commit(s) behind main with 4 non-archive file(s) changed (e.g. package-lock.json, package.json, scripts/immofinder-source-pilot.mjs); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
@@ -47,7 +47,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-26T09:34:15.253Z",
+        "checkedAt": "2026-11-26T09:47:36.470Z",
         "steps": [
           {
             "step": "app",
@@ -116,7 +116,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 5.3 h old"
+      "detail": "038d1c87-0774-49ee-adf5-3ae28a91f12c, 5.6 h old"
     },
     {
       "group": "SEARCH",
