@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { R7_REJECT_CODES, classifyReject, summarizeRejects, sampleRejects, sourceDemotionCandidates, buildRunQualityAudit } from '../server/immofinder/taxonomy.ts';
 import { classifyPage } from '../server/immofinder/classify.ts';
 import { extractOwnerEvidence, promoteLevel } from '../server/immofinder/owner.ts';
-import { isSeekerPost, isShortStayListing } from '../server/immofinderCore.ts';
+import { isSeekerPost, isShortStayListing, municipalityEvidenceMismatch, fieldCollageMismatch } from '../server/immofinderCore.ts';
 import { processSnapshot, replaySnapshots } from '../server/immofinder/pipeline.ts';
 import { dryRunBatch } from '../server/immofinder/dryRun.ts';
 import { discover as hhDiscover, extract as hhExtract } from '../server/immofinder/sources/happyholiday.ts';
@@ -333,6 +333,14 @@ test('C131 locality matching uses token boundaries and description location befo
   }), cfg);
   assert.equal(katrin.locality?.value, 'Schmitten');
   assert.equal(katrin.rooms?.value, 2.5);
+});
+
+test('C131 write-time collage checks do not treat property names as municipalities', () => {
+  const communes = ['Avers', 'Klosters', 'Savognin', 'Trin', 'Schmitten'];
+  const tgaEvidence = 'Tga Davos Nord. Beschreibung: Die Ferienwohnung liegt in Savognin. 4 1/2 Zimmer.';
+  assert.equal(municipalityEvidenceMismatch('Savognin', tgaEvidence, communes), false);
+  assert.equal(fieldCollageMismatch({ municipality: 'Savognin', title: 'Tga Davos Nord', evidence: tgaEvidence, municipalities: communes }), null);
+  assert.equal(municipalityEvidenceMismatch('Avers', 'Monami Klosters – Solavers Nr. 1', communes), true);
 });
 
 test('C131 thin portal shells and agency-labelled catalogue cards are rejected', () => {
