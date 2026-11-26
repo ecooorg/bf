@@ -103,81 +103,31 @@ test('Flatfox direct source stores monthly price, half rooms, host and platform 
     id: 'portal-flatfox',
     url: index,
     maxDetailPages: 12,
-    detailPattern: '^https://(?:www\\.)?flatfox\\.ch/(?:de/wohnung|en/flat)/.+/\\d+/?
-  const { deps, writes, marks } = depsFor();
-  const result = await runPipeline(deps, { dryRun: true, testMode: true });
-  assert.equal(result.status, 'COMPLETED');
-  assert.equal(result.counts.kept, 1);
-  assert.equal(result.filtered.source_locality_mismatch, 1);
-  assert.equal(writes.length, 0);
-  assert.equal(marks.length, 0, 'dry run must not mutate the seen cache');
-});
-
-test('production source fetch mode never invokes Jina or browser fallbacks', async () => {
-  const { createPoliteFetch } = await import('../server/immofinderFetcher.ts');
-  const calls = [];
-  const cfg = {
-    fetch: { userAgent: 'test-agent', perHostDelayMs: 0, respectRobotsTxt: true, browserRenderHosts: ['example.com'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
-    limits: { fetchTimeoutMs: 1000, maxPageBytes: 4096 },
+    detailPattern: '^https://(?:www\\.)?flatfox\\.ch/(?:de/wohnung|en/flat)/.+/\\d+/?$',
+  }];
+  deps.fetchPage = async (url) => {
+    if (url === index) return { ok: true, status: 200, body: '<a href="' + detail + '">3 ½ Zimmer-Wohnung in Trun</a>', finalUrl: url };
+    if (url === detail) return {
+      ok: true, status: 200,
+      body: '<h1>3 ½ Zimmer-Wohnung in Trun mieten</h1>' +
+        '<p>Via Sogn Martin 1, 7166 Trun. CHF 1’520 inkl. NK pro Monat.</p>' +
+        '<h2>Beschreibung</h2><p>Moderne Wohnung mit Terrasse, Küche, Waschmaschine, Keller und Parkplatz.</p>' +
+        '<h3>Inserent</h3><p>Herr Max Muster</p><p>Kontaktanfrage erstellen</p>',
+      finalUrl: url,
+    };
+    return { ok: false, status: 404, body: '', finalUrl: url };
   };
-  const fetchImpl = async (input) => {
-    const url = String(input);
-    calls.push(url);
-    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow:', { status: 200 });
-    return new Response('blocked', { status: 403 });
-  };
-  const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
-  const result = await directOnly('https://example.com/private-listing');
-  assert.equal(result.status, 403);
-  assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
-});
-
-test('production ImmoFinder route uses only the source-first, provider-free runtime', () => {
-  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
-  assert.match(route, /import \{ runPipeline \} from '\.\/immofinder\/live\.ts'/);
-  const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
-  assert.match(runCall, /llm: null/);
-  assert.match(runCall, /search: null/);
-  assert.match(runCall, /allowJina: false, allowBrowser: true/);
-  assert.doesNotMatch(runCall, /deps\.llm|createSerperSearch/);
-  assert.match(route, /pollMs: 15_000/);
-});
-, phase: 1, maxDetailPages: 6 }],
-      limits: { maxDetailPagesPerSource: 6, recheckAfterDays: 7, fetchTimeoutMs: 10000, maxPageBytes: 100000 },
-      fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
-    },
-    async fetchPage(url) {
-      fetched.push(url);
-      if (url === indexUrl) return { ok: true, status: 200, body: indexHtml, finalUrl: url };
-      if (url === detailUrl) return { ok: true, status: 200, body: detailHtml, finalUrl: url };
-      if (url === offTargetUrl) return { ok: true, status: 200, body: offTargetHtml, finalUrl: url };
-      return { ok: false, status: 404, body: '', finalUrl: url };
-    },
-    llm: async () => { throw new Error('LLM must not be called'); },
-    search: async () => { throw new Error('Paid search must not be called'); },
-    store,
-  };
-  return { deps, writes, marks, fetched };
-}
-
-test('source-first live pipeline admits a fetched private listing and persists traceable evidence', async () => {
-  const { deps, writes, fetched } = depsFor();
   const result = await runPipeline(deps, { dryRun: false, wave: 'full' });
-  assert.equal(result.status, 'COMPLETED');
-  assert.equal(result.counts.fetched, 1);
   assert.equal(result.counts.kept, 1);
-  assert.equal(result.counts.new, 1);
   assert.equal(writes.length, 1);
-  assert.equal(result.filtered.source_locality_mismatch, 1);
-  assert.equal(writes[0].listing_type, 'holiday_owner');
-  assert.equal(writes[0].municipality, 'Chur');
-  assert.match(writes[0].raw.evidence_text, /3.5 Zimmer/);
-  assert.equal(writes[0].raw.evidence_kind, 'page_text');
-  assert.equal(writes[0].raw.evidence_url, detailUrl);
-  assert.equal(result.estCostUsd, 0);
-  assert.deepEqual(fetched, [indexUrl, detailUrl]);
-  assert.equal(fetched.includes(offTargetUrl), false);
+  assert.equal(writes[0].listing_type, 'long_term_offer');
+  assert.equal(writes[0].municipality, 'Trun');
+  assert.equal(writes[0].rooms_estimated, 3.5);
+  assert.equal(writes[0].rent_monthly_chf, 1520);
+  assert.equal(writes[0].pricing_unit, 'month');
+  assert.equal(writes[0].owner_name, 'Herr Max Muster');
+  assert.equal(writes[0].contact_status, 'platform_only');
+  assert.equal(writes[0].raw.price.amount, 1520);
 });
 
 test('source-first dry run never writes and off-target pages are never admitted', async () => {
