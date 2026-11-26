@@ -1,3 +1,6 @@
+## P131.7a — Stop data commits from redeploying the service
+- Every bot commit (diagnostics, encrypted snapshot, archive) triggered a Render deploy, up to dozens per night, able to interrupt a running search. Add `[skip render]` to the server-written diagnostics and snapshot commit messages (the Actions archive commit is unchanged); no search or admission logic changes.
+
 ## P131.7a — Consistency corrections (docs/scripts, no behaviour change)
 - Fix `version:sync`/`version:check` to call `scripts/version-metadata.mjs` (the referenced `sync-version.mjs` never existed); dedupe the ImmoFinder pointer in `docs/ARCHITECTURE.md`; add status reconciliation to roadmap/experiments. Patch id unchanged (lockfile not rewritten).
 
