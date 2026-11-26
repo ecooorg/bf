@@ -32,6 +32,7 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 /** Production sources: each enabled row is a direct index/detail adapter, not a search-engine snippet. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'ferienhausmiete', label: 'Ferienhausmiete', hint: 'Directly fetched holiday-home listings', priority: true },
+  { id: 'portal-flatfox', label: 'Flatfox', hint: 'Direct rental listings with price, room count, description and online enquiry', priority: true },
   { id: 'happyholiday', label: 'HappyHoliday', hint: 'Directly fetched regional owner listings', priority: true },
   { id: 'portal-anibis', label: 'Anibis', hint: 'Paused after HTTP 403 in the live pilot; re-enable only after access changes', priority: false },
   { id: 'portal-tutti', label: 'Tutti', hint: 'Paused after HTTP 403 in the live pilot; re-enable only after access changes', priority: false },
