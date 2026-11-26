@@ -1,3 +1,7 @@
+## C131 status reconciliation — 2026-11-26
+- Single legacy ImmoFinder engine with C131 admission applied in place; `server/immofinder/` target layout absent. WP0 done; WP1/WP2/WP3/WP4 partial; WP5/WP6 open; WP7 not triggered. Details and evidence: `docs/ROADMAP_C131.md` (top section).
+- Latest live full run `038d1c87`: 0 kept of 113 candidates, Tutti/Homegate 403. Hosted CI and deployed commit for 131.5e–131.7a NOT_RUN/unverified.
+
 ## P131.5j status — 2026-11-25
 - Corrects the short-test call-site contract: `testMode` belongs in `PipelineOptions`, not `PipelineDeps`; retains the discovery page cap.
 - Awaiting hosted Core CI and successful Render deployment before the next source-first dry-run. WP2 scorecard and WP6 Full runs remain open; WP7 conditional.

@@ -1,3 +1,8 @@
+## P131.7a — Factual status reconciliation
+- **OBSERVED:** no `server/immofinder/` target layout; legacy 17-module engine with C131 rules in place; run `038d1c87`: 0 kept / 113 candidates, Tutti/Homegate 403. Local typecheck, test:core and docs:integrity PASS on this tree.
+- **CHANGE:** `version:*` scripts repaired; architecture/roadmap/experiments status corrected (additive).
+- **NOT_RUN:** hosted CI, deployed commit, WP2 fetcher pilot, WP6 acceptance.
+
 ## P131.7a — All-source Chur test timing follow-up
 - **RUN:** `2acc4c0e-e085-4945-8c96-a8ff17fb59c5`. **RESULT:** 91 candidates; 8/17 Serper queries; 5 index pages; 1 detail page fetched; 0 kept; 14 out-of-commune rejects; 7 snippet-only rejects; 1 shared-flat seeker rejected; Homegate/Tutti HTTP 403; 9 queries left at the 120-second cap; USD 0.008.
 - **NEXT:** raise only the test duration ceiling to 180 seconds, preserving all other finite budgets and no-write behavior.

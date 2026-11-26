@@ -1,3 +1,6 @@
+## P131.7a — Consistency corrections (docs/scripts, no behaviour change)
+- Fix `version:sync`/`version:check` to call `scripts/version-metadata.mjs` (the referenced `sync-version.mjs` never existed); dedupe the ImmoFinder pointer in `docs/ARCHITECTURE.md`; add status reconciliation to roadmap/experiments. Patch id unchanged (lockfile not rewritten).
+
 ## P131.7a — Extend bounded Chur test duration to 180 seconds
 - Allow the full configured query set more time while preserving page, candidate, detail-fetch, browser, provider-rate and no-write limits.
 
