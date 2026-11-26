@@ -47,7 +47,14 @@
     "docs:integrity": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs && node scripts/scripts-integrity.mjs",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-models.test.mjs",
     "docs:check": "node scripts/docsCheckInventories.mjs",
-    "docs:generate": "node scripts/docsGenerateInventories.mjs"
+    "docs:generate": "node scripts/docsGenerateInventories.mjs",
+    "carousel:ops": "node scripts/carousel-ops-probe.mjs",
+    "carousel:search": "node --import tsx scripts/carousel-search-smoke.mjs",
+    "carousel:render": "node scripts/carousel-render-probe.mjs",
+    "test:carousel": "node --import tsx --test tests/providers-models.test.mjs --test-name-pattern=carousel|Carousel|allowlist || node --test tests/governance-repo.test.mjs",
+    "carousel:live": "node --import tsx scripts/carousel-live-smoke.mjs",
+    "test:search-heuristics": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/search-decoupling.test.mjs",
+    "workflow:preflight": "node scripts/workflow-preflight.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
