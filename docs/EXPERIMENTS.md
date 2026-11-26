@@ -1,3 +1,11 @@
+## P131.8l — Resolve Serper /goto links in parallel (RELIABILITY)
+- **EVIDENCE:** short test `b8e86208` (build c78fa4e, dryRun, Chur): 8 Serper calls ok (credits restored); `immofinder_serper_redirect_resolution` took 15.2-23.4 s for 2-3 links per query, 5 of 8 queries, ≈93 s of a 142.6 s run; `run_time_budget` stopped with 9 of 17 queries left; 0 kept. HappyHoliday: 82 candidates, 82 `municipality_not_whitelisted` by URL (Scuol, Lenzerheide), `consecutiveBad` 0, no early stop: P131.8k was not the blocker in this run.
+- **HYPOTHESIS:** `/resolve` follows links serially (~8 s each); one call per goto row in parallel cuts per-query wait to the slowest link, so more queries fit the 180 s budget.
+- **METRIC/ACCEPT:** `durationMs` of resolution ≤ 10 s per query; queries completed per run rises from 8/17. Baseline: 8/17, ≈18 s per resolve. Live re-run: NOT_RUN.
+- **SCOPE:** `server/immofinderDiscovery.ts`, `tests/immofinder-p0.test.mjs`. **ROLLBACK:** revert if resolved-link share falls (`after` > 0 more often) or queries completed does not rise.
+- **KNOWN (not in scope):** Homegate/Tutti 403 → 7 `trust_snippet_only`; list/index URLs (huusbro, immoscout, homegate matching-list) rejected as snippet-only instead of expanded. Separate hypotheses.
+- **CLASSIFICATION:** RELIABILITY; user value NOT_RUN.
+
 ## P131.8k — Prefetch geo skips must not trigger source early-stop (BUGFIX)
 - **PROBLEM/EVIDENCE:** catalogue sources early-stop after 14 consecutive non-keeps (`consecutiveStopFor`). URL/title geo rejects happen before any fetch yet increment `consecutiveBad`, so a wide index (HappyHoliday: 738 candidates, 20 fetched, 0 kept over 4 runs; run `038d1c87` stopped after 14 skips, 14 locale rejects) ends before in-area listings are reached.
 - **HYPOTHESIS:** prefetch geo skips cost no fetch/LLM budget, so they must not count toward the streak; the streak keeps counting fetched non-keeps.
