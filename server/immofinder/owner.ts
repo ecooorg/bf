@@ -12,6 +12,7 @@ export interface OwnerEvidence {
   phone: string | null;
   email: string | null;
   ownerKey: string | null;
+  ownerName: string | null;
   platformFormPresent: boolean;
 }
 
@@ -88,6 +89,8 @@ export function extractOwnerEvidence(
   if (phone || email) contactRoute = 'direct';
   else if (platformFormPresent) contactRoute = 'platform_message';
 
+  const ownerName = /\b(?:Herr|Frau|Familie|Eheleute)\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+(?:\s+[A-ZÄÖÜ][\p{L}\p{M}.'’-]+){0,2}/u.exec(text)?.[0] || null;
+
   let ownerKey: string | null = null;
   if (phone) ownerKey = `phone:${phone}`;
   else if (email) ownerKey = `email:${email}`;
@@ -100,6 +103,7 @@ export function extractOwnerEvidence(
     phone,
     email,
     ownerKey,
+    ownerName,
     platformFormPresent,
   };
 }
