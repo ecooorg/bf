@@ -1,3 +1,8 @@
+## P131.9 follow-up — bcfb7f9 CI and production deployment
+- **OBSERVED:** Render deploy `dep-dc46a58ae00c73d9km40` is LIVE; build and server TypeScript compilation succeeded, 30 DB migrations were already applied. Core CI #45863548736: 16/18 checks PASS; docs-integrity and test:core FAIL. Exact failures are recorded in the run log; do not report CI green.
+- **CHANGE:** restore canonical docs sections, correct canonical URL fixtures and SERP-only Anibis test, detect natural-language seeker intent, and expose provider-call counts for live diagnostics.
+- **NOT_RUN:** CI on the follow-up commit and live production search.
+
 ## P131.9 — C131 source-first CI and recovery retirement
 - **OBSERVED:** #45862026277 on d8aa670: 15 ImmoFinder failures; 17 other DAG stages passed. Render `bf` is auto-deploy-on-push from `main`.
 - **CHANGE:** align current category tests to the production source-first path; remove automated legacy-search payload restoration and backup artifacts.

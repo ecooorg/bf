@@ -69,7 +69,10 @@ test('Anibis direct rental details are stored as long-term offers', async () => 
   const { deps, writes } = depsFor();
   const index = 'https://www.anibis.ch/de/q/immobilien-graubuenden-wohnungen-mieten/test';
   const detail = 'https://www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-wohnung/1074103783';
+  deps.config.municipalities = ['Chur'];
   deps.config.sources = [{ id: 'portal-anibis', url: index, maxDetailPages: 12, detailPattern: '^https://www\\.anibis\\.ch/de/vi/.*' }];
+  deps.config.discovery = { enabled: true, portalSources: [{ id: 'portal-anibis', host: 'anibis.ch' }], portalQueries: ['site:anibis.ch "{commune}" Wohnung mieten'], queries: [], serperMinIntervalMs: 0 };
+  deps.search = async () => [{ title: '3.5-Zimmer-Wohnung Chur', link: detail, snippet: '3.5 Zimmer, Chur, Wohnung mieten' }];
   deps.fetchPage = async (url) => {
     if (url === index) return { ok: true, status: 200, body: '<main>' + 'Mietangebote in Graubünden. '.repeat(18) + '<a href="' + detail + '">3.5-Zimmer-Wohnung Chur</a></main>', finalUrl: url };
     if (url === detail) return { ok: true, status: 200, body: '<h1>Helle 3.5-Zimmer-Wohnung in Chur</h1><p>7000, Chur. 3.5-Zimmer-Wohnung zur Miete. Privatperson. Kontaktformular.</p>', finalUrl: url };
@@ -164,6 +167,7 @@ test('bounded Serper discovery seeds direct Anibis detail pages and counts searc
   assert.equal(writes.length, 1);
   assert.ok(fetched.includes(detail));
   assert.equal(result.estCostUsd, 0.001);
+  assert.equal(result.counts.serper_calls, 1);
 });
 
 test('rotating Serper discovery can fetch a Homegate detail page without crawling its blocked index', async () => {
@@ -217,6 +221,7 @@ test('Gemini promotes a borderline lead only when its private-owner quote is ver
   assert.equal(writes[0].raw.level, 'L2');
   assert.ok(writes[0].raw.owner_markers.includes(privateQuote));
   assert.equal(result.estCostUsd, 0.002);
+  assert.equal(result.counts.gemini_calls, 1);
 });
 
 test('polite fetcher can disable Jina and browser fallbacks', async () => {

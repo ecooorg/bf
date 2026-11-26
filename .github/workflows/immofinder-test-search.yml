@@ -75,7 +75,7 @@ jobs:
               L1: ([.report.result.preview[]? | select(.kept == true and .detail == "L1")] | length),
               L2: ([.report.result.preview[]? | select(.kept == true and .detail == "L2")] | length)
             },
-            paidProviderCalls: { serper: 0, llm: 0, jina: 0, browser: 0 },
+            paidProviderCalls: { serper: (.report.result.counts.serper_calls // 0), gemini: (.report.result.counts.gemini_calls // 0), jina: 0, browser: 0 },
             errors: ([.report.result.errors[]? | {source,code}])
           }' /tmp/report.json > /tmp/summary.json
           summary=$(jq -r '"**Source-first production run completed**
@@ -86,7 +86,7 @@ jobs:
 - New records: (.counts.new // 0)
 - Rejections: (.filtered)
 - Estimated provider cost: $(.estimatedProviderCostUsd // 0)
-- Paid provider calls (Serper/LLM/Jina/browser): 0
+- Paid provider calls (Serper/Gemini/Jina/browser): \(.paidProviderCalls.serper)/\(.paidProviderCalls.gemini)/\(.paidProviderCalls.jina)/\(.paidProviderCalls.browser)
 - Errors: ([.errors[]?.code] | join(", "))"' /tmp/summary.json)
           gh api "repos/$GH_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$summary"
       - name: Upload production diagnostics

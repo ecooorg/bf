@@ -144,7 +144,7 @@ export async function runPipeline(
     stopAgencies: deps.config.stopAgencies || [],
   };
   const counts: Record<string, number> = {
-    index_pages: 0, candidates: 0, fetched: 0, kept: 0, new: 0, updated: 0, skipped: 0, infra_failures: 0,
+    index_pages: 0, candidates: 0, fetched: 0, kept: 0, new: 0, updated: 0, skipped: 0, infra_failures: 0, serper_calls: 0, gemini_calls: 0,
   };
   const filtered: Record<string, number> = {};
   const errors: RunResult['errors'] = [];
@@ -443,6 +443,8 @@ export async function runPipeline(
     progress(deps, source.id + ': index candidates ' + stats.candidates, counts);
   }
 
+  counts.serper_calls = serperCalls;
+  counts.gemini_calls = geminiCalls;
   const wavesRun: RunResult['wavesRun'] = successfulIndexes ? ['extended'] : [];
   if (!opts.dryRun && savedThisRun.length && deps.onWaveComplete) {
     try { await deps.onWaveComplete({ wave: opts.wave === 'carousel' ? 'carousel' : 'extended', newInWave: savedThisRun, counts }); }
