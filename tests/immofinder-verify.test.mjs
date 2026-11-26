@@ -283,6 +283,17 @@ test('C131 classifier does not reject ordinary real-estate wording as an agency'
   assert.equal(r.isAgency, false);
 });
 
+test('C131 owner evidence rejects sequential phone placeholders and recognizes host enquiry forms', () => {
+  const fake = extractOwnerEvidence('Private holiday home', 'Von privat. Telefon 123456789101.', [], 'happyholiday');
+  assert.equal(fake.phone, null);
+  assert.equal(fake.contactRoute, 'none');
+  const real = extractOwnerEvidence('Private apartment', 'Von privat. Telefon 079 123 45 67.', [], 'anibis');
+  assert.equal(real.phone, '0791234567');
+  assert.equal(real.contactRoute, 'direct');
+  const form = extractOwnerEvidence('Haus zur Miete', 'Unverbindlich anfragen', [], 'ferienhausmiete');
+  assert.equal(form.contactRoute, 'platform_message');
+});
+
 test('P131.8 owner: private + phone → L2 promote', () => {
   const o = extractOwnerEvidence(
     'Schöne Wohnung',
