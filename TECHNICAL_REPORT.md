@@ -1,3 +1,8 @@
+## P131.8t — Flatfox source expansion
+- Added Flatfox direct rental index/detail adapter, price/rooms/advertiser parsing and host allowlist. Active direct sources are now HappyHoliday, Ferienhausmiete and Flatfox; Anibis/Tutti paused after 403.
+- Manual-only, no delivery, no Serper/LLM/Jina. Local Chromium cap 3 renders/run on allowlisted hosts only.
+- **Flatfox live pilot:** NOT_RUN at report time. **Second full-canton revalidation run:** pending. **Hosted Core CI:** NOT_CONFIRMED; connector reports no check statuses.
+
 ## P131.8s — Production quality correction
 - **P131.8r live run:** 87 candidates, 24 detail fetches, 16 rows written hidden by write-time quality rules; 0 visible verified leads. HappyHoliday 12/12 classifier-kept but hidden by quality repair (holiday/locality/room reasons); Ferienhausmiete 4/4 classifier-kept but hidden (three false seeker flags, one agency/list page). Anibis and Tutti both HTTP 403; no detail fetches. Estimated paid-provider cost: $0.00.
 - Reviewed records exposed locality substring errors (Solavers/Avers, Haus Katrin/Trin, Tga Davos Nord/Savognin), Swiss half-room parsing and a placeholder phone number. No bad rows were presented as visible leads.
