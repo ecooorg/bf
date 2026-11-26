@@ -41,7 +41,7 @@ export function processSnapshot(input: PipelineInput): PipelineOutput {
 
   const owner = extractOwnerEvidence(
     input.snapshot.title,
-    input.snapshot.pageText,
+    input.snapshot.pageText.slice(0, 4_000),
     input.config.stopAgencies,
     input.sourceId,
   );
