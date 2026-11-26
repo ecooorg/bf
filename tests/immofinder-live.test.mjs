@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runPipeline } from '../server/immofinder/live.ts';
 
 const indexUrl = 'https://happyholiday.ch/area/graubuenden/';
@@ -54,6 +57,8 @@ test('source-first live pipeline admits a fetched private listing and persists t
   assert.equal(writes[0].listing_type, 'holiday_owner');
   assert.equal(writes[0].municipality, 'Chur');
   assert.match(writes[0].raw.evidence_text, /3.5 Zimmer/);
+  assert.equal(writes[0].raw.evidence_kind, 'page_text');
+  assert.equal(writes[0].raw.evidence_url, detailUrl);
   assert.equal(result.estCostUsd, 0);
   assert.deepEqual(fetched, [indexUrl, detailUrl, offTargetUrl]);
 });
@@ -84,4 +89,16 @@ test('production source fetch mode never invokes Jina or browser fallbacks', asy
   const result = await directOnly('https://example.com/private-listing');
   assert.equal(result.status, 403);
   assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
+});
+
+test('production ImmoFinder route uses only the source-first, provider-free runtime', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const route = readFileSync(path.join(root, 'server/immofinderRoutes.ts'), 'utf8');
+  assert.match(route, /import \\{ runPipeline \\} from '\\.\/immofinder\/live\\.ts'/);
+  const runCall = route.slice(route.indexOf('result = await runPipeline({'), route.indexOf('pipelineCompleted = true;'));
+  assert.match(runCall, /llm: null/);
+  assert.match(runCall, /search: null/);
+  assert.match(runCall, /allowJina: false, allowBrowser: false/);
+  assert.doesNotMatch(runCall, /deps\\.llm|createSerperSearch/);
+  assert.match(route, /pollMs: 15_000/);
 });
