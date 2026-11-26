@@ -257,6 +257,21 @@ test('P131.6 settings UI exposes optional price/contact filters and a complete C
   assert.match(ui, /\[3, 4, 5, 6, 7, 8\]/);
 });
 
+test('C131 source-first production scope covers all Graubunden communes and locality aliases', () => {
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const settings = read('server/immofinderSettings.ts');
+  const ui = read('src/ImmoFinderSettings.tsx');
+  assert.equal(cfg.municipalityGroups.group1.municipalities.length, 100);
+  assert.equal(cfg.municipalityGroups.group2.municipalities.length, 19);
+  assert.equal(cfg.municipalities.length, 119);
+  assert.match(settings, /municipalities\.length/);
+  assert.doesNotMatch(settings, /Math\.min\(44, municipalities\.length\)/);
+  for (const id of ['happyholiday', 'ferienhausmiete', 'portal-anibis', 'portal-tutti']) {
+    assert.ok(cfg.sources.some((source) => source.id === id), 'missing source config: ' + id);
+    assert.match(ui, new RegExp("id: '" + id + "'"));
+  }
+});
+
 test('config prioritises long-term Swiss rental discovery portals', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const queries = cfg.discovery.portalQueries.join(' ');
