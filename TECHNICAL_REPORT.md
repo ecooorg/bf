@@ -1,3 +1,7 @@
+## P131.8n — Roadmap consolidation
+- **CHANGE:** C131 log and ordered quality plan recorded in `ROADMAP.md`; version metadata 131.8n.
+- **NOT_RUN:** hosted CI for 131.8j–131.8n; Render commit identity; live yield (last short tests: 0 kept).
+
 ## P131.8m — SERP pipelining
 - **OBSERVED:** run `d470cbb4`: 12/17 queries, 0 kept; resolve latency fixed 15-23 s per goto query; P131.8l parallel resolve not confirmed as cause of the gain.
 - **CHANGE:** next Serper call prefetched during candidate processing.

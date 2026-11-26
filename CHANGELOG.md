@@ -1,3 +1,8 @@
+## P131.8n — Roadmap consolidation and version bump (docs only)
+- **PROBLEM:** C131 status lived only in `docs/ROADMAP_C131.md`; the root roadmap lagged and `package.json` still said 131.8i.
+- **CHANGE:** C131 log imported into `ROADMAP.md` with an ordered quality-search plan; patch 131.8n synced to lockfile; `REPAIR_RULES_VERSION` follows it (seen-cache invalidated once).
+- **SCOPE:** MAINTENANCE, docs + version metadata.
+
 ## P131.8m — Pipeline next SERP call
 - **PROBLEM:** run `d470cbb4` still hit the time budget at 12/17 queries; /goto resolve costs 15-23 s per call regardless of link count (P131.8l parallelism did not help).
 - **CHANGE:** the next query's Serper call starts while the current query's candidates are processed.
