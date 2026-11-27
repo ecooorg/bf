@@ -248,3 +248,8 @@ Accordingly, interpret terms-review findings narrowly and accurately:
 - terms_review_required means the exact scope of the relevant clause needs source-specific interpretation; it is not a blanket determination that the Owner's personal note-taking is unlawful or forbidden.
 
 Keep three statuses conceptually separate: permission to view manually, permission/constraints for automated acquisition, and any source-specific restrictions on the Owner's private note storage. Do not disable all manual research solely because automated scraping is restricted.
+
+
+## Owner clarification — private notebook and local copies (2026-11-27)
+
+The Owner may save pages/screenshots locally and process those copies manually or with local automation for personal housing research. Do not interpret automation restrictions on remote site access as a blanket prohibition on local file processing or personal notes. ImmoGR's browser-side local import accepts HTML/HTM/TXT up to 5 MB, extracts text locally, and requires the Owner to review and explicitly save notes. The original file is not uploaded. Remote crawling, proxying and access-control bypass remain separate and are not authorized by this local workflow. Earlier database-capture review flags do not disable this personal notebook path.
