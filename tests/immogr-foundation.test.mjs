@@ -58,14 +58,22 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   const ui = read('src/ImmoGR.tsx');
   assert.match(routes, /\/api\/immogr\/localities/);
   assert.match(routes, /localitiesForMode/);
-  assert.match(routes, /req\.body\?\.locality/);
-  assert.match(routes, /selected\.name/);
+  assert.match(routes, /req\.body\?\.localityIds/);
+  assert.match(routes, /selectedLocalities/);
+  assert.match(routes, /localityNames\.join/);
+  assert.match(routes, /maxQueries: Math\.min\(29, sourceScope\.sources\.length\)/);
+  assert.match(routes, /maxSources: 100/);
+  assert.match(routes, /fetchPages: false/);
+  assert.doesNotMatch(routes, /isDiscoveryUrlInScope\(source\.url/);
+  assert.match(routes, /candidateSources\.slice\(0, 100\)/);
   assert.match(ui, /fetch\('\/api\/immogr\/localities\?groupMode=/);
-  assert.match(ui, /locality, groupMode, category/);
-  assert.match(ui, /Group 1 · 22 important localities/);
-  assert.match(ui, /Group 2 · 22 secondary localities/);
-  assert.match(ui, /Both groups · all 44 localities/);
-  assert.match(ui, /Chur · standalone/);
+  assert.match(ui, /localityIds: selectedLocalityIds/);
+  assert.match(ui, /immogr\.selectedLocalityIds/);
+  assert.match(ui, /immogr-locality-grid/);
+  assert.match(ui, /Download logs/);
+  assert.match(ui, /Search/);
+  assert.match(ui, /Personal notebook and research tools/);
+  assert.match(ui, /maximum 100/);
 });
 
 test('locality database migration is additive and seeds exact owner scope', async () => {
@@ -198,4 +206,18 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   assert.match(ui, /immogr\.enabledSourceIds/);
   assert.match(ui, /sourceIds: selectedSourceIds/);
   assert.doesNotMatch(ui, /aria-pressed=\{selectedSourceId === source\.id\}/);
+});
+
+
+test('ImmoGR broad discovery is bounded to 100 candidate URLs without selected-domain filtering', () => {
+  const routes = read('server/immogr/index.ts');
+  const search = read('server/webSearch.ts');
+  assert.match(routes, /maxQueries: Math\.min\(29, sourceScope\.sources\.length\)/);
+  assert.match(routes, /maxSources: 100/);
+  assert.match(routes, /candidateSources\.slice\(0, 100\)/);
+  assert.match(routes, /outsideSelectedHostCount/);
+  assert.doesNotMatch(routes, /result\.sources\.filter\(\(source\) => isDiscoveryUrlInScope/);
+  assert.match(search, /maxQueries\?: number/);
+  assert.match(search, /maxSources\?: number/);
+  assert.match(search, /Math\.min\(45, opts\.maxQueries/);
 });
