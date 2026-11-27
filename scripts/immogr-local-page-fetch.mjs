@@ -142,13 +142,37 @@ export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT)
   return tied.some((rule) => rule.type === 'allow');
 }
 
-export function buildProbePlan(planInput) {
-  if (!planInput || typeof planInput !== 'object' || !planInput.source || !Array.isArray(planInput.urls)) {
-    throw new Error('Plan must contain a source authorization object and a urls array.');
+export export function buildProbePlan(planInput, sourceRegistry) {
+  if (!planInput || typeof planInput !== 'object' || typeof planInput.sourceId !== 'string' || !Array.isArray(planInput.urls)) {
+    throw new Error('Plan must contain a registered sourceId and a urls array.');
   }
-  const { source, urls } = planInput;
-  const auth = source.probeAuthorization;
-  if (!auth || !Array.isArray(urls) || urls.length < 1) throw new Error('Source authorization and at least one page URL are required.');
+  if (!sourceRegistry || !Array.isArray(sourceRegistry.sources)) throw new Error('The ImmoGR source registry is required.');
+  const sourceConfig = sourceRegistry.sources.find((item) => item.id === planInput.sourceId);
+  if (!sourceConfig) throw new Error('Unknown ImmoGR source ID.');
+  const policy = sourceConfig.probePolicy;
+  if (!policy || policy.status !== 'authorized_for_limited_probe') {
+    throw new Error(policy?.status === 'prohibited'
+      ? 'Probe denied by the current source policy.'
+      : 'Probe authorization has not been recorded in the ImmoGR source registry.');
+  }
+  if (!policy.authorizationReference || !policy.reviewedAt || !Array.isArray(policy.allowedHosts) || !policy.allowedHosts.length || ![2, 3].includes(policy.maxRequests)) {
+    throw new Error('The source probe authorization record is incomplete.');
+  }
+  const source = {
+    id: sourceConfig.id,
+    scriptedProbeProhibited: false,
+    probeAuthorization: {
+      reference: policy.authorizationReference,
+      reviewedAt: policy.reviewedAt,
+      researchPurposeAllowed: true,
+      robotsAllowed: true,
+      allowedHosts: policy.allowedHosts,
+      allowedMethods: ['GET'],
+      maxRequests: policy.maxRequests,
+    },
+  };
+  const urls = planInput.urls;
+  if (!Array.isArray(urls) || urls.length < 1) throw new Error('At least one page URL is required.');
   const first = new URL(urls[0]);
   if (first.protocol !== 'https:') throw new Error('Only HTTPS listing URLs are supported.');
   const robotsUrl = new URL('/robots.txt', first.origin).toString();
@@ -168,7 +192,9 @@ async function main() {
   }
   const absolutePlanPath = path.resolve(planPath);
   const input = JSON.parse(await readFile(absolutePlanPath, 'utf8'));
-  const plan = buildProbePlan(input);
+  const registryPath = path.resolve(process.cwd(), 'config/immogr/sources.json');
+  const sourceRegistry = JSON.parse(await readFile(registryPath, 'utf8'));
+  const plan = buildProbePlan(input, sourceRegistry);
   const outputDir = path.resolve(path.dirname(absolutePlanPath), '.immogr-local-probe-output');
   await mkdir(outputDir, { recursive: true });
   const records = [];
