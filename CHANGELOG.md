@@ -1,3 +1,6 @@
+## 2026-11-27 — ImmoGR personal research notebook (P131.12)
+- Added all-source manual review UI, local HTML/HTM/TXT import, validated personal-note persistence, and additive migration 034.
+
 ## 2026-11-27 — ImmoGR locality scope correction
 - Replaced municipality targeting with the owner's exact 44 localities, split into two independently selectable groups; added API validation and additive locality persistence.
 
