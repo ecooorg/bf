@@ -1,3 +1,6 @@
+## 2026-11-27 — ImmoGR locality scope correction
+- Replaced municipality targeting with the owner's exact 44 localities, split into two independently selectable groups; added API validation and additive locality persistence.
+
 ## 2026-11-27 — ImmoFinder retired; ImmoGR WP1 started
 - Retired ImmoFinder UI/API/workflows and removed legacy live-acceptance automation; preserved historical source and data read-only.
 - Established isolated ImmoGR product entry, API status, configuration/data namespace, specifications, source research, and acceptance gates.
