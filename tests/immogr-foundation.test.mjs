@@ -252,6 +252,7 @@ test('ImmoGR discovery and local research render separate, category-aware candid
   assert.match(routes, /published monthly rent no higher than CHF 2,000/);
   assert.match(routes, /long-term rental of three years or more/);
   assert.match(migration, /ADD COLUMN IF NOT EXISTS result_category/);
+  assert.match(migration, /DEFAULT 'unknown'/);
   assert.match(migration, /private_owner_prospect/);
   assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
 });
