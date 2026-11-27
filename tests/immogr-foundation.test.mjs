@@ -33,20 +33,24 @@ test('active migration runner quarantines only historical ImmoFinder migrations'
   assert.match(runner, /allFiles\.filter\(\(file\) => !isRetiredImmoFinderMigration\(file\)\)/);
 });
 
-test('owner-defined ImmoGR locality catalogue contains exactly two groups of 22', async () => {
+test('owner-defined ImmoGR locality catalogue contains two groups of 22 plus standalone Chur', async () => {
   const { IMMOGR_LOCALITIES, localitiesForMode } = await import('../server/immogr/localities.ts');
   const csv = read('config/immogr/localities.csv');
-  assert.equal(IMMOGR_LOCALITIES.length, 44);
+  assert.equal(IMMOGR_LOCALITIES.length, 45);
+  assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 0).length, 1);
+  assert.equal(localitiesForMode('chur').length, 1);
+  assert.equal(localitiesForMode('chur')[0].name, 'Chur');
   assert.equal(new Set(IMMOGR_LOCALITIES.map((item) => item.id)).size, 44);
   assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 1).length, 22);
   assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 2).length, 22);
   assert.equal(localitiesForMode('group1').length, 22);
   assert.equal(localitiesForMode('group2').length, 22);
   assert.equal(localitiesForMode('both').length, 44);
+  assert.equal(localitiesForMode('chur')[0].id, 'chur');
   assert.match(csv, /id,locality,canton,group/);
   assert.match(csv, /araschgen,"Araschgen",GR,1/);
   assert.match(csv, /valbella,"Valbella",GR,2/);
-  assert.doesNotMatch(csv, /Chur,GR/);
+  assert.match(csv, /chur,\"Chur\",GR,0/);
 });
 
 test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', () => {
@@ -61,6 +65,7 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(ui, /Group 1 · 22 important localities/);
   assert.match(ui, /Group 2 · 22 secondary localities/);
   assert.match(ui, /Both groups · all 44 localities/);
+  assert.match(ui, /Chur · standalone/);
 });
 
 test('locality database migration is additive and seeds exact owner scope', async () => {
@@ -189,4 +194,5 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   assert.match(ui, /@media \(max-width: 760px\)/);
   assert.match(ui, /immogr\.enabledSourceIds/);
   assert.match(ui, /sourceIds: selectedSourceIds/);
+  assert.doesNotMatch(ui, /aria-pressed=\{selectedSourceId === source\.id\}/);
 });
