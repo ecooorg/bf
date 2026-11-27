@@ -33,7 +33,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://happyholiday.ch/"
+      "homepageUrl": "https://happyholiday.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "ferienhausmiete",
@@ -49,7 +57,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.ferienhausmiete.de/"
+      "homepageUrl": "https://www.ferienhausmiete.de/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "flatfox",
@@ -65,7 +81,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://flatfox.ch/"
+      "homepageUrl": "https://flatfox.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "tutti",
@@ -81,7 +105,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.tutti.ch/"
+      "homepageUrl": "https://www.tutti.ch/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "anibis",
@@ -97,7 +129,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.anibis.ch/"
+      "homepageUrl": "https://www.anibis.ch/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "homegate",
@@ -113,7 +153,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.homegate.ch/"
+      "homepageUrl": "https://www.homegate.ch/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "newhome",
@@ -129,7 +177,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.newhome.ch/"
+      "homepageUrl": "https://www.newhome.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "womilo",
@@ -145,7 +201,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.womilo.ch/"
+      "homepageUrl": "https://www.womilo.ch/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "comparis",
@@ -161,7 +225,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.comparis.ch/immobilien/default"
+      "homepageUrl": "https://www.comparis.ch/immobilien/default",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "housenet",
@@ -177,7 +249,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://housenet.ch/en/"
+      "homepageUrl": "https://housenet.ch/en/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "immobilier",
@@ -193,7 +273,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.immobilier.ch/"
+      "homepageUrl": "https://www.immobilier.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "lookmove_api",
@@ -209,7 +297,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.lookmove.ch/EN"
+      "homepageUrl": "https://www.lookmove.ch/EN",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "discover_swiss",
@@ -225,7 +321,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://developer.discover.swiss/"
+      "homepageUrl": "https://developer.discover.swiss/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "stnet_openbooking",
@@ -241,7 +345,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.stnet.ch/de/export-ferienwohnungen/"
+      "homepageUrl": "https://www.stnet.ch/de/export-ferienwohnungen/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "edomizil",
@@ -257,7 +369,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.e-domizil.ch/"
+      "homepageUrl": "https://www.e-domizil.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "flatradar_ch",
@@ -273,7 +393,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://flatradar.ch/en"
+      "homepageUrl": "https://flatradar.ch/en",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "aptari",
@@ -289,7 +417,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://aptari.ai/en"
+      "homepageUrl": "https://aptari.ai/en",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "lookmove_portal",
@@ -305,7 +441,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.lookmove.ch/EN"
+      "homepageUrl": "https://www.lookmove.ch/EN",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "flatli",
@@ -321,7 +465,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://flatli.ch/en"
+      "homepageUrl": "https://flatli.ch/en",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "urbanhome",
@@ -337,7 +489,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.urbanhome.ch/"
+      "homepageUrl": "https://www.urbanhome.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "apartmentszurich",
@@ -353,7 +513,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://apartmentszurich.ch/en/"
+      "homepageUrl": "https://apartmentszurich.ch/en/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "realadvisor",
@@ -369,7 +537,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://realadvisor.ch/en"
+      "homepageUrl": "https://realadvisor.ch/en",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "homematch",
@@ -385,7 +561,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://homematch.ch/en"
+      "homepageUrl": "https://homematch.ch/en",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "wgzimmer",
@@ -401,7 +585,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.wgzimmer.ch/"
+      "homepageUrl": "https://www.wgzimmer.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "students",
@@ -417,7 +609,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.students.ch/"
+      "homepageUrl": "https://www.students.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "nachmieter",
@@ -433,7 +633,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.nachmieter.ch/"
+      "homepageUrl": "https://www.nachmieter.ch/",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "graubuenden_tourism",
@@ -449,7 +657,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://www.graubuenden.ch/en/booking/accommodation"
+      "homepageUrl": "https://www.graubuenden.ch/en/booking/accommodation",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "apartments_switzerland",
@@ -465,7 +681,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://apartmentsswitzerland.ch/en/"
+      "homepageUrl": "https://apartmentsswitzerland.ch/en/",
+      "probePolicy": {
+        "status": "prohibited",
+        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": "2026-11-27",
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     },
     {
       "id": "alpine_market_api",
@@ -481,7 +705,15 @@
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
       },
-      "homepageUrl": "https://alpinemarket.ch/developers"
+      "homepageUrl": "https://alpinemarket.ch/developers",
+      "probePolicy": {
+        "status": "not_reviewed",
+        "reason": "No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded.",
+        "reviewedAt": null,
+        "authorizationReference": null,
+        "allowedHosts": [],
+        "maxRequests": null
+      }
     }
   ],
   "monitoring": {
