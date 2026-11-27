@@ -78,3 +78,12 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - [ ] No arbitrary remote fetch, page traversal, crawler, or server-side proxy is enabled by this UI slice.
 
 \n### Owner-local page fetcher\n\n- [ ] Local CLI accepts only an owner-supplied source-specific probe authorization record and one or two explicit HTTPS page URLs.\n- [ ] The robots.txt check counts toward the hard two-or-three-request ceiling; disallowed paths stop before the page request.\n- [ ] The runner rejects private/reserved DNS answers, non-standard HTTPS ports, URL credentials, redirects, non-HTML responses, oversized responses and timeouts.\n- [ ] The runner performs no retries, pagination, crawling, cookie/session capture or remote persistence; snapshots and a minimal report stay in a git-ignored local directory.\n- [ ] No source is pre-authorized; each source requires current, source-specific evidence before a plan can run.\n
+
+## Android tablet local page viewer and owner-selected discovery sources
+
+- [ ] The ImmoGR page viewer adapts to Android tablet portrait and landscape layouts, with readable listing text, responsive photo previews, source links and touch-friendly controls.
+- [ ] Photo previews remain unloaded until the Owner explicitly requests them; scripts from imported pages are never executed.
+- [ ] Search settings allow the Owner to select one or more registered source domains; the API validates source IDs and filters grounded result URLs to the selected domains only.
+- [ ] Source selection is a discovery scope preference. It does not change source access policy or grant automated fetching permission.
+- [ ] Local probe CLI reads limited-probe authorization only from the ImmoGR source registry and cannot self-authorize through a local JSON plan.
+- [ ] Batch research runner produces a status row for all 29 sources, skips prohibited/unreviewed sources without sending requests, and runs only sources with documented limited-probe authorization.
