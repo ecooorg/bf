@@ -97,7 +97,7 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(ui, /Open source website/);
   assert.match(ui, /Image OCR is not available yet/);
   assert.match(ui, /new DOMParser\(\)/);
-  assert.match(ui, /file itself was not uploaded/);
+  assert.match(ui, /file itself was not uploaded|original file was not uploaded/);
   assert.equal(registry.sources.length, 29);
   assert.ok(registry.sources.every((source) => source.manualReview?.personalNotebookCaptureStatus === 'enabled'));
   assert.ok(registry.sources.filter((source) => source.homepageUrl).length >= 20);
