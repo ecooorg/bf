@@ -28,9 +28,9 @@ function quoteSupports(field: string, value: unknown, quote: string): boolean {
    if (value === 'room') return /zimmer|room|einzelzimmer/.test(q);
    return value === 'other' && /immobilie|property|objekt/.test(q);
   case 'priceAmount': return /chf|eur|€|fr\.?\s*\d/i.test(quote) && numberMatches(value);
-  case 'currency': return value === 'CHF' ? /\bchf\b/i.test(quote) : value === 'EUR' && /\\beur\\b|€/i.test(quote);
+  case 'currency': return value === 'CHF' ? /\bchf\b/i.test(quote) : value === 'EUR' && /\beur\b|€/i.test(quote);
   case 'pricePeriod':
-   if (value === 'month') return /monat|monthly|per month|pro monat|mois|mese|\/mt\\.?|\/monat/.test(q);
+   if (value === 'month') return /monat|monthly|per month|pro monat|mois|mese|\/mt\.?|\/monat/.test(q);
    if (value === 'week') return /woche|weekly|per week|pro woche|semaine|\/week/.test(q);
    if (value === 'night') return /nacht|nightly|per night|pro nacht|nuit|\/night/.test(q);
    return value === 'season' && /saison|season|stagione/.test(q);
