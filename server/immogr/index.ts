@@ -1,7 +1,9 @@
 import type { Express } from 'express';
+import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getPool } from '../database.ts';
+import { recordApplicationLog } from '../projectDiagnostics.ts';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
@@ -130,15 +132,34 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       : 'holiday apartment or chalet offered directly by a private owner, individual property page, direct landlord contact';
     const selectedSourceInstructions = sourceScope.sources.map((source) => source.name + ' (site:' + source.host + ')').join('; ');
     const userText = 'Find current public candidate listing URLs for ' + intent + ' in the locality ' + selected.name + ', canton Graubünden (GR), Switzerland. Search ONLY within these owner-selected sources: ' + selectedSourceInstructions + '. Do not return results from other domains. Do not broaden to other localities in the same municipality. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified.';
+    const requestId = randomUUID();
+    const startedAt = Date.now();
+    const attemptedModels: string[] = [];
     const result = await fetchWebSearchDigest({
       client: searchClient, models: searchModels, userText,
       today: new Date().toISOString().slice(0, 10), timeoutMs: 18_000,
       maxAttempts: Math.min(2, searchModels.length),
+      onAttempt: (model) => attemptedModels.push(model),
     });
+    const durationMs = Date.now() - startedAt;
+    const diagnosticDetails = {
+      category, locality: selected.name, localityGroup: selected.group, groupMode,
+      sourceCount: sourceScope.sources.length, sourceIds: sourceScope.sources.map((source) => source.id),
+      attemptedModels, successfulModel: result.model || null, providerStatus: result.status,
+      reason: String(result.reason || '').slice(0, 240), queryCount: result.queries.length,
+      groundedSourceCount: result.sources.length, durationMs,
+    };
+    res.setHeader('X-Request-Id', requestId);
+    void recordApplicationLog({
+      level: result.status === 'used' ? 'info' : 'error', component: 'immogr',
+      event: result.status === 'used' ? 'discovery_succeeded' : 'discovery_failed',
+      requestId, message: result.status === 'used' ? 'ImmoGR grounded discovery completed' : 'ImmoGR grounded discovery provider failed',
+      details: diagnosticDetails,
+    }).catch(() => {});
     if (result.status !== 'used') {
-      return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', providerStatus: result.status, reason: result.reason || 'No grounded search results were returned.' });
+      return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', error: 'The search provider did not return grounded results.', providerStatus: result.status, reason: result.reason || 'No grounded search results were returned.', requestId, diagnostics: diagnosticDetails });
     }
-    console.info('[ImmoGR] discovery completed', { category, locality: selected.name, group: selected.group, providerStatus: result.status, sourceCount: result.sources.length, modelCount: searchModels.length });
+    console.info('[ImmoGR] discovery completed', { requestId, ...diagnosticDetails });
     const inScopeSources = result.sources.filter((source) => isDiscoveryUrlInScope(source.url, sourceScope.sources));
     const leads = inScopeSources.slice(0, 6).map((source) => {
       let host = '';
