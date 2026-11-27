@@ -4,7 +4,7 @@ import path from 'node:path';
 import { getPool } from '../database.ts';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
-type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[] };
+type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean };
 type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; manualReview?: Record<string, unknown> };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
@@ -17,6 +17,13 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   const searchModels = (dependencies.searchModels || []).filter(Boolean).slice(0, 2);
   const searchClient = dependencies.searchClient || null;
   const liveDiscoveryEnabled = Boolean(searchClient && searchModels.length);
+  const requireOwner = (req: any, res: any): boolean => {
+    if (dependencies.appAuthEnabled && !dependencies.authenticated?.(req)) {
+      res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
+      return false;
+    }
+    return true;
+  };
   console.info('[ImmoGR] routes ready', { liveDiscoveryEnabled, localityCount: IMMOGR_LOCALITIES.length });
 
   app.get('/api/immogr/localities', (req, res) => {
@@ -27,12 +34,14 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     res.json({ localities, count: localities.length, groupMode, groups: { group1: 22, group2: 22 }, scope: 'owner_defined_localities_only' });
   });
 
-  app.get('/api/immogr/sources', (_req, res) => {
+  app.get('/api/immogr/sources', (req, res) => {
+    if (!requireOwner(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
     res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, manualReview }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, manualReview })) });
   });
 
   app.get('/api/immogr/manual-reviews', async (req, res) => {
+    if (!requireOwner(req, res)) return;
     try {
       const sourceId = String(req.query.sourceId || '').trim();
       const pool = await getPool();
@@ -48,6 +57,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   });
 
   app.post('/api/immogr/manual-reviews', async (req, res) => {
+    if (!requireOwner(req, res)) return;
     const body = req.body || {};
     const sourceId = String(body.sourceId || '').trim();
     const source = sourceRegistry.sources.find((item) => item.id === sourceId);
