@@ -90,3 +90,12 @@ test('Google service-account JSON is classified as secret in diagnostics', () =>
   assert.match(redaction, /GOOGLE_SERVICE_ACCOUNT_JSON/);
   assert.match(redaction, /CREDENTIALS_JSON/);
 });
+
+test('migration health check excludes archived ImmoFinder migrations exactly like the runner', () => {
+  const diagnostics = read('server/projectDiagnostics.ts');
+  const runner = read('scripts/migrate.mjs');
+  assert.match(diagnostics, /isRetiredImmoFinderMigration/);
+  assert.match(diagnostics, /activeOnDisk = onDisk\.filter\(\(file\) => !isRetiredImmoFinderMigration\(file\)\)/);
+  assert.match(diagnostics, /archived ImmoFinder excluded/);
+  assert.match(runner, /isRetiredImmoFinderMigration/);
+});
