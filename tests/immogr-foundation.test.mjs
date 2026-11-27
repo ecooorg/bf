@@ -169,3 +169,15 @@ test('locality label normalization removes formatting differences but does not i
   assert.equal(week.pricePeriod, 'week');
   assert.equal(night.pricePeriod, 'night');
 });
+
+
+test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection local', () => {
+  const ui = read('src/ImmoGR.tsx');
+  assert.match(ui, /data-testid="immogr-page-inspector"/);
+  assert.match(ui, /Load photo previews/);
+  assert.match(ui, /immogr-photo-grid/);
+  assert.match(ui, /min-height: 48px/);
+  assert.match(ui, /@media \(max-width: 760px\)/);
+  assert.match(ui, /immogr\.enabledSourceIds/);
+  assert.match(ui, /sourceIds: selectedSourceIds/);
+});
