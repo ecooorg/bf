@@ -88,3 +88,11 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - [x] Local probe CLI reads limited-probe authorization only from the ImmoGR source registry and cannot self-authorize through a local JSON plan.
 - [x] Batch research runner produces a status row for all 29 sources, skips prohibited/unreviewed sources without sending requests, and runs only sources with documented limited-probe authorization.
 - [x] The ImmoGR UI can export a one- or two-page local probe plan for the selected source without embedding authorization or credentials.
+
+
+## Category-aware research cards (owner-approved 2026-11-27)
+
+- Discovery candidates render as cards with title, source host, selected category and selected locality scope; every card is visibly marked unverified and states that no page was fetched.
+- The search request carries the selected category rather than silently forcing Direct Rental.
+- Locally imported page facts remain editable suggestions; the preview and saved card are labelled human-observed/unverified and retain original URL, locality, source, category, owner class, price period and availability where supplied.
+- Saved research cards are not promoted to admitted listings. No remote acquisition, access-control bypass, or automated qualification is introduced by this UI.
