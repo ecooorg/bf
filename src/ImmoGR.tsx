@@ -193,7 +193,7 @@ export default function ImmoGR() {
     const canonicalUrl = localPageInspection.sourceUrl || manualDraft.canonicalUrl;
     if (!canonicalUrl) { setManualMessage('Enter the original HTTPS page URL before AI analysis.'); return; }
     setAnalyzingPage(true); setListingAnalysis(null);
-    setManualMessage('Analyzing the locally imported page with Gemini. The extracted text and link inventory will be sent for AI analysis; the original page is not fetched.');
+    setManualMessage('Analyzing the local page with Gemini. Extracted text and links are sent; the original page is not fetched.');
     try {
       const response = await fetch('/api/immogr/analyze-local-page', {
         method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
@@ -382,7 +382,7 @@ export default function ImmoGR() {
           <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
           <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from the HTML file you selected or imported from your local ImmoGR agent. The page's scripts are not executed and its original file is not uploaded. Photo URLs are listed first; thumbnails load only after you explicitly choose to show them.</p>
           <button type="button" onClick={() => void analyzeLocalPage()} disabled={analyzingPage || !localPageInspection.text || !selectedSourceId} style={{ padding: '11px 16px', borderRadius: 8, border: '1px solid #6b8fb5', background: '#193b5c', color: '#fff', fontWeight: 600 }}>{analyzingPage ? 'Analyzing page…' : 'Analyze page with Gemini'}</button>
-          <p style={{ color: '#9aadc5', fontSize: 12 }}>This sends the extracted text and up to 100 same-domain links to Gemini. The HTML file itself is not uploaded, no URL is fetched by the server, and no listing is saved automatically.</p>
+          <p style={{ color: '#9aadc5', fontSize: 12 }}>Text and same-site links go to Gemini. The HTML file is not uploaded; the server does not fetch it.</p>
           {listingAnalysis && <section data-testid="immogr-ai-listing-cards" style={{ display: 'grid', gap: 12, margin: '14px 0' }}>
             <h3 style={{ margin: 0 }}>AI-extracted listing cards · {listingAnalysis.candidates.length}</h3>
             <p className="immogr-card-meta">Page type: {listingAnalysis.pageType} · Category: {listingAnalysis.category === 'direct_rental' ? 'Direct Rental' : 'Private Owner Prospect'} · Rejected malformed candidates: {listingAnalysis.rejectedCandidateCount}</p>
@@ -401,7 +401,7 @@ export default function ImmoGR() {
               }} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Use candidate in research form</button>
             </article>)}
             {listingAnalysis.notes.map((note, index) => <p className="immogr-card-meta" key={index}>{note}</p>)}
-          </section>
+          </section>}
           <p><strong>{localPageInspection.title || 'Untitled page'}</strong> · {localPageInspection.text.length.toLocaleString()} text characters · {localPageInspection.links.length} links · {localPageInspection.images.length} photo URLs · {localPageInspection.jsonLd.length} JSON-LD block(s)</p>
           {localPageInspection.sourceUrl && <p style={{ overflowWrap: 'anywhere', fontSize: 12 }}>Page URL: {localPageInspection.sourceUrl}</p>}
           <div className="immogr-inspector">
