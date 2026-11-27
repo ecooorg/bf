@@ -15,7 +15,7 @@
 | `project-mode-contract.test.mjs` + `project-builder-recovery.test.mjs` | Project Mode / appBuilder | Project workspace & recovery |
 | `diagnostics-ops.test.mjs` | All Logs, health commit, diagnostics API | Logging / ops handoff |
 | `security-redact.test.mjs` / `security-headers.test.mjs` | Secrets & headers | Security |
-| `governance-repo.test.mjs` | Version, TEST_MAP, AGENTS, script layout | Repo process |
+| `immogr-foundation.test.mjs`, `immogr-acquisition-contract.test.mjs`, `immogr-probe-policy.test.mjs`, `immogr-local-page-inspector.test.mjs`, `immogr-local-page-fetch.test.mjs` | ImmoGR data boundary, acquisition/probe gates, local HTML inspection and owner-local fetch runner | ImmoGR contract, local notebook and bounded local-agent acquisition changes |\n| `governance-repo.test.mjs` | Version, TEST_MAP, AGENTS, script layout | Repo process |
 | `governance-workflow-pins.test.mjs` | GitHub Actions SHA pins | Workflow pin changes |
 | `eval-harness.test.mjs` | Baseline eval instrument (schema, scorer, intervals, blinding) | Measurement harness / Experiment 0 |
 
