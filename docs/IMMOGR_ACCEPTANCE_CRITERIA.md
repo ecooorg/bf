@@ -43,3 +43,11 @@ Deploy only after WP1 and the real-page acceptance gate pass. First release is m
 - WP2 produces a source-by-source yield and effort matrix and an Owner-reviewed recommendation before any paid API/feed commitment.
 
 The manual-review UX may use an external tab plus an in-app capture panel. An iframe/webview is not an acceptance requirement because third-party framing and cross-origin policies may prevent it.
+
+
+## Personal manual notebook acceptance (Owner-approved 2026-11-27)
+- Every registered source is available for user-initiated manual research regardless of automated acquisition status.
+- The user can open the original URL and save structured observations with source, locality and timestamp provenance.
+- The user can import a locally saved HTML/HTM/TXT file up to 5 MB; extraction occurs in the browser, the file is not uploaded, and extracted text remains editable before explicit save.
+- Local personal processing is not conflated with remote crawling; no proxy, credential capture, access-control bypass or automatic outreach is introduced.
+- Personal notes are not automatically promoted to verified Direct Rentals or Private Owner Prospects.
