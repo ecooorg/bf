@@ -61,3 +61,6 @@
 - Release manual search only after all acceptance gates pass.
 - Consider scheduling only after observed stable value and explicit owner approval.
 - Never relax quality gates merely to increase result count.
+
+
+**Owner clarification 2026-11-27:** manual research is a private personal-notebook workflow. The Owner may save pages/screenshots locally and process those copies manually or with local automation. WP2's capture UX must support user-selected local HTML/HTM/TXT import with browser-side extraction and explicit save; this does not enable remote crawling or proxying.
