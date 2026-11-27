@@ -33,6 +33,7 @@ export default function ImmoGR() {
   const [localPageInspection, setLocalPageInspection] = useState<LocalPageInspection | null>(null);
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
   const [showPageImages, setShowPageImages] = useState(false);
+  const [probeSecondUrl, setProbeSecondUrl] = useState('');
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(() => {
     try { const saved = JSON.parse(localStorage.getItem('immogr.enabledSourceIds') || '[]'); return Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []; } catch { return []; }
   });
@@ -156,6 +157,25 @@ export default function ImmoGR() {
       setManualMessage(error instanceof Error ? 'Local import failed: ' + error.message.slice(0, 180) : 'Could not read that local file.');
     }
   }
+  function downloadLocalProbePlan() {
+    const sourceId = selectedSourceId;
+    const urls = [manualDraft.canonicalUrl.trim(), probeSecondUrl.trim()].filter(Boolean);
+    if (!sourceId || !urls.length) { setManualMessage('Select a source and enter at least one HTTPS page URL first.'); return; }
+    try {
+      for (const value of urls) {
+        const url = new URL(value);
+        if (url.protocol !== 'https:' || url.username || url.password) throw new Error('Only credential-free HTTPS page URLs can be included.');
+      }
+      const blob = new Blob([JSON.stringify({ sourceId, urls }, null, 2) + '\n'], { type: 'application/json' });
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = 'immogr-probe-' + sourceId + '.json';
+      anchor.click();
+      URL.revokeObjectURL(objectUrl);
+      setManualMessage('Local probe plan downloaded. It contains only the source ID and page URLs; the local agent checks the registry authorization before sending any request.');
+    } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not create the local probe plan.'); }
+  }
   function openSourceHomepage() {
     const homepage = sources.find((source) => source.id === selectedSourceId)?.homepageUrl;
     if (!homepage) return;
@@ -264,7 +284,8 @@ export default function ImmoGR() {
       {sources.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>{sources.map((source) => <button type="button" key={source.id} onClick={() => selectManualSource(source.id)} aria-pressed={selectedSourceId === source.id} style={{ border: selectedSourceId === source.id ? '2px solid #79c7ff' : '1px solid #40536b', borderRadius: 8, padding: '7px 10px', background: '#101f33', color: '#eef4ff', cursor: 'pointer' }}>{source.name}</button>)}</div>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
+        <label style={{ gridColumn: '1 / -1' }}>Second page URL for a three-request probe (optional)<input type="url" value={probeSecondUrl} onChange={(e) => setProbeSecondUrl(e.target.value)} placeholder="https://same-source.example/another-page" style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>The local runner counts robots.txt as request one. Add at most two page URLs; all must use the same authorized host.</span></label>
         <label style={{ gridColumn: '1 / -1' }}>Import a local page or document (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
           <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
