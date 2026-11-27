@@ -68,3 +68,11 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - Any API key or personal credential is read only from the Owner's local secret store; never commit or log it.
 - Record probe availability/schema/quality outcomes separately from full acquisition authorization. Passing a probe does not authorize regular acquisition.
 - No probe is performed by ChatGPT on behalf of the local agent; source tests are run from the Owner's environment using their own accounts and keys.
+
+
+### Local page inspector
+
+- [ ] Owner can import one local HTML/HTM snapshot and inspect title, readable text, metadata, JSON-LD, links and image URLs.
+- [ ] Inspection does not execute scripts or automatically load remote images; only HTTP(S) URLs without embedded credentials are shown.
+- [ ] Owner can save the original snapshot and extracted JSON locally, then edit extracted notes before explicit ImmoGR save.
+- [ ] No arbitrary remote fetch, page traversal, crawler, or server-side proxy is enabled by this UI slice.
