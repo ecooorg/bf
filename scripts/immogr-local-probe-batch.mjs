@@ -110,7 +110,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     mode: 'owner_triggered_local_limited_research_probe',
     sourceCount: registry.sources.length,
-    requestsSentByThisBatch: results.reduce((sum, item) => sum + (item.requestCount || 0), 0),
+    requestsSentByThisBatch: results.some((item) => item.status === 'probe_failed') ? null : results.reduce((sum, item) => sum + (item.requestCount || 0), 0),
     summary,
     results,
   };
