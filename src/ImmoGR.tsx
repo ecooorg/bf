@@ -1,12 +1,14 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
+type CommuneOption = { bfsId: number; name: string };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
 export default function ImmoGR() {
   const [status, setStatus] = useState<ImmoGRStatus | null>(null);
   const [error, setError] = useState('');
   const [commune, setCommune] = useState('');
+  const [communes, setCommunes] = useState<CommuneOption[]>([]);
   const [category, setCategory] = useState<'direct_rental' | 'private_owner_prospect'>('direct_rental');
   const [leads, setLeads] = useState<DiscoveryLead[]>([]);
   const [searching, setSearching] = useState(false);
@@ -50,11 +52,11 @@ export default function ImmoGR() {
     </section>
     <section style={{ ...panel, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Live discovery leads</h2>
-      <p style={{ color: '#9aadc5' }}>Search the web for current candidate URLs. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records.</p>
+      <p style={{ color: '#9aadc5' }}>Select from the official municipality directory and search the web for current candidate URLs. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records. Your priority ratings are collected separately in config/immogr/commune-priorities.csv.</p>
       <form onSubmit={discover} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, alignItems: 'end' }}>
-        <label>Target commune<input required minLength={2} maxLength={80} value={commune} onChange={(e) => setCommune(e.target.value)} placeholder="e.g. Chur" style={field} /></label>
+        <label>Target commune<select required value={commune} onChange={(e) => setCommune(e.target.value)} style={field}><option value="">Select a Graubünden municipality</option>{communes.map((item) => <option key={item.bfsId} value={item.name}>{item.name} · BFS {item.bfsId}</option>)}</select></label>
         <label>Discovery category<select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} style={field}><option value="direct_rental">Direct Rental leads</option><option value="private_owner_prospect">Private Owner Prospect leads</option></select></label>
-        <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || commune.trim().length < 2} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || commune.trim().length < 2) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
+        <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !commune} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || commune.trim().length < 2) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
       </form>
       {searchError && <p role="alert">{searchError}</p>}
       {searched && <p>{leads.length} candidate URL(s) returned for {commune}. Each needs manual page and access review.</p>}
