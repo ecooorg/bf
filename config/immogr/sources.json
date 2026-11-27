@@ -8,7 +8,12 @@
     "requireSourceTermsReview": true,
     "requireRobotsAndAccessReview": true,
     "noAuthenticationOrPaywallBypass": true,
-    "noAutomatedContactOrOutreach": true
+    "noAutomatedContactOrOutreach": true,
+    "manualResearchEnabled": true,
+    "manualResearchMode": "user_initiated_browser_and_explicit_structured_capture",
+    "manualResearchDoesNotGrantAutomationPermission": true,
+    "noServerSideProxyForManualReview": true,
+    "noBulkPageCopying": true
   },
   "sources": [
     {
@@ -17,7 +22,13 @@
       "category": "holiday_rental",
       "status": "research_required",
       "ownerSignal": "site claims direct private landlords",
-      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "ferienhausmiete",
@@ -25,7 +36,13 @@
       "category": "holiday_rental",
       "status": "research_required",
       "ownerSignal": "unknown",
-      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "flatfox",
@@ -33,7 +50,13 @@
       "category": "classified_marketplace",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed private and professional; listing-specific check required",
-      "permission": "GTC 4.2 restricts reuse/exploitation of listings to the advertiser and Flatfox; written permission or an authorized feed required"
+      "permission": "GTC 4.2 restricts reuse/exploitation of listings to the advertiser and Flatfox; written permission or an authorized feed required",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "tutti",
@@ -41,7 +64,13 @@
       "category": "classified_marketplace",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed; advertiser-specific check required",
-      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform"
+      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "anibis",
@@ -49,7 +78,13 @@
       "category": "classified_marketplace",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed; advertiser-specific check required",
-      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform"
+      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "homegate",
@@ -57,7 +92,13 @@
       "category": "property_portal",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "private landlord listing path exists; listing-specific check required",
-      "permission": "SMG GTC section 7 prohibit systematic selection of marketplace content, including scraping, and reuse outside the marketplace"
+      "permission": "SMG GTC section 7 prohibit systematic selection of marketplace content, including scraping, and reuse outside the marketplace",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "newhome",
@@ -65,7 +106,13 @@
       "category": "property_portal",
       "status": "permission_required",
       "ownerSignal": "mixed; publisher authorization required by platform rules",
-      "permission": "publisher/owner permission rules are not an automated access licence; written permission or approved feed required"
+      "permission": "publisher/owner permission rules are not an automated access licence; written permission or approved feed required",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "womilo",
@@ -73,7 +120,13 @@
       "category": "property_marketplace",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "private and professional; partner-import attribution required",
-      "permission": "GTC section 12 prohibit automated scraping without Womilo consent"
+      "permission": "GTC section 12 prohibit automated scraping without Womilo consent",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "comparis",
@@ -81,7 +134,13 @@
       "category": "aggregator",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "aggregated and direct listings",
-      "permission": "terms prohibit automated scraping/crawling without rights"
+      "permission": "terms prohibit automated scraping/crawling without rights",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "housenet",
@@ -89,7 +148,13 @@
       "category": "agency_portal",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "agency-supplied",
-      "permission": "terms prohibit automated collection without written consent"
+      "permission": "terms prohibit automated collection without written consent",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "immobilier",
@@ -97,7 +162,13 @@
       "category": "agency_portal",
       "status": "low_priority",
       "ownerSignal": "professional agencies",
-      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "lookmove_api",
@@ -105,7 +176,13 @@
       "category": "licensed_data_feed",
       "status": "permission_required",
       "ownerSignal": "Swiss feed aggregates at least 135 portal/agency sources; private-owner coverage and direct-contact attribution need confirmation",
-      "permission": "Commercial API listing feed from CHF 500/month, minimum 6 months; terms authorize internal use only and prohibit redistribution; no subscription approved"
+      "permission": "Commercial API listing feed from CHF 500/month, minimum 6 months; terms authorize internal use only and prohibit redistribution; no subscription approved",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "discover_swiss",
@@ -113,7 +190,13 @@
       "category": "tourism_data_api",
       "status": "permission_required",
       "ownerSignal": "Tourism service providers can provide contracted information feeds; property/owner coverage not established",
-      "permission": "API products and information feeds are available on a contractual basis; rights-holder consent/source attribution required"
+      "permission": "API products and information feeds are available on a contractual basis; rights-holder consent/source attribution required",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "stnet_openbooking",
@@ -121,7 +204,13 @@
       "category": "holiday_rental_data_exchange",
       "status": "not_a_feasible_source",
       "ownerSignal": "Swiss holiday-home offers from connected booking systems; classified providers preferred",
-      "permission": "IT partner must provide at least 100 exclusive Swiss properties, have Swiss business domicile, and be a Switzerland Tourism member; not a viable consumer crawler route"
+      "permission": "IT partner must provide at least 100 exclusive Swiss properties, have Swiss business domicile, and be a Switzerland Tourism member; not a viable consumer crawler route",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "edomizil",
@@ -129,7 +218,13 @@
       "category": "holiday_rental_partner_feed",
       "status": "permission_required",
       "ownerSignal": "Private providers can list accommodation; destination and agency reservation systems can integrate",
-      "permission": "Partner integration or private landlord programme; access as a downstream consumer requires a separate agreement"
+      "permission": "Partner integration or private landlord programme; access as a downstream consumer requires a separate agreement",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "flatradar_ch",
@@ -137,7 +232,13 @@
       "category": "aggregator",
       "status": "research_required",
       "ownerSignal": "Claims 15-minute scans, 10k+ listings; Flatfox and Weegee named; landing-page counters showed zero in current research session.",
-      "permission": "Public landing page describes Flatradar's own aggregation but grants no rights to ImmoGR; no terms/robots permission established. Do not confuse with flatradar.app."
+      "permission": "Public landing page describes Flatradar's own aggregation but grants no rights to ImmoGR; no terms/robots permission established. Do not confuse with flatradar.app.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "aptari",
@@ -145,7 +246,13 @@
       "category": "aggregator",
       "status": "discovery_only",
       "ownerSignal": "Open feed aggregates Homegate, ImmoScout24, Flatfox and about 800 cooperative websites; valuable for finding original sources.",
-      "permission": "Terms §6 prohibit automated bulk requests outside intended functions. Human browsing only; no automated feed extraction or copying without written permission/API."
+      "permission": "Terms §6 prohibit automated bulk requests outside intended functions. Human browsing only; no automated feed extraction or copying without written permission/API.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "lookmove_portal",
@@ -153,7 +260,13 @@
       "category": "aggregator",
       "status": "excluded_pending_written_permission",
       "ownerSignal": "Claims 150+ source portals and agency sites; rental and sale listings; some underlying records not published on portal.",
-      "permission": "GTU §§15.1, 21.1 and 21.4 limit use to personal consultation and prohibit unauthorized reproduction/download/reuse; obtain prior written consent."
+      "permission": "GTU §§15.1, 21.1 and 21.4 limit use to personal consultation and prohibit unauthorized reproduction/download/reuse; obtain prior written consent.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "flatli",
@@ -161,7 +274,13 @@
       "category": "aggregator",
       "status": "research_required",
       "ownerSignal": "Claims nationwide rental aggregation, six-hour sweeps and free private-landlord posting.",
-      "permission": "Verify operator, terms, robots, source lineage and detail pages; no automated permission established."
+      "permission": "Verify operator, terms, robots, source lineage and detail pages; no automated permission established.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "urbanhome",
@@ -169,7 +288,13 @@
       "category": "first_hand_marketplace",
       "status": "research_required",
       "ownerSignal": "Current help/portal survey describes private free listings and replacement-tenant offers; first-hand inventory claimed.",
-      "permission": "High-priority five-page pilot; current terms/robots and automated access permission not yet reviewed."
+      "permission": "High-priority five-page pilot; current terms/robots and automated access permission not yet reviewed.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "apartmentszurich",
@@ -177,7 +302,13 @@
       "category": "first_hand_marketplace",
       "status": "research_required",
       "ownerSignal": "About page says private landlords and replacement tenants can post free; public detailed listing search.",
-      "permission": "High-priority five-page pilot; verify operator, current terms, robots and contact provenance."
+      "permission": "High-priority five-page pilot; verify operator, current terms, robots and contact provenance.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "realadvisor",
@@ -185,7 +316,13 @@
       "category": "aggregator",
       "status": "research_required",
       "ownerSignal": "Rental search claims portal aggregation plus direct agency/landlord listings and publisher/contact display.",
-      "permission": "Discovery/cross-check only until current terms and permitted acquisition method are reviewed."
+      "permission": "Discovery/cross-check only until current terms and permitted acquisition method are reviewed.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "homematch",
@@ -193,7 +330,13 @@
       "category": "discovery_feed",
       "status": "research_required",
       "ownerSignal": "Current portal guide describes nationwide personal feed and direct messaging to private landlords/agencies.",
-      "permission": "Assess original URL visibility, terms, robots and permitted feed/API."
+      "permission": "Assess original URL visibility, terms, robots and permitted feed/API.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "wgzimmer",
@@ -201,7 +344,13 @@
       "category": "niche_marketplace",
       "status": "research_required",
       "ownerSignal": "Niche room and flatshare inventory.",
-      "permission": "Lower priority for whole apartments; review terms and access rules."
+      "permission": "Lower priority for whole apartments; review terms and access rules.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "students",
@@ -209,7 +358,13 @@
       "category": "niche_marketplace",
       "status": "research_required",
       "ownerSignal": "Student-oriented rooms and apartment marketplace.",
-      "permission": "Lower priority; review terms and access rules."
+      "permission": "Lower priority; review terms and access rules.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "nachmieter",
@@ -217,7 +372,13 @@
       "category": "replacement_tenant_marketplace",
       "status": "research_required",
       "ownerSignal": "Replacement-tenant listings can surface early termination opportunities.",
-      "permission": "Useful supplementary category; verify original owner/landlord distinction and access rules."
+      "permission": "Useful supplementary category; verify original owner/landlord distinction and access rules.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "graubuenden_tourism",
@@ -225,7 +386,13 @@
       "category": "tourism_provider_directory",
       "status": "research_required",
       "ownerSignal": "Some provider pages explicitly state family ownership and expose a property-level contact route; page ownership and contact attribution must be checked per listing",
-      "permission": "Manual review example exists (Chalet Willi, Arosa). Copyright and automated acquisition rights are not established; obtain written permission or an authorized feed before crawling."
+      "permission": "Manual review example exists (Chalet Willi, Arosa). Copyright and automated acquisition rights are not established; obtain written permission or an authorized feed before crawling.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "apartments_switzerland",
@@ -233,7 +400,13 @@
       "category": "mixed_classifieds_aggregator",
       "status": "discovery_only",
       "ownerSignal": "Listings may be posted by owners, agencies or tenants and may be republished from public sources; original advertiser must be verified",
-      "permission": "Terms allow linking and short quotes with a backlink, but prohibit crawling at a rate that affects service and republishing content as a dataset. Use only for URL discovery/manual review; no automated detail-page extraction or persistent copied listing dataset."
+      "permission": "Terms allow linking and short quotes with a backlink, but prohibit crawling at a rate that affects service and republishing content as a dataset. Use only for URL discovery/manual review; no automated detail-page extraction or persistent copied listing dataset.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     },
     {
       "id": "alpine_market_api",
@@ -241,7 +414,13 @@
       "category": "property_reference_api",
       "status": "permission_required",
       "ownerSignal": "Public API excludes owner and transaction-party identities; useful only for physical property facts/comparables, not direct owner contact or primary rental discovery",
-      "permission": "Public API licence is evaluation and non-commercial use; confirm internal ImmoGR integration and retention rights with operator. Platform terms separately prohibit automated scraping; use API only, never scrape the portal."
+      "permission": "Public API licence is evaluation and non-commercial use; confirm internal ImmoGR integration and retention rights with operator. Platform terms separately prohibit automated scraping; use API only, never scrape the portal.",
+      "manualReview": {
+        "status": "not_started",
+        "inspectedPageCount": 0,
+        "lastReviewedAt": null,
+        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission."
+      }
     }
   ],
   "monitoring": {
@@ -283,5 +462,31 @@
       "owner/contact attribution review",
       "duplicate and freshness measurements"
     ]
+  },
+  "manualResearch": {
+    "scope": "all_registered_sources",
+    "sourceCount": 29,
+    "initialStatus": "not_started",
+    "requiredInitialOutcome": true,
+    "targetSamplePerSourceWithRelevantInventory": 5,
+    "captureMethod": "manual_user_review",
+    "persistTo": "immogr_manual_reviews",
+    "allowedOutcomes": [
+      "reviewed",
+      "in_progress",
+      "blocked_by_source",
+      "no_relevant_inventory",
+      "not_started"
+    ],
+    "evidenceFields": [
+      "canonicalUrl",
+      "localityId",
+      "reviewerId",
+      "reviewedAt",
+      "accessOutcome",
+      "observedFacts",
+      "evidenceNotes"
+    ],
+    "automationStatusFieldRemains": "sources[].status"
   }
 }
