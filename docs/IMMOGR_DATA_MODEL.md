@@ -12,10 +12,11 @@
 ## Proposed tables
 | Table | Purpose |
 |---|---|
-| immogr_communes | Historical administrative reference only; not the ImmoGR search geography. |\n| immogr_localities | Exact owner-selected Graubünden localities keyed by stable locality ID and assigned to group 1 or 2. |
+| immogr_communes | Historical administrative reference only; not the ImmoGR search geography. |
+| immogr_localities | Exact owner-selected Graubünden localities keyed by stable locality ID and assigned to group 1 or 2. |
 | immogr_sources | Source registry, terms/access review, activation state, rate policy, source adapter version. |
 | immogr_source_pages | Fetched page observations: requested/final URL, HTTP status, content type, fetch time, content fingerprint, access decision, parser version. |
-| immogr_listings | Canonical property record, result category, municipality ID, property type, normalized price/period, owner class, quality state. |
+| immogr_listings | Canonical property record, result category, locality ID, property type, normalized price/period, owner class, quality state. |
 | immogr_owners | Evidence-backed owner or advertiser identity and entity class; unknown remains valid. |
 | immogr_contacts | Direct contact route and entity attribution, source URL, verification status, retention metadata. |
 | immogr_evidence | Field-level quote/JSON-LD path, page block, method, timestamp, confidence, and conflict group. |
