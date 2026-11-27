@@ -116,23 +116,22 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     if ((!searchClient || !searchModels.length) && !serperEnabled) {
       return res.status(503).json({ success: false, code: 'DISCOVERY_PROVIDER_UNAVAILABLE', error: 'Neither the pooled Gemini search provider nor the Serper search provider is configured for ImmoGR.' });
     }
-    const locality = String(req.body?.locality ?? '').trim().replace(/\s+/g, ' ');
-    const groupMode = isImmoGRGroupMode(req.body?.groupMode) ? req.body.groupMode : null;
-    const category = req.body?.category === 'private_owner_prospect' ? 'private_owner_prospect' : req.body?.category === 'direct_rental' ? 'direct_rental' : null;
+    const localityIds = Array.isArray(req.body?.localityIds) ? [...new Set(req.body.localityIds.filter((id: unknown) => typeof id === 'string'))] : [];
+    const selectedLocalities = localityIds.map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)).filter((item): item is NonNullable<typeof item> => Boolean(item));
+    const category = req.body?.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
     const sourceScope = resolveDiscoverySourceScope(req.body?.sourceIds, sourceRegistry.sources);
-    const allowed = groupMode ? localitiesForMode(groupMode) : [];
-    const selected = allowed.find((item) => item.name.toLocaleLowerCase('de-CH') === locality.toLocaleLowerCase('de-CH'));
     if ('error' in sourceScope) {
       return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: sourceScope.error });
     }
-    if (!category || !selected || locality.length > 80 || /[<>\u0000-\u001f]/.test(locality)) {
-      return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: 'Select a locality included in the enabled ImmoGR group(s) and a supported discovery category.' });
+    if (!localityIds.length || localityIds.length > IMMOGR_LOCALITIES.length || selectedLocalities.length !== localityIds.length) {
+      return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: 'Select one or more of the 45 owner-defined ImmoGR localities.' });
     }
+    const localityNames = selectedLocalities.map((item) => item.name);
     const intent = category === 'direct_rental'
-      ? 'private long-term apartment or house rental, monthly rent, private landlord, individual property listing'
-      : 'holiday apartment or chalet offered directly by a private owner, individual property page, direct landlord contact';
-    const selectedSourceInstructions = sourceScope.sources.map((source) => source.name + ' (site:' + source.host + ')').join('; ');
-    const userText = 'Find current public candidate listing URLs for ' + intent + ' in the locality ' + selected.name + ', canton Graubünden (GR), Switzerland. Search ONLY within these owner-selected sources: ' + selectedSourceInstructions + '. Do not return results from other domains. Do not broaden to other localities in the same municipality. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified.';
+      ? 'current apartment or house rental opportunities, long-term rental, monthly rent, private landlords and individual property advertisements'
+      : 'holiday apartments or chalets offered by private owners, including owners who may consider long-term rental';
+    const selectedSourceInstructions = sourceScope.sources.map((source) => source.name).join('; ');
+    const userText = 'Find current public candidate URLs for ' + intent + ' in these selected Graubünden localities: ' + localityNames.join(', ') + '. Use these owner-selected sources as search starting points, but do not restrict results to their domains: ' + selectedSourceInstructions + '. Search broadly across public web results, including relevant original listings and source pages. Do not broaden the geographic intent beyond the selected localities. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified. Return as many distinct candidate URLs as the search grounding provides, up to 100 total.';
     const requestId = randomUUID();
     const startedAt = Date.now();
     const attemptedModels: string[] = [];
@@ -143,7 +142,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     if (searchClient && searchModels.length) {
       result = await fetchWebSearchDigest({
         client: searchClient, models: searchModels, userText, today, timeoutMs: 18_000,
-        maxAttempts: Math.min(2, searchModels.length),
+        maxAttempts: Math.min(2, searchModels.length), maxSources: 100,
         onAttempt: (model) => attemptedModels.push(model),
       });
       geminiStatus = result.status;
@@ -155,15 +154,13 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     let serperReason: string | null = null;
     if ((!result || result.status !== 'used') && serperEnabled) {
       serperFallbackAttempted = true;
-      const localityQuery = category === 'direct_rental'
-        ? 'long-term apartment house rental'
-        : 'holiday apartment chalet private owner';
-      const extraQueries = sourceScope.sources.slice(0, 5)
-        .map((source) => 'site:' + source.host + ' "' + selected.name + '" ' + localityQuery);
+      const localityTerms = localityNames.join(' OR ');
+      const extraQueries = sourceScope.sources.map((source) => '"' + source.name.replace(/"/g, '') + '" (' + localityTerms + ') apartment house rental Graubuenden');
       const fallback = await fetchSerperDigestMulti({
         apiKey: process.env.SERPER_API_KEY as string,
-        userText, today, timeoutMs: 15_000, num: 8,
+        userText, today, timeoutMs: 25_000, num: 10,
         fetchPages: false, maxPages: 1, extraQueries,
+        maxQueries: Math.min(29, sourceScope.sources.length), maxSources: 100,
       });
       serperStatus = fallback.status;
       serperReason = fallback.reason || null;
@@ -173,38 +170,44 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       }
     }
     const durationMs = Date.now() - startedAt;
+    const candidateSources = result?.sources || [];
+    const selectedHosts = new Set(sourceScope.sources.map((source) => source.host));
+    const resultHosts = [...new Set(candidateSources.map((source) => {
+      try { return new URL(source.url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; }
+    }).filter(Boolean))];
+    const matchedSelectedHosts = resultHosts.filter((host) => [...selectedHosts].some((selectedHost) => host === selectedHost || host.endsWith('.' + selectedHost))).length;
     const diagnosticDetails = {
-      category, locality: selected.name, localityGroup: selected.group, groupMode,
+      category, localityCount: selectedLocalities.length, localityIds, localities: localityNames,
       sourceCount: sourceScope.sources.length, sourceIds: sourceScope.sources.map((source) => source.id),
       provider, attemptedModels, successfulModel: result?.model || null,
       providerStatus: result?.status || 'failed', geminiStatus, geminiReason,
       serperFallbackAttempted, serperStatus, serperReason,
       reason: String(result?.reason || '').slice(0, 240), queryCount: result?.queries.length || 0,
-      groundedSourceCount: result?.sources.length || 0, durationMs,
+      groundedSourceCount: candidateSources.length, resultHostCount: resultHosts.length,
+      matchedSelectedHostCount: matchedSelectedHosts, outsideSelectedHostCount: Math.max(0, resultHosts.length - matchedSelectedHosts),
+      durationMs, resultLimit: 100,
     };
     res.setHeader('X-Request-Id', requestId);
     void recordApplicationLog({
       level: result?.status === 'used' ? 'info' : 'error', component: 'immogr',
       event: result?.status === 'used' ? 'discovery_succeeded' : 'discovery_failed',
-      requestId, message: result?.status === 'used' ? 'ImmoGR search completed' : 'ImmoGR search providers failed',
+      requestId, message: result?.status === 'used' ? 'ImmoGR broad discovery completed' : 'ImmoGR search providers failed',
       details: diagnosticDetails,
     }).catch(() => {});
     if (!result || result.status !== 'used') {
       return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', error: 'Gemini and Serper did not return usable search results.', providerStatus: result?.status || 'failed', reason: result?.reason || geminiReason || serperReason || 'No grounded search results were returned.', requestId, diagnostics: diagnosticDetails });
     }
     console.info('[ImmoGR] discovery completed', { requestId, ...diagnosticDetails });
-    const inScopeSources = result.sources.filter((source) => isDiscoveryUrlInScope(source.url, sourceScope.sources));
-    const leads = inScopeSources.slice(0, 6).map((source) => {
+    const leads = candidateSources.slice(0, 100).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
       return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'manual_review_required' };
     });
     return res.json({
-      success: true, status: 'discovery_only', category, locality: selected.name, localityGroup: selected.group, groupMode,
-      generatedAt: new Date().toISOString(), requestId, diagnostics: { ...diagnosticDetails, inScopeSourceCount: inScopeSources.length }, leads, queries: result.queries,
+      success: true, status: 'discovery_only', category, localities: localityNames, localityIds,
+      generatedAt: new Date().toISOString(), requestId, diagnostics: { ...diagnosticDetails, returnedLeadCount: leads.length }, leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
-      disclaimer: 'These are live search-engine URL leads, not verified property listings. No result page was fetched or parsed. Review each source manually and check its terms before any automated access.',
-
+      disclaimer: 'Broad search-engine candidate URLs only, capped at 100. Results are unverified and may come from outside the selected source domains. No source listing pages were fetched or parsed; review each result manually and check source access terms before any automated access.',
     });
   };
   app.post('/api/immogr/discovery', discoveryHandler);
