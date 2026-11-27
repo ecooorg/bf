@@ -46,3 +46,7 @@ A tourism-provider page can be a valuable Private Owner Prospect when it explici
 ## D-IMMOGR-009 — Locality-based target geography (2026-11-27)
 
 The search geography is the exact 44-place list supplied by the owner: 22 important group-1 localities and 22 secondary group-2 localities. Settings may enable group 1, group 2, or both. Every other locality is out of scope. Municipalities are administrative containers and must never be treated as interchangeable with advertised localities or used to broaden a search. Search input, validation, matching, and listing records use the locality name/ID. The prior 100-municipality catalogue and 44-municipality rating workflow are retired.
+
+## D-IMMOGR-010 — All-source user-initiated manual research (2026-11-27)
+
+The Owner approves testing all 29 registered sources regardless of automated-collection restrictions. Automation status and manual-research status are independent. The UI will expose a “Ручной просмотр” action for every source. The user opens the original source in an ordinary browser and explicitly submits selected, structured observations to ImmoGR. Manual observations are stored with source URL, provenance, reviewer, timestamp and evidence notes; they are not misrepresented as server-fetched pages or automatically admitted listings. No unattended crawler, proxy, access-control bypass, bulk page copying or automated outreach is authorized by this decision. Licensed API/feed purchases and agreements still require separate explicit approval.
