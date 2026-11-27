@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR local structured fact suggestions (P131.15)
+- Added client-side JSON-LD extraction for local HTML pages; title, type, price, currency, explicit rental period, locality and availability are editable suggestions, never auto-verified.
+- Switching source resets capture fields to prevent cross-listing contamination. No remote page fetch is introduced.
+
 ## 2026-11-27 — Complete ImmoGR source navigation (P131.14)
 - Added verified homepage links for the remaining three registered sources; all 29 sources now have direct homepage navigation.
 - Tightened the ImmoGR foundation test to require a valid HTTPS homepage for every source.

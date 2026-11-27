@@ -81,7 +81,7 @@ export function extractSchemaFactsFromJsonLd(scripts: string[]): LocalSchemaFact
   const { record, types, offers, priceSpecification, address } = best;
   const priceValue = offers?.price ?? priceSpecification?.price ?? record.price;
   const currencyValue = offers?.priceCurrency ?? priceSpecification?.priceCurrency ?? record.priceCurrency;
-  const unit = priceSpecification?.unitText ?? priceSpecification?.unitCode ?? priceSpecification?.billingDuration ?? offers?.priceValidUntil;
+  const unit = priceSpecification?.unitText ?? priceSpecification?.unitCode ?? priceSpecification?.billingDuration ?? offers?.unitText;
   const locality = address?.addressLocality ?? address?.name;
   const availability = offers?.availabilityStarts ?? offers?.validFrom ?? record.availabilityStarts;
   const facts: LocalSchemaFacts = {};

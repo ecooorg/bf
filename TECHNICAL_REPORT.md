@@ -1,3 +1,8 @@
+## 2026-11-27 — Local JSON-LD extraction
+- **CI PASS:** run `45991635659`, commit `acd1629cea85b466f17cf8fbe99ac8ce46ea9866`; verification DAG success, secret scan success and evidence gate success.
+- **CHANGE:** `src/immogr/local-schema.ts` parses local `application/ld+json` blocks into editable candidate facts. The Owner must review every suggestion; unknowns remain unknown. Manual capture resets when changing source.
+- **NOT_RUN:** live production PostgreSQL migration, authenticated browser/mobile end-to-end smoke, scanned-image OCR and production deploy verification.
+
 ## 2026-11-27 — Complete 29-source navigation
 - **CHANGE:** All 29 source registry entries now include verified HTTPS homepage links; the manual research UI exposes the direct source-homepage action for every source.
 - **TEST:** Added an exact 29/29 HTTPS homepage assertion. CI run to be verified after this commit.
