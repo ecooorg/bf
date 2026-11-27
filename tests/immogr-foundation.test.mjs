@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { extractSchemaFactsFromJsonLd } from '../src/immogr/local-schema.ts';
+import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from '../src/immogr/local-schema.ts';
 
 const read = (file) => readFileSync(new URL('../' + file, import.meta.url), 'utf8');
 
@@ -130,4 +130,42 @@ test('ImmoGR local HTML JSON-LD extraction suggests facts without asserting veri
   assert.equal(facts.localityName, 'Felsberg');
   assert.equal(facts.availability, '2026-12-01');
   assert.deepEqual(extractSchemaFactsFromJsonLd(['not json']), {});
+});
+
+
+test('local JSON-LD handles localized rental periods and schema availability', () => {
+  const facts = extractSchemaFactsFromJsonLd([JSON.stringify({
+    '@graph': [{
+      '@type': ['Apartment', 'Product'],
+      name: 'Wohnung in St. Moritz',
+      address: { '@type': 'PostalAddress', addressLocality: 'St. Moritz' },
+      offers: {
+        '@type': 'Offer',
+        price: '1.850,00',
+        priceCurrency: 'CHF',
+        priceSpecification: { unitText: 'pro Monat' },
+        availability: 'https://schema.org/InStock'
+      }
+    }]
+  })]);
+  assert.equal(facts.priceAmount, '1850');
+  assert.equal(facts.pricePeriod, 'month');
+  assert.equal(facts.availability, 'https://schema.org/InStock');
+  assert.equal(facts.localityName, 'St. Moritz');
+});
+
+test('locality label normalization removes formatting differences but does not infer aliases', () => {
+  assert.equal(normalizeLocalityLabel('  ST.  MORITZ '), normalizeLocalityLabel('St Moritz'));
+  assert.equal(normalizeLocalityLabel('Müstair'), 'mustair');
+  assert.notEqual(normalizeLocalityLabel('Sankt Moritz'), normalizeLocalityLabel('St. Moritz'));
+  const week = extractSchemaFactsFromJsonLd([JSON.stringify({
+    '@type': 'Apartment',
+    offers: { price: 400, priceCurrency: 'CHF', priceSpecification: { unitText: 'Woche' } }
+  })]);
+  const night = extractSchemaFactsFromJsonLd([JSON.stringify({
+    '@type': 'Apartment',
+    offers: { price: 120, priceCurrency: 'CHF', priceSpecification: { unitText: 'Nuit' } }
+  })]);
+  assert.equal(week.pricePeriod, 'week');
+  assert.equal(night.pricePeriod, 'night');
 });
