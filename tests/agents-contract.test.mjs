@@ -101,3 +101,13 @@ test('ImmoGR namespace is independent of legacy ImmoFinder modules and storage',
   assert.ok(config.sources.length >= 5);
   assert.ok(config.sources.every((source) => source.status !== 'active'));
 });
+
+test('ImmoGR runtime excludes archived ImmoFinder modules and migrations', () => {
+  const migrationRunner = read('scripts/migrate.mjs');
+  assert.match(migrationRunner, /isRetiredImmoFinderMigration/);
+  assert.match(migrationRunner, /archived ImmoFinder migrations excluded/);
+  const serverBuild = JSON.parse(read('tsconfig.server.json'));
+  assert.ok(serverBuild.exclude.includes('server/immofinder/**'));
+  assert.ok(serverBuild.exclude.includes('server/immofinder*.ts'));
+  assert.ok(serverBuild.exclude.includes('src/immoCard.ts'));
+});

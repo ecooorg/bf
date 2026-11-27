@@ -27,7 +27,11 @@
     "appBuilder/**/*.ts",
     "src/support.ts",
     "src/numberValidator.ts",
-    "src/config.ts",
+    "src/config.ts"
+  ],
+  "exclude": [
+    "server/immofinder/**",
+    "server/immofinder*.ts",
     "src/immoCard.ts"
   ]
 }

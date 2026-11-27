@@ -34,3 +34,8 @@ ImmoGR is a clean implementation. Its business logic, adapters, configuration, p
 
 ## Live activation gate
 The WP1 status endpoint is informational only. A real search endpoint and scheduler must not be enabled until source research, page acquisition, evidence model, independent tests, and the first real-page acceptance gate are complete. The initial release is manual-only; scheduling is a later owner-approved decision.
+
+
+### Legacy runtime and migration quarantine
+
+ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in the repository but are excluded before the active migration runner reads migration contents or checks their versions. The existing legacy schema and rows are preserved unchanged.

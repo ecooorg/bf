@@ -83,7 +83,11 @@ try {
   console.info('[db:migrate] checking migration table');
   await client.query('CREATE TABLE IF NOT EXISTS schema_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())');
   const directory = path.resolve('migrations');
-  const files = (await fs.readdir(directory)).filter((file) => /^\d+_[a-z0-9_-]+\.sql$/.test(file)).sort();
+  const allFiles = (await fs.readdir(directory)).filter((file) => /^\d+_[a-z0-9_-]+\.sql$/.test(file)).sort();
+  const isRetiredImmoFinderMigration = (file) => /^0(?:2[0-9]|30)_immofinder/.test(file);
+  const retiredImmoFinderCount = allFiles.filter(isRetiredImmoFinderMigration).length;
+  const files = allFiles.filter((file) => !isRetiredImmoFinderMigration(file));
+  if (retiredImmoFinderCount) console.info(`[db:migrate] ${retiredImmoFinderCount} archived ImmoFinder migrations excluded from the active runner; existing schema preserved`);
   let applied = 0;
   let alreadyApplied = 0;
   for (const file of files) {

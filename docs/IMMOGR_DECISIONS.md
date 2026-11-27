@@ -32,3 +32,8 @@ The source registry is a continuously monitored inventory, not a fixed portal al
 ## D-IMMOGR-008 — Candidate-specific status, no implied permission (2026-11-27)
 
 Flatradar.ch, aptari.ai, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor, Homematch, WGzimmer.ch, students.ch and Nachmieter.ch are added to the research inventory. aptari is discovery-only because its terms prohibit automated bulk requests outside intended functions. Lookmove's consumer site is excluded from automated acquisition pending written permission; its API is a separate licensed-feed inquiry. The remaining candidates are research-required until their own current terms, robots, page pilots, and access methods are reviewed. No API, subscription, contract, or paid commitment is approved by this research update.
+
+
+## D-IMMOGR-007 — Quarantine legacy runtime and migrations (2026-11-27)
+
+ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in Git but are excluded before the active migration runner reads migration contents or checks their versions. Existing legacy schema and rows remain preserved unchanged.
