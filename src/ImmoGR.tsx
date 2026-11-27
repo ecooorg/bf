@@ -7,6 +7,8 @@ type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both';
 type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string };
 type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
+type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
+type ProbeBatchReport = { generatedAt: string; sourceCount: number; requestsSentByThisBatch: number | null; summary: Record<string, number>; results: ProbeBatchResult[] };
 const emptyManualDraft: ManualDraft = { canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
@@ -35,6 +37,7 @@ export default function ImmoGR() {
   const [showPageImages, setShowPageImages] = useState(false);
   const [probeSecondUrl, setProbeSecondUrl] = useState('');
   const [sourceSettingsMessage, setSourceSettingsMessage] = useState('');
+  const [probeBatchReport, setProbeBatchReport] = useState<ProbeBatchReport | null>(null);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(() => {
     try { const saved = JSON.parse(localStorage.getItem('immogr.enabledSourceIds') || '[]'); return Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []; } catch { return []; }
   });
@@ -115,6 +118,14 @@ export default function ImmoGR() {
       return;
     }
     try {
+      if (extension === 'json') {
+        const parsed = JSON.parse(await file.text());
+        if (parsed?.mode === 'owner_triggered_local_limited_research_probe' && Array.isArray(parsed.results)) {
+          setProbeBatchReport(parsed as ProbeBatchReport);
+          setManualMessage('Imported the local variant-B probe report. Review the per-source status below; this file was processed only in this browser.');
+          return;
+        }
+      }
       let title = file.name;
       let extracted = '';
       let schemaFacts: ReturnType<typeof extractSchemaFactsFromJsonLd> = {};
@@ -234,6 +245,8 @@ export default function ImmoGR() {
       .immogr-photo-card { min-width: 0; border: 1px solid #40536b; border-radius: 10px; padding: 8px; }
       .immogr-photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: #101f33; }
       .immogr-source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+      .immogr-probe-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+      .immogr-probe-result { border: 1px solid #40536b; border-radius: 9px; padding: 12px; background: #101f33; min-width: 0; }
       .immogr-source-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #40536b; border-radius: 9px; background: #101f33; }
       .immogr-source-toggle input { width: 22px; height: 22px; min-height: 22px; accent-color: #54a9e8; }
       .immogr-settings summary, .immogr-shell details > summary { cursor: pointer; padding: 10px 4px; font-weight: 650; }
@@ -244,6 +257,7 @@ export default function ImmoGR() {
         .immogr-shell form { grid-template-columns: minmax(0, 1fr) !important; }
         .immogr-shell form > label, .immogr-shell form > div { grid-column: 1 / -1 !important; }
         .immogr-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .immogr-probe-result-grid { grid-template-columns: minmax(0, 1fr); }
       }
       @media (min-width: 761px) and (max-width: 1100px) {
         .immogr-shell { padding: 18px !important; }
@@ -307,7 +321,7 @@ export default function ImmoGR() {
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
         <label style={{ gridColumn: '1 / -1' }}>Second page URL for a three-request probe (optional)<input type="url" value={probeSecondUrl} onChange={(e) => setProbeSecondUrl(e.target.value)} placeholder="https://same-source.example/another-page" style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>The local runner counts robots.txt as request one. Add at most two page URLs; all must use the same authorized host.</span></label>
-        <label style={{ gridColumn: '1 / -1' }}>Import a local page or document (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
+        <label style={{ gridColumn: '1 / -1' }}>Import a local page, document or variant-B probe report (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
           <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
           <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from the HTML file you selected or imported from your local ImmoGR agent. The page's scripts are not executed and its original file is not uploaded. Photo URLs are listed first; thumbnails load only after you explicitly choose to show them.</p>
@@ -359,6 +373,20 @@ export default function ImmoGR() {
       <section style={panel}><h2>Private Owner Prospects</h2><p>Specific seasonal or holiday properties with evidence of a private owner and a direct public contact route.</p><p style={{ color: '#9aadc5', fontSize: 13 }}>Long-term rental potential will be labelled as an estimate, never as a confirmed offer.</p></section>
       <section style={panel}><h2>Evidence &amp; Reviews</h2><p>Every admitted fact will carry its source URL, supporting page evidence, extraction method, and review status.</p><p style={{ color: '#9aadc5', fontSize: 13 }}>No search-result snippet alone can create a listing.</p></section>
     </div>
+    {probeBatchReport && <section className="immogr-panel" style={{ ...panel, marginTop: 18 }} data-testid="immogr-probe-batch-results">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <h2 style={{ margin: 0 }}>Local research probe results</h2>
+        <button type="button" onClick={() => setProbeBatchReport(null)} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Close report</button>
+      </div>
+      <p style={{ color: '#9aadc5', fontSize: 13 }}>Generated {new Date(probeBatchReport.generatedAt).toLocaleString()} · {probeBatchReport.sourceCount} registry sources · requests sent: {probeBatchReport.requestsSentByThisBatch === null ? 'unknown (a probe failed before its count was recorded)' : probeBatchReport.requestsSentByThisBatch}</p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>{Object.entries(probeBatchReport.summary || {}).map(([status, count]) => <span key={status} style={{ border: '1px solid #40536b', borderRadius: 20, padding: '6px 10px', fontSize: 12 }}>{status}: <strong>{count}</strong></span>)}</div>
+      <div className="immogr-probe-result-grid">{probeBatchReport.results.map((result) => <article className="immogr-probe-result" key={result.sourceId}>
+        <strong>{result.sourceName}</strong>
+        <div style={{ margin: '6px 0', fontSize: 13 }}>Status: <strong>{result.status}</strong> · requests: {result.requestCount ?? '—'}</div>
+        {result.reason && <p style={{ margin: 0, color: '#c2cede', fontSize: 12, overflowWrap: 'anywhere' }}>{result.reason}</p>}
+        {result.reportPath && <p style={{ margin: '6px 0 0', color: '#9aadc5', fontSize: 11, overflowWrap: 'anywhere' }}>Local report: {result.reportPath}</p>}
+      </article>)}</div>
+    </section>}
     <p style={{ marginTop: 24, color: '#8fa6c2', fontSize: 13 }}>ImmoFinder is permanently retired. ImmoGR has separate code, configuration, data, search runs, and quality checks.</p>
   </main>;
 }
