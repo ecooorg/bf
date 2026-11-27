@@ -1,5 +1,6 @@
 import type { Express } from 'express';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
+import { IMMOGR_COMMUNES } from '../../src/immogr/communes.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[] };
 
 /** Live discovery returns candidate URLs only. It never fetches listing pages or persists unverified leads. */
@@ -8,6 +9,11 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   const searchClient = dependencies.searchClient || null;
   const liveDiscoveryEnabled = Boolean(searchClient && searchModels.length);
   console.info('[ImmoGR] routes ready', { liveDiscoveryEnabled, modelCount: searchModels.length });
+
+  app.get('/api/immogr/communes', (_req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.json({ communes: IMMOGR_COMMUNES, count: IMMOGR_COMMUNES.length, source: 'Canton Graubünden municipality directory, status 2026-09-14' });
+  });
 
   app.get('/api/immogr/status', (_req, res) => {
     res.json({
