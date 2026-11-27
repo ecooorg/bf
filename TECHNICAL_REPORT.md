@@ -1,3 +1,8 @@
+## 2026-11-27 — Production startup migration ordering
+- **OBSERVED:** Render build succeeded but app exited because jobs was missing; schema_migrations was absent, confirming the migration runner never started.
+- **CHANGE:** Startup now loads dotenv before environment validation and migration, then starts the server only after migrations succeed.
+- **NOT_RUN:** CI and production deploy verification pending.
+
 ## 2026-11-27 — Local JSON-LD extraction
 - **CI PASS:** run `45991635659`, commit `acd1629cea85b466f17cf8fbe99ac8ce46ea9866`; verification DAG success, secret scan success and evidence gate success.
 - **CHANGE:** `src/immogr/local-schema.ts` parses local `application/ld+json` blocks into editable candidate facts. The Owner must review every suggestion; unknowns remain unknown. Manual capture resets when changing source.
