@@ -52,3 +52,10 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - Local personal processing is not conflated with remote crawling; no proxy, credential capture, access-control bypass or automatic outreach is introduced.
 - Personal notes are not automatically promoted to verified Direct Rentals or Private Owner Prospects.
 - The source registry and manual-review read/write endpoints require authenticated application access and fail closed when authentication is disabled.
+## WP3 authorized acquisition foundation acceptance
+- Automated acquisition fails closed unless a source has explicit `authorized_api` or `authorized_feed` status, matching authorization mode, dated authorization reference, explicit terms and robots approval, and an exact HTTPS host allowlist.
+- Non-HTTPS URLs, embedded URL credentials, unapproved hosts, missing/invalid authorization evidence and research-only/manual-only sources are rejected.
+- Acquired-page representation keeps metadata, JSON-LD, primary listing, related listing, navigation, footer and other blocks separate.
+- A source adapter cannot run before the authorization gate passes; manual notebook capture and search-provider snippets never count as acquisition authorization.
+- Before any network transport is enabled, tests must cover DNS/IP SSRF protection, redirect revalidation, robots decisions, per-host rate limits, response size/time limits, content-type checks, cancellation and audit logging.
+- At least one real source must have written or contractually documented permission and an owner-approved API/feed scope before its adapter can be activated.
