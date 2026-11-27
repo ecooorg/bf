@@ -73,3 +73,27 @@ test('locality database migration is additive and seeds exact owner scope', asyn
   assert.doesNotMatch(sql, /DROP TABLE|TRUNCATE/i);
 });
 
+
+
+test('ImmoGR personal notebook exposes all sources and validates owner-submitted manual observations', () => {
+  const routes = read('server/immogr/index.ts');
+  const ui = read('src/ImmoGR.tsx');
+  const registry = JSON.parse(read('config/immogr/sources.json'));
+  const migration = read('migrations/034_immogr_manual_reviews.sql');
+  assert.match(routes, /\/api\/immogr\/sources/);
+  assert.match(routes, /\/api\/immogr\/manual-reviews/);
+  assert.match(routes, /validOwnerClasses/);
+  assert.match(routes, /validPropertyTypes/);
+  assert.match(routes, /localitiesForMode|IMMOGR_LOCALITIES/);
+  assert.match(ui, /immogr-manual-research/);
+  assert.match(ui, /Open original page/);
+  assert.match(ui, /Save personal research note/);
+  assert.match(ui, /importLocalPageFile/);
+  assert.match(ui, /new DOMParser\(\)/);
+  assert.match(ui, /file was not uploaded/);
+  assert.equal(registry.sources.length, 29);
+  assert.ok(registry.sources.every((source) => source.manualReview?.personalNotebookCaptureStatus === 'enabled'));
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS immogr_manual_reviews/);
+  assert.match(migration, /REFERENCES immogr_localities/);
+  assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
+});
