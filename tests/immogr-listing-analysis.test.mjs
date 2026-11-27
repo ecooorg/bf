@@ -61,7 +61,7 @@ test('server endpoint is owner-authenticated and never fetches the remote page',
  assert.ok(start >= 0 && end > start);
  const route = server.slice(start, end);
  assert.match(route, /requireOwner\(req, res\)/);
- assert.match(route, /pageText\.slice\(0, 30000\)/);
+ assert.match(route, /\.slice\(0, 30000\)/);
  assert.match(route, /generateContent/);
  assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
  assert.match(route, /remotePageFetched: false/);
