@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR owner-defined locality scope
+- **CHANGE:** Added 22+22 exact locality groups, browser-persisted group selection, locality-only discovery validation, CSV authority, and additive migration 033; retired the municipality priority sheet/runtime catalogue.
+- **NOT_RUN:** Local/hosted tests, exact-commit Render deployment, and production migration 033.
+
 ## 2026-11-27 — ImmoFinder decommission and ImmoGR WP1 foundation
 - **CHANGE:** ImmoFinder manual/scheduled execution and production routes have been retired; old code/data remain read-only archive. ImmoGR receives an isolated namespace and sole active property-search authority.
 - **OBSERVED:** Render service bf is configured for auto-deploy from main; exact-commit deployment and CI must be verified after this change.
