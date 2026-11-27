@@ -10,7 +10,7 @@
 - Authorized for limited research probes: **0**
 - Network requests performed in this assessment: **0**
 
-The current batch template contains one homepage URL per source. Running it now will produce a per-source report and send zero network requests because no source has an explicit `authorized_for_limited_probe` record. This is intentional fail-closed behavior.
+The current batch template contains one homepage URL per source. Running it now will produce a per-source report and send zero network requests because no source has an explicit `authorized_for_limited_probe` record. This is intentional fail-closed behavior. Once a source is authorized, its homepage probe establishes reachability and basic page shape only; it does not prove listing-detail data quality. A second URL may be added to that source's plan only when a real public listing/search page URL is known and covered by the same host authorization. The runner never guesses URLs or follows page links.
 
 ## Source-by-source readiness
 
