@@ -129,7 +129,7 @@ export default function ImmoGR() {
       <p style={{ color: '#9fd8ff', letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>INDEPENDENT PROPERTY DISCOVERY</p>
       <h1 style={{ fontSize: 36, margin: '8px 0' }}>ImmoGR</h1>
       <p style={{ color: '#9aadc5', maxWidth: 760 }}>An evidence-first search system for long-term rentals and private-owner prospects in Graubünden.</p>
-      <span style={{ display: 'inline-block', border: '1px solid #52647a', borderRadius: 999, padding: '5px 12px', fontSize: 13 }}>WP1 · Foundation and source research</span>
+      <span style={{ display: 'inline-block', border: '1px solid #52647a', borderRadius: 999, padding: '5px 12px', fontSize: 13 }}>WP2 · Manual source research</span>
     </header>
     <section style={{ ...panel, marginBottom: 18 }} aria-live="polite">
       <h2 style={{ marginTop: 0 }}>Search engine status</h2>
