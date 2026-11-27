@@ -105,6 +105,7 @@ export function normalizeImmoGRListingAnalysis(raw: Record<string, unknown>, con
  const rawCandidates = Array.isArray(raw.candidates) ? raw.candidates.slice(0, 30) : [];
  let rejectedCandidateCount = Math.max(0, rawCandidates.length - 15);
  const candidates: ImmoGRListingCandidate[] = [];
+ const seenListingUrls = new Set<string>();
  for (const item of rawCandidates.slice(0, 15)) {
   if (!item || typeof item !== 'object' || Array.isArray(item)) { rejectedCandidateCount++; continue; }
   const record = item as Record<string, unknown>;
