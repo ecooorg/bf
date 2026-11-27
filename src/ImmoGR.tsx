@@ -135,11 +135,13 @@ export default function ImmoGR() {
       let title = file.name;
       let extracted = '';
       let schemaFacts: ReturnType<typeof extractSchemaFactsFromJsonLd> = {};
+      let importedSourceUrl = '';
       if (extension === 'html' || extension === 'htm') {
         const raw = await file.text();
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
         schemaFacts = extractSchemaFactsFromJsonLd(Array.from(documentCopy.querySelectorAll('script[type="application/ld+json"]')).map((script) => script.textContent || ''));
         const sourceUrl = manualDraft.canonicalUrl || documentCopy.querySelector('link[rel="canonical"]')?.getAttribute('href') || '';
+        importedSourceUrl = sourceUrl;
         setLocalPageInspection(inspectLocalHtmlDocument(documentCopy, sourceUrl));
         setLocalPageSnapshot(raw);
         title = (documentCopy.title || file.name).slice(0, 300);
@@ -164,6 +166,7 @@ export default function ImmoGR() {
         const localityMatch = schemaFacts.localityName ? manualLocalities.find((item) => normalizeLocalityLabel(item.name) === normalizeLocalityLabel(schemaFacts.localityName || '')) : undefined;
         return {
           ...current,
+          canonicalUrl: current.canonicalUrl || importedSourceUrl,
           pageTitle: current.pageTitle || schemaFacts.pageTitle || title,
           propertyType: current.propertyType === 'unknown' ? (schemaFacts.propertyType || 'unknown') : current.propertyType,
           priceAmount: current.priceAmount || schemaFacts.priceAmount || '',
