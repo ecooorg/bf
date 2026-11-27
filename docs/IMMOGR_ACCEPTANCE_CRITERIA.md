@@ -51,3 +51,4 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - The user can import a locally saved HTML/HTM/TXT file up to 5 MB; extraction occurs in the browser, the file is not uploaded, and extracted text remains editable before explicit save.
 - Local personal processing is not conflated with remote crawling; no proxy, credential capture, access-control bypass or automatic outreach is introduced.
 - Personal notes are not automatically promoted to verified Direct Rentals or Private Owner Prospects.
+- The source registry and manual-review read/write endpoints require authenticated application access and fail closed when authentication is disabled.
