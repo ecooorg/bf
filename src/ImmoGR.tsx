@@ -3,7 +3,7 @@ type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: bool
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both';
-type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string };
+type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string };
 type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 const emptyManualDraft: ManualDraft = { canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
@@ -87,25 +87,47 @@ export default function ImmoGR() {
   }
   async function importLocalPageFile(file?: File) {
     if (!file) return;
-    if (!/\.(html?|txt)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
-      setManualMessage('Choose a local .html, .htm or .txt file up to 5 MB.');
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const supported = new Set(['html', 'htm', 'txt', 'md', 'pdf', 'docx', 'xlsx', 'pptx', 'csv', 'tsv', 'json']);
+    if (!supported.has(extension) || file.size > 5 * 1024 * 1024) {
+      setManualMessage('Choose HTML, TXT, Markdown, PDF, DOCX, XLSX, PPTX, CSV, TSV or JSON up to 5 MB.');
       return;
     }
     try {
-      const raw = await file.text();
       let title = file.name;
-      let extracted = raw;
-      if (/\.html?$/i.test(file.name)) {
+      let extracted = '';
+      if (extension === 'html' || extension === 'htm') {
+        const raw = await file.text();
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
         title = (documentCopy.title || file.name).slice(0, 300);
         documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
         extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\s+/g, ' ').trim();
+      } else {
+        const fileClass: 'pdf' | 'office' | 'data' | 'doc' = extension === 'pdf' ? 'pdf'
+          : ['docx', 'xlsx', 'pptx'].includes(extension) ? 'office'
+          : ['csv', 'tsv', 'json'].includes(extension) ? 'data' : 'doc';
+        const { extractFileContent } = await import('./workspace/extract.ts');
+        const result = await extractFileContent(file.name, new Uint8Array(await file.arrayBuffer()), fileClass, {
+          maxChars: 5000, maxPdfPages: 20, maxXlsxRows: 100, maxCsvRows: 200,
+        });
+        if (result.metadataOnly || !result.text.trim()) {
+          setManualMessage('This file was opened locally, but no text could be extracted. Image OCR is not available yet.');
+          return;
+        }
+        extracted = result.text;
+        if (result.meta.pages) title += ' · ' + result.meta.pages + ' pages';
       }
       setManualDraft((current) => ({ ...current, pageTitle: current.pageTitle || title, notes: extracted.slice(0, 5000) }));
-      setManualMessage('Local file read in this browser. Review and edit the extracted notes before saving; the file itself was not uploaded.');
-    } catch {
-      setManualMessage('Could not read that local file.');
+      setManualMessage('Local file processed in this browser. Review and edit the extracted notes before saving; the original file was not uploaded.');
+    } catch (error) {
+      setManualMessage(error instanceof Error ? 'Local import failed: ' + error.message.slice(0, 180) : 'Could not read that local file.');
     }
+  }
+  function openSourceHomepage() {
+    const homepage = sources.find((source) => source.id === selectedSourceId)?.homepageUrl;
+    if (!homepage) return;
+    try { const url = new URL(homepage); if (url.protocol === 'https:') window.open(url.toString(), '_blank', 'noopener,noreferrer'); }
+    catch { setManualMessage('The source homepage URL is invalid.'); }
   }
   function openManualSource() {
     let url: URL;
@@ -160,12 +182,12 @@ export default function ImmoGR() {
       <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Choose any registered source, open its original page in your browser, then save the facts you observed for your own housing search. Automation status is shown separately and does not hide manual research.</p>
       <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
-      {selectedSourceId && <p style={{ color: '#9aadc5', fontSize: 13 }}>{sources.find((source) => source.id === selectedSourceId)?.ownerSignal} {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>}
+      {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>{sources.find((source) => source.id === selectedSourceId)?.ownerSignal} {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
       {sources.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>{sources.map((source) => <button type="button" key={source.id} onClick={() => selectManualSource(source.id)} aria-pressed={selectedSourceId === source.id} style={{ border: selectedSourceId === source.id ? '2px solid #79c7ff' : '1px solid #40536b', borderRadius: 8, padding: '7px 10px', background: '#101f33', color: '#eef4ff', cursor: 'pointer' }}>{source.name}</button>)}</div>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
-        <label style={{ gridColumn: '1 / -1' }}>Import a locally saved page (.html/.htm/.txt, up to 5 MB)<input type="file" accept=".html,.htm,.txt,text/html,text/plain" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; selected notes are saved only when you submit the form.</span></label>
+        <label style={{ gridColumn: '1 / -1' }}>Import a local page or document (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{manualLocalities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
         <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>

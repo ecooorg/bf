@@ -5,7 +5,7 @@ import { getPool } from '../database.ts';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean };
-type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; manualReview?: Record<string, unknown> };
+type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown> };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
 const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
@@ -37,7 +37,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   app.get('/api/immogr/sources', (req, res) => {
     if (!requireOwner(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, manualReview }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, manualReview })) });
+    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview })) });
   });
 
   app.get('/api/immogr/manual-reviews', async (req, res) => {
