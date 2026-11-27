@@ -204,8 +204,8 @@ const geminiKeySlots = resolveGeminiKeySlots(process.env);
 const geminiKeyPoolState = new KeyPoolState();
 /** P124.27: the single key pool (cooldown per key and model) used by generate(), the search plan and grounding. */
 const geminiPool = new GeminiKeyPool(geminiKeySlots);
-const logPoolRotation = (e: { slot: number; model: string; errorClass: string; attempt: number; sharedQuotaSuspected?: boolean }) =>
-  console.warn(JSON.stringify({ type: 'gemini_pool_rotated', keySlot: e.slot, model: e.model, errorClass: e.errorClass, attempt: e.attempt, ...(e.sharedQuotaSuspected ? { sharedQuotaSuspected: true } : {}) }));
+const logPoolRotation = (e: { slot: number; model: string; errorClass: string; attempt: number }) =>
+  console.warn(JSON.stringify({ type: 'gemini_pool_rotated', keySlot: e.slot, model: e.model, errorClass: e.errorClass, attempt: e.attempt }));
 /** Helper-call client (plan, grounding): pooled keys, then fallback models. A BYOK key bypasses the pool. */
 function pooledGeminiClient(byokKey?: string): any {
   return createPooledClient({
