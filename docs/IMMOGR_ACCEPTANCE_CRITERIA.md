@@ -72,12 +72,12 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 
 ### Local page inspector
 
-- [ ] Owner can import one local HTML/HTM snapshot and inspect title, readable text, metadata, JSON-LD, links and image URLs.
-- [ ] Inspection does not execute scripts or automatically load remote images; only HTTP(S) URLs without embedded credentials are shown.
-- [ ] Owner can save the original snapshot and extracted JSON locally, then edit extracted notes before explicit ImmoGR save.
-- [ ] No arbitrary remote fetch, page traversal, crawler, or server-side proxy is enabled by this UI slice.
+- [x] Owner can import one local HTML/HTM snapshot and inspect title, readable text, metadata, JSON-LD, links and image URLs.
+- [x] Inspection does not execute scripts or automatically load remote images; only HTTP(S) URLs without embedded credentials are shown.
+- [x] Owner can save the original snapshot and extracted JSON locally, then edit extracted notes before explicit ImmoGR save.
+- [x] No arbitrary remote fetch, page traversal, crawler, or server-side proxy is enabled by this UI slice.
 
-\n### Owner-local page fetcher\n\n- [ ] Local CLI accepts only an owner-supplied source-specific probe authorization record and one or two explicit HTTPS page URLs.\n- [ ] The robots.txt check counts toward the hard two-or-three-request ceiling; disallowed paths stop before the page request.\n- [ ] The runner rejects private/reserved DNS answers, non-standard HTTPS ports, URL credentials, redirects, non-HTML responses, oversized responses and timeouts.\n- [ ] The runner performs no retries, pagination, crawling, cookie/session capture or remote persistence; snapshots and a minimal report stay in a git-ignored local directory.\n- [ ] No source is pre-authorized; each source requires current, source-specific evidence before a plan can run.\n
+\n### Owner-local page fetcher\n\n- [ ] Local CLI accepts only a registered source ID and one or two explicit HTTPS page URLs; source authorization is read from the registry and cannot be supplied by the plan itself.\n- [ ] The robots.txt check counts toward the hard two-or-three-request ceiling; disallowed paths stop before the page request.\n- [ ] The runner rejects private/reserved DNS answers, non-standard HTTPS ports, URL credentials, redirects, non-HTML responses, oversized responses and timeouts.\n- [ ] The runner performs no retries, pagination, crawling, cookie/session capture or remote persistence; snapshots and a minimal report stay in a git-ignored local directory.\n- [ ] No source is pre-authorized; each source requires current, source-specific evidence before a plan can run.\n
 
 ## Android tablet local page viewer and owner-selected discovery sources
 
