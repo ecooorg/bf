@@ -32,41 +32,44 @@ test('active migration runner quarantines only historical ImmoFinder migrations'
   assert.match(runner, /allFiles\.filter\(\(file\) => !isRetiredImmoFinderMigration\(file\)\)/);
 });
 
-test('official GR commune catalogue is complete and priority worksheet is editable', async () => {
-  const { IMMOGR_COMMUNES } = await import('../server/immogr/communes.ts');
-  const csv = read('config/immogr/commune-priorities.csv');
-  assert.equal(IMMOGR_COMMUNES.length, 100);
-  assert.equal(new Set(IMMOGR_COMMUNES.map((item) => item.bfsId)).size, 100);
-  assert.equal(new Set(IMMOGR_COMMUNES.map((item) => item.name)).size, 100);
-  const dataRows = csv.split(/\r?\n/).filter((line) => /^\d+,/.test(line));
-  assert.equal(dataRows.length, 100);
-  assert.match(csv, /priority_rating,target_44,aliases,notes/);
-  assert.match(csv, /1 \(highest\) or 2 \(secondary\)/);
-  assert.ok(IMMOGR_COMMUNES.some((item) => item.bfsId === 3901 && item.name === 'Chur'));
+test('owner-defined ImmoGR locality catalogue contains exactly two groups of 22', async () => {
+  const { IMMOGR_LOCALITIES, localitiesForMode } = await import('../server/immogr/localities.ts');
+  const csv = read('config/immogr/localities.csv');
+  assert.equal(IMMOGR_LOCALITIES.length, 44);
+  assert.equal(new Set(IMMOGR_LOCALITIES.map((item) => item.id)).size, 44);
+  assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 1).length, 22);
+  assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 2).length, 22);
+  assert.equal(localitiesForMode('group1').length, 22);
+  assert.equal(localitiesForMode('group2').length, 22);
+  assert.equal(localitiesForMode('both').length, 44);
+  assert.match(csv, /id,locality,canton,group/);
+  assert.match(csv, /araschgen,"Araschgen",GR,1/);
+  assert.match(csv, /valbella,"Valbella",GR,2/);
+  assert.doesNotMatch(csv, /Chur,GR/);
 });
 
-test('ImmoGR exposes official municipality catalogue and UI consumes it', () => {
+test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', () => {
   const routes = read('server/immogr/index.ts');
   const ui = read('src/ImmoGR.tsx');
-  assert.match(routes, /app\.get\('\/api\/immogr\/communes'/);
-  assert.match(routes, /IMMOGR_COMMUNES/);
-  assert.match(ui, /fetch\('\/api\/immogr\/communes'/);
-  assert.match(ui, /communes\.map/);
-  assert.match(ui, /commune-priorities\.csv/);
+  assert.match(routes, /\/api\/immogr\/localities/);
+  assert.match(routes, /localitiesForMode/);
+  assert.match(routes, /req\.body\?\.locality/);
+  assert.match(routes, /selected\.name/);
+  assert.match(ui, /fetch\('\/api\/immogr\/localities\?groupMode=/);
+  assert.match(ui, /locality, groupMode, category/);
+  assert.match(ui, /Group 1 · 22 important localities/);
+  assert.match(ui, /Group 2 · 22 secondary localities/);
+  assert.match(ui, /Both groups · all 44 localities/);
 });
 
-test('database commune seed matches the official runtime catalogue and leaves user priorities blank', async () => {
-  const { IMMOGR_COMMUNES } = await import('../server/immogr/communes.ts');
-  const sql = read('migrations/032_immogr_communes.sql');
-  const coreMigration = read('migrations/031_immogr_core.sql');
-  assert.doesNotMatch(coreMigration, /immogr_communes/);
-  assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_communes/);
-  assert.match(sql, /FOREIGN KEY \(commune_id\) REFERENCES immogr_communes\(bfs_id\)/);
-  const seed = sql.split('INSERT INTO immogr_communes')[1].split('ON CONFLICT')[0];
-  for (const commune of IMMOGR_COMMUNES) {
-    assert.ok(seed.includes(`(${commune.bfsId}, '${commune.name}'`), `missing seed for ${commune.name}`);
-  }
-  assert.equal((seed.match(/\(\d+, '/g) || []).length, 100);
-  assert.doesNotMatch(seed, /,\s*[12],\s*(?:true|false)/i);
-  assert.doesNotMatch(seed, /\(\d+, "/);
+test('locality database migration is additive and seeds exact owner scope', async () => {
+  const { IMMOGR_LOCALITIES } = await import('../server/immogr/localities.ts');
+  const sql = read('migrations/033_immogr_localities.sql');
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_localities/);
+  assert.match(sql, /ADD COLUMN IF NOT EXISTS locality_id text REFERENCES immogr_localities/);
+  assert.match(sql, /CREATE INDEX IF NOT EXISTS immogr_listings_locality_category_idx/);
+  assert.equal((sql.match(/\('[-a-z0-9]+', '[^']+', 'GR', [12]\)/g) || []).length, 44);
+  for (const locality of IMMOGR_LOCALITIES) assert.ok(sql.includes(`('${locality.id}', '${locality.name}', 'GR', ${locality.group})`));
+  assert.doesNotMatch(sql, /DROP TABLE|TRUNCATE/i);
 });
+
