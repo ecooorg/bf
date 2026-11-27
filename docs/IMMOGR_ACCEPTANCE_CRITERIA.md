@@ -85,5 +85,6 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - [ ] Photo previews remain unloaded until the Owner explicitly requests them; scripts from imported pages are never executed.
 - [ ] Search settings allow the Owner to select one or more registered source domains; the API validates source IDs and filters grounded result URLs to the selected domains only.
 - [ ] Source selection is a discovery scope preference. It does not change source access policy or grant automated fetching permission.
-- [ ] Local probe CLI reads limited-probe authorization only from the ImmoGR source registry and cannot self-authorize through a local JSON plan.
-- [ ] Batch research runner produces a status row for all 29 sources, skips prohibited/unreviewed sources without sending requests, and runs only sources with documented limited-probe authorization.
+- [x] Local probe CLI reads limited-probe authorization only from the ImmoGR source registry and cannot self-authorize through a local JSON plan.
+- [x] Batch research runner produces a status row for all 29 sources, skips prohibited/unreviewed sources without sending requests, and runs only sources with documented limited-probe authorization.
+- [x] The ImmoGR UI can export a one- or two-page local probe plan for the selected source without embedding authorization or credentials.
