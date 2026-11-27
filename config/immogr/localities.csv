@@ -1,0 +1,47 @@
+# Owner-defined locality target list; all unlisted localities are out of scope.
+# group=1: important; group=2: secondary. Settings may enable group1, group2, or both.
+id,locality,canton,group
+araschgen,"Araschgen",GR,1
+bonaduz,"Bonaduz",GR,1
+churwalden,"Churwalden",GR,1
+domat-ems,"Domat/Ems",GR,1
+felsberg,"Felsberg",GR,1
+haldenstein,"Haldenstein",GR,1
+igis,"Igis",GR,1
+landquart,"Landquart",GR,1
+maladers,"Maladers",GR,1
+malix,"Malix",GR,1
+passugg,"Passugg",GR,1
+praden,"Praden",GR,1
+reichenau,"Reichenau",GR,1
+rhazuns,"Rhäzüns",GR,1
+tamins,"Tamins",GR,1
+trimmis,"Trimmis",GR,1
+trin,"Trin",GR,1
+trin-digg,"Trin Digg",GR,1
+trin-mulin,"Trin Mulin",GR,1
+tschiertschen,"Tschiertschen",GR,1
+untervaz,"Untervaz",GR,1
+zizers,"Zizers",GR,1
+cazis,"Cazis",GR,2
+domleschg,"Domleschg",GR,2
+flasch,"Fläsch",GR,2
+flims,"Flims",GR,2
+grusch,"Grüsch",GR,2
+jenins,"Jenins",GR,2
+laax,"Laax",GR,2
+lenzerheide,"Lenzerheide",GR,2
+maienfeld,"Maienfeld",GR,2
+malans,"Malans",GR,2
+mastrils,"Mastrils",GR,2
+parpan,"Parpan",GR,2
+pratval,"Pratval",GR,2
+rodels,"Rodels",GR,2
+rothenbrunnen,"Rothenbrunnen",GR,2
+says,"Says",GR,2
+scharans,"Scharans",GR,2
+sils-im-domleschg,"Sils im Domleschg",GR,2
+st-peter,"St. Peter",GR,2
+summaprada,"Summaprada",GR,2
+thusis,"Thusis",GR,2
+valbella,"Valbella",GR,2
