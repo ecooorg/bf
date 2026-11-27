@@ -159,9 +159,9 @@ test('startup loads dotenv before validating and applying database migrations', 
   const pkg = JSON.parse(read('package.json'));
   const start = read('scripts/start.mjs');
   assert.equal(pkg.scripts.start, 'node scripts/start.mjs');
-  assert.match(pkg.scripts['db:migrate'], /--import dotenv\\/config/);
-  assert.match(start, /^import ['"]dotenv\\/config['"]/);
+  assert.ok(pkg.scripts['db:migrate'].includes('--import dotenv/config'));
+  assert.ok(start.startsWith("import 'dotenv/config';"));
   assert.ok(start.indexOf("await import('./migrate.mjs')") < start.indexOf("await import('../dist-server/server.js')"));
-  assert.match(start, /process\\.env\\.DATABASE_URL/);
-  assert.match(start, /process\\.env\\.ENABLE_PROJECT_MODE/);
+  assert.ok(start.includes('process.env.DATABASE_URL'));
+  assert.ok(start.includes('process.env.ENABLE_PROJECT_MODE'));
 });
