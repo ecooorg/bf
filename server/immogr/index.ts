@@ -109,7 +109,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     });
   });
 
-  app.post('/api/immogr/discovery', async (req, res) => {
+  const discoveryHandler = async (req: any, res: any) => {
     if (!searchClient || !searchModels.length) {
       return res.status(503).json({ success: false, code: 'DISCOVERY_PROVIDER_UNAVAILABLE', error: 'The Gemini Google Search provider is not configured for ImmoGR.' });
     }
@@ -150,6 +150,53 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       generatedAt: new Date().toISOString(), leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
       disclaimer: 'These are live search-engine URL leads, not verified property listings. No result page was fetched or parsed. Review each source manually and check its terms before any automated access.',
+
     });
-  });
+  };
+  app.post('/api/immogr/discovery', discoveryHandler);
+
+  // Temporary owner-token pilot: four localities × four selected sources, sequentially.
+  // It uses search-engine grounding only; it never fetches source listing pages.
+  if (dependencies.pilotEnabled) {
+    app.post('/api/immogr/pilot', async (req, res) => {
+      const localityIds = Array.isArray(req.body?.localityIds) ? req.body.localityIds : [];
+      const sourceIds = Array.isArray(req.body?.sourceIds) ? req.body.sourceIds : [];
+      if (localityIds.length !== 4 || new Set(localityIds).size !== 4 || sourceIds.length !== 4 || new Set(sourceIds).size !== 4) {
+        return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'Pilot requires exactly four distinct localityIds and four distinct sourceIds.' });
+      }
+      const localities = localityIds.map((id: unknown) => IMMOGR_LOCALITIES.find((item) => item.id === String(id)));
+      if (localities.some((item: any) => !item)) {
+        return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'One or more localities are outside the owner-defined ImmoGR list.' });
+      }
+      const scope = resolveDiscoverySourceScope(sourceIds, sourceRegistry.sources);
+      if ('error' in scope || scope.sources.length !== 4 || scope.sources.some((source: any) => source.probePolicy?.status === 'prohibited')) {
+        return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'Selected sources are invalid or marked prohibited in the source registry.' });
+      }
+      const results: any[] = [];
+      for (const locality of localities as NonNullable<typeof localities[number]>[]) {
+        const mockRes: any = {
+          statusCode: 200,
+          payload: null,
+          status(code: number) { this.statusCode = code; return this; },
+          json(payload: unknown) { this.payload = payload; return this; },
+        };
+        try {
+          await discoveryHandler({ body: { locality: locality.name, groupMode: 'both', category: 'direct_rental', sourceIds } }, mockRes);
+          results.push({ localityId: locality.id, locality: locality.name, httpStatus: mockRes.statusCode, result: mockRes.payload });
+        } catch (error) {
+          results.push({ localityId: locality.id, locality: locality.name, httpStatus: 502, result: { success: false, code: 'PILOT_DISCOVERY_ERROR', error: String((error as Error)?.message || error).slice(0, 240) } });
+        }
+      }
+      const leadCount = results.reduce((total, item) => total + (Array.isArray(item.result?.leads) ? item.result.leads.length : 0), 0);
+      console.info('[ImmoGR] pilot completed', { localityCount: results.length, sourceCount: sourceIds.length, leadCount });
+      return res.json({
+        success: true, status: 'pilot_completed', generatedAt: new Date().toISOString(),
+        scope: { localityIds, sourceIds, category: 'direct_rental', requests: results.length },
+        summary: { leadCount, successfulLocalities: results.filter((item) => item.result?.success).length, failedLocalities: results.filter((item) => !item.result?.success).length },
+        results,
+        pageAcquisitionPerformed: false, listingAdmissionEnabled: false,
+        disclaimer: 'Search-engine candidate URLs only. No source listing pages were fetched, parsed, or stored; all leads remain unverified and require manual review.',
+      });
+    });
+  }
 }
