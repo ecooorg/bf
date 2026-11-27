@@ -25,7 +25,7 @@ export function ModeMenu(props: {
   onSelect: (mode: AppMode) => void;
   /** Return to the start screen with the three mode cards. */
   onOverview: () => void;
-  /** Module screens that are not an agent (ImmoFinder) show their own name and select no agent. */
+  /** Independent product screens (ImmoGR) show their own name and select no agent. */
   currentLabel?: string;
 }) {
   const [open, setOpen] = useState(false);

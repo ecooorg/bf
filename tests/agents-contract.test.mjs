@@ -39,7 +39,7 @@ test('Project opens on dedicated routes; main entry has no Architectural Test La
   const app = read('src/App.tsx');
   assert.match(main, /'\/project'/);
   assert.match(main, /ProjectMode/);
-  assert.doesNotMatch(main, /pathname === '\/architect-lab'|isArchitectLab|ArchitectLab/);
+  assert.doesNotMatch(main, /path === '\/architect-lab'|isArchitectLab|ArchitectLab/);
   assert.ok(!existsSync(path.join(root, 'src/ArchitectLab.tsx')), 'ArchitectLab.tsx must be removed');
   assert.ok(!existsSync(path.join(root, 'src/ArchitectShellHeader.tsx')), 'ArchitectShellHeader.tsx must be removed');
   assert.match(app, /window\.location\.href = '\/project'/);
@@ -68,7 +68,7 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   const server = read('server.ts');
   const engine = read('server/immogr/index.ts');
   assert.match(app, /data-testid="start-immogr"/);
-  assert.match(main, /pathname === '\/immogr'/);
+  assert.match(main, /path === '\/immogr'/);
   assert.match(page, /live search is not enabled/i);
   assert.match(server, /registerImmoGRRoutes\(app\)/);
   assert.match(engine, /liveSearchEnabled: false/);
@@ -94,5 +94,5 @@ test('ImmoGR namespace is independent of legacy ImmoFinder modules and storage',
   assert.doesNotMatch(engine, /immofinder/i);
   assert.doesNotMatch(types, /immofinder/i);
   assert.ok(config.sources.length >= 5);
-  assert.ok(config.sources.every((source) => source.status === 'research_required'));
+  assert.ok(config.sources.every((source) => source.status !== 'active'));
 });

@@ -1009,6 +1009,7 @@ test('preflight rejects a manifest, nested folders, a wrapper or new top-level f
   assert.match(pf({ 'docs/archive/old.md': 'x' })[0], /nested folder/);
   assert.match(pf({ 'src/a/b.ts': 'x' })[0], /nested folder/);
   assert.deepEqual(pf({ 'server/appBuilder/index.ts': 'x', 'server/appBuilder/ir.ts': 'x' }), []);
+  assert.deepEqual(pf({ 'src/immogr/types.ts': 'x', 'server/immogr/index.ts': 'x', 'config/immogr/sources.json': 'x', 'data/immogr/README.md': 'x', 'tests/immogr/page-evidence.test.ts': 'x' }), [], 'only the owner-approved ImmoGR namespace may be nested');
   assert.match(pf({ 'server/other/nested.ts': 'x' })[0], /nested folder/);
   assert.match(pf({ '.github/other/x.yml': 'x' })[0], /nested folder/);
   assert.match(pf({ '.github/other/nested.yml': 'x' })[0], /nested folder/);
