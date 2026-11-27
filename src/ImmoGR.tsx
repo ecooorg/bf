@@ -82,6 +82,10 @@ export default function ImmoGR() {
   function selectManualSource(sourceId: string) {
     setSelectedSourceId(sourceId);
     setManualDraft(emptyManualDraft);
+    setLocalPageInspection(null);
+    setLocalPageSnapshot('');
+    setShowPageImages(false);
+    setProbeSecondUrl('');
     setManualMessage('');
   }
   async function saveManualReview(event: FormEvent<HTMLFormElement>) {
