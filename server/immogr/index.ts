@@ -18,8 +18,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   const searchClient = dependencies.searchClient || null;
   const liveDiscoveryEnabled = Boolean(searchClient && searchModels.length);
   const requireOwner = (req: any, res: any): boolean => {
-    if (dependencies.appAuthEnabled && !dependencies.authenticated?.(req)) {
-      res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
+    if (!dependencies.appAuthEnabled || !dependencies.authenticated?.(req)) {
+      res.status(401).json({ success: false, error: 'Personal ImmoGR notebook requires application authentication', code: 'UNAUTHORIZED' });
       return false;
     }
     return true;
