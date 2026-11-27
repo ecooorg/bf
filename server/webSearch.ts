@@ -718,7 +718,7 @@ export function sortSourcesByPreferredHosts(sources: WebSource[], preferredHosts
   return [...sources].sort((a, b) => score(a.url) - score(b.url));
 }
 
-export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string): WebSearchResult {
+export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string, maxSources = MAX_SOURCES): WebSearchResult {
   const used = parts.filter((p) => p.status === 'used' && p.digest.trim().length > 0);
   const policyTotal = parts.reduce((a, p) => addPolicyCounts(a, p.diagnostics?.sourcePolicyDropped), emptyPolicyCounts());
   if (!used.length) {
@@ -786,7 +786,7 @@ export function buildSearchPrompt(userText: string, today: string): string {
 const cleanTitle = (s: unknown) => String(s ?? '').replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 120);
 
 /** Pull sources and search queries out of a Gemini response (groundingMetadata). */
-export function extractGrounding(resp: any): { sources: WebSource[]; queries: string[] } {
+export function extractGrounding(resp: any, maxSources = MAX_SOURCES): { sources: WebSource[]; queries: string[] } {
   const gm = resp?.candidates?.[0]?.groundingMetadata;
   const chunks: any[] = Array.isArray(gm?.groundingChunks) ? gm.groundingChunks : [];
   const seen = new Set<string>();
