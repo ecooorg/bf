@@ -29,8 +29,8 @@ test('invented URLs, unsupported locality and fabricated quotes cannot qualify',
 });
 test('weekly prices and rents above CHF 2,000 are rejected', () => {
  for (const [priceAmount, pricePeriod] of [[450, 'week'], [2100, 'month']]) {
-  const candidate = { ...good.candidates[0], priceAmount, pricePeriod, evidence: [...good.candidates[0].evidence, { field: 'priceAmount', quote: String(priceAmount) + ' ' + pricePeriod }, { field: 'pricePeriod', quote: pricePeriod }] };
-  const text = pageText + ' ' + String(priceAmount) + ' ' + pricePeriod;
+  const candidate = { ...good.candidates[0], priceAmount, pricePeriod, evidence: [...good.candidates[0].evidence, { field: 'priceAmount', quote: 'CHF ' + String(priceAmount) + ' per ' + pricePeriod }, { field: 'pricePeriod', quote: 'per ' + pricePeriod }] };
+  const text = pageText + ' CHF ' + String(priceAmount) + ' per ' + pricePeriod;
   const result = normalizeImmoGRListingAnalysis({ ...good, candidates: [candidate] }, { pageUrl, sourceHost: 'portal.example.ch', pageText: text, category: 'direct_rental', localities, allowedLinks: [] });
   assert.equal(result.candidates[0].qualification, 'rejected');
  }
