@@ -111,8 +111,11 @@ export function normalizeImmoGRListingAnalysis(raw: Record<string, unknown>, con
   const record = item as Record<string, unknown>;
   const evidence: ImmoGRListingEvidence[] = (Array.isArray(record.evidence) ? record.evidence : []).flatMap((entry) => {
    if (!entry || typeof entry !== 'object') return [];
-   const e = entry as Record<string, unknown>, field = clean(e.field, 60), quote = clean(e.quote, 500);
-   if (!field || quote.length < 8 || !pageText.includes(normalizeEvidenceText(quote)) || !quoteSupports(field, record[field], quote)) return [];
+   const e = entry as Record<string, unknown>, field = clean(e.field, 60), quote = clean(e.quote, 240);
+   const containsPersonalContact = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i.test(quote)
+    || /(?:\\+41|0041|0[1-9][0-9])[\\s()./-]*[0-9]{2,3}[\\s()./-]*[0-9]{2,3}[\\s()./-]*[0-9]{2,4}/i.test(quote)
+    || /\\b(?:herr|frau|mr|mrs|ms)\\s+[\\p{Lu}][\\p{L}'-]+/u.test(quote);
+   if (!field || quote.length < 8 || containsPersonalContact || !pageText.includes(normalizeEvidenceText(quote)) || !quoteSupports(field, record[field], quote)) return [];
    return [{ field, quote }];
   });
   const hasEvidence = (field: string) => evidence.some((entry) => entry.field === field);
@@ -154,7 +157,7 @@ export function normalizeImmoGRListingAnalysis(raw: Record<string, unknown>, con
    if (ownerClass !== 'private_owner') reasons.push('Private ownership is not explicitly evidenced.');
    if (directContact === 'unknown' || directContact === 'none') reasons.push('A direct contact route is not explicitly evidenced.');
    if (minTermYears === null || minTermYears < 3) reasons.push('A three-year rental horizon is not explicitly evidenced; owner willingness must not be inferred.');
-   if (title && url && locality && ownerClass === 'private_owner' && directContact !== 'unknown' && directContact !== 'none' && minTermYears !== null && minTermYears >= 3) qualification = 'qualified_candidate';
+   if (title && url && locality && (pageType === 'listing_detail' || url !== context.pageUrl) && ownerClass === 'private_owner' && directContact !== 'unknown' && directContact !== 'none' && minTermYears !== null && minTermYears >= 3) qualification = 'qualified_candidate';
   }
   if (!evidence.length) { qualification = 'needs_review'; reasons.push('No source quotations survived evidence validation.'); }
   const confidence: ImmoGRListingCandidate['confidence'] = evidence.length >= 6 && locality && title && url ? 'high' : evidence.length >= 3 ? 'medium' : 'low';
