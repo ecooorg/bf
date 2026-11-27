@@ -18,14 +18,14 @@ A specific seasonal or holiday apartment/house in a target commune. Admission re
 ## Internal discovery and manual research stages
 Live discovery may return current search-engine URLs as unverified leads. This is an intermediate queue, not a third admitted result category. Titles and snippets are not listing evidence.
 
-All registered sources are also available for user-initiated manual research regardless of their automated-acquisition status. The user opens the original source in an ordinary browser and explicitly records selected observations through the ImmoGR capture form. Such observations are labelled `human_observed`, retain source URL and reviewer/timestamp provenance, and remain research records until independently qualified. Manual observations are not described as server-fetched pages and do not automatically create an admitted Direct Rental or Private Owner Prospect.
+All registered sources are also available for user-initiated manual research regardless of their automated-acquisition status. The Owner may process locally saved page and screenshot copies with local tools or automation for private use. The user opens the original source in an ordinary browser and explicitly records selected observations through the ImmoGR capture form. Such observations are labelled `human_observed`, retain source URL and reviewer/timestamp provenance, and remain research records until independently qualified. Manual observations are not described as server-fetched pages and do not automatically create an admitted Direct Rental or Private Owner Prospect.
 
 ## Non-goals
 - Reusing or repairing ImmoFinder.
 - Treating search snippets, portal index pages, aggregators, or generic category pages as listings.
 - Guessing owners, contacts, prices, rent periods, addresses, or willingness to rent long-term.
 - Sending messages, emails, or applications automatically.
-- Circumventing robots, access restrictions, authentication, paywalls, rate limits, or source terms.
+- Circumventing technical access controls, authentication, paywalls or rate limits during remote acquisition.
 
 ## Product principles
 1. One candidate equals one concrete property and one canonical detail URL.

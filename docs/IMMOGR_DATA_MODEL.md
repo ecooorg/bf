@@ -14,7 +14,7 @@
 |---|---|
 | immogr_communes | Historical administrative reference only; not the ImmoGR search geography. |
 | immogr_localities | Exact owner-selected Graubünden localities keyed by stable locality ID and assigned to group 1 or 2. |
-| immogr_sources | Source registry, terms/access review, separate manual-view and database-capture rights state, activation state, rate policy, source adapter version. |
+| immogr_sources | Source registry, source context, automated-acquisition state, manual-research state, activation state, rate policy, source adapter version. |
 | immogr_source_pages | Fetched page observations: requested/final URL, HTTP status, content type, fetch time, content fingerprint, access decision, parser version. |
 | immogr_listings | Canonical property record, result category, locality ID, property type, normalized price/period, owner class, quality state. |
 | immogr_owners | Evidence-backed owner or advertiser identity and entity class; unknown remains valid. |
@@ -42,11 +42,11 @@ Suggested fields:
 - `reviewer_id`, `reviewed_at`, `manual_access_outcome`;
 - structured observed fields for page type, property type, price amount/currency/period, rental mode, owner/advertiser class and signal, contact-route type, freshness and relevance;
 - concise reviewer notes and links to `immogr_evidence` records;
-- `capture_rights_status_snapshot` copied from the source registry at save time, plus `created_at`, `updated_at`, and review-state history.
+- `created_at`, `updated_at`, and review-state history.
 
-Manual records must not contain copied full-page HTML, session cookies, passwords, or unnecessary personal data. Store source URL and provenance; keep uncertain facts as unknown or inference. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record. Database capture must check the source-specific `databaseCaptureStatus`; where rights are unclear or restrictive, do not persist copied listing content until the issue is resolved.
+The Owner may retain local full-page or screenshot copies outside the server and process them manually or with local automation. The browser import reads user-selected files locally; only the Owner's explicitly submitted structured facts and notes are persisted. Never store passwords, session cookies or credentials. Keep source URL and provenance; preserve unknowns as unknown. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record.
 
 
 ### Owner-approved local personal notebook clarification (2026-11-27)
 
-The Owner may keep local page or screenshot copies and process them with local tools or automation. The ImmoGR browser import currently reads selected HTML/HTM/TXT files locally (maximum 5 MB), extracts text into an editable notes field, and does not upload the source file itself. Only the Owner-approved structured fields and edited notes are persisted. This is private notebook data, not a public listing feed. Remote crawling and server-side proxying remain separate and are not enabled by this workflow.
+The Owner may keep local page or screenshot copies and process them with local tools or automation. The ImmoGR browser import currently reads selected HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files locally (maximum 5 MB), extracts text into an editable notes field, and does not upload the source file itself. Only the Owner-approved structured fields and edited notes are persisted. This is private notebook data, not a public listing feed. Remote crawling and server-side proxying remain separate and are not enabled by this workflow.

@@ -56,7 +56,7 @@ A framed in-app viewer is optional and must not be assumed to work: source CSP/X
 
 ### Private local-copy processing (Owner-approved 2026-11-27)
 
-The Owner may save pages or screenshots through ordinary browser functions and process those local copies manually or with local automation. ImmoGR's first local import supports user-selected HTML/HTM/TXT files up to 5 MB: text extraction runs in the browser, the original file is not uploaded, and the Owner reviews/edits the extracted notes before explicit database save. This local workflow does not fetch the remote source, use a proxy, or grant remote crawling permission. The saved record retains source URL, locality, capture time and structured facts/notes.
+The Owner may save pages or screenshots through ordinary browser functions and process those local copies manually or with local automation. ImmoGR's local import supports user-selected HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files up to 5 MB: text extraction runs in the browser, the original file is not uploaded, and the Owner reviews/edits the extracted notes before explicit database save. This local workflow does not fetch the remote source, use a proxy, or grant remote crawling permission. The saved record retains source URL, locality, capture time and structured facts/notes. Verified source homepage links are shown for registry entries where available.
 
 
 The source registry and personal review endpoints require application authentication; they fail closed when app authentication is disabled. Saved personal research is not exposed through public routes.

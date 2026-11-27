@@ -34,11 +34,11 @@ Deploy only after WP1 and the real-page acceptance gate pass. First release is m
 - All 29 entries in `config/immogr/sources.json` appear in the ImmoGR source research interface.
 - Every source has a “Manual review” action independent of its automated-acquisition status.
 - Clicking the action opens the original source in a user-controlled browser context; no server-side fetch or crawler is triggered.
-- A user can explicitly save a structured manual observation with source, canonical URL, locality, observed-at time, reviewer, access outcome and evidence notes, subject to a source-specific database-capture rights check.
-- Sources with restrictive or unclear reuse/database terms have capture status `terms_review_required`; the UI must not silently treat permission to view as permission to copy listing content into ImmoGR.
+- The Owner can save personal research observations with source, canonical URL, locality, timestamp, reviewer, access outcome and selected facts/notes.
+- Source terms are retained as source context; they do not create a separate database-capture gate for the Owner's private local notebook. Automated acquisition remains independently controlled.
 - Manual observations persist only in ImmoGR tables and remain distinguishable from server-fetched pages and admitted listings.
 - All 29 sources receive an initial manual access outcome. Sources with relevant inventory are sampled up to at least five real pages; smaller or zero-yield samples carry an explicit reason.
-- No authentication/paywall/CAPTCHA/rate-limit/technical restriction is bypassed; no full-page bulk copying or unnecessary personal data is stored.
+- No technical access controls are bypassed. The Owner may keep local page/screenshot copies; only explicitly selected research notes are persisted by the app, without credentials or unnecessary third-party personal data.
 - A source may pass manual research while remaining blocked for automated acquisition.
 - WP2 produces a source-by-source yield and effort matrix and an Owner-reviewed recommendation before any paid API/feed commitment.
 
@@ -47,8 +47,8 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 
 ## Personal manual notebook acceptance (Owner-approved 2026-11-27)
 - Every registered source is available for user-initiated manual research regardless of automated acquisition status.
-- The user can open the original URL and save structured observations with source, locality and timestamp provenance.
-- The user can import a locally saved HTML/HTM/TXT file up to 5 MB; extraction occurs in the browser, the file is not uploaded, and extracted text remains editable before explicit save.
+- The user can open the original source homepage where available, open an original listing URL, and save structured observations with source, locality and timestamp provenance.
+- The user can import local HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files up to 5 MB; extraction occurs in the browser, the file is not uploaded, and extracted text remains editable before explicit save.
 - Local personal processing is not conflated with remote crawling; no proxy, credential capture, access-control bypass or automatic outreach is introduced.
 - Personal notes are not automatically promoted to verified Direct Rentals or Private Owner Prospects.
 - The source registry and manual-review read/write endpoints require authenticated application access and fail closed when authentication is disabled.

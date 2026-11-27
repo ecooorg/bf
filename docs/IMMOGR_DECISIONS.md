@@ -17,7 +17,7 @@ No source is automatically crawled until terms, robots, access controls, rate li
 
 ## D-IMMOGR-005 — Permission-first source activation (2026-11-27)
 
-A source with terms that prohibit scraping, automated scripts, reuse, or external data linking is excluded until written permission or a documented authorized API/feed is obtained. Publicly visible listings and search-engine indexing do not grant a collection licence. A source with unclear terms remains research-only, not active. At WP1 terms review, no source is approved for automated detail-page acquisition.
+A source with terms that prohibit scraping or automated scripts is excluded from remote automated acquisition until written permission or a documented authorized API/feed is obtained. Restrictions on external republication do not create a separate gate for the Owner's private local notebook. Publicly visible listings and search-engine indexing do not grant a remote collection licence. At WP1 terms review, no source is approved for automated detail-page acquisition.
 
 
 ## D-IMMOGR-006 — Prefer licensed feeds; no unapproved spend (2026-11-27)
@@ -54,11 +54,7 @@ The Owner approves testing all 29 registered sources regardless of automated-col
 
 ## D-IMMOGR-011 — Personal private-use scope of manual research (2026-11-27)
 
-The Owner clarifies that ImmoGR is a private personal notebook for the Owner's own housing search, not a public portal, commercial aggregator, resale product, or data service for third parties. Manually observed facts are entered by the Owner for personal comparison, follow-up and contact with the original advertiser. They are not published, redistributed, sold, sublicensed, or made available to other users.
-
-Interpret the Owner-approved manual workflow in this scope. Do not automatically equate the Owner's private notes with republication, commercial exploitation, or third-party reuse. At the same time, do not assume that private purpose overrides every source's express terms: distinguish (a) restrictions on automated scripts/access, (b) restrictions on copying or reproducing listing content, and (c) restrictions that expressly cover personal/local storage or private database use. Record the exact wording and scope before deciding whether a particular manual capture action is restricted.
-
-The default capture form focuses on useful structured facts and owner-authored notes. This is a convenience, not a restriction on the Owner's approved local workflow. D-IMMOGR-012 explicitly permits the Owner to keep and process local page and screenshot copies, manually or with local automation, for private use. Preserve the source URL for attribution and follow-up. Do not bypass authentication, paywalls, CAPTCHAs, rate limits or technical access controls.
+ImmoGR is a private, single-owner notebook for the Owner's own housing search and decision-making. The Owner may retain local pages and screenshots and process them manually or with local automation. These records are not published, sold, sublicensed or provided to third parties. D-IMMOGR-012 is the controlling clarification for local-copy processing. Do not create a separate per-source database-capture permission status or block the Owner's personal notebook notes on that basis. Automated remote collection and licensed feeds remain separately governed by source-specific access review and explicit approval.
 
 
 ## D-IMMOGR-012 — Local copies and private notebook processing (2026-11-27)
