@@ -1,7 +1,15 @@
 import type { Express } from 'express';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { getPool } from '../database.ts';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[] };
+type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; manualReview?: Record<string, unknown> };
+const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
+const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
+const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
+const validAccessOutcomes = new Set(['reviewed', 'in_progress', 'blocked_by_source', 'no_relevant_inventory']);
 
 /** Live discovery returns candidate URLs only. It never fetches listing pages or persists unverified leads. */
 export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependencies = {}): void {
@@ -16,6 +24,66 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const localities = localitiesForMode(groupMode);
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.json({ localities, count: localities.length, groupMode, groups: { group1: 22, group2: 22 }, scope: 'owner_defined_localities_only' });
+  });
+
+  app.get('/api/immogr/sources', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, manualReview }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, manualReview })) });
+  });
+
+  app.get('/api/immogr/manual-reviews', async (req, res) => {
+    try {
+      const sourceId = String(req.query.sourceId || '').trim();
+      const pool = await getPool();
+      const result = await pool.query(
+        'SELECT id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes FROM immogr_manual_reviews WHERE ($1 = \'\' OR source_id = $1) ORDER BY reviewed_at DESC LIMIT 100',
+        [sourceId],
+      );
+      return res.json({ reviews: result.rows });
+    } catch (error) {
+      console.error('[ImmoGR] manual review list unavailable', String((error as Error)?.message || error).slice(0, 180));
+      return res.status(503).json({ error: 'ImmoGR manual research database is unavailable. Apply the latest migrations and configure DATABASE_URL.' });
+    }
+  });
+
+  app.post('/api/immogr/manual-reviews', async (req, res) => {
+    const body = req.body || {};
+    const sourceId = String(body.sourceId || '').trim();
+    const source = sourceRegistry.sources.find((item) => item.id === sourceId);
+    const canonicalUrl = String(body.canonicalUrl || '').trim();
+    const localityId = String(body.localityId || '').trim();
+    const pageTitle = String(body.pageTitle || '').trim();
+    const propertyType = String(body.propertyType || 'unknown');
+    const priceRaw = body.priceAmount === '' || body.priceAmount == null ? null : Number(body.priceAmount);
+    const currency = String(body.currency || 'CHF').trim().toUpperCase();
+    const pricePeriod = String(body.pricePeriod || 'unknown');
+    const ownerClass = String(body.ownerClass || 'unknown');
+    const availability = String(body.availability || '').trim();
+    const accessOutcome = String(body.accessOutcome || 'reviewed');
+    const notes = String(body.notes || '').trim();
+    const allowedLocality = IMMOGR_LOCALITIES.find((item) => item.id === localityId);
+    let parsedUrl: URL | null = null;
+    try { parsedUrl = new URL(canonicalUrl); } catch { /* validated below */ }
+    if (!source || !parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol) || canonicalUrl.length > 2048 ||
+      !allowedLocality || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) ||
+      !validAccessOutcomes.has(accessOutcome) || (priceRaw !== null && (!Number.isFinite(priceRaw) || priceRaw < 0 || priceRaw > 1000000)) ||
+      !['CHF', 'EUR'].includes(currency) || pageTitle.length > 300 || availability.length > 500 || notes.length > 5000) {
+      return res.status(400).json({ error: 'Invalid manual research record. Check source, HTTPS/HTTP URL, target locality and field values.' });
+    }
+    try {
+      const pool = await getPool();
+      const result = await pool.query(
+        `INSERT INTO immogr_manual_reviews
+          (source_id, canonical_url, locality_id, capture_method, reviewer_id, manual_access_outcome, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes, source_snapshot)
+         VALUES ($1,$2,$3,'manual_user_review','owner',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb)
+         RETURNING id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome`,
+        [sourceId, canonicalUrl, localityId, accessOutcome, pageTitle || null, propertyType, priceRaw, currency, pricePeriod, ownerClass, availability || null, notes || null, JSON.stringify({ sourceName: source.name, automationStatus: source.status, capturedAt: new Date().toISOString() })],
+      );
+      return res.status(201).json({ success: true, review: result.rows[0] });
+    } catch (error) {
+      console.error('[ImmoGR] manual review save failed', String((error as Error)?.message || error).slice(0, 180));
+      return res.status(503).json({ error: 'Could not save the manual research record. Check that migration 034_immogr_manual_reviews has been applied and DATABASE_URL is configured.' });
+    }
   });
 
   app.get('/api/immogr/status', (_req, res) => {
