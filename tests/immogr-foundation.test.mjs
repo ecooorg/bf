@@ -61,7 +61,7 @@ test('database commune seed matches the official runtime catalogue and leaves us
   assert.match(sql, /commune_id integer REFERENCES immogr_communes\(bfs_id\)/);
   const seed = sql.split('INSERT INTO immogr_communes')[1].split('ON CONFLICT')[0];
   for (const commune of IMMOGR_COMMUNES) {
-    assert.match(seed, new RegExp('\\(' + commune.bfsId + ", '" + commune.name.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&') + "'"));
+    assert.ok(seed.includes(`(${commune.bfsId}, '${commune.name}'`), `missing seed for ${commune.name}`);
   }
   assert.equal((seed.match(/\(\d+, '/g) || []).length, 100);
   assert.doesNotMatch(seed, /,\s*[12],\s*(?:true|false)/i);
