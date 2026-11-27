@@ -80,3 +80,8 @@ Chur is an explicit fourth locality selection, separate from group 1, group 2, a
 ## D-IMMOGR-016 — Temporary broad-discovery experiment (2026-11-27)
 
 The Owner explicitly supersedes D-IMMOGR-013 for the bounded discovery experiment only. The 29 selected sources are search hints, not a returned-domain allowlist; candidate URLs from other public domains may be shown. The Owner may select any combination of the exact 45 registered localities (44 owner-defined targets plus standalone Chur). The complete discovery response is capped at 100 unique candidate URLs. This changes search-engine URL discovery only: no listing page is fetched, parsed, crawled, persisted as a listing, or treated as verified. Source-specific terms, robots, probe authorization and automated-acquisition gates remain unchanged. After the experiment, review yield, domain distribution, locality relevance, duplicates, latency and provider usage before deciding whether to retain broad discovery or restore source-domain filtering.
+
+
+## D-IMMOGR-017 — Separate discovery and local research cards (2026-11-27)
+
+Discovery results are rendered as unverified candidate cards and never treated as listings. User-selected local copies may be previewed and saved as human-observed research cards, with an explicit Direct Rental or Private Owner Prospect category. Saved research cards are not admitted listings; automated remote acquisition and qualification remain disabled until their independent gates pass.
