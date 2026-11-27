@@ -6,6 +6,8 @@ const authorization = {
   status: 'authorized_for_limited_probe',
   authorizationReference: 'owner-reviewed-2026-11-27',
   reviewedAt: '2026-11-27T10:00:00.000Z',
+  termsReviewedAt: '2026-11-27',
+  robotsReviewedAt: '2026-11-27',
   allowedHosts: ['example.ch'],
   maxRequests: 3,
 };
