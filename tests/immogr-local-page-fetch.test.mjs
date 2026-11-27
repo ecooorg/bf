@@ -33,13 +33,12 @@ test('local page fetcher refuses unapproved sources and hosts', () => {
   assert.throws(() => buildProbePlan({ source: { id: 'example', probeAuthorization: authorization }, urls: ['https://other.ch/a'] }), /host_not_allowlisted/);
 });
 
-test('robots rules honor the longest matching path and allow tie-break', () => {
-  const rules = 'User-agent: *\nDisallow: /private\nAllow: /private/public\n';
+test('robots rules honor the longest matching path, wildcard groups and end anchors', () => {
+  const rules = ['User-agent: *', 'Disallow: /private', 'Allow: /private/public'].join(String.fromCharCode(10));
   assert.equal(isAllowedByRobots(rules, 'https://example.ch/private/secret'), false);
   assert.equal(isAllowedByRobots(rules, 'https://example.ch/private/public/page'), true);
-  assert.equal(isAllowedByRobots(rules, 'https://example.ch/listing/1'), true);\n  assert.equal(isAllowedByRobots('User-agent: *\\nDisallow: /private
-});
-, 'https://example.ch/private'), false);\n  assert.equal(isAllowedByRobots('User-agent: *\\nDisallow: /private
-});
-, 'https://example.ch/private/child'), true);
+  assert.equal(isAllowedByRobots(rules, 'https://example.ch/listing/1'), true);
+  const anchored = ['User-agent: *', 'Disallow: /private$'].join(String.fromCharCode(10));
+  assert.equal(isAllowedByRobots(anchored, 'https://example.ch/private'), false);
+  assert.equal(isAllowedByRobots(anchored, 'https://example.ch/private/child'), true);
 });
