@@ -32,7 +32,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://happyholiday.ch/"
     },
     {
       "id": "ferienhausmiete",
@@ -62,7 +63,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://flatfox.ch/"
     },
     {
       "id": "tutti",
@@ -77,7 +79,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.tutti.ch/"
     },
     {
       "id": "anibis",
@@ -92,7 +95,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.anibis.ch/"
     },
     {
       "id": "homegate",
@@ -107,7 +111,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.homegate.ch/"
     },
     {
       "id": "newhome",
@@ -122,7 +127,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.newhome.ch/"
     },
     {
       "id": "womilo",
@@ -137,7 +143,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.womilo.ch/"
     },
     {
       "id": "comparis",
@@ -152,7 +159,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.comparis.ch/immobilien/default"
     },
     {
       "id": "housenet",
@@ -167,7 +175,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://housenet.ch/en/"
     },
     {
       "id": "immobilier",
@@ -182,7 +191,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.immobilier.ch/"
     },
     {
       "id": "lookmove_api",
@@ -197,7 +207,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.lookmove.ch/EN"
     },
     {
       "id": "discover_swiss",
@@ -212,7 +223,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://developer.discover.swiss/"
     },
     {
       "id": "stnet_openbooking",
@@ -242,7 +254,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.e-domizil.ch/"
     },
     {
       "id": "flatradar_ch",
@@ -257,7 +270,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://flatradar.ch/en"
     },
     {
       "id": "aptari",
@@ -272,7 +286,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://aptari.ai/en"
     },
     {
       "id": "lookmove_portal",
@@ -287,7 +302,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.lookmove.ch/EN"
     },
     {
       "id": "flatli",
@@ -302,7 +318,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://flatli.ch/en"
     },
     {
       "id": "urbanhome",
@@ -317,7 +334,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.urbanhome.ch/"
     },
     {
       "id": "apartmentszurich",
@@ -347,7 +365,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://realadvisor.ch/en"
     },
     {
       "id": "homematch",
@@ -362,7 +381,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://homematch.ch/en"
     },
     {
       "id": "wgzimmer",
@@ -377,7 +397,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.wgzimmer.ch/"
     },
     {
       "id": "students",
@@ -392,7 +413,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.students.ch/"
     },
     {
       "id": "nachmieter",
@@ -407,7 +429,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.nachmieter.ch/"
     },
     {
       "id": "graubuenden_tourism",
@@ -422,7 +445,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.graubuenden.ch/en/booking/accommodation"
     },
     {
       "id": "apartments_switzerland",
@@ -524,7 +548,15 @@
     "localFileProcessing": [
       "html",
       "htm",
-      "txt"
+      "txt",
+      "md",
+      "pdf",
+      "docx",
+      "xlsx",
+      "pptx",
+      "csv",
+      "tsv",
+      "json"
     ],
     "localProcessingLimitBytes": 5242880,
     "fileUploadToServer": false

@@ -93,10 +93,15 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(ui, /Save personal research note/);
   assert.match(ui, /Saved notes/);
   assert.match(ui, /importLocalPageFile/);
+  assert.match(ui, /extractFileContent/);
+  assert.match(ui, /Open source website/);
+  assert.match(ui, /Image OCR is not available yet/);
   assert.match(ui, /new DOMParser\(\)/);
   assert.match(ui, /file itself was not uploaded/);
   assert.equal(registry.sources.length, 29);
   assert.ok(registry.sources.every((source) => source.manualReview?.personalNotebookCaptureStatus === 'enabled'));
+  assert.ok(registry.sources.filter((source) => source.homepageUrl).length >= 20);
+  assert.ok(registry.sources.filter((source) => source.homepageUrl).every((source) => new URL(source.homepageUrl).protocol === 'https:'));
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immogr_manual_reviews/);
   assert.match(migration, /REFERENCES immogr_localities/);
   assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
