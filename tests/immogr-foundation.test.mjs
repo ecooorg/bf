@@ -61,7 +61,7 @@ test('database commune seed matches the official runtime catalogue and leaves us
   const coreMigration = read('migrations/031_immogr_core.sql');
   assert.doesNotMatch(coreMigration, /immogr_communes/);
   assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_communes/);
-  assert.match(sql, /FOREIGN KEY \\(commune_id\\) REFERENCES immogr_communes\\(bfs_id\\)/);
+  assert.match(sql, /FOREIGN KEY \(commune_id\) REFERENCES immogr_communes\(bfs_id\)/);
   const seed = sql.split('INSERT INTO immogr_communes')[1].split('ON CONFLICT')[0];
   for (const commune of IMMOGR_COMMUNES) {
     assert.ok(seed.includes(`(${commune.bfsId}, '${commune.name}'`), `missing seed for ${commune.name}`);
