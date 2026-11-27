@@ -45,3 +45,8 @@ Suggested fields:
 - `capture_rights_status_snapshot` copied from the source registry at save time, plus `created_at`, `updated_at`, and review-state history.
 
 Manual records must not contain copied full-page HTML, session cookies, passwords, or unnecessary personal data. Store source URL and provenance; keep uncertain facts as unknown or inference. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record. Database capture must check the source-specific `databaseCaptureStatus`; where rights are unclear or restrictive, do not persist copied listing content until the issue is resolved.
+
+
+### Owner-approved local personal notebook clarification (2026-11-27)
+
+The Owner may keep local page or screenshot copies and process them with local tools or automation. The ImmoGR browser import currently reads selected HTML/HTM/TXT files locally (maximum 5 MB), extracts text into an editable notes field, and does not upload the source file itself. Only the Owner-approved structured fields and edited notes are persisted. This is private notebook data, not a public listing feed. Remote crawling and server-side proxying remain separate and are not enabled by this workflow.
