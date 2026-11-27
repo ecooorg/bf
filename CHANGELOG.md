@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR candidate and local research cards (P131.20)
+- Added category-aware discovery cards, local-copy research previews and saved evidence-labelled research cards; discovery leads remain unverified and unadmitted.
+- Persisted the Direct Rental / Private Owner Prospect distinction for owner-captured records; fixed the UI to submit the selected search category.
+
 ## 2026-11-27 — ImmoGR Gemini key isolation and search diagnostics (P131.19)
 - Removed model-wide quota parking: each Gemini key now cools down independently per model, so a 429 from one Google project cannot suppress other project keys.
 - Restricted ImmoGR discovery candidates to the selected source domains and deduplicated normalized listing URLs before returning them.
