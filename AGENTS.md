@@ -35,6 +35,7 @@ If any other note, chat summary, or prior assistant message conflicts with this 
 | Acceptance | docs/IMMOGR_ACCEPTANCE_CRITERIA.md |
 | Owner-approved decisions | docs/IMMOGR_DECISIONS.md |
 | Historical lessons (not executable authority) | docs/IMMOGR_KNOWLEDGE_EXTRACTION.md |
+| Continuous source monitoring and status decisions | docs/IMMOGR_SOURCE_REGISTRY.md and config/immogr/sources.json |
 | Current programme stages | docs/IMMOGR_ROADMAP.md |
 
 ## 0. Hard gates (fail closed)

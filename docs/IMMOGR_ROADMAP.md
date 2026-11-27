@@ -12,7 +12,8 @@
 ## WP1 — Knowledge extraction, product definition, source research, isolated foundation
 - Review early and late ImmoFinder history and extract abstract successful/failed patterns.
 - Define result categories, evidence model, owner classification, source permission protocol, and quality gates.
-- Research candidate sources; no source activated without terms/access review and a five-page pilot.
+- Maintain a living source inventory with monthly discovery and status review; assess retain/add/downgrade/retire decisions by unique verified yield.
+- Pilot Flatradar, aptari, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor, Homematch and niche sources under their individual access rules; no source activated without terms/access review and a five-page pilot.
 - Establish independent UI/API/config/data/test namespaces and verify no legacy imports or database reads.
 - Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
 

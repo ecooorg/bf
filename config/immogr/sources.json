@@ -130,6 +130,134 @@
       "status": "permission_required",
       "ownerSignal": "Private providers can list accommodation; destination and agency reservation systems can integrate",
       "permission": "Partner integration or private landlord programme; access as a downstream consumer requires a separate agreement"
+    },
+    {
+      "id": "flatradar_ch",
+      "name": "Flatradar Switzerland",
+      "category": "aggregator",
+      "status": "research_required",
+      "ownerSignal": "Claims 15-minute scans, 10k+ listings; Flatfox and Weegee named; landing-page counters showed zero in current research session.",
+      "permission": "Public landing page describes Flatradar's own aggregation but grants no rights to ImmoGR; no terms/robots permission established. Do not confuse with flatradar.app."
+    },
+    {
+      "id": "aptari",
+      "name": "aptari",
+      "category": "aggregator",
+      "status": "discovery_only",
+      "ownerSignal": "Open feed aggregates Homegate, ImmoScout24, Flatfox and about 800 cooperative websites; valuable for finding original sources.",
+      "permission": "Terms §6 prohibit automated bulk requests outside intended functions. Human browsing only; no automated feed extraction or copying without written permission/API."
+    },
+    {
+      "id": "lookmove_portal",
+      "name": "Lookmove portal",
+      "category": "aggregator",
+      "status": "excluded_pending_written_permission",
+      "ownerSignal": "Claims 150+ source portals and agency sites; rental and sale listings; some underlying records not published on portal.",
+      "permission": "GTU §§15.1, 21.1 and 21.4 limit use to personal consultation and prohibit unauthorized reproduction/download/reuse; obtain prior written consent."
+    },
+    {
+      "id": "flatli",
+      "name": "Flatli",
+      "category": "aggregator",
+      "status": "research_required",
+      "ownerSignal": "Claims nationwide rental aggregation, six-hour sweeps and free private-landlord posting.",
+      "permission": "Verify operator, terms, robots, source lineage and detail pages; no automated permission established."
+    },
+    {
+      "id": "urbanhome",
+      "name": "UrbanHome",
+      "category": "first_hand_marketplace",
+      "status": "research_required",
+      "ownerSignal": "Current help/portal survey describes private free listings and replacement-tenant offers; first-hand inventory claimed.",
+      "permission": "High-priority five-page pilot; current terms/robots and automated access permission not yet reviewed."
+    },
+    {
+      "id": "apartmentszurich",
+      "name": "Apartments Zurich",
+      "category": "first_hand_marketplace",
+      "status": "research_required",
+      "ownerSignal": "About page says private landlords and replacement tenants can post free; public detailed listing search.",
+      "permission": "High-priority five-page pilot; verify operator, current terms, robots and contact provenance."
+    },
+    {
+      "id": "realadvisor",
+      "name": "RealAdvisor",
+      "category": "aggregator",
+      "status": "research_required",
+      "ownerSignal": "Rental search claims portal aggregation plus direct agency/landlord listings and publisher/contact display.",
+      "permission": "Discovery/cross-check only until current terms and permitted acquisition method are reviewed."
+    },
+    {
+      "id": "homematch",
+      "name": "Homematch",
+      "category": "discovery_feed",
+      "status": "research_required",
+      "ownerSignal": "Current portal guide describes nationwide personal feed and direct messaging to private landlords/agencies.",
+      "permission": "Assess original URL visibility, terms, robots and permitted feed/API."
+    },
+    {
+      "id": "wgzimmer",
+      "name": "WGzimmer.ch",
+      "category": "niche_marketplace",
+      "status": "research_required",
+      "ownerSignal": "Niche room and flatshare inventory.",
+      "permission": "Lower priority for whole apartments; review terms and access rules."
+    },
+    {
+      "id": "students",
+      "name": "students.ch",
+      "category": "niche_marketplace",
+      "status": "research_required",
+      "ownerSignal": "Student-oriented rooms and apartment marketplace.",
+      "permission": "Lower priority; review terms and access rules."
+    },
+    {
+      "id": "nachmieter",
+      "name": "Nachmieter.ch",
+      "category": "replacement_tenant_marketplace",
+      "status": "research_required",
+      "ownerSignal": "Replacement-tenant listings can surface early termination opportunities.",
+      "permission": "Useful supplementary category; verify original owner/landlord distinction and access rules."
     }
-  ]
+  ],
+  "monitoring": {
+    "policy": "continuous_source_intelligence",
+    "reviewCadence": {
+      "active": "authorized health/schema checks; weekly yield review; monthly discovery scan",
+      "research_required": "monthly public research refresh; no automated acquisition",
+      "permission_required": "monthly contract/API status review",
+      "immediateTriggers": [
+        "terms change",
+        "robots change",
+        "operator/domain change",
+        "API/feed change",
+        "repeated 403/429/401",
+        "schema regression",
+        "source stops publishing"
+      ]
+    },
+    "requiredFields": [
+      "canonicalDomain",
+      "operator",
+      "lineage",
+      "termsUrl",
+      "termsReviewedAt",
+      "termsVersionOrHash",
+      "robotsReviewedAt",
+      "authorizedMethod",
+      "pilotSampleCount",
+      "pilotQuality",
+      "lastHealthCheckAt",
+      "lastInventoryReviewAt",
+      "nextReviewAt",
+      "decisionReason"
+    ],
+    "activationRequires": [
+      "documented permitted access method",
+      "terms and robots review",
+      "at least five real detail pages",
+      "owner/contact attribution review",
+      "duplicate and freshness measurements"
+    ]
+  }
 }

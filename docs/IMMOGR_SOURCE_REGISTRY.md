@@ -72,3 +72,42 @@ Automated access should preferentially use a documented API or a contractual par
 
 ### Commercial-use guardrail
 No paid subscription, six-month commitment, partner agreement, or API key purchase is authorized by this repository change. Obtain the provider's written confirmation of permitted personal use, integration, display, contact data, retention, and export before implementation.
+
+
+## Continuous source intelligence — owner-approved policy (2026-11-27)
+
+The registry is a living inventory, not a fixed allowlist of familiar portals. ImmoGR must continuously discover and assess new Swiss and regionally relevant sources, including aggregators, first-hand marketplaces, private classifieds, cooperative directories, holiday-rental platforms, tourism providers, and licensed data feeds.
+
+### Candidate assessment from current public research
+
+| Candidate | What current public evidence says | Initial decision |
+|---|---|---|
+| Flatradar (flatradar.ch) | Advertises a Swiss AI rental search, scanning every 15 minutes, 10,000+ listings and Flatfox/Weegee among named sources. The landing page currently exposed zero listing counters to this research session. Its own automated scanning claim is not a licence for ImmoGR to crawl either Flatradar or its underlying portals. | `research_required`; test public search and detail-page click-through manually; identify actual source URLs, operator terms, robots, current live inventory and duplicate ratio. Do not automate until access rights are clear. Do not confuse it with flatradar.app, a different service/domain. |
+| aptari (aptari.ai) | Public no-login feed claims Homegate, ImmoScout24, Flatfox and about 800 cooperative websites. It is a high-value discovery map, not an original listing source. Its terms §6 prohibit automated bulk requests outside intended functions. | `discovery_only`; use ordinary human browsing for research only. No automated bulk acquisition, API probing or copying of its feed without written permission/official API. Follow source links to original cooperative/provider pages and assess each original site independently. |
+| Lookmove (lookmove.ch) | Public portal says it collects 150+ sources and lists rentals and sales; separate API Listing Feed is marketed as a licensed product. The current English GTU (last updated 2019) allows only limited personal consultation and says other use requires prior written consent; it also restricts downloading/copying/reuse of site/database content. | Website: `excluded_pending_written_permission` for automated acquisition. API: `permission_required`; investigate contract, price, internal/personal use, contact fields, original URLs, source lineage and retention rights. Do not treat portal access and paid API rights as interchangeable. |
+| Flatli (flatli.ch) | Public site claims nationwide rental aggregation, six-hour sweeps, 23,562 listings, and a free private-landlord posting route. | `research_required`; promising aggregator/discovery lead. Verify legal operator, terms, robots, source lineage, whether detail pages are first-party, private-owner attribution, and at least five real examples before any automation. |
+| UrbanHome (urbanhome.net) | Current Swiss portal comparison identifies it as a first-hand marketplace; UrbanHome help says private owners can list free and tenants can post replacement-tenant offers. | `research_required`; high-priority direct-marketplace pilot for Direct Rental and private-owner signals. Check current terms/robots and real listing pages first. |
+| Apartments Zurich (apartmentszurich.ch) | Its About page says private landlords and replacement tenants can post free; public browsing and detailed listing fields are described. | `research_required`; high-priority private-owner candidate. Verify current terms, robots, operator, listing URLs, and page-level advertiser/contact evidence. |
+| RealAdvisor (realadvisor.ch) | Public rental search says it combines major portals and direct agency/landlord listings, merges duplicates, and displays publisher/contact routes. | `research_required`; discovery and cross-check candidate, not automatically a primary source. Check terms, API/feed and source-level provenance before acquisition. |
+| Homematch (homematch.ch) | Current portal guide describes a cross-Switzerland personal feed, direct messages to agencies/private landlords and suggestions beyond search area. | `research_required`; discovery candidate; establish whether listings link to originals and whether a permitted integration exists. |
+| WGzimmer.ch / students.ch / Nachmieter.ch | Current portal survey identifies niche room, student and replacement-tenant inventory. | `research_required`; lower priority for whole-apartment owner goals, but useful for replacement-tenant leads and market coverage. Review each operator's rules separately. |
+| Cooperatives (individual official websites) | aptari describes a directory of 1,348 cooperatives and says it reads hundreds of cooperative websites; this is a discovery lead, not a permission grant. | Create a separate per-domain registry record. Review each cooperative website's own terms/robots and access rules; never inherit aptari's access status. |
+
+### Monitoring protocol
+
+Every source record must track: canonical domain and operator; source class; original/aggregated lineage; owner-signal potential; result categories served; current status; terms URL/version/hash/review date; robots and sitemap review date; documented API/feed and licence scope; last successful human pilot; sample count and page-quality metrics; last health check; last inventory-change check; next review due; decision owner and reason.
+
+Statuses:
+- `active`: authorized acquisition method documented and pilot passed.
+- `discovery_only`: can point to candidates/original sources but cannot supply copied listing data to ImmoGR.
+- `research_required`: insufficient evidence to decide; no automated acquisition.
+- `permission_required`: operator permission, API licence, or contract needed.
+- `excluded_pending_written_permission`: current terms prohibit the intended automated collection/reuse.
+- `degraded`: formerly active source has access, quality, freshness, or schema regression; pause acquisition until reviewed.
+- `retired`: no longer useful, unavailable, or owner-directed removal.
+
+Review cadence after a source is admitted: automated health/availability and schema checks only through the authorized channel; weekly inventory/yield and duplicate review; monthly source discovery and competitor scan; immediate re-review when terms, robots, operator, endpoints, or access responses change. Research-only candidates receive a monthly status refresh, not automated page crawling. Do not create a recurring job until the authorized channel and cadence are documented.
+
+Source decisions are evidence-based: retain high-yield original sources; keep aggregators only where they reveal unique original URLs or improve discovery; add sources that demonstrably contribute new eligible pages; downgrade sources with stale, duplicate, agency-only, or poor commune coverage; retire sources that are persistently unavailable or legally/contractually unusable. Track source contribution by unique verified owner leads and Direct Rentals, not raw listing count.
+
+**Current outcome:** no new candidate in this section is approved for automated acquisition. Flatradar, aptari, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor and Homematch are added to the research programme; only aptari is presently classified discovery-only because its terms expressly restrict automated bulk requests. No paid API, subscription, contract, or outreach has been initiated.

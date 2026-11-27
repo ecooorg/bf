@@ -23,3 +23,12 @@ A source with terms that prohibit scraping, automated scripts, reuse, or externa
 ## D-IMMOGR-006 — Prefer licensed feeds; no unapproved spend (2026-11-27)
 
 Prefer documented APIs and contractual partner feeds over scraping. Commercial access must be reviewed for personal/internal use, contact attribution, display, retention, and redistribution rights. No paid subscription or multi-month commitment may be started without explicit owner approval of the price and contract terms.
+
+
+## D-IMMOGR-007 — Continuous source intelligence (2026-11-27)
+
+The source registry is a continuously monitored inventory, not a fixed portal allowlist. ImmoGR must discover new Swiss and regional sources, evaluate their unique contribution, and periodically retain, add, downgrade, or retire them based on verified unique owner leads and eligible rentals. Every source has its own terms, robots, API/feed, lineage, health, yield, and review record. A platform's permission never transfers to its upstream sources, and an aggregator's own crawling claims never grant ImmoGR permission. Research-only means no automated acquisition. No recurring monitor is scheduled until each monitored channel is authorized.
+
+## D-IMMOGR-008 — Candidate-specific status, no implied permission (2026-11-27)
+
+Flatradar.ch, aptari.ai, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor, Homematch, WGzimmer.ch, students.ch and Nachmieter.ch are added to the research inventory. aptari is discovery-only because its terms prohibit automated bulk requests outside intended functions. Lookmove's consumer site is excluded from automated acquisition pending written permission; its API is a separate licensed-feed inquiry. The remaining candidates are research-required until their own current terms, robots, page pilots, and access methods are reviewed. No API, subscription, contract, or paid commitment is approved by this research update.
