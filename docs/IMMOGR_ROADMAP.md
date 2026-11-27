@@ -35,7 +35,7 @@
 - [ ] Research licensed API/feed candidates (including Lookmove API, discover.swiss, STnet OpenBooking and e-domizil) in parallel, but do not purchase, sign or commit spend without explicit Owner approval.
 - [ ] After the initial all-source review, recommend retain / prioritize / discovery-only / pause / exclude separately for manual research and automated acquisition. Any automated source activation still requires a documented permitted method and its own approval gate.
 
-**WP2 deliverables:** completed 29-source manual research matrix; representative page sample and zero-yield records; 44-locality alias evidence; manual-review UX/data contract; source-value ranking; and an Owner decision on which sources merit licensed access or later automation.
+**WP2 deliverables:** completed 29-source manual research matrix; representative page sample and zero-yield records; official postcode evidence for the 44 existing localities; manual-review UX/data contract; source-value ranking; and an Owner decision on which sources merit licensed access or later automation.
 
 ## WP3 — Authorized acquisition and page representation
 - Implement source-specific automated acquisition only for sources with a documented permitted API/feed or explicit written authorization.
@@ -79,7 +79,7 @@
 
 ### WP2 / WP3 transition — 2026-11-27
 
-The WP2 software deliverables are in place: exact 44-locality selector, 29-source registry/UI, authenticated personal notebook, additive persistence contract, local document import and local structured-data suggestions. WP2 is **not operationally accepted**: all 29 source records still show `manualReview.status=not_started`, no five-page source samples have been entered, and locality aliases/postcodes have not yet been verified against authoritative evidence. Those are real research activities, not tasks that can be truthfully completed by changing code or relabelling records.
+The WP2 software deliverables are in place: exact 44-locality selector, 29-source registry/UI, authenticated personal notebook, additive persistence contract, local document import and local structured-data suggestions. WP2 is **not operationally accepted**: all 29 source records still show `manualReview.status=not_started`, no five-page source samples have been entered, and official postcodes have not yet been verified against authoritative evidence; locality aliases are not in scope per D-IMMOGR-014. Those are real research activities, not tasks that can be truthfully completed by changing code or relabelling records.
 
 WP3 has started with a fail-closed authorization and page-representation contract. It intentionally activates no source: the current registry contains no source with a complete documented API/feed authorization, terms/robots approval and exact host allowlist. This permits implementation to proceed without silently treating manual browsing, public visibility, or the private notebook as remote acquisition permission.
 
