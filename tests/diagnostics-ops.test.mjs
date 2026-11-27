@@ -74,8 +74,8 @@ test('ImmoGR search diagnostics expose provider failures and a direct ZIP downlo
   const page = read('src/ImmoGR.tsx');
   const engine = read('server/immogr/index.ts');
   assert.match(page, /downloadAllLogs/);
-  assert.match(page, /Download diagnostics \(ZIP\)/);
-  assert.match(page, /Last search diagnostics/);
+  assert.match(page, /Download logs/);
+  assert.doesNotMatch(page, /Last search diagnostics/);
   assert.match(page, /body\.reason/);
   assert.match(engine, /discovery_failed/);
   assert.match(engine, /attemptedModels/);
