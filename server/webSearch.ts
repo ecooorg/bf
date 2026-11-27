@@ -735,7 +735,7 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
   const digests: string[] = [];
   for (const p of used) {
     for (const s of p.sources) {
-      if (!s.url || seenUrl.has(s.url) || sources.length >= MAX_SOURCES) continue;
+      if (!s.url || seenUrl.has(s.url) || sources.length >= maxSources) continue;
       seenUrl.add(s.url);
       sources.push(s);
     }
