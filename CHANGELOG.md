@@ -1,3 +1,8 @@
+## 2026-11-27 — ImmoGR evidence validation hardening (P131.22)
+- Require a listing-detail URL for qualified private-owner prospects.
+- Remove personal phone numbers, email addresses and person-addressed contact lines from evidence quotations.
+- Validate field values against the content of their own evidence quotations.
+
 ## 2026-11-27 — ImmoGR evidence-backed AI listing analysis (P131.21)
 - Added Gemini analysis for user-selected local page copies; one source page can produce multiple individual listing cards.
 - Validated populated facts against exact source quotations and detail URLs against observed same-domain links.

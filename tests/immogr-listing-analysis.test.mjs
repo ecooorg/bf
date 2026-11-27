@@ -76,3 +76,15 @@ test('UI sends only extracted text and same-source links, not the original local
  assert.doesNotMatch(action, /localPageSnapshot|setLocalPageSnapshot/);
  assert.match(ui, /immogr-ai-listing-cards/);
 });
+
+test('contact details are excluded from evidence and catalog pages cannot qualify as private-owner detail listings', () => {
+ const withPhone = { ...good.candidates[0], directContact: 'phone', evidence: [...good.candidates[0].evidence, { field: 'directContact', quote: 'Telefon +41 81 123 45 67' }] };
+ const phoneText = pageText + ' Telefon +41 81 123 45 67';
+ const phoneResult = normalizeImmoGRListingAnalysis({ ...good, candidates: [withPhone] }, { pageUrl, sourceHost: 'portal.example.ch', pageText: phoneText, category: 'direct_rental', localities, allowedLinks: [] });
+ assert.equal(phoneResult.candidates[0].directContact, 'unknown');
+ assert.equal(phoneResult.candidates[0].evidence.some((entry) => entry.quote.includes('+41 81')), false);
+ const privateCandidate = { ...good.candidates[0], ownerClass: 'private_owner', directContact: 'contact_form', minTermYears: 3, evidence: [...good.candidates[0].evidence, { field: 'ownerClass', quote: 'von privat' }, { field: 'directContact', quote: 'Kontaktformular' }, { field: 'minTermYears', quote: 'Mindestmietdauer 3 Jahre' }] };
+ const catalogText = pageText + ' von privat Kontaktformular Mindestmietdauer 3 Jahre';
+ const catalogResult = normalizeImmoGRListingAnalysis({ pageType: 'catalog', candidates: [privateCandidate] }, { pageUrl, sourceHost: 'portal.example.ch', pageText: catalogText, category: 'private_owner_prospect', localities, allowedLinks: [] });
+ assert.equal(catalogResult.candidates[0].qualification, 'needs_review');
+});
