@@ -22,6 +22,7 @@ export default function ImmoGR() {
   });
   const [localities, setLocalities] = useState<LocalityOption[]>([]);
   const [manualLocalities, setManualLocalities] = useState<LocalityOption[]>([]);
+  const [selectedLocalityIds, setSelectedLocalityIds] = useState<string[]>(() => { try { const saved = JSON.parse(localStorage.getItem('immogr.selectedLocalityIds') || '[]'); return Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []; } catch { return []; } });
   const [category, setCategory] = useState<'direct_rental' | 'private_owner_prospect'>('direct_rental');
   const [leads, setLeads] = useState<DiscoveryLead[]>([]);
   const [searching, setSearching] = useState(false);
@@ -54,14 +55,15 @@ export default function ImmoGR() {
   }, [groupMode]);
   useEffect(() => {
     Promise.all(['both', 'chur'].map((mode) => fetch('/api/immogr/localities?groupMode=' + mode, { credentials: 'same-origin' })
-      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Manual locality reference unavailable'); return Array.isArray(body.localities) ? body.localities : []; })))
-      .then((groups) => setManualLocalities(groups.flat()))
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Locality reference unavailable'); return Array.isArray(body.localities) ? body.localities : []; })))
+      .then((groups) => { const all = groups.flat(); setManualLocalities(all); try { if (localStorage.getItem('immogr.selectedLocalityIds') === null) setSelectedLocalityIds(all.map((item) => item.id)); } catch { /* Browser storage may be unavailable. */ } })
       .catch(() => setManualLocalities([]));
   }, []);
+  useEffect(() => { try { localStorage.setItem('immogr.selectedLocalityIds', JSON.stringify(selectedLocalityIds)); } catch { /* Browser storage may be unavailable. */ } }, [selectedLocalityIds]);
   useEffect(() => {
     fetch('/api/immogr/sources', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Source registry unavailable'); return body; })
-      .then((body) => setSources(Array.isArray(body.sources) ? body.sources : []))
+      .then((body) => { const next = Array.isArray(body.sources) ? body.sources : []; setSources(next); try { if (localStorage.getItem('immogr.enabledSourceIds') === null) setSelectedSourceIds(next.map((source: ManualSource) => source.id)); } catch { /* Browser storage may be unavailable. */ } })
       .catch((reason) => setManualMessage(reason instanceof Error ? reason.message : 'Source registry unavailable'));
   }, []);
   useEffect(() => {
@@ -230,8 +232,9 @@ export default function ImmoGR() {
   async function discover(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSearching(true); setSearchError(''); setSearchDiagnostics(null); setLeads([]); setSearched(false);
     try {
-      if (!selectedSourceIds.length) throw new Error('Select at least one source in Search settings.');
-      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locality, groupMode, category, sourceIds: selectedSourceIds }) });
+      if (!selectedSourceIds.length) throw new Error('Select at least one source.');
+      if (!selectedLocalityIds.length) throw new Error('Select at least one locality.');
+      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localityIds: selectedLocalityIds, category: 'direct_rental', sourceIds: selectedSourceIds }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         const diagnostics = body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : {
@@ -263,7 +266,19 @@ export default function ImmoGR() {
       .immogr-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
       .immogr-photo-card { min-width: 0; border: 1px solid #40536b; border-radius: 10px; padding: 8px; }
       .immogr-photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: #101f33; }
-      .immogr-source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+      .immogr-source-grid, .immogr-locality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+      .immogr-selection-block { margin-bottom: 20px; }
+      .immogr-selection-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .immogr-selection-heading h2 { margin: 0 0 10px; font-size: 20px; }
+      .immogr-selection-heading span { color: #9aadc5; font-size: 13px; }
+      .immogr-selection-actions, .immogr-search-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+      .immogr-selection-actions button, .immogr-search-actions button { padding: 9px 14px; border: 1px solid #52708f; border-radius: 8px; background: #152b43; color: #eef4ff; }
+      .immogr-search-actions { justify-content: flex-end; margin-top: 18px; }
+      .immogr-search-actions button:last-child { background: #2473ad; border-color: #2473ad; font-weight: 700; min-width: 130px; }
+      .immogr-advanced { margin-top: 16px; }
+      .immogr-advanced > summary { cursor: pointer; color: #9aadc5; padding: 12px 0; }
+      .immogr-lead-list li { margin: 10px 0; overflow-wrap: anywhere; }
+      .immogr-lead-list li div { color: #9aadc5; font-size: 12px; }
       .immogr-probe-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
       .immogr-probe-result { border: 1px solid #40536b; border-radius: 9px; padding: 12px; background: #101f33; min-width: 0; }
       .immogr-source-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #40536b; border-radius: 9px; background: #101f33; }
@@ -284,56 +299,42 @@ export default function ImmoGR() {
       }
     `}</style>
     <p><a href="/">← BiForge home</a></p>
-    <header style={{ margin: '22px 0 28px' }}>
-      <p style={{ color: '#9fd8ff', letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>INDEPENDENT PROPERTY DISCOVERY</p>
-      <h1 style={{ fontSize: 36, margin: '8px 0' }}>ImmoGR</h1>
-      <p style={{ color: '#9aadc5', maxWidth: 760 }}>An evidence-first search system for long-term rentals and private-owner prospects in Graubünden.</p>
-      <span style={{ display: 'inline-block', border: '1px solid #52647a', borderRadius: 999, padding: '5px 12px', fontSize: 13 }}>WP2 · Manual source research</span>
+    <header style={{ margin: '8px 0 18px' }}>
+      <h1 style={{ fontSize: 32, margin: '8px 0' }}>ImmoGR · Rental search</h1>
     </header>
-    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} aria-live="polite">
-      <h2 style={{ marginTop: 0 }}>Search engine status</h2>
-      {error && <p role="alert">{error}</p>}
-      {!status && !error && <p>Checking ImmoGR status…</p>}
-      {status && <><p><strong>{status.stage}</strong></p><p>{status.message}</p><p style={{ color: '#f4d28b', marginBottom: 0 }}>Live URL discovery: {status.liveDiscoveryEnabled ? 'available' : 'not configured'} · Verified listing admission: disabled · Automated source-page acquisition: disabled.</p></>}
-    </section>
-    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
-      <h2 style={{ marginTop: 0 }}>Target localities</h2>
-      <p style={{ color: '#9aadc5' }}>The search geography is the exact owner-defined locality list, not municipalities. Only these 44 localities are in scope; all other places are excluded. Group selection is remembered in this browser.</p>
-      <label>Enabled locality groups<select value={groupMode} onChange={(e) => changeGroupMode(e.target.value as GroupMode)} style={field}><option value="group1">Group 1 · 22 important localities</option><option value="group2">Group 2 · 22 secondary localities</option><option value="both">Both groups · all 44 localities</option><option value="chur">Chur · standalone</option></select></label>
-      <p style={{ color: '#9aadc5', fontSize: 13 }}>The selection controls which localities appear in search and which locations the discovery API will accept.</p>
-    </section>
-    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <h2 style={{ marginTop: 0 }}>Live discovery leads</h2>
-        <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>{diagnosticsDownloading ? 'Preparing diagnostics…' : 'Download diagnostics (ZIP)'}</button>
-      </div>
-      <details className="immogr-settings" style={{ margin: '12px 0 18px', border: '1px solid #40536b', borderRadius: 10, padding: 12, background: '#0e1c2e' }}>
-        <summary>Search settings · sources ({selectedSourceIds.length} selected of {sources.length || 29})</summary>
-        <p style={{ color: '#9aadc5', fontSize: 13 }}>Choose the sources to include in discovery. Your selection is saved in this browser. Selecting a source does not change its automated-access status or grant access rights; it only limits the search-engine discovery request to the sources you choose.</p>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <button type="button" onClick={() => { setSelectedSourceIds(sources.map((source) => source.id)); setSourceSettingsMessage(''); }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Select all</button>
-          <button type="button" onClick={() => { setSelectedSourceIds([]); setSourceSettingsMessage(''); }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Clear selection</button>
-          <button type="button" onClick={downloadSelectedProbeBatch} disabled={!selectedSourceIds.length} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Export selected sources for local probe</button>
+    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-search">
+      <div className="immogr-selection-block">
+        <div className="immogr-selection-heading"><h2>Sources</h2><span>{selectedSourceIds.length} / {sources.length || 29}</span></div>
+        <div className="immogr-selection-actions">
+          <button type="button" onClick={() => setSelectedSourceIds(sources.map((source) => source.id))}>Select all</button>
+          <button type="button" onClick={() => setSelectedSourceIds([])}>Clear</button>
         </div>
-        {sourceSettingsMessage && <p role="status" style={{ color: '#9fe2b2', fontSize: 13 }}>{sourceSettingsMessage}</p>}
         <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
-          <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => { setSourceSettingsMessage(''); setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id)); }} />
-          <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus} · probe: {source.probePolicyStatus || 'not_reviewed'}</small></span>
+          <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
+          <span>{source.name}</span>
         </label>)}</div>
-      </details>
-      <p style={{ color: '#9aadc5' }}>Search current candidate URLs for one selected locality. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records.</p>
-      <form onSubmit={discover} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, alignItems: 'end' }}>
-        <label>Target locality<select required value={locality} onChange={(e) => setLocality(e.target.value)} style={field}><option value="">Select a target locality</option>{localities.map((item) => <option key={item.id} value={item.name}>{item.name} · {item.group === 0 ? 'Standalone' : 'Group ' + item.group}</option>)}</select></label>
-        <label>Discovery category<select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} style={field}><option value="direct_rental">Direct Rental leads</option><option value="private_owner_prospect">Private Owner Prospect leads</option></select></label>
-        <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
-      </form>
+      </div>
+      <div className="immogr-selection-block">
+        <div className="immogr-selection-heading"><h2>Localities</h2><span>{selectedLocalityIds.length} / {manualLocalities.length || 45}</span></div>
+        <div className="immogr-selection-actions">
+          <button type="button" onClick={() => setSelectedLocalityIds(manualLocalities.map((item) => item.id))}>Select all</button>
+          <button type="button" onClick={() => setSelectedLocalityIds([])}>Clear</button>
+        </div>
+        <div className="immogr-locality-grid">{manualLocalities.map((item) => <label className="immogr-source-toggle" key={item.id}>
+          <input type="checkbox" checked={selectedLocalityIds.includes(item.id)} onChange={(event) => setSelectedLocalityIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} />
+          <span>{item.name}</span>
+        </label>)}</div>
+      </div>
+      <div className="immogr-search-actions">
+        <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading}>{diagnosticsDownloading ? 'Preparing logs…' : 'Download logs'}</button>
+        <button type="button" onClick={() => void discover({ preventDefault() {} } as FormEvent<HTMLFormElement>)} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
+      </div>
       {searchError && <p role="alert">{searchError}</p>}
-      {searchDiagnostics && <details open style={{ marginTop: 10, border: '1px solid #52647a', borderRadius: 8, padding: 10 }}><summary>Last search diagnostics</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(searchDiagnostics, null, 2)}</pre></details>}
-      {searched && <p>{leads.length} candidate URL(s) returned for {locality}. Each needs manual page and access review.</p>}
-      {leads.length > 0 && <ul style={{ paddingLeft: 20 }}>{leads.map((lead) => <li key={lead.url} style={{ margin: '12px 0' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{lead.host} · UNVERIFIED URL · manual source review required</div></li>)}</ul>}
-      <p style={{ color: '#9aadc5', fontSize: 12 }}>Selected sources: {sources.filter((source) => selectedSourceIds.includes(source.id)).map((source) => source.name).join(', ') || 'none'}.</p>
-      <p style={{ color: '#f4d28b', fontSize: 12, marginBottom: 0 }}>A search result is not a property listing. No price, locality, owner, contact, or availability is verified at this stage.</p>
+      {searched && <p role="status">{leads.length} candidate URLs found (maximum 100). Results are unverified.</p>}
+      {leads.length > 0 && <ol className="immogr-lead-list">{leads.map((lead) => <li key={lead.url}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title || lead.host}</a><div>{lead.host} · unverified</div></li>)}</ol>}
     </section>
+    <details className="immogr-advanced">
+      <summary>Personal notebook and research tools</summary>
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
       <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Select a source, open its page, and save your observations. Automation status is shown separately and does not hide manual research.</p>
@@ -409,6 +410,7 @@ export default function ImmoGR() {
         {result.reportPath && <p style={{ margin: '6px 0 0', color: '#9aadc5', fontSize: 11, overflowWrap: 'anywhere' }}>Local report: {result.reportPath}</p>}
       </article>)}</div>
     </section>}
+    </details>
     <p style={{ marginTop: 24, color: '#8fa6c2', fontSize: 13 }}>ImmoFinder is permanently retired. ImmoGR has separate code, configuration, data, search runs, and quality checks.</p>
   </main>;
 }
