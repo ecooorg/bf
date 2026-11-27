@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR notebook follow-up
+- **CHANGE:** Notebook routes now fail closed without app authentication; source-specific saved-note history is visible in the UI.
+- **NOT_RUN:** CI, typecheck, live migration, browser smoke and deployment verification.
+
 ## 2026-11-27 — ImmoGR personal research notebook
 - **CHANGE:** Added source registry API, manual capture UI/API, browser-side local HTML/HTM/TXT extraction (5 MB cap), and `immogr_manual_reviews` migration 034; Owner clarified private local-copy processing scope.
 - **NOT_RUN:** Typecheck, test suite, migration against live PostgreSQL, browser/mobile smoke, hosted CI and production deploy verification.
