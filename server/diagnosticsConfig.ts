@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { redactSecrets } from './redact.ts';
 
-const SECRET_NAME = /(KEY|SECRET|TOKEN|PASSWORD|PASSWD|PASS$|PRIVATE|CREDENTIAL|COOKIE|SALT|AUTH|BEARER|CERT|PEM|DSN|DATABASE_URL|CONNECTION)/i;
+const SECRET_NAME = /(KEY|SECRET|TOKEN|PASSWORD|PASSWD|PASS$|PRIVATE|CREDENTIAL|COOKIE|SALT|AUTH|BEARER|CERT|PEM|DSN|DATABASE_URL|CONNECTION|SERVICE_ACCOUNT|CREDENTIALS_JSON)/i;
 const PLATFORM_NAME = /^(PATH|HOME|PWD|OLDPWD|SHLVL|_|HOSTNAME|LANG|LANGUAGE|LC_.*|TERM|USER|LOGNAME|SHELL|TMPDIR|TZ|INIT_CWD|EDITOR|PAGER|npm_.*|PNPM_.*|YARN_.*|KUBERNETES_.*|.*_PORT_\d+.*|.*_SERVICE_(HOST|PORT).*)$/;
 
 export type ConfigEntry = { name: string; secret: boolean; value?: string; set?: true; length?: number; sha256?: string };
