@@ -1,3 +1,6 @@
+## 2026-11-27 — ImmoGR notebook privacy hardening (P131.12)
+- Added authenticated-only notebook APIs, saved-note history, and local file extraction; remote crawling remains disabled.
+
 ## 2026-11-27 — ImmoGR personal research notebook (P131.12)
 - Added all-source manual review UI, local HTML/HTM/TXT import, validated personal-note persistence, and additive migration 034.
 
