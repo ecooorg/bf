@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR WP2 activation
+- **CHANGE:** UI/API now report `WP2_MANUAL_RESEARCH`; manual capture exposes all 44 target localities independently of discovery filters.
+- **NOT_RUN:** CI/typecheck, migration 034 on PostgreSQL, browser smoke and deployment verification.
+
 ## 2026-11-27 — ImmoGR notebook follow-up
 - **CHANGE:** Notebook routes now fail closed without app authentication; source-specific saved-note history is visible in the UI.
 - **NOT_RUN:** CI, typecheck, live migration, browser smoke and deployment verification.
