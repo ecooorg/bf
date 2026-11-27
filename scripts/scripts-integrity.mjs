@@ -22,7 +22,7 @@ const ALLOW = new Set([
   'docs-integrity.mjs', 'docs-reference-integrity.mjs', 'docsCheckInventories.mjs', 'docsGenerateInventories.mjs',
   'evidence-collect.mjs', 'evidence-to-markdown.mjs', 'evidenceLib.mjs',
   'fix-agents-contract.mjs', 'fix-ci-scripts.mjs', 'gate-eval.mjs', 'golden-eval.mjs', 'golden-tasks.json',
-  'immofinder-health-check.mjs', 'immofinder-recheck-feed.mjs', 'immogr-local-page-fetch.mjs',
+  'immofinder-health-check.mjs', 'immofinder-recheck-feed.mjs', 'immogr-local-page-fetch.mjs', 'immogr-local-probe-batch.mjs',
   'immofinder-p0-feed-hygiene.mjs', 'immofinder-p1-rooms-hygiene.mjs', 'immofinder-verify-hygiene.mjs',
   'immofinder-p2-junk-hosts.mjs', 'immofinder-p3-version.mjs', 
   'immofinder-source-pilot.mjs',
