@@ -2773,6 +2773,7 @@ async function start() {
         const taskPrompt = task.input.criteria.length ? `${task.input.task}\n\nAcceptance criteria:\n- ${task.input.criteria.join('\n- ')}` : task.input.task;
         const result = await runAnalysis({ projectId: task.projectId, expectedVersion: Number(project.state_version), task: taskPrompt, artifactIds: task.input.artifactRefs, taskId: task.id, runId: run.id, artifactFilename: filename, artifactId: `artifact_${logicalArtifact}`, signal }, {
           registry: [...registryForGeminiCascade('STRONG'), ...REGISTRY_ALL.filter((e) => e.providerId !== 'gemini')],
+          adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID ? { 'cloudflare-workers-ai': createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: 'https://api.cloudflare.com/client/v4/accounts/' + process.env.CLOUDFLARE_ACCOUNT_ID + '/ai/v1', apiKey: process.env.CLOUDFLARE_API_TOKEN }) } : {}) },
           keySlots: geminiKeySlots,
           keyPoolState: geminiKeyPoolState,
           buildGeminiAdapter: buildGeminiAdapterFromKey,
