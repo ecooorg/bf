@@ -112,7 +112,7 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(ui, /Promise\.all\(\['both', 'chur'\]/);
   assert.match(ui, /Open original page/);
   assert.match(ui, /Save personal research note/);
-  assert.match(ui, /Saved notes/);
+  assert.match(ui, /Saved research cards/);
   assert.match(ui, /importLocalPageFile/);
   assert.match(ui, /extractFileContent/);
   assert.match(ui, /Open source website/);
