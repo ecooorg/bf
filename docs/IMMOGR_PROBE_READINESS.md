@@ -5,8 +5,8 @@
 ## Summary
 
 - Registered sources: **29**
-- Explicitly prohibited for scripted/bulk/crawling access in the current registry: **7**
-- No limited-probe authorization recorded: **22**
+- Explicitly prohibited for scripted/bulk/crawling access in the current registry: **6**
+- No limited-probe authorization recorded: **23**
 - Authorized for limited research probes: **0**
 - Network requests performed in this assessment: **0**
 
@@ -21,7 +21,7 @@ The current batch template contains one homepage URL per source. Running it now 
 | Flatfox | `flatfox` | `excluded_pending_written_permission` | `not_reviewed` | No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded. |
 | Tutti | `tutti` | `excluded_pending_written_permission` | `prohibited` | The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction. |
 | Anibis | `anibis` | `excluded_pending_written_permission` | `prohibited` | The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction. |
-| Homegate | `homegate` | `excluded_pending_written_permission` | `prohibited` | The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction. |
+| Homegate | `homegate` | `excluded_pending_written_permission` | `not_reviewed` | The terms restrict systematic selection/scraping; whether a narrowly bounded diagnostic is permitted is not established. |
 | Newhome | `newhome` | `permission_required` | `not_reviewed` | No explicit source-specific authorization for limited automated research probes is recorded. Do not send requests until current terms/access rules and robots have been reviewed and an authorization reference is recorded. |
 | Womilo | `womilo` | `excluded_pending_written_permission` | `prohibited` | The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction. |
 | Comparis | `comparis` | `excluded_pending_written_permission` | `prohibited` | The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction. |
