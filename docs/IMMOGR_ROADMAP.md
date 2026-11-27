@@ -70,3 +70,6 @@
 
 
 **WP2 local-import extension (branch implementation):** source homepage links are surfaced for verified registry entries; browser-side extraction reuses the shared workspace extractor for PDF and Office/structured text formats. Scanned-image OCR remains an explicit follow-up.
+
+
+**WP2 structured local import:** HTML JSON-LD suggestions are parsed client-side into editable candidate fields; the Owner must verify them before save. No source page is fetched by ImmoGR.

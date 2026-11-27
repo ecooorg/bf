@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { extractSchemaFactsFromJsonLd } from './immogr/local-schema.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
@@ -66,7 +67,7 @@ export default function ImmoGR() {
   }
   function selectManualSource(sourceId: string) {
     setSelectedSourceId(sourceId);
-    setManualDraft((current) => ({ ...current, canonicalUrl: '', localityId: manualLocalities[0]?.id || localities[0]?.id || '' }));
+    setManualDraft(emptyManualDraft);
     setManualMessage('');
   }
   async function saveManualReview(event: FormEvent<HTMLFormElement>) {
@@ -81,7 +82,7 @@ export default function ImmoGR() {
       const savedResponse = await fetch('/api/immogr/manual-reviews?sourceId=' + encodeURIComponent(selectedSourceId), { credentials: 'same-origin' });
       const savedBody = await savedResponse.json().catch(() => ({}));
       setManualReviews(Array.isArray(savedBody.reviews) ? savedBody.reviews : []);
-      setManualDraft((current) => ({ ...emptyManualDraft, localityId: current.localityId }));
+      setManualDraft(emptyManualDraft);
     } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not save manual research'); }
     finally { setManualSaving(false); }
   }
@@ -96,9 +97,11 @@ export default function ImmoGR() {
     try {
       let title = file.name;
       let extracted = '';
+      let schemaFacts: ReturnType<typeof extractSchemaFactsFromJsonLd> = {};
       if (extension === 'html' || extension === 'htm') {
         const raw = await file.text();
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
+        schemaFacts = extractSchemaFactsFromJsonLd(Array.from(documentCopy.querySelectorAll('script[type="application/ld+json"]')).map((script) => script.textContent || ''));
         title = (documentCopy.title || file.name).slice(0, 300);
         documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
         extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\s+/g, ' ').trim();
@@ -117,8 +120,21 @@ export default function ImmoGR() {
         extracted = result.text;
         if (result.meta.pages) title += ' · ' + result.meta.pages + ' pages';
       }
-      setManualDraft((current) => ({ ...current, pageTitle: current.pageTitle || title, notes: extracted.slice(0, 5000) }));
-      setManualMessage('Local file processed in this browser. Review and edit the extracted notes before saving; the original file was not uploaded.');
+      setManualDraft((current) => {
+        const localityMatch = schemaFacts.localityName ? manualLocalities.find((item) => item.name.toLocaleLowerCase('de-CH') === schemaFacts.localityName?.toLocaleLowerCase('de-CH')) : undefined;
+        return {
+          ...current,
+          pageTitle: current.pageTitle || schemaFacts.pageTitle || title,
+          propertyType: current.propertyType === 'unknown' ? (schemaFacts.propertyType || 'unknown') : current.propertyType,
+          priceAmount: current.priceAmount || schemaFacts.priceAmount || '',
+          currency: schemaFacts.currency || current.currency,
+          pricePeriod: current.pricePeriod === 'unknown' ? (schemaFacts.pricePeriod || 'unknown') : current.pricePeriod,
+          localityId: current.localityId || localityMatch?.id || '',
+          availability: current.availability || schemaFacts.availability || '',
+          notes: extracted.slice(0, 5000),
+        };
+      });
+      setManualMessage(Object.keys(schemaFacts).length ? 'Local file processed. Structured facts were suggested from page metadata; verify every value before saving.' : 'Local file processed in this browser. Review and edit the extracted notes before saving; the original file was not uploaded.');
     } catch (error) {
       setManualMessage(error instanceof Error ? 'Local import failed: ' + error.message.slice(0, 180) : 'Could not read that local file.');
     }
