@@ -7,10 +7,10 @@ type DiscoveryLead = { title: string; url: string; host: string; verification: s
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
 type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string };
-type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
+type ManualDraft = { resultCategory: 'direct_rental' | 'private_owner_prospect'; canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
 type ProbeBatchReport = { generatedAt: string; sourceCount: number; requestsSentByThisBatch: number | null; summary: Record<string, number>; results: ProbeBatchResult[] };
-const emptyManualDraft: ManualDraft = { canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
+const emptyManualDraft: ManualDraft = { resultCategory: 'direct_rental', canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
 export default function ImmoGR() {
@@ -34,7 +34,7 @@ export default function ImmoGR() {
   const [selectedSourceId, setSelectedSourceId] = useState('');
   const [manualDraft, setManualDraft] = useState<ManualDraft>(emptyManualDraft);
   const [manualSaving, setManualSaving] = useState(false);
-  const [manualReviews, setManualReviews] = useState<Array<{ id: string; canonical_url: string; locality_id: string; reviewed_at: string; manual_access_outcome: string; page_title: string | null; price_amount: string | null; currency: string; price_period: string; owner_class: string }>>([]);
+  const [manualReviews, setManualReviews] = useState<Array<{ id: string; source_id: string; canonical_url: string; locality_id: string; reviewed_at: string; manual_access_outcome: string; result_category: 'direct_rental' | 'private_owner_prospect'; page_title: string | null; property_type: string; price_amount: string | null; currency: string; price_period: string; owner_class: string; availability: string | null; reviewer_notes: string | null }>>([]);
   const [manualMessage, setManualMessage] = useState('');
   const [localPageInspection, setLocalPageInspection] = useState<LocalPageInspection | null>(null);
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
@@ -235,7 +235,7 @@ export default function ImmoGR() {
     try {
       if (!selectedSourceIds.length) throw new Error('Select at least one source.');
       if (!selectedLocalityIds.length) throw new Error('Select at least one locality.');
-      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localityIds: selectedLocalityIds, category: 'direct_rental', sourceIds: selectedSourceIds }) });
+      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localityIds: selectedLocalityIds, category, sourceIds: selectedSourceIds }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         const diagnostics = body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : {
@@ -278,8 +278,11 @@ export default function ImmoGR() {
       .immogr-search-actions button:last-child { background: #2473ad; border-color: #2473ad; font-weight: 700; min-width: 130px; }
       .immogr-advanced { margin-top: 16px; }
       .immogr-advanced > summary { cursor: pointer; color: #9aadc5; padding: 12px 0; }
-      .immogr-lead-list li { margin: 10px 0; overflow-wrap: anywhere; }
-      .immogr-lead-list li div { color: #9aadc5; font-size: 12px; }
+      .immogr-lead-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; padding: 0; list-style: none; }
+      .immogr-lead-card, .immogr-research-card { min-width: 0; border: 1px solid #40536b; border-radius: 11px; padding: 14px; background: #101f33; overflow-wrap: anywhere; }
+      .immogr-lead-card p, .immogr-research-card p { margin: 7px 0; }
+      .immogr-card-meta { color: #9aadc5; font-size: 12px; }
+      .immogr-card-badge { display: inline-block; border: 1px solid #52708f; border-radius: 20px; padding: 4px 8px; font-size: 11px; color: #b9d7f2; margin-bottom: 8px; }
       .immogr-probe-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
       .immogr-probe-result { border: 1px solid #40536b; border-radius: 9px; padding: 12px; background: #101f33; min-width: 0; }
       .immogr-source-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #40536b; border-radius: 9px; background: #101f33; }
@@ -326,13 +329,14 @@ export default function ImmoGR() {
           <span>{item.name}</span>
         </label>)}</div>
       </details>
+      <label>Search category<select data-testid="immogr-search-category" value={category} onChange={(event) => { setCategory(event.target.value as 'direct_rental' | 'private_owner_prospect'); setLeads([]); setSearched(false); }} style={field}><option value="direct_rental">Direct Rental · long-term ≤ CHF 2,000 / month</option><option value="private_owner_prospect">Private Owner Prospect · seasonal private property</option></select></label>
       <div className="immogr-search-actions">
         <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading}>{diagnosticsDownloading ? 'Preparing logs…' : 'Download logs'}</button>
         <button type="button" onClick={() => void discover()} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
       </div>
       {searchError && <p role="alert">{searchError}</p>}
       {searched && <p role="status">{leads.length} candidate URLs found (maximum 100). Results are unverified.</p>}
-      {leads.length > 0 && <ol className="immogr-lead-list">{leads.map((lead) => <li key={lead.url}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title || lead.host}</a><div>{lead.host} · unverified</div></li>)}</ol>}
+      {leads.length > 0 && <div className="immogr-lead-list" data-testid="immogr-candidate-cards">{leads.map((lead) => <article className="immogr-lead-card" key={lead.url}><span className="immogr-card-badge">Unverified discovery lead</span><h3 style={{ margin: '4px 0 8px' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title || lead.host}</a></h3><p className="immogr-card-meta">{lead.host}</p><p>{category === 'direct_rental' ? 'Direct Rental candidate' : 'Private Owner Prospect candidate'}</p><p className="immogr-card-meta">Search geography: {selectedLocalityIds.map((id) => manualLocalities.find((item) => item.id === id)?.name).filter(Boolean).join(', ')}</p><p className="immogr-card-meta">URL discovery only · no page fetched · no price or ownership verified</p></article>)}</div>}
     </section>
     <details className="immogr-advanced">
       <summary>Personal notebook and research tools</summary>
@@ -376,6 +380,7 @@ export default function ImmoGR() {
             <button type="button" onClick={() => { setLocalPageInspection(null); setLocalPageSnapshot(''); setShowPageImages(false); }}>Close viewer</button>
           </div>
         </div>}
+        <label>Research category<select data-testid="immogr-manual-category" value={manualDraft.resultCategory} onChange={(e) => setManualDraft({ ...manualDraft, resultCategory: e.target.value as 'direct_rental' | 'private_owner_prospect' })} style={field}><option value="direct_rental">Direct Rental</option><option value="private_owner_prospect">Private Owner Prospect</option></select></label>
         <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{manualLocalities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
         <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>
@@ -385,11 +390,12 @@ export default function ImmoGR() {
         <label>Advertiser / owner type<select value={manualDraft.ownerClass} onChange={(e) => setManualDraft({ ...manualDraft, ownerClass: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="private_owner">Private owner</option><option value="agency">Agency</option><option value="management_company">Management company</option><option value="tour_operator">Tour operator</option><option value="intermediary">Intermediary</option></select></label>
         <label>Availability<input value={manualDraft.availability} onChange={(e) => setManualDraft({ ...manualDraft, availability: e.target.value })} maxLength={500} placeholder="e.g. from 1 December" style={field} /></label>
         <label>Review outcome<select value={manualDraft.accessOutcome} onChange={(e) => setManualDraft({ ...manualDraft, accessOutcome: e.target.value })} style={field}><option value="reviewed">Reviewed</option><option value="in_progress">In progress</option><option value="blocked_by_source">Blocked by source</option><option value="no_relevant_inventory">No relevant inventory</option></select></label>
+        {manualDraft.canonicalUrl && <article className="immogr-research-card" data-testid="immogr-local-research-card" style={{ gridColumn: '1 / -1' }}><span className="immogr-card-badge">Local copy · human-observed · not admitted</span><h3 style={{ margin: '4px 0 8px' }}>{manualDraft.pageTitle || 'Untitled property candidate'}</h3><p className="immogr-card-meta">{manualDraft.resultCategory === 'direct_rental' ? 'Direct Rental research' : 'Private Owner Prospect research'} · {manualLocalities.find((item) => item.id === manualDraft.localityId)?.name || 'Locality not selected'}</p><p>{manualDraft.propertyType} · {manualDraft.priceAmount ? `${manualDraft.priceAmount} ${manualDraft.currency} / ${manualDraft.pricePeriod}` : 'Price unknown'} · advertiser: {manualDraft.ownerClass}</p><p>Availability: {manualDraft.availability || 'Unknown'} · review: {manualDraft.accessOutcome}</p><p className="immogr-card-meta">{manualDraft.canonicalUrl}</p><p className="immogr-card-meta">Facts are editable suggestions from the selected local copy. Review before saving; this is not an admitted listing.</p></article>}
         <label style={{ gridColumn: '1 / -1' }}>Your notes<textarea value={manualDraft.notes} onChange={(e) => setManualDraft({ ...manualDraft, notes: e.target.value })} maxLength={5000} rows={3} style={field} placeholder="Owner signals, contact route, rental conditions, follow-up notes…" /></label>
         <button type="submit" disabled={manualSaving || !manualDraft.localityId || !manualDraft.canonicalUrl} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700 }}>{manualSaving ? 'Saving…' : 'Save personal research note'}</button>
       </form>}
       {manualMessage && <p role="status" aria-live="polite">{manualMessage}</p>}
-      {manualReviews.length > 0 && <div style={{ marginTop: 18 }}><h3>Saved notes ({manualReviews.length})</h3><ul style={{ paddingLeft: 20 }}>{manualReviews.map((review) => <li key={review.id} style={{ margin: '8px 0' }}><a href={review.canonical_url} target="_blank" rel="noopener noreferrer">{review.page_title || review.canonical_url}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{review.locality_id} · {review.price_amount ? review.price_amount + ' ' + review.currency + ' / ' + review.price_period : 'Price unknown'} · {review.owner_class} · {review.manual_access_outcome} · {new Date(review.reviewed_at).toLocaleString()}</div></li>)}</ul></div>}
+      {manualReviews.length > 0 && <div style={{ marginTop: 18 }}><h3>Saved research cards ({manualReviews.length})</h3><div className="immogr-lead-list" data-testid="immogr-saved-research-cards">{manualReviews.map((review) => <article className="immogr-research-card" key={review.id}><span className="immogr-card-badge">Human-observed · unverified</span><h3 style={{ margin: '4px 0 8px' }}><a href={review.canonical_url} target="_blank" rel="noopener noreferrer">{review.page_title || review.canonical_url}</a></h3><p>{review.result_category === 'direct_rental' ? 'Direct Rental' : 'Private Owner Prospect'} · {manualLocalities.find((item) => item.id === review.locality_id)?.name || review.locality_id}</p><p>{review.property_type} · {review.price_amount ? `${review.price_amount} ${review.currency} / ${review.price_period}` : 'Price unknown'}</p><p>Advertiser: {review.owner_class} · availability: {review.availability || 'Unknown'}</p>{review.reviewer_notes && <p>{review.reviewer_notes}</p>}<p className="immogr-card-meta">{review.manual_access_outcome} · saved {new Date(review.reviewed_at).toLocaleString()}</p></article>)}</div></div>}
       <p style={{ color: '#9aadc5', fontSize: 12, marginBottom: 0 }}>Notes are unverified. Keep the source URL for follow-up. Do not enter passwords or session tokens.</p>
     </section>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
