@@ -68,7 +68,7 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(routes, /candidateSources\.slice\(0, 100\)/);
   assert.match(ui, /fetch\('\/api\/immogr\/localities\?groupMode=/);
   assert.match(ui, /localityIds: selectedLocalityIds/);
-  assert.match(ui, /immogr\.selectedLocalityIds/);
+  assert.match(ui, /immogr\.searchLocalityIds\.v1/);
   assert.match(ui, /immogr-locality-grid/);
   assert.match(ui, /Download logs/);
   assert.match(ui, /Search/);
@@ -203,7 +203,7 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   assert.match(ui, /immogr-photo-grid/);
   assert.match(ui, /min-height: 48px/);
   assert.match(ui, /@media \(max-width: 760px\)/);
-  assert.match(ui, /immogr\.enabledSourceIds/);
+  assert.match(ui, /immogr\.searchSourceIds\.v1/);
   assert.match(ui, /sourceIds: selectedSourceIds/);
   assert.doesNotMatch(ui, /aria-pressed=\{selectedSourceId === source\.id\}/);
 });
