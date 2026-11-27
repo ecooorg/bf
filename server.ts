@@ -444,7 +444,7 @@ registerProjectRoutes(app, {
 });
 
 // ImmoGR is an independent property-search module; no ImmoFinder code is imported.
-registerImmoGRRoutes(app, { searchClient: ai as any, searchModels: registryForGeminiCascade('FAST').map((entry) => entry.modelId) });
+registerImmoGRRoutes(app, { searchClient: ai as any, searchModels: registryForGeminiCascade('LIGHT').map((entry) => entry.modelId) });
 
 
 const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language. Answer in the user's language; do not cite or rely on state-controlled outlets of Russia and Belarus; prefer international and regional sources.`;
