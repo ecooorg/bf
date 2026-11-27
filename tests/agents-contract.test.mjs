@@ -77,7 +77,7 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
   assert.match(engine, /status: 'discovery_only'/);
-  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\\(|immofinder/i);
+  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\(|immofinder/i);
   assert.match(engine, /fetchSerperDigestMulti/);
   assert.match(engine, /fetchPages: false/);
   assert.match(page, /Live discovery leads/);
@@ -100,7 +100,7 @@ test('ImmoGR namespace is independent of legacy ImmoFinder modules and storage',
   const engine = read('server/immogr/index.ts');
   const types = read('src/immogr/types.ts');
   const config = JSON.parse(read('config/immogr/sources.json'));
-  assert.doesNotMatch(engine, /immofinder/i);
+  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\(|immofinder/i);
   assert.doesNotMatch(types, /immofinder/i);
   assert.ok(config.sources.length >= 5);
   assert.ok(config.sources.every((source) => source.status !== 'active'));
