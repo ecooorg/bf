@@ -20,7 +20,7 @@ Create a JSON file outside the repository, for example `my-source-probe.json`:
 }
 ```
 
-The source ID and URLs are only a request plan. Authorization is read from `config/immogr/sources.json`; the local plan cannot grant itself permission. A source must have `probePolicy.status = authorized_for_limited_probe`, a dated review, an authorization reference, an exact host allowlist, and a 2- or 3-request ceiling. A two-request plan means one robots.txt request plus one page request. A three-request plan may include robots.txt plus at most two explicitly listed pages. Sources marked `prohibited` are blocked by the local runner.
+The source ID and URLs are only a request plan. Authorization is read from `config/immogr/sources.json`; the local plan cannot grant itself permission. A source must have `probePolicy.status = authorized_for_limited_probe`, dated terms and robots review dates, a dated authorization reference, an exact host allowlist, and a 2- or 3-request ceiling. A two-request plan means one robots.txt request plus one page request. A three-request plan may include robots.txt plus at most two explicitly listed pages. Sources marked `prohibited` are blocked by the local runner.
 
 ## Run
 
