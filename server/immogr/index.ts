@@ -99,12 +99,12 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
 
   app.get('/api/immogr/status', (_req, res) => {
     res.json({
-      product: 'ImmoGR', stage: 'WP1_FOUNDATION', liveDiscoveryEnabled,
+      product: 'ImmoGR', stage: 'WP2_MANUAL_RESEARCH', liveDiscoveryEnabled,
       liveSearchEnabled: false, listingQualificationEnabled: false,
       resultCategories: ['direct_rental', 'private_owner_prospect'],
       message: liveDiscoveryEnabled
         ? 'Live discovery can return current candidate URLs. These are unverified leads only: ImmoGR does not fetch source pages, extract listing facts, or admit listings until source permissions and quality criteria are approved.'
-        : 'The independent ImmoGR foundation is in place. Configure the approved Gemini search provider to enable URL discovery. Automated source-page acquisition and listing qualification remain disabled.',
+        : 'WP2 manual research is active. The private notebook supports all registered sources, local HTML/HTM/TXT import and authenticated structured capture. Configure the approved Gemini search provider separately for URL discovery; remote source-page acquisition and listing qualification remain disabled.',
     });
   });
 
