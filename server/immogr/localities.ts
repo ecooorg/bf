@@ -1,7 +1,8 @@
 /** Owner-defined ImmoGR target localities. Exact names and group membership come from the owner list (2026-11-27). */
-export type ImmoGRLocality = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
-export type ImmoGRGroupMode = 'group1' | 'group2' | 'both';
+export type ImmoGRLocality = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
+export type ImmoGRGroupMode = 'group1' | 'group2' | 'both' | 'chur';
 export const IMMOGR_LOCALITIES: ImmoGRLocality[] = [
+  { id: 'chur', name: "Chur", canton: 'GR', group: 0 },
   { id: 'araschgen', name: "Araschgen", canton: 'GR', group: 1 },
   { id: 'bonaduz', name: "Bonaduz", canton: 'GR', group: 1 },
   { id: 'churwalden', name: "Churwalden", canton: 'GR', group: 1 },
@@ -48,8 +49,8 @@ export const IMMOGR_LOCALITIES: ImmoGRLocality[] = [
   { id: 'valbella', name: "Valbella", canton: 'GR', group: 2 },
 ];
 export function localitiesForMode(mode: ImmoGRGroupMode): ImmoGRLocality[] {
-  return IMMOGR_LOCALITIES.filter((item) => mode === 'both' || (mode === 'group1' ? item.group === 1 : item.group === 2));
+  return IMMOGR_LOCALITIES.filter((item) => mode === 'chur' ? item.id === 'chur' : mode === 'both' ? item.group === 1 || item.group === 2 : (mode === 'group1' ? item.group === 1 : item.group === 2));
 }
 export function isImmoGRGroupMode(value: unknown): value is ImmoGRGroupMode {
-  return value === 'group1' || value === 'group2' || value === 'both';
+  return value === 'group1' || value === 'group2' || value === 'both' || value === 'chur';
 }
