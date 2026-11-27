@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getPool } from '../database.ts';
 import { recordApplicationLog } from '../projectDiagnostics.ts';
-import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
+import { fetchSerperDigestMulti, fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
@@ -19,7 +19,8 @@ const validAccessOutcomes = new Set(['reviewed', 'in_progress', 'blocked_by_sour
 export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependencies = {}): void {
   const searchModels = (dependencies.searchModels || []).filter(Boolean).slice(0, 2);
   const searchClient = dependencies.searchClient || null;
-  const liveDiscoveryEnabled = Boolean(searchClient && searchModels.length);
+  const serperEnabled = Boolean(process.env.SERPER_API_KEY);
+  const liveDiscoveryEnabled = Boolean((searchClient && searchModels.length) || serperEnabled);
   const requireOwner = (req: any, res: any): boolean => {
     if (!dependencies.appAuthEnabled || !dependencies.authenticated?.(req)) {
       res.status(401).json({ success: false, error: 'Personal ImmoGR notebook requires application authentication', code: 'UNAUTHORIZED' });
@@ -107,13 +108,13 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       resultCategories: ['direct_rental', 'private_owner_prospect'],
       message: liveDiscoveryEnabled
         ? 'Live discovery can return current candidate URLs. These are unverified leads only: ImmoGR does not fetch source pages, extract listing facts, or admit listings until source permissions and quality criteria are approved.'
-        : 'WP2 manual research is active. The private notebook supports all registered sources, local HTML/HTM/TXT import and authenticated structured capture. Configure the approved Gemini search provider separately for URL discovery; remote source-page acquisition and listing qualification remain disabled.',
+        : 'WP2 manual research is active. The private notebook supports all registered sources, local HTML/HTM/TXT import and authenticated structured capture. Configure the approved Gemini or Serper search provider for URL discovery; remote source-page acquisition and listing qualification remain disabled.',
     });
   });
 
   const discoveryHandler = async (req: any, res: any) => {
-    if (!searchClient || !searchModels.length) {
-      return res.status(503).json({ success: false, code: 'DISCOVERY_PROVIDER_UNAVAILABLE', error: 'The Gemini Google Search provider is not configured for ImmoGR.' });
+    if ((!searchClient || !searchModels.length) && !serperEnabled) {
+      return res.status(503).json({ success: false, code: 'DISCOVERY_PROVIDER_UNAVAILABLE', error: 'Neither the pooled Gemini search provider nor the Serper search provider is configured for ImmoGR.' });
     }
     const locality = String(req.body?.locality ?? '').trim().replace(/\s+/g, ' ');
     const groupMode = isImmoGRGroupMode(req.body?.groupMode) ? req.body.groupMode : null;
@@ -135,19 +136,51 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const requestId = randomUUID();
     const startedAt = Date.now();
     const attemptedModels: string[] = [];
-    const result = await fetchWebSearchDigest({
-      client: searchClient, models: searchModels, userText,
-      today: new Date().toISOString().slice(0, 10), timeoutMs: 18_000,
-      maxAttempts: Math.min(2, searchModels.length),
-      onAttempt: (model) => attemptedModels.push(model),
-    });
+    const today = new Date().toISOString().slice(0, 10);
+    let result: Awaited<ReturnType<typeof fetchWebSearchDigest>> | null = null;
+    let geminiStatus = 'not_configured';
+    let geminiReason: string | null = null;
+    if (searchClient && searchModels.length) {
+      result = await fetchWebSearchDigest({
+        client: searchClient, models: searchModels, userText, today, timeoutMs: 18_000,
+        maxAttempts: Math.min(2, searchModels.length),
+        onAttempt: (model) => attemptedModels.push(model),
+      });
+      geminiStatus = result.status;
+      geminiReason = result.reason || null;
+    }
+    let provider = 'gemini_google_search';
+    let serperFallbackAttempted = false;
+    let serperStatus = serperEnabled ? 'not_needed' : 'not_configured';
+    let serperReason: string | null = null;
+    if ((!result || result.status !== 'used') && serperEnabled) {
+      serperFallbackAttempted = true;
+      const localityQuery = category === 'direct_rental'
+        ? 'long-term apartment house rental'
+        : 'holiday apartment chalet private owner';
+      const extraQueries = sourceScope.sources.slice(0, 5)
+        .map((source) => 'site:' + source.host + ' "' + selected.name + '" ' + localityQuery);
+      const fallback = await fetchSerperDigestMulti({
+        apiKey: process.env.SERPER_API_KEY as string,
+        userText, today, timeoutMs: 15_000, num: 8,
+        fetchPages: false, maxPages: 1, extraQueries,
+      });
+      serperStatus = fallback.status;
+      serperReason = fallback.reason || null;
+      if (fallback.status === 'used') {
+        result = fallback;
+        provider = 'serper';
+      }
+    }
     const durationMs = Date.now() - startedAt;
     const diagnosticDetails = {
       category, locality: selected.name, localityGroup: selected.group, groupMode,
       sourceCount: sourceScope.sources.length, sourceIds: sourceScope.sources.map((source) => source.id),
-      attemptedModels, successfulModel: result.model || null, providerStatus: result.status,
-      reason: String(result.reason || '').slice(0, 240), queryCount: result.queries.length,
-      groundedSourceCount: result.sources.length, durationMs,
+      provider, attemptedModels, successfulModel: result?.model || null,
+      providerStatus: result?.status || 'failed', geminiStatus, geminiReason,
+      serperFallbackAttempted, serperStatus, serperReason,
+      reason: String(result?.reason || '').slice(0, 240), queryCount: result?.queries.length || 0,
+      groundedSourceCount: result?.sources.length || 0, durationMs,
     };
     res.setHeader('X-Request-Id', requestId);
     void recordApplicationLog({
@@ -156,8 +189,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       requestId, message: result.status === 'used' ? 'ImmoGR grounded discovery completed' : 'ImmoGR grounded discovery provider failed',
       details: diagnosticDetails,
     }).catch(() => {});
-    if (result.status !== 'used') {
-      return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', error: 'The search provider did not return grounded results.', providerStatus: result.status, reason: result.reason || 'No grounded search results were returned.', requestId, diagnostics: diagnosticDetails });
+    if (!result || result.status !== 'used') {
+      return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', error: 'Gemini and Serper did not return usable search results.', providerStatus: result?.status || 'failed', reason: result?.reason || geminiReason || serperReason || 'No grounded search results were returned.', requestId, diagnostics: diagnosticDetails });
     }
     console.info('[ImmoGR] discovery completed', { requestId, ...diagnosticDetails });
     const inScopeSources = result.sources.filter((source) => isDiscoveryUrlInScope(source.url, sourceScope.sources));
@@ -168,7 +201,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     });
     return res.json({
       success: true, status: 'discovery_only', category, locality: selected.name, localityGroup: selected.group, groupMode,
-      generatedAt: new Date().toISOString(), requestId, diagnostics: diagnosticDetails, leads, queries: result.queries,
+      generatedAt: new Date().toISOString(), requestId, diagnostics: { ...diagnosticDetails, inScopeSourceCount: inScopeSources.length }, leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
       disclaimer: 'These are live search-engine URL leads, not verified property listings. No result page was fetched or parsed. Review each source manually and check its terms before any automated access.',
 
