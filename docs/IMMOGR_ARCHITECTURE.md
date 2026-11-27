@@ -65,3 +65,8 @@ The source registry and personal review endpoints require application authentica
 ### Local structured metadata suggestions
 
 When a user imports local HTML/HTM, ImmoGR reads embedded `application/ld+json` in the browser and suggests only explicit title, property type, price, currency, price period, locality and availability fields. Suggestions are editable and remain user-unverified until reviewed; missing or ambiguous values stay unknown. Malformed JSON-LD is ignored. The original file remains on the user's device.
+## WP3 authorized acquisition contract (initial implementation)
+
+`server/immogr/acquisition-contract.ts` defines the fail-closed policy boundary and typed page representation. Automated acquisition is eligible only when a source explicitly has `status=authorized_api` or `status=authorized_feed`, a matching authorization mode, a dated authorization reference, explicit terms and robots approval, and an exact HTTPS host allowlist. URL credentials and non-HTTPS URLs are rejected. Public visibility, a manual-review state, local owner-held copies, or a discovery result cannot satisfy this gate.
+
+The contract defines page blocks for metadata, JSON-LD, primary listing, related listing, navigation, footer and other content, plus a source-adapter interface. It does not yet perform network requests or enable any source. A transport implementation must additionally enforce DNS/IP SSRF checks, redirect revalidation, robots policy, per-host rate limits, bounded response size/time, content-type validation, cancellation and auditable fetch outcomes before it can be activated.
