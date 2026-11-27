@@ -79,7 +79,7 @@ export async function callWithKeyPool<T>(opts: {
   const now = opts.now ?? Date.now;
   const slots = opts.pool.slotsFor(opts.model, now());
   if (!slots.length) throw new PoolExhaustedError(opts.pool.size ? 'unavailable' : 'no_keys', 0);
-  const max = Math.max(1, Math.min(opts.maxKeyAttempts ?? 4, slots.length));
+  const max = Math.max(1, Math.min(opts.maxKeyAttempts ?? slots.length, slots.length));
   let last: unknown;
   let lastCls: PoolErrorClass = 'OTHER';
   let tried = 0;
