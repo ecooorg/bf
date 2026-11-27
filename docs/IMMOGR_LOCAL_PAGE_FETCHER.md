@@ -78,3 +78,16 @@ The Search settings panel also has **Export selected sources for local probe**. 
 ## Review the batch result on the Android tablet
 
 After the local agent writes `immogr-local-probe-batch-report.json`, transfer that JSON file to the tablet (or open ImmoGR on the same device if the local agent ran there) and import it using the same local file picker. ImmoGR recognizes the report format and displays a responsive per-source result list with status, request count, skip/failure reason and local report path. The JSON is parsed in the browser and is not uploaded to the server.
+
+
+## AI listing analysis architecture (WP4, 2026-11-27)
+
+The unit of work is an individual rental listing, not a search-result URL. The pipeline is discovery → page representation → deterministic metadata/JSON-LD extraction → AI multi-listing extraction → quote validation → category qualification → deduplication/persistence → owner review.
+
+The first implementation analyzes a user-selected local page copy. The owner imports a local page in the browser; only extracted text and a bounded same-domain link inventory are sent to Gemini. The server does not fetch the URL or upload the original file. One catalog page may yield multiple cards. Every populated fact must have a short quotation found in the submitted page text. A listing URL must be the original page URL or an observed same-source link. Locality labels must exactly match the owner-defined locality list. Invented URLs and unsupported fields are removed.
+
+Direct Rental can become a qualified candidate only when title, detail URL, target locality, CHF amount, monthly billing period and current availability are all evidenced and the monthly rent is at most CHF 2,000. Weekly, nightly and seasonal prices are never converted. Private Owner Prospect additionally requires explicit evidence of private ownership, a direct contact route and an explicit three-year rental horizon. Owner willingness is never inferred. AI cards are suggestions; the owner transfers a candidate into the notebook and saves it manually.
+
+Remote reading is a separate later adapter. Gemini URL Context is the first candidate, but remains disabled until each source has a reviewed method, terms and robots assessment, exact allowed-host list and authorization record. It must be evaluated for freshness and listing detail extraction; it does not replace a live availability check. Playwright is a fallback only for authorized public pages that require JavaScript. No login, paywall, CAPTCHA or anti-bot bypass is allowed.
+
+The evaluation corpus must include detail pages, catalogues, dynamic pages, seasonal offers, private-owner examples, stale/removed pages and irrelevant pages. Measure listing-level precision/recall, price/currency/period accuracy, locality accuracy, owner-class precision, URL correctness, evidence validity, duplicate rate, read success and latency before activating remote sources.
