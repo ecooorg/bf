@@ -7,6 +7,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   const searchModels = (dependencies.searchModels || []).filter(Boolean).slice(0, 2);
   const searchClient = dependencies.searchClient || null;
   const liveDiscoveryEnabled = Boolean(searchClient && searchModels.length);
+  console.info('[ImmoGR] routes ready', { liveDiscoveryEnabled, modelCount: searchModels.length });
 
   app.get('/api/immogr/status', (_req, res) => {
     res.json({
@@ -40,6 +41,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     if (result.status !== 'used') {
       return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', providerStatus: result.status, reason: result.reason || 'No grounded search results were returned.' });
     }
+    console.info('[ImmoGR] discovery completed', { category, commune, providerStatus: result.status, sourceCount: result.sources.length, modelCount: searchModels.length });
     const leads = result.sources.slice(0, 6).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
