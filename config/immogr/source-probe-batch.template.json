@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "description": "Owner-local, source-by-source diagnostic probe plan. Add no credentials. A source runs only after its probePolicy in config/immogr/sources.json is explicitly authorized_for_limited_probe.",
+  "probes": [
+    {
+      "sourceId": "happyholiday",
+      "urls": [
+        "https://happyholiday.ch/"
+      ]
+    },
+    {
+      "sourceId": "ferienhausmiete",
+      "urls": [
+        "https://www.ferienhausmiete.de/"
+      ]
+    },
+    {
+      "sourceId": "flatfox",
+      "urls": [
+        "https://flatfox.ch/"
+      ]
+    },
+    {
+      "sourceId": "tutti",
+      "urls": [
+        "https://www.tutti.ch/"
+      ]
+    },
+    {
+      "sourceId": "anibis",
+      "urls": [
+        "https://www.anibis.ch/"
+      ]
+    },
+    {
+      "sourceId": "homegate",
+      "urls": [
+        "https://www.homegate.ch/"
+      ]
+    },
+    {
+      "sourceId": "newhome",
+      "urls": [
+        "https://www.newhome.ch/"
+      ]
+    },
+    {
+      "sourceId": "womilo",
+      "urls": [
+        "https://www.womilo.ch/"
+      ]
+    },
+    {
+      "sourceId": "comparis",
+      "urls": [
+        "https://www.comparis.ch/immobilien/default"
+      ]
+    },
+    {
+      "sourceId": "housenet",
+      "urls": [
+        "https://housenet.ch/en/"
+      ]
+    },
+    {
+      "sourceId": "immobilier",
+      "urls": [
+        "https://www.immobilier.ch/"
+      ]
+    },
+    {
+      "sourceId": "lookmove_api",
+      "urls": [
+        "https://www.lookmove.ch/EN"
+      ]
+    },
+    {
+      "sourceId": "discover_swiss",
+      "urls": [
+        "https://developer.discover.swiss/"
+      ]
+    },
+    {
+      "sourceId": "stnet_openbooking",
+      "urls": [
+        "https://www.stnet.ch/de/export-ferienwohnungen/"
+      ]
+    },
+    {
+      "sourceId": "edomizil",
+      "urls": [
+        "https://www.e-domizil.ch/"
+      ]
+    },
+    {
+      "sourceId": "flatradar_ch",
+      "urls": [
+        "https://flatradar.ch/en"
+      ]
+    },
+    {
+      "sourceId": "aptari",
+      "urls": [
+        "https://aptari.ai/en"
+      ]
+    },
+    {
+      "sourceId": "lookmove_portal",
+      "urls": [
+        "https://www.lookmove.ch/EN"
+      ]
+    },
+    {
+      "sourceId": "flatli",
+      "urls": [
+        "https://flatli.ch/en"
+      ]
+    },
+    {
+      "sourceId": "urbanhome",
+      "urls": [
+        "https://www.urbanhome.ch/"
+      ]
+    },
+    {
+      "sourceId": "apartmentszurich",
+      "urls": [
+        "https://apartmentszurich.ch/en/"
+      ]
+    },
+    {
+      "sourceId": "realadvisor",
+      "urls": [
+        "https://realadvisor.ch/en"
+      ]
+    },
+    {
+      "sourceId": "homematch",
+      "urls": [
+        "https://homematch.ch/en"
+      ]
+    },
+    {
+      "sourceId": "wgzimmer",
+      "urls": [
+        "https://www.wgzimmer.ch/"
+      ]
+    },
+    {
+      "sourceId": "students",
+      "urls": [
+        "https://www.students.ch/"
+      ]
+    },
+    {
+      "sourceId": "nachmieter",
+      "urls": [
+        "https://www.nachmieter.ch/"
+      ]
+    },
+    {
+      "sourceId": "graubuenden_tourism",
+      "urls": [
+        "https://www.graubuenden.ch/en/booking/accommodation"
+      ]
+    },
+    {
+      "sourceId": "apartments_switzerland",
+      "urls": [
+        "https://apartmentsswitzerland.ch/en/"
+      ]
+    },
+    {
+      "sourceId": "alpine_market_api",
+      "urls": [
+        "https://alpinemarket.ch/developers"
+      ]
+    }
+  ]
+}
