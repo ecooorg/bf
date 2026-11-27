@@ -17,7 +17,6 @@ import {
   systemDiagnostics,
 } from './projectDiagnostics.ts';
 import { conversationSessionLog } from './conversationDiagnostics.ts';
-import { exportRepairSnapshot } from './immofinderRepairStore.ts';
 
 const HOURS_72_MS = 72 * 60 * 60 * 1000;
 
@@ -138,17 +137,6 @@ export async function buildAllLogsZip(): Promise<{ buffer: Buffer; filename: str
   }
 
   add('shared/REQUEST_INDEX.md', buildRequestIndex(logs));
-
-  // Full saved ImmoFinder database is the Assistant's repair source of truth.
-  // Contact fields are intentionally present; credentials/secrets are never part of listing rows.
-  try {
-    const snapshot = await exportRepairSnapshot();
-    add('immofinder/listings.jsonl', snapshot.jsonl);
-    add('immofinder/listings-meta.json', JSON.stringify(snapshot.meta, null, 2) + '\n');
-    add('immofinder/repair-queue.json', JSON.stringify(snapshot.queue, null, 2) + '\n');
-  } catch (e) {
-    add('immofinder/SNAPSHOT-UNAVAILABLE.txt', `Database snapshot unavailable: ${String((e as Error).message || e).slice(0, 300)}\n`);
-  }
 
 
   const byMode = {

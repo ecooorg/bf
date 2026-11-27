@@ -11,6 +11,8 @@
 - LLM output is a hypothesis until independently checked against page evidence.
 - No invented facts, no contact guessing, no false claim of private ownership.
 
+Evidence coverage is mandatory for every required fact on every admitted result.
+
 ## Target metrics
 Measured on a sufficiently large, independently labeled real-page set, not on hand-written fixtures alone:
 | Metric | Initial target |

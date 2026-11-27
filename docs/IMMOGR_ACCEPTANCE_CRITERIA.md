@@ -9,6 +9,8 @@
 - All maintained Markdown documentation declares the retirement and new authority.
 - Initial source registry identifies permission/access status and does not activate unverified sources.
 
+Initial sample: 30 real pages, manually labeled before evaluation.
+
 ## First real-page acceptance
 - At least 30 real public pages are manually labeled across: valid direct rental, private holiday listing, agency listing, management company, portal search page, aggregator, inaccessible/blocked page, stale listing, wrong commune, ambiguous price period, and misleading contact placement.
 - The system's output is compared with labels. Precision and recall are both reported; no self-generated labels.
