@@ -161,6 +161,20 @@ export default function ImmoGR() {
       setManualMessage(error instanceof Error ? 'Local import failed: ' + error.message.slice(0, 180) : 'Could not read that local file.');
     }
   }
+  function downloadSelectedProbeBatch() {
+    const selected = sources.filter((source) => selectedSourceIds.includes(source.id) && source.homepageUrl);
+    if (!selected.length) { setSearchError('Select at least one source in Search settings first.'); return; }
+    const payload = { version: 1, probes: selected.map((source) => ({ sourceId: source.id, urls: [source.homepageUrl] })) };
+    const blob = new Blob([JSON.stringify(payload, null, 2) + '\n'], { type: 'application/json' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = 'immogr-selected-source-probes.json';
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+    setSearchError('');
+    setManualMessage('Selected-source batch plan downloaded. The local agent checks the registry authorization separately and skips sources without approval.');
+  }
   function downloadLocalProbePlan() {
     const sourceId = selectedSourceId;
     const urls = [manualDraft.canonicalUrl.trim(), probeSecondUrl.trim()].filter(Boolean);
@@ -262,6 +276,7 @@ export default function ImmoGR() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
           <button type="button" onClick={() => setSelectedSourceIds(sources.map((source) => source.id))} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Select all</button>
           <button type="button" onClick={() => setSelectedSourceIds([])} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Clear selection</button>
+          <button type="button" onClick={downloadSelectedProbeBatch} disabled={!selectedSourceIds.length} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Export selected sources for local probe</button>
         </div>
         <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
           <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
