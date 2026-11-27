@@ -65,3 +65,8 @@ The Owner confirms ImmoGR is a single-owner personal notebook. The Owner may sav
 ## D-IMMOGR-013 — Owner-selected discovery source scope (2026-11-27)
 
 The Owner selects one or more of the 29 registered sources in ImmoGR search settings. Discovery requests and returned candidate URLs are restricted to those selected source domains. This selection controls discovery scope only; it does not override source-specific terms, robots rules, limited-probe authorization, or automated acquisition eligibility. The source registry remains the authority for those access decisions.
+
+
+## D-IMMOGR-014 — Keep official locality names; add postcodes only (2026-11-27)
+
+The Owner confirms that the existing official names for the 44 target localities are sufficient. Do not expand the locality catalogue with spelling aliases, historical names or language variants. A later additive enrichment may add verified official postal codes to the existing locality records without changing names, IDs, group assignments or search geography.
