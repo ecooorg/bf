@@ -53,9 +53,9 @@ export default function ImmoGR() {
     return () => { active = false; };
   }, [groupMode]);
   useEffect(() => {
-    fetch('/api/immogr/localities?groupMode=both', { credentials: 'same-origin' })
-      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Manual locality reference unavailable'); return body; })
-      .then((body) => setManualLocalities(Array.isArray(body.localities) ? body.localities : []))
+    Promise.all(['both', 'chur'].map((mode) => fetch('/api/immogr/localities?groupMode=' + mode, { credentials: 'same-origin' })
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Manual locality reference unavailable'); return Array.isArray(body.localities) ? body.localities : []; })))
+      .then((groups) => setManualLocalities(groups.flat()))
       .catch(() => setManualLocalities([]));
   }, []);
   useEffect(() => {
