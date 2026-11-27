@@ -19,17 +19,27 @@
 - [x] Add independent evidence-first PostgreSQL foundation (`immogr_*`) with commune FK, source pages, listing, owner, contact, evidence, run, event and review records; add CI isolation tests.
 - Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
 
-## WP2 — Source eligibility and real-page research
-- [x] Replace municipality targeting with the exact owner-defined 44-locality catalogue (22 group 1, 22 group 2); expose independent group toggles and seed `immogr_localities`.
-- [x] Owner supplied the complete search geography: exactly 22 group-1 and 22 group-2 localities. No further municipality ratings or 44-item selection are required.
-- [ ] Enrich the 44 selected localities with spelling variants, historical names and postcode evidence; never infer adjacent localities from municipal membership.
-- Collect at least five representative real pages per source candidate only through permitted manual review or an authorized access method; label page types, owner signals, price semantics, contact routes, and access outcomes.
-- Obtain written permissions or official partner/API access before automated acquisition; currently no consumer portal has passed this gate.
-- Evaluate Lookmove API, discover.swiss, STnet OpenBooking, and e-domizil as licensed-feed candidates; do not purchase or sign without explicit owner approval.
-- Pilot Graubünden Tourism pages for explicit owner/contact signals; use Apartments Switzerland only as a discovery/manual-review lead; assess Alpine Market API strictly as property-fact enrichment.
-- Approve, pause, or exclude sources with documented evidence.
+## WP2 — Source intelligence, manual research and real-page validation (ACTIVE)
+**Owner decision 2026-11-27:** test every registered source for actual research value, regardless of whether automated acquisition is permitted. An automation restriction changes the acquisition mode; it does not remove a source from manual research.
 
-## WP3 — Page acquisition and page representation
+- [x] Replace municipality targeting with the exact owner-defined 44-locality catalogue (22 group 1, 22 group 2); expose independent group toggles and seed `immogr_localities`.
+- [ ] Enrich all 44 localities with spelling variants, historical names, language variants and postcode evidence; never infer adjacent localities from municipal membership.
+- [ ] Inventory and manually test **all 29 registered source candidates**. No source is skipped solely because automated scraping, scripts, reuse or API access is restricted.
+- [ ] For every source, record operator, business model, first-party/aggregator status, actual source lineage, coverage of the 44 localities, private-owner signals, page types, price semantics, contact routes, freshness, duplicate behavior, manual access outcome, and applicable terms/access constraints.
+- [ ] Perform an initial human-operated access check for every source. For sources with relevant live inventory, inspect at least five representative property/detail pages where available; record zero-yield, unavailable, blocked, login-only, irrelevant or stale outcomes instead of inventing samples.
+- [ ] Distinguish **manual research eligibility** from **automated acquisition eligibility**. Existing `status` values in `config/immogr/sources.json` continue to govern automation only; every source has a separate manual-research state.
+- [ ] Add a user-initiated “Ручной просмотр” action beside every source. It opens the original source page for the user; after review, the user explicitly submits structured observations and evidence to ImmoGR. No unattended browser crawler or server-side proxy is implied.
+- [ ] Persist manual observations in the ImmoGR database with source ID, canonical URL, locality, review timestamp, reviewer action, observed facts, short evidence references/notes, access outcome and provenance. Do not treat a manually entered observation as a server-fetched page.
+- [ ] Keep the original source URL and attribution. Store only necessary facts and limited supporting evidence; do not bulk-copy complete pages, unnecessary personal data, or bypass authentication, paywalls, CAPTCHAs, rate limits or technical restrictions.
+- [ ] Score source value by unique, relevant, evidence-backed private-owner leads and eligible Direct Rentals—not raw URL or listing counts. Track owner attribution, target-locality coverage, rent/period quality, direct contact, freshness, duplicates and research effort.
+- [ ] Research licensed API/feed candidates (including Lookmove API, discover.swiss, STnet OpenBooking and e-domizil) in parallel, but do not purchase, sign or commit spend without explicit Owner approval.
+- [ ] After the initial all-source review, recommend retain / prioritize / discovery-only / pause / exclude separately for manual research and automated acquisition. Any automated source activation still requires a documented permitted method and its own approval gate.
+
+**WP2 deliverables:** completed 29-source manual research matrix; representative page sample and zero-yield records; 44-locality alias evidence; manual-review UX/data contract; source-value ranking; and an Owner decision on which sources merit licensed access or later automation.
+
+## WP3 — Authorized acquisition and page representation
+- Implement source-specific automated acquisition only for sources with a documented permitted API/feed or explicit written authorization.
+- Keep user-initiated manual review/capture independent from automated page fetching.
 - Safe URL validation, robots/terms gates, redirects, rate limits, caching, structured metadata, JSON-LD, page segmentation and final-URL matching.
 - Record acquisition failures without inventing a listing.
 
