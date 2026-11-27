@@ -153,3 +153,15 @@ test('P127.27 build replies show no partial-validation banner and no deploy inst
     assert.doesNotMatch(src, /manualDeployInstructions/, rel);
   }
 });
+
+
+test('startup loads dotenv before validating and applying database migrations', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const start = read('scripts/start.mjs');
+  assert.equal(pkg.scripts.start, 'node scripts/start.mjs');
+  assert.match(pkg.scripts['db:migrate'], /--import dotenv\\/config/);
+  assert.match(start, /^import ['"]dotenv\\/config['"]/);
+  assert.ok(start.indexOf("await import('./migrate.mjs')") < start.indexOf("await import('../dist-server/server.js')"));
+  assert.match(start, /process\\.env\\.DATABASE_URL/);
+  assert.match(start, /process\\.env\\.ENABLE_PROJECT_MODE/);
+});
