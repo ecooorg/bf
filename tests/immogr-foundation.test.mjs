@@ -82,6 +82,7 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   const migration = read('migrations/034_immogr_manual_reviews.sql');
   assert.match(routes, /\/api\/immogr\/sources/);
   assert.match(routes, /\/api\/immogr\/manual-reviews/);
+  assert.match(routes, /stage: 'WP2_MANUAL_RESEARCH'/);
   assert.match(routes, /validOwnerClasses/);
   assert.match(routes, /validPropertyTypes/);
   assert.match(routes, /Personal ImmoGR notebook requires application authentication/);
