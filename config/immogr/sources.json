@@ -40,7 +40,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -64,7 +66,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -88,7 +92,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -108,11 +114,13 @@
       "homepageUrl": "https://www.tutti.ch/",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -132,11 +140,13 @@
       "homepageUrl": "https://www.anibis.ch/",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -160,7 +170,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -184,7 +196,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -204,11 +218,13 @@
       "homepageUrl": "https://www.womilo.ch/",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -228,11 +244,13 @@
       "homepageUrl": "https://www.comparis.ch/immobilien/default",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -252,11 +270,13 @@
       "homepageUrl": "https://housenet.ch/en/",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -280,7 +300,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -304,7 +326,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -328,7 +352,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -352,7 +378,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -376,7 +404,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -400,7 +430,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -420,11 +452,13 @@
       "homepageUrl": "https://aptari.ai/en",
       "probePolicy": {
         "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "reason": "The existing source-registry permission note explicitly records a restriction on scripted/bulk/crawling access. No limited probe is allowed unless the source operator provides a new permission that supersedes this restriction.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -448,7 +482,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -472,7 +508,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -496,7 +534,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -520,7 +560,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -544,7 +586,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -568,7 +612,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -592,7 +638,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -616,7 +664,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -640,7 +690,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -664,7 +716,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -688,7 +742,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     },
     {
@@ -712,7 +768,9 @@
         "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
-        "maxRequests": null
+        "maxRequests": null,
+        "termsReviewedAt": null,
+        "robotsReviewedAt": null
       }
     }
   ],
