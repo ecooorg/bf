@@ -217,10 +217,11 @@ export async function systemDiagnostics() {
       const activeOnDisk = onDisk.filter((file) => !isRetiredImmoFinderMigration(file));
       const retiredCount = onDisk.length - activeOnDisk.length;
       const pending = activeOnDisk.filter((file) => !applied.includes(file) && !applied.includes(file.replace(/\.sql$/, '')));
+      const activeAppliedCount = activeOnDisk.length - pending.length;
       checks.push({
         name: 'migrations',
         status: activeOnDisk.length === 0 ? 'WARN' : pending.length ? 'FAIL' : 'PASS',
-        evidence: `${applied.length} applied, ${activeOnDisk.length} active on disk${retiredCount ? `, ${retiredCount} archived ImmoFinder excluded` : ''}${pending.length ? `; pending: ${pending.join(', ')}` : ''}`,
+        evidence: `${activeAppliedCount} applied, ${activeOnDisk.length} active on disk${retiredCount ? `, ${retiredCount} archived ImmoFinder excluded` : ''}${pending.length ? `; pending: ${pending.join(', ')}` : ''}`,
       });
     } catch (e) { checks.push({ name: 'migrations', status: 'FAIL', evidence: `schema_migrations query failed: ${String((e as Error).message).slice(0, 120)}` }); }
     try {
