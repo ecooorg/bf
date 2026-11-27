@@ -85,3 +85,15 @@ WP3 has started with a fail-closed authorization and page-representation contrac
 
 
 **WP3 owner clarification — bounded probes (2026-11-27):** the Owner authorizes the local ImmoGR agent to perform source-specific technical research probes, normally two or three requests, solely to establish reachability, response format/schema and information quality. This is not a request for bulk collection or recurring automation. Because the requests are sent by software, they are still automated access; therefore only sources whose current rules explicitly permit this limited research method may be probed. Sources that expressly prohibit scripted requests remain excluded until written operator permission is obtained. Probe permission is separate from full acquisition authorization. The agent must use the Owner's own local credentials where contractually permitted, keep secrets local, and record diagnostic outcomes without turning probes into a listing dataset.
+
+
+## WP2 / WP3 — Tablet viewer and bounded source-probe preparation (2026-11-27)
+
+- [x] Improve the local HTML inspector into a responsive Android-tablet page viewer with touch-sized controls, readable listing text, image URL inventory and explicit opt-in photo previews.
+- [x] Add browser-local owner selection of one or more discovery source domains; enforce the selected host scope in the discovery API response.
+- [x] Add a fail-closed limited-probe policy record for every source and require authorization to be recorded in the source registry.
+- [x] Add an owner-local sequential batch runner and 29-source probe template. It reports every source and sends no requests for prohibited or unreviewed sources.
+- [ ] Run the batch from the Owner's local ImmoGR environment after source-specific permissions are documented. The current 29-source readiness assessment is not a live probe result.
+- [ ] Import and assess the local batch report; only then decide which sources to retain for later research or authorized acquisition.
+
+**Research boundary:** variant B only. No manual page-by-page source review is performed by the Assistant. The Owner may perform manual review later if desired. Local probe execution is not performed by ChatGPT; it runs only in the Owner's local environment.
