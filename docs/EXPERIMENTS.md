@@ -3,6 +3,16 @@ All ImmoFinder experiments and their results are closed historical records. Do n
 
 > **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
 
+## ImmoGR broad candidate discovery experiment (2026-11-27)
+
+- **CLASSIFICATION:** EXPERIMENT.
+- **BASELINE (OBSERVED):** The latest owner-provided production diagnostics showed HTTP 200, Gemini quota exhaustion, Serper fallback returning six URLs, and zero URLs passing the selected-domain filter for the Araschgen run. No listing pages were fetched; no verified listings were produced.
+- **HYPOTHESIS:** Search across all selected source hints and the owner's selected locality set, remove the post-search host allowlist, and raise the candidate cap from 6 to 100. This should reveal whether public search grounding can produce any useful candidate URLs before page acquisition or qualification exists.
+- **SCOPE:** one Gemini grounded request, then at most 29 Serper queries (one per selected source); any combination of the exact 45 registered localities; up to 100 unique candidate URLs; no source-page fetch, parsing, persistence, or automatic qualification. Source checkboxes are query hints only. Locality selection remains restricted to the registered 45.
+- **METRICS / ACCEPTANCE:** provider status and attempts; query count; total unique candidate URLs (0–100); host distribution and overlap with selected sources; locality relevance in manual review; duplicates; duration; no source-page fetch; no result above 100. A positive URL count is only discovery evidence, not a valid housing lead.
+- **ROLLBACK:** restore selected-host result filtering and the previous six-result cap if the broad results are predominantly irrelevant, provider usage is unacceptable, or the 100-result limit is violated. Do not enable remote page acquisition as part of this experiment.
+- **STATUS:** implementation pushed to main; hosted CI and production deployment pending; user live run pending.
+
 ## P131.9 first production yield and evidence correction (2026-11-26)
 - **OBSERVED:** Production run `d13257a3-5592-471f-9fb1-010d9440104d` completed. 9 index pages, 87 candidates, 19 fetched detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls, 0 infrastructure failures. Source stats: HappyHoliday 90 hits/62 candidates/12 fetched/0 kept; Ferienhausmiete 69 hits/25 candidates/7 fetched/2 kept (both updates); Flatfox index 1/hits 0; other portal discovery sources 0 queries. Rejections include 28 locality mismatches, 9 below-room-floor, 6 no-contact-route, 1 unknown rooms and 1 agency.
 - **OBSERVED:** The run report's `preview.kept` incorrectly marked L1 candidates as kept before the actionable-contact-route gate. Eight preview rows showed kept=true while the authoritative `counts.kept` was 2. The diagnostics API persists completed reports without a `result.status` field; the CI poll's status predicate therefore never matches.
