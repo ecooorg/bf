@@ -58,8 +58,18 @@ test('Gemini quota cooldown is isolated per project key and never parks a model 
   assert.equal(pool.slotsFor('gemini-3.5-flash-lite', 10).length, 3, 'one project quota must cool only its own slot/model pair');
   assert.equal(pool.slotsFor('gemini-3.1-flash-lite', 10).length, 4, 'a quota on one model must not cool the same keys on another model');
   await assert.rejects(
-    callWithKeyPool({ pool, model: 'gemini-3.5-flash-lite', maxKeyAttempts: 4, now: () => 10, call: async () => { throw quotaError; } }),
+    callWithKeyPool({ pool, model: 'gemini-3.5-flash-lite', now: () => 10, call: async () => { throw quotaError; } }),
     (error) => error instanceof PoolExhaustedError && error.attempted === 3,
   );
   assert.equal(pool.snapshot(10).cooledPairs, 4);
+});
+
+test('Gemini pool defaults to trying every configured project key', async () => {
+  const slots = Array.from({ length: 7 }, (_, slot) => ({ slot, envName: `GEMINI_API_KEY_${slot}`, key: `project-key-${slot}` }));
+  const pool = new GeminiKeyPool(slots);
+  const quotaError = Object.assign(new Error('RESOURCE_EXHAUSTED'), { status: 429 });
+  await assert.rejects(
+    callWithKeyPool({ pool, model: 'gemini-3.5-flash-lite', now: () => 1, call: async () => { throw quotaError; } }),
+    (error) => error instanceof PoolExhaustedError && error.attempted === 7,
+  );
 });
