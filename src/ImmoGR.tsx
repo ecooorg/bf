@@ -88,7 +88,7 @@ export default function ImmoGR() {
       const raw = await file.text();
       let title = file.name;
       let extracted = raw;
-      if (/\\.html?$/i.test(file.name)) {
+      if (/\.html?$/i.test(file.name)) {
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
         title = (documentCopy.title || file.name).slice(0, 300);
         documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
