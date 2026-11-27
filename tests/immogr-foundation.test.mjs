@@ -30,3 +30,26 @@ test('active migration runner quarantines only historical ImmoFinder migrations'
   assert.match(runner, /0\(\?:2\[0-9\]\|30\)_immofinder/);
   assert.doesNotMatch(runner, /immogr_/);
 });
+
+test('official GR commune catalogue is complete and priority worksheet is editable', async () => {
+  const { IMMOGR_COMMUNES } = await import('../src/immogr/communes.ts');
+  const csv = read('config/immogr/commune-priorities.csv');
+  assert.equal(IMMOGR_COMMUNES.length, 100);
+  assert.equal(new Set(IMMOGR_COMMUNES.map((item) => item.bfsId)).size, 100);
+  assert.equal(new Set(IMMOGR_COMMUNES.map((item) => item.name)).size, 100);
+  const dataRows = csv.split(/\r?\n/).filter((line) => /^\d+,/.test(line));
+  assert.equal(dataRows.length, 100);
+  assert.match(csv, /priority_rating,target_44,aliases,notes/);
+  assert.match(csv, /1 \(highest\) or 2 \(secondary\)/);
+  assert.ok(IMMOGR_COMMUNES.some((item) => item.bfsId === 3901 && item.name === 'Chur'));
+});
+
+test('ImmoGR exposes official municipality catalogue and UI consumes it', () => {
+  const routes = read('server/immogr/index.ts');
+  const ui = read('src/ImmoGR.tsx');
+  assert.match(routes, /app\.get\('\/api\/immogr\/communes'/);
+  assert.match(routes, /IMMOGR_COMMUNES/);
+  assert.match(ui, /fetch\('\/api\/immogr\/communes'/);
+  assert.match(ui, /communes\.map/);
+  assert.match(ui, /commune-priorities\.csv/);
+});
