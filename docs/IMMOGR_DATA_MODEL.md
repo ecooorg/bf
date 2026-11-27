@@ -31,3 +31,17 @@ Use a stable canonical listing key built from canonical detail URL and verified 
 
 ## Migration policy
 Migrations are new and additive. Do not migrate or read legacy ImmoFinder rows. Before production, specify deletion/retention, backup, access control, encryption, and contact-data minimization in the schema and operations docs.
+
+## Manual research observations (Owner-approved 2026-11-27)
+
+Add a dedicated `immogr_manual_reviews` table (additive migration) rather than treating user-entered observations as fetched source pages.
+
+Suggested fields:
+- `id`, `source_id`, `canonical_url`, optional `locality_id`;
+- `capture_method` fixed to `manual_user_review`;
+- `reviewer_id`, `reviewed_at`, `manual_access_outcome`;
+- structured observed fields for page type, property type, price amount/currency/period, rental mode, owner/advertiser class and signal, contact-route type, freshness and relevance;
+- concise reviewer notes and links to `immogr_evidence` records;
+- `created_at`, `updated_at`, and review-state history.
+
+Manual records must not contain copied full-page HTML, session cookies, passwords, or unnecessary personal data. Store source URL and provenance; keep uncertain facts as unknown or inference. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record.
