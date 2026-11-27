@@ -20,9 +20,9 @@
 - Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
 
 ## WP2 — Source eligibility and real-page research
-- [x] Build the authoritative current Graubünden municipality reference (100 active municipalities, BFS IDs, official names) from the canton directory; expose it to the ImmoGR selector and seed the independent database table.
-- [ ] Owner to rate municipalities in `config/immogr/commune-priorities.csv`: `1` = highest priority, `2` = secondary, blank = low/no interest; mark exactly 44 with `target_44=yes`. The first target geography is not frozen until this owner input is returned.
-- [ ] Enrich the selected 44 with aliases, local spellings, historical names and postcodes from authoritative sources.
+- [x] Replace municipality targeting with the exact owner-defined 44-locality catalogue (22 group 1, 22 group 2); expose independent group toggles and seed `immogr_localities`.
+- [x] Owner supplied the complete search geography: exactly 22 group-1 and 22 group-2 localities. No further municipality ratings or 44-item selection are required.
+- [ ] Enrich the 44 selected localities with spelling variants, historical names and postcode evidence; never infer adjacent localities from municipal membership.
 - Collect at least five representative real pages per source candidate only through permitted manual review or an authorized access method; label page types, owner signals, price semantics, contact routes, and access outcomes.
 - Obtain written permissions or official partner/API access before automated acquisition; currently no consumer portal has passed this gate.
 - Evaluate Lookmove API, discover.swiss, STnet OpenBooking, and e-domizil as licensed-feed candidates; do not purchase or sign without explicit owner approval.
