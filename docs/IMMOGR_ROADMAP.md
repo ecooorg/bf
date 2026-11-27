@@ -73,3 +73,5 @@
 
 
 **WP2 structured local import:** HTML JSON-LD suggestions are parsed client-side into editable candidate fields; the Owner must verify them before save. No source page is fetched by ImmoGR.
+
+**WP2 structured-import refinement (2026-11-27):** local JSON-LD extraction now recognizes German, French and Italian rental-period labels, preserves schema.org availability values as unverified suggestions, and normalizes locality spelling/diacritics only for exact label matching. It deliberately does not infer geographic aliases such as “St.” → “Sankt”; those require owner-reviewed locality evidence.
