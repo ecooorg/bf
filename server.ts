@@ -385,11 +385,22 @@ registerAuthRoutes(app, {
 });
 
 
+// Temporary ImmoGR pilot token. Never log or expose this value.
+const IMMOGR_PILOT_TOKEN = process.env.IMMOGR_PILOT_TOKEN || '';
+function hasValidImmoGRPilotToken(req: any): boolean {
+  if (!IMMOGR_PILOT_TOKEN || req.method !== 'POST' || req.path !== '/api/immogr/pilot') return false;
+  const supplied = String(req.get('x-immogr-pilot-token') || '');
+  const expected = Buffer.from(IMMOGR_PILOT_TOKEN);
+  const actual = Buffer.from(supplied);
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+}
+
 // Auth middleware for /api/*
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/')) return next();
   if (req.path === '/api/health' || req.path === '/api/session' || req.path === '/api/login' || req.path === '/api/logout') return next();
   if (req.path === '/api/immofinder' || req.path.startsWith('/api/immofinder/')) return res.status(410).json({ success: false, error: 'ImmoFinder is permanently retired. Use ImmoGR.', code: 'IMMOFINDER_RETIRED' });
+  if (hasValidImmoGRPilotToken(req)) return next();
   if (!authenticated(req)) {
     return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
   }
@@ -444,7 +455,7 @@ registerProjectRoutes(app, {
 });
 
 // ImmoGR is an independent property-search module; no ImmoFinder code is imported.
-registerImmoGRRoutes(app, { searchClient: ai as any, searchModels: registryForGeminiCascade('LIGHT').map((entry) => entry.modelId), appAuthEnabled: APP_AUTH_ENABLED, authenticated });
+registerImmoGRRoutes(app, { searchClient: ai as any, searchModels: registryForGeminiCascade('LIGHT').map((entry) => entry.modelId), appAuthEnabled: APP_AUTH_ENABLED, authenticated, pilotEnabled: Boolean(IMMOGR_PILOT_TOKEN) });
 
 
 const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language. Answer in the user's language; do not cite or rely on state-controlled outlets of Russia and Belarus; prefer international and regional sources.`;
