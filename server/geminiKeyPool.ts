@@ -1,12 +1,8 @@
 /**
  * P124.27 — one Gemini key pool for every Gemini call (generate(), search plan, grounding).
  *
- * - Cooldown is tracked per (key slot, model) for quota/transient errors and per slot for auth errors.
- * - When several different keys hit quota on the same model within a short window the model is parked for all
- *   slots instead of burning every key. Owner fact (2026-11-03): the keys are ten separate Google projects of ten
- *   different scientists of one organization, so a shared quota is NOT assumed; the cause of simultaneous 429
- *   (K-1) is open (`NOT_VERIFIED`) and this rule only detects the symptom.
- * - A model is reported exhausted only after the available keys were tried, not after the first 429 (K-2).
+ * - Quota/transient cooldowns are isolated per (key slot, model); auth cooldowns are per slot.
+ * - A 429 from one independent Google project never parks a model for other project keys.
  * - No secret material is ever returned by snapshot(); slots are identified by number only.
  */
 import { classifyKeyError, shouldRotateKeySlot, type KeySlot } from './keyPool.ts';
@@ -16,7 +12,6 @@ export type PoolErrorClass = ReturnType<typeof classifyKeyError>;
 export const QUOTA_COOLDOWN_MS = 60_000;
 export const TRANSIENT_COOLDOWN_MS = 30_000;
 export const AUTH_COOLDOWN_MS = 60 * 60_000;
-/** Distinct keys hitting quota on one model inside this window ⇒ shared quota suspected. */
 
 export class GeminiKeyPool {
   private slotModelUntil = new Map<string, number>();
