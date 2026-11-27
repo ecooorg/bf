@@ -3,6 +3,9 @@ type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: bool
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both';
+type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string };
+type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
+const emptyManualDraft: ManualDraft = { canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
 export default function ImmoGR() {
@@ -18,6 +21,11 @@ export default function ImmoGR() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [searched, setSearched] = useState(false);
+  const [sources, setSources] = useState<ManualSource[]>([]);
+  const [selectedSourceId, setSelectedSourceId] = useState('');
+  const [manualDraft, setManualDraft] = useState<ManualDraft>(emptyManualDraft);
+  const [manualSaving, setManualSaving] = useState(false);
+  const [manualMessage, setManualMessage] = useState('');
   useEffect(() => {
     let active = true;
     fetch('/api/immogr/localities?groupMode=' + groupMode, { credentials: 'same-origin' })
@@ -27,6 +35,12 @@ export default function ImmoGR() {
     return () => { active = false; };
   }, [groupMode]);
   useEffect(() => {
+    fetch('/api/immogr/sources', { credentials: 'same-origin' })
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Source registry unavailable'); return body; })
+      .then((body) => setSources(Array.isArray(body.sources) ? body.sources : []))
+      .catch((reason) => setManualMessage(reason instanceof Error ? reason.message : 'Source registry unavailable'));
+  }, []);
+  useEffect(() => {
     fetch('/api/immogr/status', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || ('Status unavailable (' + response.status + ')')); return body as ImmoGRStatus; })
       .then(setStatus).catch((reason) => setError(reason instanceof Error ? reason.message : 'Status unavailable'));
@@ -34,6 +48,30 @@ export default function ImmoGR() {
   function changeGroupMode(value: GroupMode) {
     setGroupMode(value); setLeads([]); setSearched(false);
     try { localStorage.setItem('immogr.groupMode', value); } catch { /* selection remains usable for this session */ }
+  }
+  function selectManualSource(sourceId: string) {
+    setSelectedSourceId(sourceId);
+    setManualDraft((current) => ({ ...current, canonicalUrl: '', localityId: localities[0]?.id || '' }));
+    setManualMessage('');
+  }
+  async function saveManualReview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedSourceId) return;
+    setManualSaving(true); setManualMessage('');
+    try {
+      const response = await fetch('/api/immogr/manual-reviews', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sourceId: selectedSourceId, ...manualDraft }) });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || ('Save failed (' + response.status + ')'));
+      setManualMessage('Saved to your ImmoGR personal research notebook.');
+      setManualDraft((current) => ({ ...emptyManualDraft, localityId: current.localityId }));
+    } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not save manual research'); }
+    finally { setManualSaving(false); }
+  }
+  function openManualSource() {
+    let url: URL;
+    try { url = new URL(manualDraft.canonicalUrl); } catch { setManualMessage('Enter a valid source URL first.'); return; }
+    if (!['http:', 'https:'].includes(url.protocol)) { setManualMessage('Only HTTP(S) source URLs can be opened.'); return; }
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
   }
   async function discover(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSearching(true); setSearchError(''); setLeads([]); setSearched(false);
@@ -77,6 +115,29 @@ export default function ImmoGR() {
       {searched && <p>{leads.length} candidate URL(s) returned for {locality}. Each needs manual page and access review.</p>}
       {leads.length > 0 && <ul style={{ paddingLeft: 20 }}>{leads.map((lead) => <li key={lead.url} style={{ margin: '12px 0' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{lead.host} · UNVERIFIED URL · manual source review required</div></li>)}</ul>}
       <p style={{ color: '#f4d28b', fontSize: 12, marginBottom: 0 }}>A search result is not a property listing. No price, locality, owner, contact, or availability is verified at this stage.</p>
+    </section>
+    <section style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
+      <h2 style={{ marginTop: 0 }}>Personal manual research notebook</h2>
+      <p style={{ color: '#9aadc5' }}>Choose any registered source, open its original page in your browser, then save the facts you observed for your own housing search. Automation status is shown separately and does not hide manual research.</p>
+      <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
+      {sources.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>{sources.map((source) => <button type="button" key={source.id} onClick={() => selectManualSource(source.id)} aria-pressed={selectedSourceId === source.id} style={{ border: selectedSourceId === source.id ? '2px solid #79c7ff' : '1px solid #40536b', borderRadius: 8, padding: '7px 10px', background: '#101f33', color: '#eef4ff', cursor: 'pointer' }}>{source.name}</button>)}</div>}
+      {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
+        <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
+        <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{localities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
+        <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
+        <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>
+        <label>Price<input type="number" min="0" max="1000000" step="0.01" value={manualDraft.priceAmount} onChange={(e) => setManualDraft({ ...manualDraft, priceAmount: e.target.value })} style={field} /></label>
+        <label>Currency<select value={manualDraft.currency} onChange={(e) => setManualDraft({ ...manualDraft, currency: e.target.value })} style={field}><option>CHF</option><option>EUR</option></select></label>
+        <label>Price period<select value={manualDraft.pricePeriod} onChange={(e) => setManualDraft({ ...manualDraft, pricePeriod: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="month">Per month</option><option value="week">Per week</option><option value="night">Per night</option><option value="season">Per season</option></select></label>
+        <label>Advertiser / owner type<select value={manualDraft.ownerClass} onChange={(e) => setManualDraft({ ...manualDraft, ownerClass: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="private_owner">Private owner</option><option value="agency">Agency</option><option value="management_company">Management company</option><option value="tour_operator">Tour operator</option><option value="intermediary">Intermediary</option></select></label>
+        <label>Availability<input value={manualDraft.availability} onChange={(e) => setManualDraft({ ...manualDraft, availability: e.target.value })} maxLength={500} placeholder="e.g. from 1 December" style={field} /></label>
+        <label>Review outcome<select value={manualDraft.accessOutcome} onChange={(e) => setManualDraft({ ...manualDraft, accessOutcome: e.target.value })} style={field}><option value="reviewed">Reviewed</option><option value="in_progress">In progress</option><option value="blocked_by_source">Blocked by source</option><option value="no_relevant_inventory">No relevant inventory</option></select></label>
+        <label style={{ gridColumn: '1 / -1' }}>Your notes<textarea value={manualDraft.notes} onChange={(e) => setManualDraft({ ...manualDraft, notes: e.target.value })} maxLength={5000} rows={3} style={field} placeholder="Owner signals, contact route, rental conditions, follow-up notes…" /></label>
+        <button type="submit" disabled={manualSaving || !manualDraft.localityId || !manualDraft.canonicalUrl} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700 }}>{manualSaving ? 'Saving…' : 'Save personal research note'}</button>
+      </form>}
+      {manualMessage && <p role="status" aria-live="polite">{manualMessage}</p>}
+      <p style={{ color: '#9aadc5', fontSize: 12, marginBottom: 0 }}>Records are personal research notes, not verified listings. Keep the original URL so you can reopen and contact the advertiser. Do not enter passwords or session tokens.</p>
     </section>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
       <section style={panel}><h2>Direct Rentals</h2><p>Long-term rental offers in one of the 44 selected localities, with verified monthly rent up to CHF 2,000 and a private advertiser.</p><p style={{ color: '#9aadc5', fontSize: 13 }}>Listing qualification remains disabled until a permitted source and page-level evidence pipeline are approved.</p></section>
