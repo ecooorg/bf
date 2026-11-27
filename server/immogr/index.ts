@@ -6,7 +6,7 @@ import { getPool } from '../database.ts';
 import { recordApplicationLog } from '../projectDiagnostics.ts';
 import { fetchSerperDigestMulti, fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
-import { resolveDiscoverySourceScope } from './discovery-scope.ts';
+import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
 type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown>; probePolicy?: { status?: string } };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
@@ -131,7 +131,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       ? 'current apartment or house rental opportunities, long-term rental, monthly rent, private landlords and individual property advertisements'
       : 'holiday apartments or chalets offered by private owners, including owners who may consider long-term rental';
     const selectedSourceInstructions = sourceScope.sources.map((source) => source.name).join('; ');
-    const userText = 'Find current public candidate URLs for ' + intent + ' in these selected Graubünden localities: ' + localityNames.join(', ') + '. Use these owner-selected sources as search starting points, but do not restrict results to their domains: ' + selectedSourceInstructions + '. Search broadly across public web results, including relevant original listings and source pages. Do not broaden the geographic intent beyond the selected localities. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified. Return as many distinct candidate URLs as the search grounding provides, up to 100 total.';
+    const userText = 'Find current public candidate URLs for ' + intent + ' in these selected Graubünden localities: ' + localityNames.join(', ') + '. Search ONLY on these owner-selected source domains: ' + selectedSourceInstructions + '. Do not return results from other domains, aggregators, search pages, or unrelated sites. Do not broaden the geographic intent beyond the selected localities. Prefer individual property detail pages. Do not invent URLs or claim that a result is verified. Return as many distinct candidate URLs as the search grounding provides, up to 100 total.';
     const requestId = randomUUID();
     const startedAt = Date.now();
     const attemptedModels: string[] = [];
@@ -155,7 +155,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     if ((!result || result.status !== 'used') && serperEnabled) {
       serperFallbackAttempted = true;
       const localityTerms = localityNames.join(' OR ');
-      const extraQueries = sourceScope.sources.map((source) => '"' + source.name.replace(/"/g, '') + '" (' + localityTerms + ') apartment house rental Graubuenden');
+      const extraQueries = sourceScope.sources.map((source) => 'site:' + source.host + ' (' + localityTerms + ') apartment house rental Graubuenden');
       const fallback = await fetchSerperDigestMulti({
         apiKey: process.env.SERPER_API_KEY as string,
         userText, today, timeoutMs: 25_000, num: 10,
@@ -176,14 +176,40 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       try { return new URL(source.url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; }
     }).filter(Boolean))];
     const matchedSelectedHosts = resultHosts.filter((host) => [...selectedHosts].some((selectedHost) => host === selectedHost || host.endsWith('.' + selectedHost))).length;
+    const acceptedCandidates: typeof candidateSources = [];
+    const seenCandidateUrls = new Set<string>();
+    const candidateDecisions = candidateSources.map((source) => {
+      let safeUrl = '';
+      let canonicalUrl = '';
+      let host = '';
+      try {
+        const parsed = new URL(source.url);
+        host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+        safeUrl = parsed.origin + parsed.pathname;
+        parsed.search = '';
+        parsed.hash = '';
+        parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+        canonicalUrl = parsed.toString();
+      } catch { /* rejected below */ }
+      const inSelectedScope = isDiscoveryUrlInScope(source.url, sourceScope.sources);
+      const duplicate = Boolean(canonicalUrl && seenCandidateUrls.has(canonicalUrl));
+      if (canonicalUrl && !duplicate) seenCandidateUrls.add(canonicalUrl);
+      const accepted = inSelectedScope && !duplicate;
+      if (accepted) acceptedCandidates.push(source);
+      return { title: String(source.title || '').slice(0, 180), url: safeUrl, host, inSelectedScope, duplicate, decision: accepted ? 'accepted' : 'rejected', reason: !inSelectedScope ? 'outside_selected_source_domains' : duplicate ? 'duplicate_url' : null };
+    });
     const diagnosticDetails = {
       category, localityCount: selectedLocalities.length, localityIds, localities: localityNames,
       sourceCount: sourceScope.sources.length, sourceIds: sourceScope.sources.map((source) => source.id),
+      selectedHosts: [...selectedHosts],
       provider, attemptedModels, successfulModel: result?.model || null,
       providerStatus: result?.status || 'failed', geminiStatus, geminiReason,
       serperFallbackAttempted, serperStatus, serperReason,
       reason: String(result?.reason || '').slice(0, 240), queryCount: result?.queries.length || 0,
-      groundedSourceCount: candidateSources.length, resultHostCount: resultHosts.length,
+      groundedSourceCount: candidateSources.length, acceptedCandidateCount: acceptedCandidates.length,
+      rejectedOutsideSelectedHostCount: candidateDecisions.filter((item) => item.reason === 'outside_selected_source_domains').length,
+      duplicateCandidateCount: candidateDecisions.filter((item) => item.duplicate).length,
+      resultHostCount: resultHosts.length,
       matchedSelectedHostCount: matchedSelectedHosts, outsideSelectedHostCount: Math.max(0, resultHosts.length - matchedSelectedHosts),
       durationMs, resultLimit: 100,
     };
@@ -194,11 +220,16 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       requestId, message: result?.status === 'used' ? 'ImmoGR broad discovery completed' : 'ImmoGR search providers failed',
       details: diagnosticDetails,
     }).catch(() => {});
+    void recordApplicationLog({
+      level: 'info', component: 'immogr', event: 'discovery_candidate_journal',
+      requestId, message: 'Per-candidate ImmoGR source-scope and deduplication decisions',
+      details: { selectedSourceIds: sourceScope.sources.map((source) => source.id), candidates: candidateDecisions },
+    }).catch(() => {});
     if (!result || result.status !== 'used') {
       return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', error: 'Gemini and Serper did not return usable search results.', providerStatus: result?.status || 'failed', reason: result?.reason || geminiReason || serperReason || 'No grounded search results were returned.', requestId, diagnostics: diagnosticDetails });
     }
     console.info('[ImmoGR] discovery completed', { requestId, ...diagnosticDetails });
-    const leads = candidateSources.slice(0, 100).map((source) => {
+    const leads = acceptedCandidates.slice(0, 100).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
       return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'manual_review_required' };
@@ -207,7 +238,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       success: true, status: 'discovery_only', category, localities: localityNames, localityIds,
       generatedAt: new Date().toISOString(), requestId, diagnostics: { ...diagnosticDetails, returnedLeadCount: leads.length }, leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
-      disclaimer: 'Broad search-engine candidate URLs only, capped at 100. Results are unverified and may come from outside the selected source domains. No source listing pages were fetched or parsed; review each result manually and check source access terms before any automated access.',
+      disclaimer: 'Broad search-engine candidate URLs only, capped at 100. Results are unverified and are restricted to the selected source domains. No source listing pages were fetched or parsed; review each result manually and check source access terms before any automated access.',
     });
   };
   app.post('/api/immogr/discovery', discoveryHandler);
