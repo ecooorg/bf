@@ -350,7 +350,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://apartmentszurich.ch/en/"
     },
     {
       "id": "realadvisor",
@@ -476,7 +477,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://alpinemarket.ch/developers"
     }
   ],
   "monitoring": {
