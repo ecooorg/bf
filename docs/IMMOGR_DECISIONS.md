@@ -42,3 +42,7 @@ ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded f
 ## D-IMMOGR-008 — Manual owner signals are not long-term offers (2026-11-27)
 
 A tourism-provider page can be a valuable Private Owner Prospect when it explicitly identifies private/family ownership and provides a property-level contact route. Weekly holiday availability does not prove long-term availability. The Chalet Willi/Arosa page is a manual research example only: it is not a Direct Rental and is not an admitted listing. Source-page automation remains subject to the source operator's terms and permission.
+
+## D-IMMOGR-009 — Locality-based target geography (2026-11-27)
+
+The search geography is the exact 44-place list supplied by the owner: 22 important group-1 localities and 22 secondary group-2 localities. Settings may enable group 1, group 2, or both. Every other locality is out of scope. Municipalities are administrative containers and must never be treated as interchangeable with advertised localities or used to broaden a search. Search input, validation, matching, and listing records use the locality name/ID. The prior 100-municipality catalogue and 44-municipality rating workflow are retired.
