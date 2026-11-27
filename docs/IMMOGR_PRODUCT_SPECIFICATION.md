@@ -15,8 +15,10 @@ A specific apartment or house offered for long-term rental. Admission requires a
 ### Private Owner Prospect
 A specific seasonal or holiday apartment/house in a target commune. Admission requires evidence of the actual property, private-owner status, and a direct public contact route. The property's suitability for a long-term rental of three years or more is a scored prospect hypothesis, not a fact or offer. CHF 2,000 is a negotiation reference only; it must never be shown as the object's published rent unless the page explicitly states it.
 
-## Internal discovery stage
-Live discovery may return current search-engine URLs as unverified leads for manual review. This is an intermediate queue, not a third admitted result category. Titles and snippets are not listing evidence; no candidate becomes a Direct Rental or Private Owner Prospect until the specific page is lawfully acquired and all mandatory facts are evidenced.
+## Internal discovery and manual research stages
+Live discovery may return current search-engine URLs as unverified leads. This is an intermediate queue, not a third admitted result category. Titles and snippets are not listing evidence.
+
+All registered sources are also available for user-initiated manual research regardless of their automated-acquisition status. The user opens the original source in an ordinary browser and explicitly records selected observations through the ImmoGR capture form. Such observations are labelled `human_observed`, retain source URL and reviewer/timestamp provenance, and remain research records until independently qualified. Manual observations are not described as server-fetched pages and do not automatically create an admitted Direct Rental or Private Owner Prospect.
 
 ## Non-goals
 - Reusing or repairing ImmoFinder.
