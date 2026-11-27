@@ -60,3 +60,8 @@ ImmoGR is a private, single-owner notebook for the Owner's own housing search an
 ## D-IMMOGR-012 — Local copies and private notebook processing (2026-11-27)
 
 The Owner confirms ImmoGR is a single-owner personal notebook. The Owner may save a page or screenshot through ordinary user-facing browser functions, keep local copies, and process those local files manually or with local automation as desired. ImmoGR may support user-selected local file import and client-side extraction before the Owner explicitly saves selected notes. Local file processing is distinct from ImmoGR remotely fetching or crawling a source. Do not add redundant legal-status entities or block private notebook notes solely because a source restricts automated collection or third-party republication. Remote crawling, server-side proxying, access-control bypass and automated outreach remain outside this approval.
+
+
+## D-IMMOGR-013 — Owner-selected discovery source scope (2026-11-27)
+
+The Owner selects one or more of the 29 registered sources in ImmoGR search settings. Discovery requests and returned candidate URLs are restricted to those selected source domains. This selection controls discovery scope only; it does not override source-specific terms, robots rules, limited-probe authorization, or automated acquisition eligibility. The source registry remains the authority for those access decisions.
