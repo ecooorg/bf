@@ -64,7 +64,7 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(routes, /maxQueries: Math\.min\(29, sourceScope\.sources\.length\)/);
   assert.match(routes, /maxSources: 100/);
   assert.match(routes, /fetchPages: false/);
-  assert.doesNotMatch(routes, /isDiscoveryUrlInScope\(source\.url/);
+  assert.match(routes, /isDiscoveryUrlInScope\(source\.url, sourceScope\.sources\)/);
   assert.match(routes, /candidateSources\.slice\(0, 100\)/);
   assert.match(ui, /fetch\('\/api\/immogr\/localities\?groupMode=/);
   assert.match(ui, /localityIds: selectedLocalityIds/);
@@ -213,14 +213,18 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
 });
 
 
-test('ImmoGR broad discovery is bounded to 100 candidate URLs without selected-domain filtering', () => {
+test('ImmoGR discovery is bounded to 100 candidate URLs and strictly filters selected domains', () => {
   const routes = read('server/immogr/index.ts');
   const search = read('server/webSearch.ts');
   assert.match(routes, /maxQueries: Math\.min\(29, sourceScope\.sources\.length\)/);
   assert.match(routes, /maxSources: 100/);
-  assert.match(routes, /candidateSources\.slice\(0, 100\)/);
+  assert.match(routes, /acceptedCandidates\.slice\(0, 100\)/);
   assert.match(routes, /outsideSelectedHostCount/);
-  assert.doesNotMatch(routes, /result\.sources\.filter\(\(source\) => isDiscoveryUrlInScope/);
+  assert.match(routes, /isDiscoveryUrlInScope\(source\.url, sourceScope\.sources\)/);
+  assert.match(routes, /discovery_candidate_journal/);
+  assert.match(routes, /rejectedOutsideSelectedHostCount/);
+  assert.match(routes, /site:' \+ source\.host/);
+  assert.match(routes, /Search ONLY on these owner-selected source domains/);
   assert.match(search, /maxQueries\?: number/);
   assert.match(search, /maxSources\?: number/);
   assert.match(search, /sources\.length >= maxSources/);
