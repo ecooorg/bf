@@ -28,6 +28,8 @@ export const SECRET_ENV_NAMES = [
     'SESSION_SECRET',
     'APP_PASSWORD',
     'DATABASE_URL',
+    'GOOGLE_SERVICE_ACCOUNT_JSON',
+    'GOOGLE_APPLICATION_CREDENTIALS',
   ]),
 ] as const;
 
@@ -77,7 +79,7 @@ export function redactDeep<T>(value: T, env: NodeJS.ProcessEnv = process.env): T
     const v = env[name];
     if (typeof v === 'string' && v.length >= 8) secretValues.add(v);
   }
-  const secretKey = /(_KEY|_SECRET|_PASSWORD|PRIVATE_KEY|DATABASE_URL|TOKEN|x-byok-key)$/i;
+  const secretKey = /(_KEY|_SECRET|_PASSWORD|PRIVATE_KEY|DATABASE_URL|TOKEN|SERVICE_ACCOUNT|CREDENTIALS_JSON|x-byok-key)$/i;
 
   function walk(v: unknown): unknown {
     if (typeof v === 'string') {
