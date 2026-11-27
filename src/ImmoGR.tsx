@@ -67,6 +67,28 @@ export default function ImmoGR() {
     } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not save manual research'); }
     finally { setManualSaving(false); }
   }
+  async function importLocalPageFile(file?: File) {
+    if (!file) return;
+    if (!/\\.(html?|txt)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
+      setManualMessage('Choose a local .html, .htm or .txt file up to 5 MB.');
+      return;
+    }
+    try {
+      const raw = await file.text();
+      let title = file.name;
+      let extracted = raw;
+      if (/\\.html?$/i.test(file.name)) {
+        const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
+        title = (documentCopy.title || file.name).slice(0, 300);
+        documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
+        extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\\s+/g, ' ').trim();
+      }
+      setManualDraft((current) => ({ ...current, pageTitle: current.pageTitle || title, notes: extracted.slice(0, 5000) }));
+      setManualMessage('Local file read in this browser. Review and edit the extracted notes before saving; the file itself was not uploaded.');
+    } catch {
+      setManualMessage('Could not read that local file.');
+    }
+  }
   function openManualSource() {
     let url: URL;
     try { url = new URL(manualDraft.canonicalUrl); } catch { setManualMessage('Enter a valid source URL first.'); return; }
@@ -124,6 +146,7 @@ export default function ImmoGR() {
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
+        <label style={{ gridColumn: '1 / -1' }}>Import a locally saved page (.html/.htm/.txt, up to 5 MB)<input type="file" accept=".html,.htm,.txt,text/html,text/plain" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; selected notes are saved only when you submit the form.</span></label>
         <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{localities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
         <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>
