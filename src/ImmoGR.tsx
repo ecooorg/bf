@@ -25,6 +25,7 @@ export default function ImmoGR() {
   const [selectedSourceId, setSelectedSourceId] = useState('');
   const [manualDraft, setManualDraft] = useState<ManualDraft>(emptyManualDraft);
   const [manualSaving, setManualSaving] = useState(false);
+  const [manualReviews, setManualReviews] = useState<Array<{ id: string; canonical_url: string; locality_id: string; reviewed_at: string; manual_access_outcome: string; page_title: string | null; price_amount: string | null; currency: string; price_period: string; owner_class: string }>>([]);
   const [manualMessage, setManualMessage] = useState('');
   useEffect(() => {
     let active = true;
@@ -40,6 +41,13 @@ export default function ImmoGR() {
       .then((body) => setSources(Array.isArray(body.sources) ? body.sources : []))
       .catch((reason) => setManualMessage(reason instanceof Error ? reason.message : 'Source registry unavailable'));
   }, []);
+  useEffect(() => {
+    if (!selectedSourceId) { setManualReviews([]); return; }
+    fetch('/api/immogr/manual-reviews?sourceId=' + encodeURIComponent(selectedSourceId), { credentials: 'same-origin' })
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Could not load saved notes'); return body; })
+      .then((body) => setManualReviews(Array.isArray(body.reviews) ? body.reviews : []))
+      .catch(() => setManualReviews([]));
+  }, [selectedSourceId]);
   useEffect(() => {
     fetch('/api/immogr/status', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || ('Status unavailable (' + response.status + ')')); return body as ImmoGRStatus; })
@@ -63,6 +71,9 @@ export default function ImmoGR() {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || ('Save failed (' + response.status + ')'));
       setManualMessage('Saved to your ImmoGR personal research notebook.');
+      const savedResponse = await fetch('/api/immogr/manual-reviews?sourceId=' + encodeURIComponent(selectedSourceId), { credentials: 'same-origin' });
+      const savedBody = await savedResponse.json().catch(() => ({}));
+      setManualReviews(Array.isArray(savedBody.reviews) ? savedBody.reviews : []);
       setManualDraft((current) => ({ ...emptyManualDraft, localityId: current.localityId }));
     } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not save manual research'); }
     finally { setManualSaving(false); }
@@ -160,6 +171,7 @@ export default function ImmoGR() {
         <button type="submit" disabled={manualSaving || !manualDraft.localityId || !manualDraft.canonicalUrl} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700 }}>{manualSaving ? 'Saving…' : 'Save personal research note'}</button>
       </form>}
       {manualMessage && <p role="status" aria-live="polite">{manualMessage}</p>}
+      {manualReviews.length > 0 && <div style={{ marginTop: 18 }}><h3>Saved notes ({manualReviews.length})</h3><ul style={{ paddingLeft: 20 }}>{manualReviews.map((review) => <li key={review.id} style={{ margin: '8px 0' }}><a href={review.canonical_url} target="_blank" rel="noopener noreferrer">{review.page_title || review.canonical_url}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{review.locality_id} · {review.price_amount ? review.price_amount + ' ' + review.currency + ' / ' + review.price_period : 'Price unknown'} · {review.owner_class} · {review.manual_access_outcome} · {new Date(review.reviewed_at).toLocaleString()}</div></li>)}</ul></div>}
       <p style={{ color: '#9aadc5', fontSize: 12, marginBottom: 0 }}>Records are personal research notes, not verified listings. Keep the original URL so you can reopen and contact the advertiser. Do not enter passwords or session tokens.</p>
     </section>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
