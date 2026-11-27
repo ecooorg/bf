@@ -232,3 +232,19 @@ Additional checks from the same WP2 desk-research pass:
 | HappyHoliday | Current AGB identify the operator as Gruppenhaussuche.ch AG and describe direct contracts between providers and guests. Providers grant the platform rights to photos and information they publish; no third-party ImmoGR acquisition licence is stated. | Promising private holiday-provider inventory; verify individual owner signals and rights to retain listing-level data separately. |
 | Lookmove data service | Current data-service terms describe internal use for professional or personal purposes via the service; separate consumer portal terms permit visitors to browse listings and contact advertisers. | Investigate the paid data service on its own contract. Do not infer that a visitor may export or persist consumer-portal content into ImmoGR. |
 | aptari | Current public FAQ confirms its feed contains Homegate, ImmoScout24, Flatfox and many cooperative websites, with applications normally completed on the original portal/site. | Useful for discovering source URLs and cooperative websites; each original publisher is a separate source and rights review. |
+
+
+## Owner clarification — private personal notebook scope (2026-11-27)
+
+The Owner confirms ImmoGR is a private, single-user tool for the Owner's own rental search and personal decision-making. It is not a public listing portal, commercial aggregator, resale service, or third-party data product. The Owner's manual entries are personal research notes and selected facts used to compare properties and contact the original advertiser; they are not published, redistributed, sold, sublicensed or supplied to other users.
+
+Accordingly, interpret terms-review findings narrowly and accurately:
+
+- A prohibition on automated scripts or scraping governs automated acquisition; it does not by itself establish that ordinary human browsing is prohibited.
+- A restriction on republication, commercial exploitation or third-party reuse must not automatically be described as a ban on the Owner's private notes.
+- If a term expressly covers personal/local storage, private databases, copying for any purpose, or manual transcription, record that exact clause and assess that specific action separately.
+- The ordinary manual workflow is original-page viewing plus minimal owner-authored structured notes: source URL, locality, asking rent, period, availability, advertiser type, contact route and the Owner's own observations.
+- Do not bulk-copy full pages, images, long descriptions or unnecessary personal data. Keep source attribution and return to the original page for verification/contact.
+- terms_review_required means the exact scope of the relevant clause needs source-specific interpretation; it is not a blanket determination that the Owner's personal note-taking is unlawful or forbidden.
+
+Keep three statuses conceptually separate: permission to view manually, permission/constraints for automated acquisition, and any source-specific restrictions on the Owner's private note storage. Do not disable all manual research solely because automated scraping is restricted.
