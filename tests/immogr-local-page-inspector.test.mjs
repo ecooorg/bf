@@ -20,7 +20,7 @@ function fakeDocument() {
   };
   return {
     title: ' Test listing ',
-    body: { innerText: '  A bright\\n apartment   in the Alps. ' },
+    body: { innerText: '  A bright\n apartment   in the Alps. ' },
     querySelector: (selector) => nodes[selector]?.[0] || null,
     querySelectorAll: (selector) => nodes[selector] || [],
   };
