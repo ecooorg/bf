@@ -29,6 +29,7 @@ test('active migration runner quarantines only historical ImmoFinder migrations'
   assert.match(runner, /isRetiredImmoFinderMigration/);
   assert.match(runner, /0\(\?:2\[0-9\]\|30\)_immofinder/);
   assert.doesNotMatch(runner, /immogr_/);
+  assert.match(runner, /allFiles\.filter\(\(file\) => !isRetiredImmoFinderMigration\(file\)\)/);
 });
 
 test('official GR commune catalogue is complete and priority worksheet is editable', async () => {
