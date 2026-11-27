@@ -2010,7 +2010,9 @@ export async function fetchSerperDigestMulti(opts: {
   }
   if (opts.extraQueriesFirst) for (const q of expandedQueries) if (!queries.some((e) => e.toLowerCase() === q.toLowerCase())) queries.push(q);
   const timeoutMs = Math.max(8000, opts.timeoutMs ?? 28_000);
-  const maxQ = Math.max(1, Math.min(45, opts.maxQueries ?? (Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5)));
+  const maxQ = opts.maxQueries == null
+    ? Math.max(1, Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5))
+    : Math.max(1, Math.min(45, opts.maxQueries));
   const slice = queries.slice(0, maxQ);
   const claimed = new Set<string>(); // URLs already opened by a sibling sub-query (R-5)
   const perQueryTimeout = Math.max(6000, Math.floor(timeoutMs / Math.min(slice.length, 3)));
