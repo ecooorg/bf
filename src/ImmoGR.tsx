@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
-import { extractSchemaFactsFromJsonLd } from './immogr/local-schema.ts';
+import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/local-schema.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
@@ -121,7 +121,7 @@ export default function ImmoGR() {
         if (result.meta.pages) title += ' · ' + result.meta.pages + ' pages';
       }
       setManualDraft((current) => {
-        const localityMatch = schemaFacts.localityName ? manualLocalities.find((item) => item.name.toLocaleLowerCase('de-CH') === schemaFacts.localityName?.toLocaleLowerCase('de-CH')) : undefined;
+        const localityMatch = schemaFacts.localityName ? manualLocalities.find((item) => normalizeLocalityLabel(item.name) === normalizeLocalityLabel(schemaFacts.localityName || '')) : undefined;
         return {
           ...current,
           pageTitle: current.pageTitle || schemaFacts.pageTitle || title,
