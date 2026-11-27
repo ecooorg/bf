@@ -2,7 +2,7 @@
 
 # ImmoGR — Source Registry and Research
 
-**Registry status:** preliminary research; all candidates remain research_required until access and page-quality checks are complete. The JSON inventory is config/immogr/sources.json.
+**Registry status:** research inventory for all 29 candidates. The JSON inventory is config/immogr/sources.json. Its `status` field governs automated acquisition only; manual research has a separate per-source state. No candidate is excluded from the Owner-approved manual research programme solely because automated access is restricted.
 
 ## Source admission protocol
 For every source, record: operator and business model; private-owner eligibility; direct detail-page structure; whether content is first-party or syndicated; commune coverage; price and period quality; contact route and advertiser attribution; terms of use; robots.txt; permitted API/feed; rate limits; technical accessibility; at least five real listing pages and their outcomes. No automated access is permitted until this review has an explicit PASS or documented written permission.
@@ -124,3 +124,53 @@ Source decisions are evidence-based: retain high-yield original sources; keep ag
 ### First manually reviewed owner-signal example
 
 **Chalet Willi, Arosa (Graubünden Tourism):** the source page states that the property is still owned by the Willi family and describes weekly holiday-apartment rentals. The page includes a property-level contact route, while identifying Arosa Tourismus as the page's content manager. Classification for the research gold set: 'private_owner_prospect_candidate'; 'owner_signal=explicit_family_ownership'; 'rental_mode=weekly_holiday'; 'long_term_availability=unknown'; 'direct_rental_eligible=false'. This is a manual research example only, not an admitted ImmoGR listing and not permission to crawl the source.
+
+## Owner decision — all-source manual research (2026-11-27)
+
+The Owner has directed ImmoGR to test **all 29 registered sources**, independent of whether automated collection is permitted or commercially available. This supersedes any interpretation of `excluded_pending_written_permission`, `permission_required`, `discovery_only`, or `research_required` as a ban on evaluating a source through ordinary, user-initiated manual browsing.
+
+### Two independent eligibility axes
+
+- **Manual research:** the Owner or authorized user opens the source in an ordinary browser, inspects a page, and explicitly records selected observations in ImmoGR. This is a user action, not an unattended crawler.
+- **Automated acquisition:** a server process, script, browser automation, proxy, API client or scheduled job obtains source content. Existing source `status` and permission gates continue to apply to this axis only.
+
+This Owner decision establishes the product workflow; it is not a legal opinion or a waiver of third-party terms, privacy duties, copyright, account restrictions or other applicable requirements. Manual review must use normal user-facing access. Do not bypass login, paywalls, CAPTCHA, technical blocks, rate limits or explicit restrictions. If a source's terms also prohibit the intended manual use or data retention, record the issue and ask the Owner before proceeding with that source.
+
+### Manual review workflow
+
+1. The ImmoGR source list displays every registered candidate and its automation status.
+2. Each source has a **“Ручной просмотр”** action. It opens the original site/page in a user-controlled browser context; it does not fetch the page through ImmoGR's server.
+3. The user inspects the page and explicitly chooses **Save to ImmoGR**.
+4. A structured capture form records the canonical URL, source, selected locality, page/listing type, observed price and period, owner/advertiser signals, contact route type, freshness, access outcome, short supporting evidence/notes, reviewer and timestamp.
+5. The saved observation is marked `human_observed` / `manual_review`; it is not represented as a server-fetched page or an admitted listing.
+6. The user can mark the page irrelevant, stale, inaccessible, duplicate, agency/intermediary, promising private-owner prospect, or possible Direct Rental.
+
+A simple embedded web viewer may be explored, but ordinary sites can block framing through CSP or X-Frame-Options and cross-origin pages cannot be read by the ImmoGR app. Prefer opening the original page in a new tab/window plus an adjacent capture panel. Do not build a server-side proxy or browser automation merely to make embedding work.
+
+### Evidence and storage boundaries
+
+- Preserve source URL, observed-at timestamp, reviewer identity, capture method and field-level evidence.
+- Store concise fact notes or limited supporting quotations only where appropriate; do not copy whole pages or retain unnecessary personal data.
+- Do not store passwords, session cookies, authentication tokens or other credentials.
+- Do not infer owner identity from a platform contact. Keep owner, advertiser, agency, management company and contact route distinct.
+- Manual observations can support source-value research and human review; they do not automatically satisfy the fetched-page evidence gate for an admitted Direct Rental.
+- Persist manual observations in an ImmoGR-only table such as `immogr_manual_reviews`; do not mislabel them as `immogr_source_pages` fetched by a server adapter.
+
+### All-source WP2 measurement
+
+All 29 entries in `config/immogr/sources.json` must receive an initial manual access outcome, including sources with no relevant inventory. For each source, record:
+- manual access outcome and date;
+- count of inspected real property pages;
+- count of target-locality matches;
+- count with explicit private-owner signal;
+- count with a direct owner contact route;
+- count with explicit monthly rent and period;
+- count potentially relevant to a three-year rental;
+- stale, duplicate, agency-only, aggregator-only and irrelevant counts;
+- research time and next action.
+
+Target at least five representative real property/detail pages per source where live relevant inventory exists. If fewer than five exist, record the actual sample size and reason; never manufacture a sample. Use the initial review to rank unique owner-lead yield and practical research cost.
+
+### Status interpretation
+
+`status` in the JSON registry remains the automated-acquisition decision. Add/maintain `manualReview.status` independently (for example `not_started`, `in_progress`, `reviewed`, `blocked_by_source`, `no_relevant_inventory`). A source may be `excluded_pending_written_permission` for automation and `reviewed` for manual research at the same time.
