@@ -65,3 +65,8 @@ It reads authorization only from the source registry, skips sources marked `proh
 Current readiness: 7 sources are explicitly marked `prohibited` for scripted/bulk/crawling access; the other 22 have no recorded authorization for limited automated probes. Therefore the current template will send **zero network requests** until source-specific authorization is documented. This is a readiness report, not evidence that a live probe has run.
 
 The runner uses anonymous HTTPS GET requests only. It does not use personal API keys, logins, cookies or account sessions. Sources requiring authentication or licensed APIs need a separately approved integration; credentials must never be placed in the batch JSON.
+
+
+## Export a probe plan from the ImmoGR tablet UI
+
+In Personal manual research, select a source, enter the original listing URL, and optionally enter one second page URL. Tap **Download local probe plan**. The downloaded JSON contains only the registered source ID and the selected HTTPS page URLs; it contains no credentials or permission claims. Transfer that JSON to the Owner's local ImmoGR repository and run it with the local fetcher or include the URLs in the all-source batch plan. The local CLI still checks the registry and sends no request unless the source has an explicit `authorized_for_limited_probe` record.
