@@ -98,3 +98,17 @@ WP3 has started with a fail-closed authorization and page-representation contrac
 - [ ] Import and assess the local batch report; only then decide which sources to retain for later research or authorized acquisition.
 
 **Research boundary:** variant B only. No manual page-by-page source review is performed by the Assistant. The Owner may perform manual review later if desired. Local probe execution is not performed by ChatGPT; it runs only in the Owner's local environment.
+
+
+## WP4 first implementation — evidence-backed local-page listing analysis (2026-11-27)
+
+- [x] Gemini JSON extraction contract classifies a page as detail, catalogue, non-listing or unknown and can return multiple listings.
+- [x] Validate facts against exact quotations; validate detail URLs against original URL or observed same-source links.
+- [x] Enforce exact target-locality matching and independent Direct Rental / Private Owner Prospect gates.
+- [x] Render AI listing cards with confidence, reason codes and evidence; allow owner-reviewed transfer into the notebook.
+- [x] Keep acquisition unchanged: analysis consumes user-selected local copies only and never fetches the supplied URL.
+- [ ] Build labelled real-page evaluation corpus and measure listing-level precision/recall.
+- [ ] Add immutable source snapshots, listing/evidence persistence, canonical deduplication and status history.
+- [ ] Implement Gemini URL Context only for sources with explicit reviewed acquisition authorization.
+- [ ] Add Playwright fallback only for authorized public pages requiring JavaScript rendering.
+- [ ] Review official feeds and portal alerts as separate discovery channels.

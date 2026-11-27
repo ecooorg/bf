@@ -7,6 +7,7 @@ import { recordApplicationLog } from '../projectDiagnostics.ts';
 import { fetchSerperDigestMulti, fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
+import { buildImmoGRListingPrompt, normalizeImmoGRListingAnalysis, parseImmoGRModelJson } from './listing-analysis.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
 type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown>; probePolicy?: { status?: string } };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
@@ -111,6 +112,66 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         ? 'Live discovery can return current candidate URLs. These are unverified leads only: ImmoGR does not fetch source pages, extract listing facts, or admit listings until source permissions and quality criteria are approved.'
         : 'WP2 manual research is active. The private notebook supports all registered sources, local HTML/HTM/TXT import and authenticated structured capture. Configure the approved Gemini or Serper search provider for URL discovery; remote source-page acquisition and listing qualification remain disabled.',
     });
+  });
+
+
+  // AI analysis of a user-selected local page copy. This route never fetches the supplied URL.
+  app.post('/api/immogr/analyze-local-page', async (req, res) => {
+    if (!requireOwner(req, res)) return;
+    if (!searchClient || !searchModels.length) return res.status(503).json({ success: false, code: 'LISTING_ANALYSIS_MODEL_UNAVAILABLE', error: 'Gemini listing analysis is not configured.' });
+    const body = req.body || {};
+    const sourceId = String(body.sourceId || '').trim();
+    const source = sourceRegistry.sources.find((item) => item.id === sourceId);
+    const pageUrlText = String(body.canonicalUrl || '').trim();
+    const pageTitle = String(body.pageTitle || '').trim().slice(0, 300);
+    const pageText = String(body.pageText || '').replace(/\u0000/g, '').trim().slice(0, 30000);
+    const category = body.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
+    const localityIds = Array.isArray(body.localityIds) ? [...new Set(body.localityIds.filter((id: unknown) => typeof id === 'string'))] : [];
+    const selectedLocalities = localityIds.map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)).filter((item): item is NonNullable<typeof item> => Boolean(item));
+    let pageUrl: URL | null = null, sourceUrl: URL | null = null;
+    try { pageUrl = new URL(pageUrlText); } catch { /* invalid URL */ }
+    try { sourceUrl = source?.homepageUrl ? new URL(source.homepageUrl) : null; } catch { /* invalid registry URL */ }
+    const sourceHost = sourceUrl?.hostname.toLowerCase().replace(/^www\./, '') || '';
+    const pageHost = pageUrl?.hostname.toLowerCase().replace(/^www\./, '') || '';
+    const hostMatches = Boolean(sourceHost && pageHost && (pageHost === sourceHost || pageHost.endsWith('.' + sourceHost)));
+    if (!source || !pageUrl || pageUrl.protocol !== 'https:' || pageUrl.username || pageUrl.password || !hostMatches || pageText.length < 80 || !selectedLocalities.length || selectedLocalities.length !== localityIds.length) {
+      return res.status(400).json({ success: false, code: 'INVALID_LOCAL_PAGE_ANALYSIS', error: 'Provide a selected source, its credential-free HTTPS page URL, at least 80 characters of locally extracted page text, and valid ImmoGR localities.' });
+    }
+    const links = (Array.isArray(body.links) ? body.links : []).slice(0, 100).flatMap((item: any) => {
+      const text = String(item?.text || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+      try {
+        const url = new URL(String(item?.url || '').trim(), pageUrl!.toString());
+        const host = url.hostname.toLowerCase().replace(/^www\./, '');
+        if (url.protocol !== 'https:' || url.username || url.password || !(host === sourceHost || host.endsWith('.' + sourceHost))) return [];
+        url.hash = '';
+        return [{ text, url: url.toString() }];
+      } catch { return []; }
+    });
+    const prompt = buildImmoGRListingPrompt({ pageUrl: pageUrl.toString(), pageTitle, category, localityNames: selectedLocalities.map((item) => item.name), pageText, links });
+    const startedAt = Date.now();
+    let analysis: ReturnType<typeof normalizeImmoGRListingAnalysis> | null = null;
+    let modelUsed = '', lastError = 'No valid structured response';
+    for (const model of searchModels.slice(0, 2)) {
+      const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 35000);
+      try {
+        const response = await searchClient.models.generateContent({ model, contents: prompt, config: { responseMimeType: 'application/json', temperature: 0.1, abortSignal: controller.signal } });
+        let output = '';
+        try { if (typeof response?.text === 'string') output = response.text; } catch { /* candidate parts fallback */ }
+        if (!output) { const parts = response?.candidates?.[0]?.content?.parts; output = Array.isArray(parts) ? parts.map((part: any) => typeof part?.text === 'string' ? part.text : '').join('') : ''; }
+        const parsed = parseImmoGRModelJson(output);
+        if (!parsed) { lastError = 'Gemini returned invalid JSON'; continue; }
+        analysis = normalizeImmoGRListingAnalysis(parsed, { pageUrl: pageUrl.toString(), sourceHost, pageText, category, localities: selectedLocalities, allowedLinks: links.map((item) => item.url) });
+        modelUsed = model;
+        break;
+      } catch (error: any) { lastError = controller.signal.aborted ? 'analysis_timeout' : String(error?.message || error).slice(0, 160); }
+      finally { clearTimeout(timer); }
+    }
+    if (!analysis) {
+      void recordApplicationLog({ level: 'warn', component: 'immogr', event: 'local_page_analysis_failed', message: 'Gemini could not extract a structured ImmoGR analysis from the user-selected local copy', details: { sourceId, category, textChars: pageText.length, linkCount: links.length, durationMs: Date.now() - startedAt, reason: lastError } }).catch(() => {});
+      return res.status(502).json({ success: false, code: 'LISTING_ANALYSIS_FAILED', error: 'The page copy could not be converted into a validated listing analysis. ' + lastError });
+    }
+    void recordApplicationLog({ level: 'info', component: 'immogr', event: 'local_page_analysis_succeeded', message: 'AI listing extraction completed from a user-selected local page copy', details: { sourceId, category, pageType: analysis.pageType, candidateCount: analysis.candidates.length, qualifiedCandidateCount: analysis.candidates.filter((item) => item.qualification === 'qualified_candidate').length, rejectedCandidateCount: analysis.rejectedCandidateCount, model: modelUsed, durationMs: Date.now() - startedAt } }).catch(() => {});
+    return res.json({ success: true, mode: 'user_selected_local_copy', sourceId, category, analyzedAt: new Date().toISOString(), model: modelUsed, analysis, remotePageFetched: false, disclaimer: 'AI suggestions are checked against quotations from the supplied local copy. They are not live availability checks and are not admitted listings. Review each card and source before saving.' });
   });
 
   const discoveryHandler = async (req: any, res: any) => {

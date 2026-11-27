@@ -10,6 +10,8 @@ type ManualSource = { id: string; name: string; category: string; automationStat
 type ManualDraft = { resultCategory: 'direct_rental' | 'private_owner_prospect'; canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
 type ProbeBatchReport = { generatedAt: string; sourceCount: number; requestsSentByThisBatch: number | null; summary: Record<string, number>; results: ProbeBatchResult[] };
+type ListingAnalysisCandidate = { title: string; url: string; locality: string | null; localityId: string | null; propertyType: string; priceAmount: number | null; currency: string | null; pricePeriod: string; rooms: number | null; areaSqm: number | null; availability: string | null; ownerClass: string; directContact: string; minTermYears: number | null; qualification: string; confidence: string; reasons: string[]; evidence: Array<{ field: string; quote: string }> };
+type ListingAnalysisResult = { pageType: string; pageTitle: string; candidates: ListingAnalysisCandidate[]; rejectedCandidateCount: number; notes: string[]; category: 'direct_rental' | 'private_owner_prospect' };
 const emptyManualDraft: ManualDraft = { resultCategory: 'direct_rental', canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
@@ -38,6 +40,8 @@ export default function ImmoGR() {
   const [manualMessage, setManualMessage] = useState('');
   const [localPageInspection, setLocalPageInspection] = useState<LocalPageInspection | null>(null);
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
+  const [listingAnalysis, setListingAnalysis] = useState<ListingAnalysisResult | null>(null);
+  const [analyzingPage, setAnalyzingPage] = useState(false);
   const [showPageImages, setShowPageImages] = useState(false);
   const [probeSecondUrl, setProbeSecondUrl] = useState('');
   const [sourceSettingsMessage, setSourceSettingsMessage] = useState('');
@@ -94,6 +98,7 @@ export default function ImmoGR() {
     setManualDraft(emptyManualDraft);
     setLocalPageInspection(null);
     setLocalPageSnapshot('');
+    setListingAnalysis(null);
     setShowPageImages(false);
     setProbeSecondUrl('');
     setManualMessage('');
@@ -116,7 +121,7 @@ export default function ImmoGR() {
   }
   async function importLocalPageFile(file?: File) {
     if (!file) return;
-    setLocalPageInspection(null); setLocalPageSnapshot('');
+    setLocalPageInspection(null); setLocalPageSnapshot(''); setListingAnalysis(null);
     const extension = file.name.split('.').pop()?.toLowerCase() || '';
     const supported = new Set(['html', 'htm', 'txt', 'md', 'pdf', 'docx', 'xlsx', 'pptx', 'csv', 'tsv', 'json']);
     if (!supported.has(extension) || file.size > 5 * 1024 * 1024) {
@@ -181,6 +186,26 @@ export default function ImmoGR() {
     } catch (error) {
       setManualMessage(error instanceof Error ? 'Local import failed: ' + error.message.slice(0, 180) : 'Could not read that local file.');
     }
+  }
+
+  async function analyzeLocalPage() {
+    if (!selectedSourceId || !localPageInspection) { setManualMessage('Select a source and import a local page first.'); return; }
+    const canonicalUrl = localPageInspection.sourceUrl || manualDraft.canonicalUrl;
+    if (!canonicalUrl) { setManualMessage('Enter the original HTTPS page URL before AI analysis.'); return; }
+    setAnalyzingPage(true); setListingAnalysis(null);
+    setManualMessage('Analyzing the locally imported page with Gemini. The extracted text and link inventory will be sent for AI analysis; the original page is not fetched.');
+    try {
+      const response = await fetch('/api/immogr/analyze-local-page', {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId: selectedSourceId, canonicalUrl, pageTitle: localPageInspection.title, pageText: localPageInspection.text, links: localPageInspection.links.slice(0, 100), category: manualDraft.resultCategory, localityIds: selectedLocalityIds }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok || !body.success) throw new Error(body.error || ('AI analysis failed (' + response.status + ')'));
+      const result = body.analysis as Omit<ListingAnalysisResult, 'category'>;
+      setListingAnalysis({ ...result, category: manualDraft.resultCategory });
+      setManualMessage('Analysis complete: ' + (result.candidates?.length || 0) + ' candidate card(s). Every displayed fact has been checked against a quote from the local page copy. Review before saving.');
+    } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not analyze the local page.'); }
+    finally { setAnalyzingPage(false); }
   }
   function downloadSelectedProbeBatch() {
     const selected = sources.filter((source) => selectedSourceIds.includes(source.id) && source.homepageUrl);
@@ -356,6 +381,27 @@ export default function ImmoGR() {
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
           <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
           <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from the HTML file you selected or imported from your local ImmoGR agent. The page's scripts are not executed and its original file is not uploaded. Photo URLs are listed first; thumbnails load only after you explicitly choose to show them.</p>
+          <button type="button" onClick={() => void analyzeLocalPage()} disabled={analyzingPage || !localPageInspection.text || !selectedSourceId} style={{ padding: '11px 16px', borderRadius: 8, border: '1px solid #6b8fb5', background: '#193b5c', color: '#fff', fontWeight: 600 }}>{analyzingPage ? 'Analyzing page…' : 'Analyze page with Gemini'}</button>
+          <p style={{ color: '#9aadc5', fontSize: 12 }}>This sends the extracted text and up to 100 same-domain links to Gemini. The HTML file itself is not uploaded, no URL is fetched by the server, and no listing is saved automatically.</p>
+          {listingAnalysis && <section data-testid="immogr-ai-listing-cards" style={{ display: 'grid', gap: 12, margin: '14px 0' }}>
+            <h3 style={{ margin: 0 }}>AI-extracted listing cards · {listingAnalysis.candidates.length}</h3>
+            <p className="immogr-card-meta">Page type: {listingAnalysis.pageType} · Category: {listingAnalysis.category === 'direct_rental' ? 'Direct Rental' : 'Private Owner Prospect'} · Rejected malformed candidates: {listingAnalysis.rejectedCandidateCount}</p>
+            {listingAnalysis.candidates.map((candidate, index) => <article key={candidate.url || candidate.title + index} className="immogr-research-card">
+              <span className="immogr-card-badge">{candidate.qualification.replace(/_/g, ' ')} · {candidate.confidence} confidence</span>
+              <h4 style={{ margin: '8px 0' }}>{candidate.title}</h4>
+              {candidate.url ? <p style={{ overflowWrap: 'anywhere' }}><a href={candidate.url} target="_blank" rel="noopener noreferrer">{candidate.url}</a></p> : <p className="immogr-card-meta">No verified detail-page URL in the supplied link inventory.</p>}
+              <p><strong>{candidate.locality || 'Locality not verified'}</strong> · {candidate.propertyType} · {candidate.rooms ? candidate.rooms + ' rooms' : 'Rooms unknown'} · {candidate.areaSqm ? candidate.areaSqm + ' m²' : 'Area unknown'}</p>
+              <p>{candidate.priceAmount !== null ? candidate.currency + ' ' + candidate.priceAmount.toLocaleString() + ' / ' + candidate.pricePeriod : 'Price not verified'} · {candidate.availability || 'Availability not verified'}</p>
+              <p className="immogr-card-meta">Advertiser: {candidate.ownerClass} · Contact route: {candidate.directContact}{candidate.minTermYears !== null ? ' · Minimum term: ' + candidate.minTermYears + ' years' : ''}</p>
+              {candidate.reasons.length > 0 && <ul>{candidate.reasons.map((reason, reasonIndex) => <li key={reasonIndex}>{reason}</li>)}</ul>}
+              <details><summary>Source evidence ({candidate.evidence.length})</summary><ul>{candidate.evidence.map((item, evidenceIndex) => <li key={evidenceIndex}><strong>{item.field}:</strong> “{item.quote}”</li>)}</ul></details>
+              <button type="button" disabled={!candidate.url || !candidate.localityId} onClick={() => {
+                setManualDraft((current) => ({ ...current, resultCategory: listingAnalysis.category, canonicalUrl: candidate.url, localityId: candidate.localityId || '', pageTitle: candidate.title, propertyType: candidate.propertyType || 'unknown', priceAmount: candidate.priceAmount === null ? '' : String(candidate.priceAmount), currency: candidate.currency || current.currency, pricePeriod: candidate.pricePeriod || 'unknown', ownerClass: candidate.ownerClass || 'unknown', availability: candidate.availability || '', notes: candidate.reasons.join(' ') + '\\n' + candidate.evidence.map((item) => item.field + ': ' + item.quote).join('\\n') }));
+                setManualMessage('Candidate copied into the research form. Check every field and save it manually below.');
+              }} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Use candidate in research form</button>
+            </article>)}
+            {listingAnalysis.notes.map((note, index) => <p className="immogr-card-meta" key={index}>{note}</p>)}
+          </section>
           <p><strong>{localPageInspection.title || 'Untitled page'}</strong> · {localPageInspection.text.length.toLocaleString()} text characters · {localPageInspection.links.length} links · {localPageInspection.images.length} photo URLs · {localPageInspection.jsonLd.length} JSON-LD block(s)</p>
           {localPageInspection.sourceUrl && <p style={{ overflowWrap: 'anywhere', fontSize: 12 }}>Page URL: {localPageInspection.sourceUrl}</p>}
           <div className="immogr-inspector">
