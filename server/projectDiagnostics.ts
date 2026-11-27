@@ -211,9 +211,17 @@ export async function systemDiagnostics() {
     try {
       const applied = (await pool.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map((r: any) => r.version as string);
       const dir = path.resolve(process.cwd(), 'migrations');
-      const onDisk = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.sql')) : [];
-      const pending = onDisk.filter((f) => !applied.includes(f) && !applied.includes(f.replace(/\.sql$/, '')));
-      checks.push({ name: 'migrations', status: onDisk.length === 0 ? 'WARN' : pending.length ? 'FAIL' : 'PASS', evidence: `${applied.length} applied, ${onDisk.length} on disk${pending.length ? `; pending: ${pending.join(', ')}` : ''}` });
+      const onDisk = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => /^\\d+_[a-z0-9_-]+\\.sql$/.test(f)).sort() : [];
+      // Match scripts/migrate.mjs: archived ImmoFinder migrations are preserved but inactive.
+      const isRetiredImmoFinderMigration = (file: string) => /^0(?:2[0-9]|30)_immofinder/.test(file);
+      const activeOnDisk = onDisk.filter((file) => !isRetiredImmoFinderMigration(file));
+      const retiredCount = onDisk.length - activeOnDisk.length;
+      const pending = activeOnDisk.filter((file) => !applied.includes(file) && !applied.includes(file.replace(/\\.sql$/, '')));
+      checks.push({
+        name: 'migrations',
+        status: activeOnDisk.length === 0 ? 'WARN' : pending.length ? 'FAIL' : 'PASS',
+        evidence: `${applied.length} applied, ${activeOnDisk.length} active on disk${retiredCount ? `, ${retiredCount} archived ImmoFinder excluded` : ''}${pending.length ? `; pending: ${pending.join(', ')}` : ''}`,
+      });
     } catch (e) { checks.push({ name: 'migrations', status: 'FAIL', evidence: `schema_migrations query failed: ${String((e as Error).message).slice(0, 120)}` }); }
     try {
       const last = await pool.query('SELECT artifact_id, version FROM artifacts ORDER BY created_at DESC LIMIT 1');
