@@ -34,7 +34,8 @@ Deploy only after WP1 and the real-page acceptance gate pass. First release is m
 - All 29 entries in `config/immogr/sources.json` appear in the ImmoGR source research interface.
 - Every source has a “Ручной просмотр” action independent of its automated-acquisition status.
 - Clicking the action opens the original source in a user-controlled browser context; no server-side fetch or crawler is triggered.
-- A user can explicitly save a structured manual observation with source, canonical URL, locality, observed-at time, reviewer, access outcome and evidence notes.
+- A user can explicitly save a structured manual observation with source, canonical URL, locality, observed-at time, reviewer, access outcome and evidence notes, subject to a source-specific database-capture rights check.
+- Sources with restrictive or unclear reuse/database terms have capture status `terms_review_required`; the UI must not silently treat permission to view as permission to copy listing content into ImmoGR.
 - Manual observations persist only in ImmoGR tables and remain distinguishable from server-fetched pages and admitted listings.
 - All 29 sources receive an initial manual access outcome. Sources with relevant inventory are sampled up to at least five real pages; smaller or zero-yield samples carry an explicit reason.
 - No authentication/paywall/CAPTCHA/rate-limit/technical restriction is bypassed; no full-page bulk copying or unnecessary personal data is stored.
