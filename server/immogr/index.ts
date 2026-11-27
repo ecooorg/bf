@@ -81,7 +81,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     let parsedUrl: URL | null = null;
     try { parsedUrl = new URL(canonicalUrl); } catch { /* validated below */ }
     if (!source || !parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol) || Boolean(parsedUrl.username || parsedUrl.password) || canonicalUrl.length > 2048 ||
-      !allowedLocality || !['direct_rental', 'private_owner_prospect'].includes(resultCategory) || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) || !validPropertyTypes.has(propertyType) ||
+      !allowedLocality || !['direct_rental', 'private_owner_prospect', 'unknown'].includes(resultCategory) || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) || !validPropertyTypes.has(propertyType) ||
       !validAccessOutcomes.has(accessOutcome) || (priceRaw !== null && (!Number.isFinite(priceRaw) || priceRaw < 0 || priceRaw > 1000000)) ||
       !['CHF', 'EUR'].includes(currency) || pageTitle.length > 300 || availability.length > 500 || notes.length > 5000) {
       return res.status(400).json({ error: 'Invalid manual research record. Check source, HTTPS/HTTP URL, target locality and field values.' });
