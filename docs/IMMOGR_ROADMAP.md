@@ -28,8 +28,8 @@
 - [ ] For every source, record operator, business model, first-party/aggregator status, actual source lineage, coverage of the 44 localities, private-owner signals, page types, price semantics, contact routes, freshness, duplicate behavior, manual access outcome, and applicable terms/access constraints.
 - [ ] Perform an initial human-operated access check for every source. For sources with relevant live inventory, inspect at least five representative property/detail pages where available; record zero-yield, unavailable, blocked, login-only, irrelevant or stale outcomes instead of inventing samples.
 - [ ] Distinguish **manual research eligibility** from **automated acquisition eligibility**. Existing `status` values in `config/immogr/sources.json` continue to govern automation only; every source has a separate manual-research state.
-- [ ] Add a user-initiated “Ручной просмотр” action beside every source. It opens the original source page for the user; after review, the user explicitly submits structured observations and evidence to ImmoGR. No unattended browser crawler or server-side proxy is implied.
-- [ ] Persist manual observations in the ImmoGR database with source ID, canonical URL, locality, review timestamp, reviewer action, observed facts, short evidence references/notes, access outcome and provenance. Do not treat a manually entered observation as a server-fetched page.
+- [x] Add a user-initiated manual research panel for all 29 sources, original-page opening, structured personal-note capture, and browser-side local HTML/HTM/TXT import (up to 5 MB; source file is not uploaded).
+- [x] Additive migration 034 and API persist manual observations with source ID, canonical URL, locality, review timestamp, reviewer action, observed facts, notes, access outcome and provenance. Manual observations remain distinct from server-fetched pages.
 - [ ] Keep the original source URL and attribution. Store only necessary facts and limited supporting evidence; do not bulk-copy complete pages, unnecessary personal data, or bypass authentication, paywalls, CAPTCHAs, rate limits or technical restrictions.
 - [ ] Score source value by unique, relevant, evidence-backed private-owner leads and eligible Direct Rentals—not raw URL or listing counts. Track owner attribution, target-locality coverage, rent/period quality, direct contact, freshness, duplicates and research effort.
 - [ ] Research licensed API/feed candidates (including Lookmove API, discover.swiss, STnet OpenBooking and e-domizil) in parallel, but do not purchase, sign or commit spend without explicit Owner approval.
@@ -64,3 +64,6 @@
 
 
 **Owner clarification 2026-11-27:** manual research is a private personal-notebook workflow. The Owner may save pages/screenshots locally and process those copies manually or with local automation. WP2's capture UX must support user-selected local HTML/HTM/TXT import with browser-side extraction and explicit save; this does not enable remote crawling or proxying.
+
+
+**WP2 implementation update 2026-11-27:** the first manual-notebook slice is implemented in UI/API and migration 034. The 29-source page-by-page research, five-page samples, local file types beyond HTML/HTM/TXT, OCR, and real database/browser verification remain open.
