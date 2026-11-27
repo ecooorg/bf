@@ -45,7 +45,7 @@ Import the resulting HTML file into ImmoGR's local page inspector. The original 
 
 ## Current limitations
 
-- No source in the registry is pre-authorized by this runner. The plan is an owner-supplied local authorization record and must not be copied from the placeholder.
+- No source in the registry is currently authorized for limited probes. The local JSON plan supplies only source IDs and URLs; it cannot self-authorize.
 - No login, cookie, session, paywall, CAPTCHA or access-control bypass is supported.
 - Authenticated APIs/feeds require a separate adapter and credential integration; never place API keys or passwords in the plan JSON.
 - Redirects are stopped rather than followed because every HTTP request must be counted inside the strict cap.
