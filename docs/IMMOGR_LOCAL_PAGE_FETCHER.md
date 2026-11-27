@@ -70,3 +70,6 @@ The runner uses anonymous HTTPS GET requests only. It does not use personal API 
 ## Export a probe plan from the ImmoGR tablet UI
 
 In Personal manual research, select a source, enter the original listing URL, and optionally enter one second page URL. Tap **Download local probe plan**. The downloaded JSON contains only the registered source ID and the selected HTTPS page URLs; it contains no credentials or permission claims. Transfer that JSON to the Owner's local ImmoGR repository and run it with the local fetcher or include the URLs in the all-source batch plan. The local CLI still checks the registry and sends no request unless the source has an explicit `authorized_for_limited_probe` record.
+
+
+The Search settings panel also has **Export selected sources for local probe**. It writes a batch JSON containing the currently checked source IDs and their registered homepages. Use that downloaded file with `npm run immogr:probe-batch -- <path-to-file.json>`. The batch report still includes all 29 sources; unchecked entries are reported as `not_planned`. This is a plan export only, not permission to access any source.
