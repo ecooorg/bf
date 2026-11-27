@@ -91,6 +91,7 @@ export default function ImmoGR() {
   }
   async function importLocalPageFile(file?: File) {
     if (!file) return;
+    setLocalPageInspection(null); setLocalPageSnapshot('');
     const extension = file.name.split('.').pop()?.toLowerCase() || '';
     const supported = new Set(['html', 'htm', 'txt', 'md', 'pdf', 'docx', 'xlsx', 'pptx', 'csv', 'tsv', 'json']);
     if (!supported.has(extension) || file.size > 5 * 1024 * 1024) {
