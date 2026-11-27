@@ -87,6 +87,7 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(routes, /Personal ImmoGR notebook requires application authentication/);
   assert.match(routes, /localitiesForMode|IMMOGR_LOCALITIES/);
   assert.match(ui, /immogr-manual-research/);
+  assert.match(ui, /localities\\?groupMode=both/);
   assert.match(ui, /Open original page/);
   assert.match(ui, /Save personal research note/);
   assert.match(ui, /Saved notes/);
