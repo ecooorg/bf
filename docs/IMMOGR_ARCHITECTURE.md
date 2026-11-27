@@ -52,3 +52,8 @@ Manual source research is a first-class path separate from automated page acquis
 6. Never use a server-side proxy, hidden browser automation, credential/cookie capture, or bypass of authentication, paywalls, CAPTCHAs, rate limits or technical restrictions to simulate manual viewing.
 
 A framed in-app viewer is optional and must not be assumed to work: source CSP/X-Frame-Options and browser cross-origin isolation commonly prevent embedding or reading arbitrary third-party pages. The safe baseline is an external tab plus an in-app capture panel.
+
+
+### Private local-copy processing (Owner-approved 2026-11-27)
+
+The Owner may save pages or screenshots through ordinary browser functions and process those local copies manually or with local automation. ImmoGR's first local import supports user-selected HTML/HTM/TXT files up to 5 MB: text extraction runs in the browser, the original file is not uploaded, and the Owner reviews/edits the extracted notes before explicit database save. This local workflow does not fetch the remote source, use a proxy, or grant remote crawling permission. The saved record retains source URL, locality, capture time and structured facts/notes.
