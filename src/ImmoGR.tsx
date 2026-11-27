@@ -281,7 +281,7 @@ export default function ImmoGR() {
         </div>
         {sourceSettingsMessage && <p role="status" style={{ color: '#9fe2b2', fontSize: 13 }}>{sourceSettingsMessage}</p>}
         <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
-          <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
+          <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => { setSourceSettingsMessage(''); setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id)); }} />
           <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus}</small></span>
         </label>)}</div>
       </details>
