@@ -1,3 +1,6 @@
+## 2026-11-27 — Load dotenv before production migrations (P131.18a)
+- Fixed startup ordering: load the environment file before checking DATABASE_URL, apply migrations before starting the server, and stop on migration failure.
+
 ## 2026-11-27 — ImmoGR local structured fact suggestions (P131.15)
 - Added client-side JSON-LD extraction for local HTML pages; title, type, price, currency, explicit rental period, locality and availability are editable suggestions, never auto-verified.
 - Switching source resets capture fields to prevent cross-listing contamination. No remote page fetch is introduced.
