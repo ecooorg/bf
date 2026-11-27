@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/local-schema.ts';
 import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/local-page-inspector.ts';
+import { downloadAllLogs } from './allLogs.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
@@ -25,6 +26,8 @@ export default function ImmoGR() {
   const [leads, setLeads] = useState<DiscoveryLead[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [searchDiagnostics, setSearchDiagnostics] = useState<Record<string, unknown> | null>(null);
+  const [diagnosticsDownloading, setDiagnosticsDownloading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [sources, setSources] = useState<ManualSource[]>([]);
   const [selectedSourceId, setSelectedSourceId] = useState('');
@@ -218,13 +221,29 @@ export default function ImmoGR() {
     if (!['http:', 'https:'].includes(url.protocol)) { setManualMessage('Only HTTP(S) source URLs can be opened.'); return; }
     window.open(url.toString(), '_blank', 'noopener,noreferrer');
   }
+  async function downloadSearchDiagnostics() {
+    setDiagnosticsDownloading(true);
+    try { await downloadAllLogs(); }
+    catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Could not download diagnostics.'); }
+    finally { setDiagnosticsDownloading(false); }
+  }
   async function discover(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setSearching(true); setSearchError(''); setLeads([]); setSearched(false);
+    event.preventDefault(); setSearching(true); setSearchError(''); setSearchDiagnostics(null); setLeads([]); setSearched(false);
     try {
       if (!selectedSourceIds.length) throw new Error('Select at least one source in Search settings.');
       const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locality, groupMode, category, sourceIds: selectedSourceIds }) });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error || ('Discovery failed (' + response.status + ')'));
+      if (!response.ok) {
+        const diagnostics = body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : {
+          requestId: body.requestId || response.headers.get('X-Request-Id') || null,
+          httpStatus: response.status, code: body.code || null, providerStatus: body.providerStatus || null,
+          reason: body.reason || null,
+        };
+        setSearchDiagnostics(diagnostics);
+        const detail = body.reason ? ' · ' + String(body.reason).slice(0, 180) : '';
+        throw new Error((body.error || ('Discovery failed (' + response.status + ')')) + detail);
+      }
+      setSearchDiagnostics(body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : { httpStatus: response.status, resultCount: Array.isArray(body.leads) ? body.leads.length : 0 });
       setLeads(Array.isArray(body.leads) ? body.leads : []); setSearched(true);
     } catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Discovery failed'); }
     finally { setSearching(false); }
@@ -284,7 +303,10 @@ export default function ImmoGR() {
       <p style={{ color: '#9aadc5', fontSize: 13 }}>The selection controls which localities appear in search and which locations the discovery API will accept.</p>
     </section>
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
-      <h2 style={{ marginTop: 0 }}>Live discovery leads</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <h2 style={{ marginTop: 0 }}>Live discovery leads</h2>
+        <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>{diagnosticsDownloading ? 'Preparing diagnostics…' : 'Download diagnostics (ZIP)'}</button>
+      </div>
       <details className="immogr-settings" style={{ margin: '12px 0 18px', border: '1px solid #40536b', borderRadius: 10, padding: 12, background: '#0e1c2e' }}>
         <summary>Search settings · sources ({selectedSourceIds.length} selected of {sources.length || 29})</summary>
         <p style={{ color: '#9aadc5', fontSize: 13 }}>Choose the sources to include in discovery. Your selection is saved in this browser. Selecting a source does not change its automated-access status or grant access rights; it only limits the search-engine discovery request to the sources you choose.</p>
@@ -306,6 +328,7 @@ export default function ImmoGR() {
         <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
       </form>
       {searchError && <p role="alert">{searchError}</p>}
+      {searchDiagnostics && <details open style={{ marginTop: 10, border: '1px solid #52647a', borderRadius: 8, padding: 10 }}><summary>Last search diagnostics</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(searchDiagnostics, null, 2)}</pre></details>}
       {searched && <p>{leads.length} candidate URL(s) returned for {locality}. Each needs manual page and access review.</p>}
       {leads.length > 0 && <ul style={{ paddingLeft: 20 }}>{leads.map((lead) => <li key={lead.url} style={{ margin: '12px 0' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{lead.host} · UNVERIFIED URL · manual source review required</div></li>)}</ul>}
       <p style={{ color: '#9aadc5', fontSize: 12 }}>Selected sources: {sources.filter((source) => selectedSourceIds.includes(source.id)).map((source) => source.name).join(', ') || 'none'}.</p>
