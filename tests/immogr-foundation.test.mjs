@@ -231,3 +231,24 @@ test('ImmoGR discovery is bounded to 100 candidate URLs and strictly filters sel
   assert.doesNotMatch(search, /sources\.length >= MAX_SOURCES\) continue/);
   assert.match(search, /Math\.min\(45, opts\.maxQueries/);
 });
+
+
+test('ImmoGR discovery and local research render separate, category-aware candidate cards', () => {
+  const ui = read('src/ImmoGR.tsx');
+  const routes = read('server/immogr/index.ts');
+  const migration = read('migrations/036_immogr_research_category.sql');
+  assert.match(ui, /data-testid="immogr-search-category"/);
+  assert.match(ui, /category, sourceIds: selectedSourceIds/);
+  assert.match(ui, /data-testid="immogr-candidate-cards"/);
+  assert.match(ui, /Unverified discovery lead/);
+  assert.match(ui, /no page fetched/);
+  assert.match(ui, /data-testid="immogr-manual-category"/);
+  assert.match(ui, /data-testid="immogr-local-research-card"/);
+  assert.match(ui, /data-testid="immogr-saved-research-cards"/);
+  assert.match(ui, /Human-observed · unverified/);
+  assert.match(routes, /resultCategory = String\(body\.resultCategory \|\| 'direct_rental'\)/);
+  assert.match(routes, /result_category, page_title/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS result_category/);
+  assert.match(migration, /private_owner_prospect/);
+  assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
+});
