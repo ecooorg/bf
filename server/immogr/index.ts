@@ -4,6 +4,7 @@ import path from 'node:path';
 import { getPool } from '../database.ts';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
+import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean };
 type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown> };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
@@ -115,15 +116,17 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const locality = String(req.body?.locality ?? '').trim().replace(/\s+/g, ' ');
     const groupMode = isImmoGRGroupMode(req.body?.groupMode) ? req.body.groupMode : null;
     const category = req.body?.category === 'private_owner_prospect' ? 'private_owner_prospect' : req.body?.category === 'direct_rental' ? 'direct_rental' : null;
+    const sourceScope = resolveDiscoverySourceScope(req.body?.sourceIds, sourceRegistry.sources);
     const allowed = groupMode ? localitiesForMode(groupMode) : [];
     const selected = allowed.find((item) => item.name.toLocaleLowerCase('de-CH') === locality.toLocaleLowerCase('de-CH'));
-    if (!category || !selected || locality.length > 80 || /[<>\u0000-\u001f]/.test(locality)) {
-      return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: 'Select a locality included in the enabled ImmoGR group(s) and a supported discovery category.' });
+    if (!category || !selected || locality.length > 80 || /[<>\u0000-\u001f]/.test(locality) || !sourceScope.ok) {
+      return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: sourceScope.ok ? 'Select a locality included in the enabled ImmoGR group(s) and a supported discovery category.' : sourceScope.error });
     }
     const intent = category === 'direct_rental'
       ? 'private long-term apartment or house rental, monthly rent, private landlord, individual property listing'
       : 'holiday apartment or chalet offered directly by a private owner, individual property page, direct landlord contact';
-    const userText = 'Find current public candidate listing URLs for ' + intent + ' in the locality ' + selected.name + ', canton Graubünden (GR), Switzerland. Do not broaden to other localities in the same municipality. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified.';
+    const selectedSourceInstructions = sourceScope.sources.map((source) => source.name + ' (site:' + source.host + ')').join('; ');
+    const userText = 'Find current public candidate listing URLs for ' + intent + ' in the locality ' + selected.name + ', canton Graubünden (GR), Switzerland. Search ONLY within these owner-selected sources: ' + selectedSourceInstructions + '. Do not return results from other domains. Do not broaden to other localities in the same municipality. Prefer individual property detail pages over search result pages. Do not invent URLs or claim that a result is verified.';
     const result = await fetchWebSearchDigest({
       client: searchClient, models: searchModels, userText,
       today: new Date().toISOString().slice(0, 10), timeoutMs: 18_000,
@@ -133,7 +136,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       return res.status(502).json({ success: false, code: 'DISCOVERY_LOOKUP_FAILED', providerStatus: result.status, reason: result.reason || 'No grounded search results were returned.' });
     }
     console.info('[ImmoGR] discovery completed', { category, locality: selected.name, group: selected.group, providerStatus: result.status, sourceCount: result.sources.length, modelCount: searchModels.length });
-    const leads = result.sources.slice(0, 6).map((source) => {
+    const inScopeSources = result.sources.filter((source) => isDiscoveryUrlInScope(source.url, sourceScope.sources));
+    const leads = inScopeSources.slice(0, 6).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
       return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'manual_review_required' };
