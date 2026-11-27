@@ -94,7 +94,7 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(ui, /Saved notes/);
   assert.match(ui, /importLocalPageFile/);
   assert.match(ui, /new DOMParser\(\)/);
-  assert.match(ui, /file was not uploaded/);
+  assert.match(ui, /file itself was not uploaded/);
   assert.equal(registry.sources.length, 29);
   assert.ok(registry.sources.every((source) => source.manualReview?.personalNotebookCaptureStatus === 'enabled'));
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immogr_manual_reviews/);
