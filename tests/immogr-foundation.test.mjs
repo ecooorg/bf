@@ -179,6 +179,7 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   assert.match(ui, /Export selected sources for local probe/);
   assert.match(ui, /downloadSelectedProbeBatch/);
   assert.match(ui, /sourceSettingsMessage/);
+  assert.match(ui, /probePolicyStatus/);
   assert.match(ui, /downloadLocalProbePlan/);
   assert.match(ui, /probeSecondUrl/);
   assert.match(ui, /immogr-photo-grid/);
