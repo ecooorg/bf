@@ -59,7 +59,7 @@ export default function ImmoGR() {
       .then((groups) => { const all = groups.flat(); setManualLocalities(all); try { if (localStorage.getItem('immogr.selectedLocalityIds') === null) setSelectedLocalityIds(all.map((item) => item.id)); } catch { /* Browser storage may be unavailable. */ } })
       .catch(() => setManualLocalities([]));
   }, []);
-  useEffect(() => { try { localStorage.setItem('immogr.selectedLocalityIds', JSON.stringify(selectedLocalityIds)); } catch { /* Browser storage may be unavailable. */ } }, [selectedLocalityIds]);
+  useEffect(() => { if (!manualLocalities.length) return; try { localStorage.setItem('immogr.selectedLocalityIds', JSON.stringify(selectedLocalityIds)); } catch { /* Browser storage may be unavailable. */ } }, [selectedLocalityIds, manualLocalities]);
   useEffect(() => {
     fetch('/api/immogr/sources', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Source registry unavailable'); return body; })
@@ -67,8 +67,9 @@ export default function ImmoGR() {
       .catch((reason) => setManualMessage(reason instanceof Error ? reason.message : 'Source registry unavailable'));
   }, []);
   useEffect(() => {
+    if (!sources.length) return;
     try { localStorage.setItem('immogr.enabledSourceIds', JSON.stringify(selectedSourceIds)); } catch { /* Browser storage may be unavailable. */ }
-  }, [selectedSourceIds]);
+  }, [selectedSourceIds, sources]);
   useEffect(() => {
     if (sources.length) setSelectedSourceIds((current) => current.filter((id) => sources.some((source) => source.id === id)));
   }, [sources]);
