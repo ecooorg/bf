@@ -17,15 +17,10 @@ export const QUOTA_COOLDOWN_MS = 60_000;
 export const TRANSIENT_COOLDOWN_MS = 30_000;
 export const AUTH_COOLDOWN_MS = 60 * 60_000;
 /** Distinct keys hitting quota on one model inside this window ⇒ shared quota suspected. */
-export const SHARED_QUOTA_WINDOW_MS = 60_000;
-export const SHARED_QUOTA_MIN_SLOTS = 3;
-export const MODEL_PARK_MS = 30_000;
 
 export class GeminiKeyPool {
   private slotModelUntil = new Map<string, number>();
   private slotUntil = new Map<number, number>();
-  private modelParkedUntil = new Map<string, number>();
-  private quotaHits = new Map<string, Map<number, number>>();
   private cursor = 0;
 
   constructor(private slots: KeySlot[]) {}
@@ -36,12 +31,12 @@ export class GeminiKeyPool {
   private k(slot: number, model: string): string { return `${slot}|${model}`; }
 
   isModelParked(model: string, now = Date.now()): boolean {
-    return (this.modelParkedUntil.get(model) ?? 0) > now;
+    return false;
   }
 
   /** Slots usable for `model` right now, rotated so successive calls start at different keys. */
   slotsFor(model: string, now = Date.now()): KeySlot[] {
-    if (this.isModelParked(model, now) || !this.slots.length) return [];
+    if (!this.slots.length) return [];
     const ok = this.slots.filter((s) =>
       (this.slotUntil.get(s.slot) ?? 0) <= now && (this.slotModelUntil.get(this.k(s.slot, model)) ?? 0) <= now);
     if (!ok.length) return [];
@@ -53,29 +48,18 @@ export class GeminiKeyPool {
     this.slotModelUntil.delete(this.k(slot, model));
   }
 
-  /** Returns true when this failure made the pool park the whole model (shared quota). */
-  noteFailure(slot: number, model: string, cls: PoolErrorClass, now = Date.now()): boolean {
-    if (cls === 'PROVIDER_AUTH') { this.slotUntil.set(slot, now + AUTH_COOLDOWN_MS); return false; }
-    if (cls === 'PROVIDER_TRANSIENT') { this.slotModelUntil.set(this.k(slot, model), now + TRANSIENT_COOLDOWN_MS); return false; }
-    if (cls !== 'PROVIDER_QUOTA') return false;
-    this.slotModelUntil.set(this.k(slot, model), now + QUOTA_COOLDOWN_MS);
-    const hits = this.quotaHits.get(model) ?? new Map<number, number>();
-    hits.set(slot, now);
-    for (const [s, at] of hits) if (now - at > SHARED_QUOTA_WINDOW_MS) hits.delete(s);
-    this.quotaHits.set(model, hits);
-    if (hits.size >= Math.min(SHARED_QUOTA_MIN_SLOTS, Math.max(2, this.slots.length))) {
-      this.modelParkedUntil.set(model, now + MODEL_PARK_MS);
-      return true;
-    }
-    return false;
+  /** Apply cooldown only to the failing key/model pair; other projects remain eligible. */
+  noteFailure(slot: number, model: string, cls: PoolErrorClass, now = Date.now()): void {
+    if (cls === 'PROVIDER_AUTH') { this.slotUntil.set(slot, now + AUTH_COOLDOWN_MS); return; }
+    if (cls === 'PROVIDER_TRANSIENT') { this.slotModelUntil.set(this.k(slot, model), now + TRANSIENT_COOLDOWN_MS); return; }
+    if (cls === 'PROVIDER_QUOTA') this.slotModelUntil.set(this.k(slot, model), now + QUOTA_COOLDOWN_MS);
   }
 
   /** Non-secret state for diagnostics. */
-  snapshot(now = Date.now()): { totalSlots: number; authCooled: number[]; parkedModels: string[]; cooledPairs: number } {
+  snapshot(now = Date.now()): { totalSlots: number; authCooled: number[]; cooledPairs: number } {
     return {
       totalSlots: this.slots.length,
       authCooled: [...this.slotUntil].filter(([, u]) => u > now).map(([s]) => s),
-      parkedModels: [...this.modelParkedUntil].filter(([, u]) => u > now).map(([m]) => m),
       cooledPairs: [...this.slotModelUntil.values()].filter((u) => u > now).length,
     };
   }
@@ -87,7 +71,7 @@ export class PoolExhaustedError extends Error {
   }
 }
 
-export type PoolCallLog = { slot: number; model: string; errorClass: PoolErrorClass; attempt: number; sharedQuotaSuspected?: boolean };
+export type PoolCallLog = { slot: number; model: string; errorClass: PoolErrorClass; attempt: number };
 
 /**
  * Try `call(key, model)` over the pool's keys for one model. Rotates only on quota/auth/5xx errors
@@ -119,9 +103,8 @@ export async function callWithKeyPool<T>(opts: {
       const cls = classifyKeyError(e);
       if (!shouldRotateKeySlot(cls)) throw e;
       last = e; lastCls = cls;
-      const shared = opts.pool.noteFailure(slot, opts.model, cls, now());
-      opts.onRotate?.({ slot, model: opts.model, errorClass: cls, attempt: tried, ...(shared ? { sharedQuotaSuspected: true } : {}) });
-      if (shared) break;
+      opts.pool.noteFailure(slot, opts.model, cls, now());
+      opts.onRotate?.({ slot, model: opts.model, errorClass: cls, attempt: tried });
     }
   }
   throw Object.assign(
