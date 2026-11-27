@@ -36,3 +36,7 @@ The long-term suitability score is an explicitly labeled estimate based on prope
 
 ## Human review
 The UI must expose the evidence behind every mandatory fact, show unresolved conflicts, and record approve/reject/correct actions. Corrections become labeled evaluation data only after review; the system's own generated output is not a gold label.
+
+## Manual observation evidence class
+
+Manual research observations must be explicitly labelled `human_observed` and include the original URL, reviewer, timestamp, capture method and concise supporting notes. Do not label user-entered facts as server-fetched or machine-verified. Record unknowns as unknown; separate direct page statements from reviewer interpretation. Manual research evidence is sufficient to compare source value and prioritize follow-up, but any final Direct Rental admission must still meet its specific page-level evidence and source-access requirements.
