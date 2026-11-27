@@ -250,6 +250,6 @@ Each source record now has a `probePolicy` independent of its normal acquisition
 
 - `prohibited`: current source review records an explicit restriction on scripted/bulk/crawling access; local batch runner skips it.
 - `not_reviewed`: no source-specific limited-probe permission is recorded; local batch runner sends no requests.
-- `authorized_for_limited_probe`: may be set only after current terms/operator permission and the intended research scope are reviewed. The record must contain `authorizationReference`, `reviewedAt`, exact `allowedHosts`, and `maxRequests` of 2 or 3.
+- `authorized_for_limited_probe`: may be set only after current terms/operator permission and the intended research scope are reviewed. The record must contain `authorizationReference`, `reviewedAt`, `termsReviewedAt`, `robotsReviewedAt`, exact `allowedHosts`, and `maxRequests` of 2 or 3.
 
 The batch plan file contains only source IDs and page URLs. It cannot grant itself authorization. The current registry has 7 sources marked prohibited and 22 not reviewed; none is currently authorized. See `docs/IMMOGR_PROBE_READINESS.md`.
