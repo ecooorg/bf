@@ -51,7 +51,7 @@ The current batch template contains one homepage URL per source. Running it now 
 For each source that may be probed, update its `probePolicy` in `config/immogr/sources.json` only after reviewing the current operator terms and the intended research method. The record must include:
 
 - `status: "authorized_for_limited_probe"`
-- `reviewedAt` and `authorizationReference` identifying the current permission basis
+- `reviewedAt`, `termsReviewedAt`, `robotsReviewedAt` and `authorizationReference` identifying the current permission basis
 - exact `allowedHosts`
 - `maxRequests: 2` or `3`
 
