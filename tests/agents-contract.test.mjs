@@ -69,7 +69,8 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   const engine = read('server/immogr/index.ts');
   assert.match(app, /data-testid="start-immogr"/);
   assert.match(main, /path === '\/immogr'/);
-  assert.match(page, /Verified listing admission: disabled/);
+  assert.match(page, /data-testid="immogr-search"/);
+  assert.doesNotMatch(page, /Search engine status|Verified listing admission: disabled|Automated source-page acquisition: disabled/);
   assert.match(server, /registerImmoGRRoutes\(app,/);
   assert.match(server, /registerImmoGRRoutes\(app, \{ searchClient: pooledGeminiClient\(\)/);
   assert.doesNotMatch(server, /registerImmoGRRoutes\(app, \{ searchClient: ai as any/);
@@ -80,7 +81,7 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\(|immofinder/i);
   assert.match(engine, /fetchSerperDigestMulti/);
   assert.match(engine, /fetchPages: false/);
-  assert.match(page, /Live discovery leads/);
+  assert.match(page, /data-testid="immogr-search"/);
   assert.doesNotMatch(main, /import\('\.\/ImmoFinder\.tsx'\)/);
   assert.doesNotMatch(server, /registerImmoFinderRoutes|callImmoLlm|stopImmoFinderWorker/);
 });
