@@ -240,6 +240,7 @@ test('ImmoGR discovery and local research render separate, category-aware candid
   assert.match(ui, /data-testid="immogr-search-category"/);
   assert.match(ui, /category, sourceIds: selectedSourceIds/);
   assert.match(ui, /data-testid="immogr-candidate-cards"/);
+  assert.match(ui, /canonicalUrl: current\.canonicalUrl \|\| importedSourceUrl/);
   assert.match(ui, /Unverified discovery lead/);
   assert.match(ui, /no page fetched/);
   assert.match(ui, /data-testid="immogr-manual-category"/);
@@ -248,6 +249,8 @@ test('ImmoGR discovery and local research render separate, category-aware candid
   assert.match(ui, /Human-observed · unverified/);
   assert.match(routes, /resultCategory = String\(body\.resultCategory \|\| 'direct_rental'\)/);
   assert.match(routes, /result_category, page_title/);
+  assert.match(routes, /published monthly rent no higher than CHF 2,000/);
+  assert.match(routes, /long-term rental of three years or more/);
   assert.match(migration, /ADD COLUMN IF NOT EXISTS result_category/);
   assert.match(migration, /private_owner_prospect/);
   assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
