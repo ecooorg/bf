@@ -71,6 +71,8 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.match(main, /path === '\/immogr'/);
   assert.match(page, /Verified listing admission: disabled/);
   assert.match(server, /registerImmoGRRoutes\(app,/);
+  assert.match(server, /registerImmoGRRoutes\(app, \{ searchClient: pooledGeminiClient\(\)/);
+  assert.doesNotMatch(server, /registerImmoGRRoutes\(app, \{ searchClient: ai as any/);
   assert.match(engine, /liveSearchEnabled: false/);
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
