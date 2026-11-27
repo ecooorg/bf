@@ -6,7 +6,7 @@ import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean };
-type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown> };
+type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown>; probePolicy?: { status?: string } };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
 const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
@@ -119,7 +119,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const sourceScope = resolveDiscoverySourceScope(req.body?.sourceIds, sourceRegistry.sources);
     const allowed = groupMode ? localitiesForMode(groupMode) : [];
     const selected = allowed.find((item) => item.name.toLocaleLowerCase('de-CH') === locality.toLocaleLowerCase('de-CH'));
-    if (!sourceScope.ok) {
+    if ('error' in sourceScope) {
       return res.status(400).json({ success: false, code: 'INVALID_DISCOVERY_INPUT', error: sourceScope.error });
     }
     if (!category || !selected || locality.length > 80 || /[<>\u0000-\u001f]/.test(locality)) {
