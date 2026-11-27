@@ -32,7 +32,7 @@ test('active migration runner quarantines only historical ImmoFinder migrations'
 });
 
 test('official GR commune catalogue is complete and priority worksheet is editable', async () => {
-  const { IMMOGR_COMMUNES } = await import('../src/immogr/communes.ts');
+  const { IMMOGR_COMMUNES } = await import('../server/immogr/communes.ts');
   const csv = read('config/immogr/commune-priorities.csv');
   assert.equal(IMMOGR_COMMUNES.length, 100);
   assert.equal(new Set(IMMOGR_COMMUNES.map((item) => item.bfsId)).size, 100);
@@ -55,7 +55,7 @@ test('ImmoGR exposes official municipality catalogue and UI consumes it', () => 
 });
 
 test('database commune seed matches the official runtime catalogue and leaves user priorities blank', async () => {
-  const { IMMOGR_COMMUNES } = await import('../src/immogr/communes.ts');
+  const { IMMOGR_COMMUNES } = await import('../server/immogr/communes.ts');
   const sql = read('migrations/031_immogr_core.sql');
   assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_communes/);
   assert.match(sql, /commune_id integer REFERENCES immogr_communes\(bfs_id\)/);
