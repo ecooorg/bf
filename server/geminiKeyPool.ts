@@ -30,10 +30,6 @@ export class GeminiKeyPool {
 
   private k(slot: number, model: string): string { return `${slot}|${model}`; }
 
-  isModelParked(model: string, now = Date.now()): boolean {
-    return false;
-  }
-
   /** Slots usable for `model` right now, rotated so successive calls start at different keys. */
   slotsFor(model: string, now = Date.now()): KeySlot[] {
     if (!this.slots.length) return [];
@@ -87,7 +83,7 @@ export async function callWithKeyPool<T>(opts: {
 }): Promise<{ value: T; slot: number; keyAttempts: number }> {
   const now = opts.now ?? Date.now;
   const slots = opts.pool.slotsFor(opts.model, now());
-  if (!slots.length) throw new PoolExhaustedError(opts.pool.size ? (opts.pool.isModelParked(opts.model, now()) ? 'quota' : 'unavailable') : 'no_keys', 0);
+  if (!slots.length) throw new PoolExhaustedError(opts.pool.size ? 'unavailable' : 'no_keys', 0);
   const max = Math.max(1, Math.min(opts.maxKeyAttempts ?? 4, slots.length));
   let last: unknown;
   let lastCls: PoolErrorClass = 'OTHER';
