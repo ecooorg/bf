@@ -70,7 +70,7 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.match(app, /data-testid="start-immogr"/);
   assert.match(main, /path === '\/immogr'/);
   assert.match(page, /live search is not enabled/i);
-  assert.match(server, /registerImmoGRRoutes\(app\)/);
+  assert.match(server, /registerImmoGRRoutes\(app,/);
   assert.match(engine, /liveSearchEnabled: false/);
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
