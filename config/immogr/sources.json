@@ -155,9 +155,9 @@
       },
       "homepageUrl": "https://www.homegate.ch/",
       "probePolicy": {
-        "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "status": "not_reviewed",
+        "reason": "The current terms restrict systematic selection/scraping of marketplace content. Whether a narrowly bounded 2–3 request diagnostic is permitted is not established; do not probe until that exact scope is confirmed.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
         "maxRequests": null
