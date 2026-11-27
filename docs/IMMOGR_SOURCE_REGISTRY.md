@@ -223,3 +223,12 @@ The current terms of several major portals expressly restrict not only automated
 - Lookmove terms: https://www.lookmove.ch/en/terms
 - Graubünden Tourism Chalet Willi: https://www.graubuenden.ch/en/lodging/chalet-willi-1og
 
+Additional checks from the same WP2 desk-research pass:
+
+| Source | Current public evidence | WP2 implication |
+|---|---|---|
+| Tutti | Current terms expressly prohibit automated scripts to collect information from or otherwise interact with the platform. Its rules also state that listing text from other ads is copyright-protected and may not be copied. | Manual user browsing can be evaluated separately; copying ad text/photos into ImmoGR is not assumed permitted. Verify what structured factual observations may be retained before enabling database capture. |
+| Anibis | Current terms contain the same automated-script prohibition; listing texts are copyright-protected and may not be copied. | Same split: no automation; source-specific review required before storing listing content or copied evidence. |
+| HappyHoliday | Current AGB identify the operator as Gruppenhaussuche.ch AG and describe direct contracts between providers and guests. Providers grant the platform rights to photos and information they publish; no third-party ImmoGR acquisition licence is stated. | Promising private holiday-provider inventory; verify individual owner signals and rights to retain listing-level data separately. |
+| Lookmove data service | Current data-service terms describe internal use for professional or personal purposes via the service; separate consumer portal terms permit visitors to browse listings and contact advertisers. | Investigate the paid data service on its own contract. Do not infer that a visitor may export or persist consumer-portal content into ImmoGR. |
+| aptari | Current public FAQ confirms its feed contains Homegate, ImmoScout24, Flatfox and many cooperative websites, with applications normally completed on the original portal/site. | Useful for discovering source URLs and cooperative websites; each original publisher is a separate source and rights review. |
