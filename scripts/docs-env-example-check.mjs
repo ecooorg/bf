@@ -10,9 +10,7 @@ const ciOnly = /^(?:CI|GITHUB_ACTIONS|GITHUB_EVENT_NAME|GITHUB_REF|GITHUB_SHA|GI
 // variables are not active application configuration and are intentionally
 // excluded from the current .env.example contract.
 const isRetiredImmoFinderSource = (file) =>
-  file.startsWith('server/immofinder/') ||
-  /^server\\/immofinder[^/]*\\.(?:ts|tsx|js|mjs)$/.test(file) ||
-  /^src\\/ImmoFinder[^/]*\\.(?:ts|tsx|js|mjs)$/.test(file);
+  file.startsWith('server/immofinder') || file.startsWith('src/ImmoFinder');
 const activeVariables = inventory.variables.filter(({ files = [] }) =>
   files.some((file) => !isRetiredImmoFinderSource(file)),
 );
