@@ -112,9 +112,9 @@ export function normalizeImmoGRListingAnalysis(raw: Record<string, unknown>, con
   const evidence: ImmoGRListingEvidence[] = (Array.isArray(record.evidence) ? record.evidence : []).flatMap((entry) => {
    if (!entry || typeof entry !== 'object') return [];
    const e = entry as Record<string, unknown>, field = clean(e.field, 60), quote = clean(e.quote, 240);
-   const containsPersonalContact = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i.test(quote)
-    || /(?:\\+41|0041|0[1-9][0-9])[\\s()./-]*[0-9]{2,3}[\\s()./-]*[0-9]{2,3}[\\s()./-]*[0-9]{2,4}/i.test(quote)
-    || /\\b(?:herr|frau|mr|mrs|ms)\\s+[\\p{Lu}][\\p{L}'-]+/u.test(quote);
+   const containsPersonalContact = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(quote)
+    || /(?:\+41|0041|0[1-9][0-9])[\s()./-]*[0-9]{2,3}[\s()./-]*[0-9]{2,3}[\s()./-]*[0-9]{2,4}/i.test(quote)
+    || /\b(?:herr|frau|mr|mrs|ms)\s+[\p{Lu}][\p{L}'-]+/u.test(quote);
    if (!field || quote.length < 8 || containsPersonalContact || !pageText.includes(normalizeEvidenceText(quote)) || !quoteSupports(field, record[field], quote)) return [];
    return [{ field, quote }];
   });
