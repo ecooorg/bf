@@ -73,3 +73,8 @@ In Personal manual research, select a source, enter the original listing URL, an
 
 
 The Search settings panel also has **Export selected sources for local probe**. It writes a batch JSON containing the currently checked source IDs and their registered homepages. Use that downloaded file with `npm run immogr:probe-batch -- <path-to-file.json>`. The batch report still includes all 29 sources; unchecked entries are reported as `not_planned`. This is a plan export only, not permission to access any source.
+
+
+## Review the batch result on the Android tablet
+
+After the local agent writes `immogr-local-probe-batch-report.json`, transfer that JSON file to the tablet (or open ImmoGR on the same device if the local agent ran there) and import it using the same local file picker. ImmoGR recognizes the report format and displays a responsive per-source result list with status, request count, skip/failure reason and local report path. The JSON is parsed in the browser and is not uploaded to the server.
