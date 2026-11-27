@@ -15,6 +15,7 @@
 - Maintain a living source inventory with monthly discovery and status review; assess retain/add/downgrade/retire decisions by unique verified yield.
 - Pilot Flatradar, aptari, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor, Homematch and niche sources under their individual access rules; no source activated without terms/access review and a five-page pilot.
 - Establish independent UI/API/config/data/test namespaces and verify no legacy imports or database reads.
+- Provide live Gemini-grounded URL discovery as a manual-review lead queue; never treat search snippets as listings.
 - Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
 
 ## WP2 — Source eligibility and real-page research

@@ -14,7 +14,7 @@ ImmoGR is a clean implementation. Its business logic, adapters, configuration, p
 - Database: new immogr_* tables and migrations only; never immofinder_*.
 
 ## Pipeline boundaries
-1. **Discovery:** identify candidate URLs from eligible sources and search providers. A snippet is only a URL-discovery hint.
+1. **Discovery:** identify candidate URLs from search providers. The initial live endpoint uses Gemini Google Search grounding and returns URL leads only; it does not fetch or persist source pages. A snippet is only a URL-discovery hint.
 2. **Page acquisition:** fetch the final URL, status, headers, content type, redirects, robots/terms decision, and rate-limit state. Respect source access policy and SSRF protections.
 3. **Page representation:** retain separate blocks for page metadata, JSON-LD/structured data, the primary listing, related listings, navigation, footer, and unrelated content.
 4. **Source adapters:** source-specific parsers are written from scratch. They normalize the source's listing shape without coupling domain rules to page layout.

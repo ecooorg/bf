@@ -5,7 +5,7 @@
 ## Non-negotiable evidence rules
 - Every admitted listing has a fetched, specific detail page and a canonical URL match.
 - Every mandatory fact is supported by an exact page quote or structured-data path.
-- A snippet, search title, related-listing card, menu, footer, or page-level boilerplate cannot be used as listing evidence.
+- A snippet, search title, related-listing card, menu, footer, or page-level boilerplate cannot be used as listing evidence. Discovery leads are not listings and are never admitted or persisted as such.
 - Contact ownership is explicit: platform contact, advertiser contact, property manager, and owner contact are distinct.
 - Conflicting values are retained and marked unresolved; do not silently select one.
 - LLM output is a hypothesis until independently checked against page evidence.

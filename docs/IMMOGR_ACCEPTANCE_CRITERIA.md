@@ -6,6 +6,7 @@
 - ImmoFinder is inactive: no UI entry, no active API, no scheduled workflow, no CI live-run job, no background worker startup, no database writes.
 - Historical code and data are preserved read-only.
 - ImmoGR has independent UI, API, code, configuration, data, and test namespaces with no imports or database dependencies on ImmoFinder.
+- Live discovery may return only unverified URLs; listing qualification and automated source-page acquisition remain disabled.
 - All maintained Markdown documentation declares the retirement and new authority.
 - Initial source registry identifies permission/access status and does not activate unverified sources.
 
