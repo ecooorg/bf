@@ -174,3 +174,52 @@ Target at least five representative real property/detail pages per source where 
 ### Status interpretation
 
 `status` in the JSON registry remains the automated-acquisition decision. Add/maintain `manualReview.status` independently (for example `not_started`, `in_progress`, `reviewed`, `blocked_by_source`, `no_relevant_inventory`). A source may be `excluded_pending_written_permission` for automation and `reviewed` for manual research at the same time.
+
+## WP2 desk research — initial findings (2026-11-27)
+
+These are desk-research observations from current public pages, not completed user-led manual page pilots. The per-source `manualReview.status` remains `not_started` until the Owner/user performs and records the manual review in ImmoGR.
+
+| Source | Current public evidence | WP2 implication |
+|---|---|---|
+| Homegate | Current SMG GTC §7 says content may not be used outside its marketplaces; systematic extraction, copying, reproduction or linking content with other data is prohibited. | Potential rental inventory, but saving listing content into ImmoGR needs a source-specific rights decision/permission; manual viewing is not the same as database reuse. |
+| Flatfox | Current GTC §4.2 restricts additional use and re-use/exploitation of platform advertisements to the advertiser and Flatfox unless separately agreed. | Potential private-owner and tenant-replacement inventory; database capture is a separate unresolved issue. |
+| Comparis | Current real-estate portal terms prohibit using third-party content outside the portal without express rights-holder consent, including copying and feeding it into other databases. The portal says private persons can publish rental properties. | High discovery value, but do not assume a manual Save action authorizes copying listing content into ImmoGR. |
+| Ferienhausmiete | Current AGB permit users to search and contact holiday-home providers, but restrict using platform-derived data/content to build another database or for commercial data exploitation; the platform's own search functions are required. | Relevant seasonal owner prospects; database retention needs source-specific review. |
+| Housenet | Current terms (updated 17 Oct 2026) say listings are supplied by real-estate agencies; personal search/contact is allowed, while copying or automatically collecting listing data without written consent is prohibited. | Low fit for private owners; useful as a control case, not a primary owner source. |
+| immobilier.ch | Current terms define advertisers as professional real-estate agencies and state that listings come from advertisers; reuse/reproduction of portal content for commercial purposes requires prior written consent. | Low priority for direct private owners; useful mainly for agency/market comparison. |
+| Homematch | Current Graubünden apartment search showed 135 results. The portal supports private landlord listings and tenant replacement listings, but the live result set also contains agency/management advertisers. Its terms prohibit republishing platform content without permission. | High-priority manual sample candidate; verify each advertiser and follow source lineage. |
+| RealAdvisor | Current Graubünden apartment search showed 457 results. RealAdvisor says it aggregates major portals plus direct agency/landlord listings and merges duplicates while linking to publisher portals. The observed sample contains many agency listings. | High-value discovery/cross-check source, but trace every candidate to the first-party publisher and deduplicate against it. |
+| UrbanHome | Current help/AGB material confirms private rental listings and free tenant-replacement listings. | High-priority direct-marketplace pilot; inspect current Graubünden inventory and actual advertiser identity. |
+| Newhome | Current publisher guidelines require owner consent for publication and identify provider contact details; private-person listing workflows exist. | Potential direct-owner source; owner-consent requirement does not itself grant ImmoGR collection/reuse rights. |
+| aptari | Current FAQ says its feed aggregates Homegate, ImmoScout24, Flatfox and many Swiss housing-cooperative websites; users apply on the original portal/site. | Discovery map only; trace to each original publisher and assess that publisher independently. |
+| WGzimmer.ch | Current terms say private persons and flatshares may publish free; commercial providers, including furnished-flat landlords, need written agreement. Inventory is mainly rooms/flatshares. | Lower priority for whole apartments/houses; possible niche lead source. |
+| Nachmieter.ch | Current terms reserve further use/re-use of platform listings to the advertiser and Nachmieter.ch. Listings are replacement-tenant offers, not necessarily direct owner offers. | Supplementary source; distinguish tenant advertiser from landlord and review database-capture rights. |
+| STnet OpenBooking | Current participation conditions require an IT partner to supply at least 100 exclusive Swiss holiday-home objects, have a Swiss business domicile and Switzerland Tourism membership, refresh availability/prices at least daily, and pay integration costs. | Not a feasible direct ImmoGR feed route at current scale; retain as a future partnership reference only. |
+| Lookmove portal | Current terms allow visitors to browse listings and contact advertisers; a separate data service has separate account/contract terms and advertises internal-use access. | Separate consumer portal from paid data feed. Do not infer API rights from portal access or vice versa. |
+| Graubünden Tourism | Current Arosa pages provide several specific family-owned chalet examples and property-level contacts. Chalet Willi explicitly says it remains owned by the Willi family and is rented weekly. | Strong Private Owner Prospect research pool. Weekly availability is not a long-term offer; inspect each page and do not infer willingness or monthly price. |
+
+### Important capture-rights distinction
+
+The current terms of several major portals expressly restrict not only automated scraping but also copying, re-use, linking, or feeding listing content into other databases. The Owner's requested manual workflow remains a valid product-research objective, but the exact right to save listing-level facts from each source into ImmoGR cannot be inferred from the fact that a person can view the page manually. The manual-review UI must therefore retain a per-source capture-rights review outcome and must not silently treat `manual viewing` as `database capture permission`. Where terms are unclear or restrictive, record the conflict and obtain source-specific permission or a qualified legal determination before persisting copied listing content. This is not a conclusion that all manual research is prohibited.
+
+### Official pages checked
+
+- Homegate GTC: https://www.homegate.ch/c/en/about-us/legal-issues/gbc
+- Flatfox GTC: https://flatfox.ch/c/en/gtc/
+- Comparis real-estate portal terms: https://www.comparis.ch/immobilien/immobilienportale/allgemeine-geschaeftsbedingungen/
+- Ferienhausmiete AGB: https://www.ferienhausmiete.de/agb.php
+- Housenet terms: https://housenet.ch/en/terms-of-use
+- immobilier.ch terms: https://www.immobilier.ch/fr/conditions-generales-d-utilisation-du-portail-et-de-l-application-immobilier-ch
+- Homematch Graubünden results: https://homematch.ch/en/rent/apartment/canton-graubuenden
+- Homematch terms: https://homematch.ch/de/terms
+- RealAdvisor Graubünden results: https://realadvisor.ch/en/rent/canton-grisons/apartment
+- RealAdvisor rental source explanation: https://realadvisor.ch/en/property-for-rent
+- UrbanHome help: https://ch.urbanhome.net/hilfe
+- Newhome publisher guidelines: https://blog.newhome.ch/assets/lbwp-cdn/newhome-blog/files/1610715785/2012015_newhome_richtlinien_en.pdf
+- aptari FAQ: https://aptari.ai/faq/en
+- WGzimmer terms: https://wg27.wgzimmer.ch/en/wgzimmer/agb.html
+- Nachmieter terms: https://www.nachmieter.ch/terms-of-use.html
+- STnet OpenBooking participation: https://www.stnet.ch/de/export-ferienwohnungen/
+- Lookmove terms: https://www.lookmove.ch/en/terms
+- Graubünden Tourism Chalet Willi: https://www.graubuenden.ch/en/lodging/chalet-willi-1og
+
