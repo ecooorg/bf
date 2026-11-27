@@ -79,3 +79,7 @@
 
 ## Session governance and documentation consolidation
 - AGENTS.md, ROADMAP, TECHNICAL_REPORT, CHANGELOG remain single source of truth; append-only history.
+
+## 2026-11-27 — ImmoGR WP2 owner decisions and manual research mode
+- Approved all-29-source user-initiated manual research independent of automation eligibility; documented “Ручной просмотр”, structured capture, provenance and no-bypass boundaries.
+- Added owner-approved rule-conflict escalation to AGENTS.md and expanded WP2 acceptance, data and architecture contracts.
