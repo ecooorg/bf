@@ -70,3 +70,8 @@ The Owner selects one or more of the 29 registered sources in ImmoGR search sett
 ## D-IMMOGR-014 — Keep official locality names; add postcodes only (2026-11-27)
 
 The Owner confirms that the existing official names for the 44 target localities are sufficient. Do not expand the locality catalogue with spelling aliases, historical names or language variants. A later additive enrichment may add verified official postal codes to the existing locality records without changing names, IDs, group assignments or search geography.
+
+
+## D-IMMOGR-015 — Chur as a standalone search target (2026-11-27)
+
+Chur is an explicit fourth locality selection, separate from group 1, group 2, and both groups. It is not added to either 22-locality group. The existing 44 owner-defined localities and their group membership remain unchanged; Chur is stored as a standalone locality with target_group 0 and is returned only when groupMode=chur.
