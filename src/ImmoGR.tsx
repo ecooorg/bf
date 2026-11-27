@@ -69,7 +69,7 @@ export default function ImmoGR() {
   }
   async function importLocalPageFile(file?: File) {
     if (!file) return;
-    if (!/\\.(html?|txt)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
+    if (!/\.(html?|txt)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
       setManualMessage('Choose a local .html, .htm or .txt file up to 5 MB.');
       return;
     }
@@ -81,7 +81,7 @@ export default function ImmoGR() {
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
         title = (documentCopy.title || file.name).slice(0, 300);
         documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
-        extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\\s+/g, ' ').trim();
+        extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\s+/g, ' ').trim();
       }
       setManualDraft((current) => ({ ...current, pageTitle: current.pageTitle || title, notes: extracted.slice(0, 5000) }));
       setManualMessage('Local file read in this browser. Review and edit the extracted notes before saving; the file itself was not uploaded.');
