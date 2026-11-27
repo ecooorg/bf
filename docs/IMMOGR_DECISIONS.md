@@ -18,3 +18,8 @@ No source is automatically crawled until terms, robots, access controls, rate li
 ## D-IMMOGR-005 — Permission-first source activation (2026-11-27)
 
 A source with terms that prohibit scraping, automated scripts, reuse, or external data linking is excluded until written permission or a documented authorized API/feed is obtained. Publicly visible listings and search-engine indexing do not grant a collection licence. A source with unclear terms remains research-only, not active. At WP1 terms review, no source is approved for automated detail-page acquisition.
+
+
+## D-IMMOGR-006 — Prefer licensed feeds; no unapproved spend (2026-11-27)
+
+Prefer documented APIs and contractual partner feeds over scraping. Commercial access must be reviewed for personal/internal use, contact attribution, display, retention, and redistribution rights. No paid subscription or multi-month commitment may be started without explicit owner approval of the price and contract terms.

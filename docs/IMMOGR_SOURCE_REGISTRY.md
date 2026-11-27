@@ -57,3 +57,18 @@ The following official terms were checked during WP1 research. Public visibility
 ### Practical consequence
 
 At this review point, **no candidate source is approved for automated listing-page acquisition**. This is an intentional compliance stop, not an engine failure. Continue research, identify official APIs/partner feeds, and request written permission where valuable. Search-engine snippets may help identify candidate URLs, but must never become admitted listing cards. Do not silently reinterpret a source's prohibition as permission to use browser automation or a third-party proxy.
+
+
+## Authorized API and partner-feed candidates
+
+Automated access should preferentially use a documented API or a contractual partner feed rather than scraping consumer portals. These are leads for commercial/partner due diligence, not active sources.
+
+| Candidate | Official information | Potential fit | Constraints / decision |
+|---|---|---|---|
+| Lookmove API Listing Feed | https://data.lookmove.ch/manage.py/real-estate-data-solutions and https://data.lookmove.ch/manage.py/terms | Potentially the fastest way to query broad Swiss rental inventory from a licensed feed. The provider says its data is continuously collected from at least 135 portal and agency sources and offers an API Listing Feed. | Advertised from CHF 500/month with a minimum six-month commitment. Terms authorize internal use but prohibit redistribution/sub-licensing and use on behalf of third parties. Ask whether a personal private-use ImmoGR integration, listing detail URLs, private-owner classification, and contact fields are included. No purchase is approved. |
+| discover.swiss | https://discover.swiss/sites/default/files/documents/2025-08/2025%20Platform%20Guidelines%20discover.swiss__0.pdf | Contractual API products and information feeds from tourism providers could help with seasonal/holiday property discovery. | Requires a developer/service-user contract; content may be rights-protected and requires rights-holder consent or source attribution. It is a tourism platform, not yet proven to contain residential rental listings or owner contacts. |
+| STnet OpenBooking e-Marketplace | https://www.stnet.ch/de/export-ferienwohnungen/ | Official Swiss tourism holiday-home marketplace; current prices and availability are presented on myswitzerland.com. | Its IT-partner route requires at least 100 exclusive Swiss holiday-home objects, Swiss business domicile, Switzerland Tourism membership, daily updates, and an integration contract. This is not a feasible third-party crawler route for ImmoGR at present. |
+| e-domizil | https://trade.switzerlandtravelcentre.ch/en/for-holiday-apartments/ | Private accommodation can be listed; destination and agency reservation systems can be connected by interface. | The published material describes provider distribution and destination/agency integration, not an open consumer data feed. Ask about downstream licensed data access and owner-contact attribution. |
+
+### Commercial-use guardrail
+No paid subscription, six-month commitment, partner agreement, or API key purchase is authorized by this repository change. Obtain the provider's written confirmation of permitted personal use, integration, display, contact data, retention, and export before implementation.

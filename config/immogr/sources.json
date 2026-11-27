@@ -98,6 +98,38 @@
       "status": "low_priority",
       "ownerSignal": "professional agencies",
       "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
+    },
+    {
+      "id": "lookmove_api",
+      "name": "Lookmove API Listing Feed",
+      "category": "licensed_data_feed",
+      "status": "permission_required",
+      "ownerSignal": "Swiss feed aggregates at least 135 portal/agency sources; private-owner coverage and direct-contact attribution need confirmation",
+      "permission": "Commercial API listing feed from CHF 500/month, minimum 6 months; terms authorize internal use only and prohibit redistribution; no subscription approved"
+    },
+    {
+      "id": "discover_swiss",
+      "name": "discover.swiss",
+      "category": "tourism_data_api",
+      "status": "permission_required",
+      "ownerSignal": "Tourism service providers can provide contracted information feeds; property/owner coverage not established",
+      "permission": "API products and information feeds are available on a contractual basis; rights-holder consent/source attribution required"
+    },
+    {
+      "id": "stnet_openbooking",
+      "name": "STnet OpenBooking e-Marketplace",
+      "category": "holiday_rental_data_exchange",
+      "status": "not_a_feasible_source",
+      "ownerSignal": "Swiss holiday-home offers from connected booking systems; classified providers preferred",
+      "permission": "IT partner must provide at least 100 exclusive Swiss properties, have Swiss business domicile, and be a Switzerland Tourism member; not a viable consumer crawler route"
+    },
+    {
+      "id": "edomizil",
+      "name": "e-domizil",
+      "category": "holiday_rental_partner_feed",
+      "status": "permission_required",
+      "ownerSignal": "Private providers can list accommodation; destination and agency reservation systems can integrate",
+      "permission": "Partner integration or private landlord programme; access as a downstream consumer requires a separate agreement"
     }
   ]
 }
