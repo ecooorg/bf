@@ -40,7 +40,7 @@ test('owner-defined ImmoGR locality catalogue contains two groups of 22 plus sta
   assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 0).length, 1);
   assert.equal(localitiesForMode('chur').length, 1);
   assert.equal(localitiesForMode('chur')[0].name, 'Chur');
-  assert.equal(new Set(IMMOGR_LOCALITIES.map((item) => item.id)).size, 44);
+  assert.equal(new Set(IMMOGR_LOCALITIES.map((item) => item.id)).size, 45);
   assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 1).length, 22);
   assert.equal(IMMOGR_LOCALITIES.filter((item) => item.group === 2).length, 22);
   assert.equal(localitiesForMode('group1').length, 22);
@@ -75,8 +75,11 @@ test('locality database migration is additive and seeds exact owner scope', asyn
   assert.match(sql, /ADD COLUMN IF NOT EXISTS locality_id text REFERENCES immogr_localities/);
   assert.match(sql, /CREATE INDEX IF NOT EXISTS immogr_listings_locality_category_idx/);
   assert.equal((sql.match(/\('[-a-z0-9]+', '[^']+', 'GR', [12]\)/g) || []).length, 44);
-  for (const locality of IMMOGR_LOCALITIES) assert.ok(sql.includes(`('${locality.id}', '${locality.name}', 'GR', ${locality.group})`));
-  assert.doesNotMatch(sql, /DROP TABLE|TRUNCATE/i);
+  for (const locality of IMMOGR_LOCALITIES.filter((item) => item.group === 1 || item.group === 2)) assert.ok(sql.includes(`('${locality.id}', '${locality.name}', 'GR', ${locality.group})`));
+  const churMigration = read('migrations/035_immogr_chur_locality.sql');
+  assert.match(churMigration, /'chur', 'Chur', 'GR', 0/);
+  assert.match(churMigration, /target_group IN \(0, 1, 2\)/);
+  assert.doesNotMatch(sql + churMigration, /DROP TABLE|TRUNCATE/i);
 });
 
 
