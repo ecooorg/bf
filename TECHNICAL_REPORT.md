@@ -1,3 +1,8 @@
+## 2026-11-27 — ImmoGR candidate and local research cards
+- **CHANGE:** Discovery now renders category-aware unverified candidate cards; locally imported pages preview editable human-observed facts and saved notes render as research cards. Added category persistence migration 036.
+- **GUARD:** Search still performs URL discovery only; no remote page fetch, automated qualification or admission is enabled.
+- **NOT_RUN:** CI, migration 036 on production PostgreSQL, browser/mobile smoke, live user-value validation and production deploy.
+
 ## 2026-11-27 — Production startup migration ordering
 - **OBSERVED:** Render build succeeded but app exited because jobs was missing; schema_migrations was absent, confirming the migration runner never started.
 - **CHANGE:** Startup now loads dotenv before environment validation and migration, then starts the server only after migrations succeed.
