@@ -38,7 +38,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   app.get('/api/immogr/sources', (req, res) => {
     if (!requireOwner(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview })) });
+    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview, probePolicy }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview, probePolicyStatus: probePolicy?.status ?? 'not_reviewed' })) });
   });
 
   app.get('/api/immogr/manual-reviews', async (req, res) => {
