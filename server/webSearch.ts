@@ -1994,6 +1994,7 @@ export async function fetchSerperDigestMulti(opts: {
   extraQueries?: string[];
   maxQueries?: number;
   maxSources?: number;
+  extraQueriesFirst?: boolean;
   /** P124.39: freshness class of the plan, passed to every sub-query. */
   freshness?: 'now' | 'recent' | 'none';
   /** P125.5: rank sources by national authorities for this sourceCountry constraint. */
@@ -2001,11 +2002,13 @@ export async function fetchSerperDigestMulti(opts: {
   preferredAuthorityTopic?: string;
 }): Promise<WebSearchResult> {
   const base = buildSearchQuery(opts.englishQuery || opts.userText);
-  const queries = expandSearchQueries(base, opts.userText);
+  const expandedQueries = expandSearchQueries(base, opts.userText);
+  const queries = opts.extraQueriesFirst ? [] : [...expandedQueries];
   for (const x of opts.extraQueries || []) {
     const q = buildSearchQuery(x);
     if (q.length >= 3 && !queries.some((e) => e.toLowerCase() === q.toLowerCase())) queries.push(q);
   }
+  if (opts.extraQueriesFirst) for (const q of expandedQueries) if (!queries.some((e) => e.toLowerCase() === q.toLowerCase())) queries.push(q);
   const timeoutMs = Math.max(8000, opts.timeoutMs ?? 28_000);
   const maxQ = Math.max(1, Math.min(45, opts.maxQueries ?? (Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5)));
   const slice = queries.slice(0, maxQ);
