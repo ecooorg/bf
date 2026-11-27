@@ -139,7 +139,7 @@ This Owner decision establishes the product workflow; it is not a legal opinion 
 ### Manual review workflow
 
 1. The ImmoGR source list displays every registered candidate and its automation status.
-2. Each source has a **“Ручной просмотр”** action. It opens the original site/page in a user-controlled browser context; it does not fetch the page through ImmoGR's server.
+2. Each source has a **“Manual review”** action. It opens the original site/page in a user-controlled browser context; it does not fetch the page through ImmoGR's server.
 3. The user inspects the page and explicitly chooses **Save to ImmoGR**.
 4. A structured capture form records the canonical URL, source, selected locality, page/listing type, observed price and period, owner/advertiser signals, contact route type, freshness, access outcome, short supporting evidence/notes, reviewer and timestamp.
 5. The saved observation is marked `human_observed` / `manual_review`; it is not represented as a server-fetched page or an admitted listing.
