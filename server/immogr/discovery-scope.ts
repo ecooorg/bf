@@ -8,7 +8,7 @@ function normalizedHost(value: string): string | null {
   try {
     const url = new URL(value.includes('://') ? value : 'https://' + value);
     if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return null;
-    return url.hostname.toLowerCase().replace(/^www\\./, '');
+    return url.hostname.toLowerCase().replace(/^www\./, '');
   } catch { return null; }
 }
 
@@ -40,6 +40,6 @@ export function isDiscoveryUrlInScope(value: string, sources: readonly Discovery
   let url: URL;
   try { url = new URL(value); } catch { return false; }
   if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return false;
-  const host = url.hostname.toLowerCase().replace(/^www\\./, '');
+  const host = url.hostname.toLowerCase().replace(/^www\./, '');
   return sources.some((source) => host === source.host || host.endsWith('.' + source.host));
 }
