@@ -1,3 +1,8 @@
+## 2026-11-27 — ImmoGR WP2 personal notebook improvements (P131.13)
+- Fixed CI copy-lint and ImmoGR manual-import assertions; full verification DAG passed (18/18 stages, zero failures/timeouts).
+- Added official homepage navigation for 26 registered sources and browser-local import for HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON (5 MB limit).
+- Aligned owner decisions, data model, source registry, acceptance criteria and product documentation with the private local-copy workflow; no separate database-capture gate.
+
 ## 2026-11-27 — ImmoGR WP2 manual research activation (P131.12)
 - Activated the WP2 manual-research UI/API stage and made its locality selector independent of discovery filters.
 

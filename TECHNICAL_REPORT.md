@@ -1,3 +1,9 @@
+## 2026-11-27 — ImmoGR CI recovery and WP2 local import
+- **CI PASS:** run `45990529842`, commit `8441df5397bdcdded7d3d66b355a851eb6707519`; verification DAG 18 PASS, 0 FAIL, 0 TIMEOUT, 0 BLOCKED, 0 policy skips. `lint:copy` and `test:core` passed; secret scan passed; evidence gate passed.
+- **CHANGE:** manual research UI now has verified source homepage links for 26 sources and client-side extraction for HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON. The original file is not uploaded; selected notes are saved explicitly.
+- **OWNER SCOPE:** personal local page/screenshot copies and local automation are permitted by D-IMMOGR-012; remote crawling, server-side proxying and technical access-control bypass remain separate and disabled.
+- **NOT_RUN:** live PostgreSQL migration 034, authenticated browser/mobile end-to-end smoke, OCR for scanned images, and production deploy verification.
+
 ## 2026-11-27 — ImmoGR WP2 activation
 - **CHANGE:** UI/API now report `WP2_MANUAL_RESEARCH`; manual capture exposes all 44 target localities independently of discovery filters.
 - **NOT_RUN:** CI/typecheck, migration 034 on PostgreSQL, browser smoke and deployment verification.
