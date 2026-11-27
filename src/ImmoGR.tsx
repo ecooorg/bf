@@ -150,9 +150,10 @@ export default function ImmoGR() {
       <p style={{ color: '#f4d28b', fontSize: 12, marginBottom: 0 }}>A search result is not a property listing. No price, locality, owner, contact, or availability is verified at this stage.</p>
     </section>
     <section style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
-      <h2 style={{ marginTop: 0 }}>Personal manual research notebook</h2>
+      <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Choose any registered source, open its original page in your browser, then save the facts you observed for your own housing search. Automation status is shown separately and does not hide manual research.</p>
       <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
+      {selectedSourceId && <p style={{ color: '#9aadc5', fontSize: 13 }}>{sources.find((source) => source.id === selectedSourceId)?.ownerSignal} {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>}
       {sources.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>{sources.map((source) => <button type="button" key={source.id} onClick={() => selectManualSource(source.id)} aria-pressed={selectedSourceId === source.id} style={{ border: selectedSourceId === source.id ? '2px solid #79c7ff' : '1px solid #40536b', borderRadius: 8, padding: '7px 10px', background: '#101f33', color: '#eef4ff', cursor: 'pointer' }}>{source.name}</button>)}</div>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
