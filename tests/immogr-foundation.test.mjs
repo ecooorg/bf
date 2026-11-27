@@ -56,7 +56,9 @@ test('ImmoGR exposes official municipality catalogue and UI consumes it', () => 
 
 test('database commune seed matches the official runtime catalogue and leaves user priorities blank', async () => {
   const { IMMOGR_COMMUNES } = await import('../server/immogr/communes.ts');
-  const sql = read('migrations/031_immogr_core.sql');
+  const sql = read('migrations/032_immogr_communes.sql');
+  const coreMigration = read('migrations/031_immogr_core.sql');
+  assert.doesNotMatch(coreMigration, /immogr_communes/);
   assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_communes/);
   assert.match(sql, /commune_id integer REFERENCES immogr_communes\(bfs_id\)/);
   const seed = sql.split('INSERT INTO immogr_communes')[1].split('ON CONFLICT')[0];
