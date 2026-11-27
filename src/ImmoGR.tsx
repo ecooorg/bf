@@ -230,8 +230,8 @@ export default function ImmoGR() {
     catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Could not download diagnostics.'); }
     finally { setDiagnosticsDownloading(false); }
   }
-  async function discover(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setSearching(true); setSearchError(''); setSearchDiagnostics(null); setLeads([]); setSearched(false);
+  async function discover() {
+    setSearching(true); setSearchError(''); setSearchDiagnostics(null); setLeads([]); setSearched(false);
     try {
       if (!selectedSourceIds.length) throw new Error('Select at least one source.');
       if (!selectedLocalityIds.length) throw new Error('Select at least one locality.');
@@ -328,7 +328,7 @@ export default function ImmoGR() {
       </div>
       <div className="immogr-search-actions">
         <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading}>{diagnosticsDownloading ? 'Preparing logs…' : 'Download logs'}</button>
-        <button type="button" onClick={() => void discover({ preventDefault() {} } as FormEvent<HTMLFormElement>)} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
+        <button type="button" onClick={() => void discover()} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
       </div>
       {searchError && <p role="alert">{searchError}</p>}
       {searched && <p role="status">{leads.length} candidate URLs found (maximum 100). Results are unverified.</p>}
