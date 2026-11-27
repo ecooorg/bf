@@ -1,3 +1,7 @@
+## 2026-11-27 — ImmoGR personal research notebook
+- **CHANGE:** Added source registry API, manual capture UI/API, browser-side local HTML/HTM/TXT extraction (5 MB cap), and `immogr_manual_reviews` migration 034; Owner clarified private local-copy processing scope.
+- **NOT_RUN:** Typecheck, test suite, migration against live PostgreSQL, browser/mobile smoke, hosted CI and production deploy verification.
+
 ## 2026-11-27 — ImmoGR owner-defined locality scope
 - **CHANGE:** Added 22+22 exact locality groups, browser-persisted group selection, locality-only discovery validation, CSV authority, and additive migration 033; retired the municipality priority sheet/runtime catalogue.
 - **NOT_RUN:** Local/hosted tests, exact-commit Render deployment, and production migration 033.
