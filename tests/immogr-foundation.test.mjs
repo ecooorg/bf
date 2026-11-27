@@ -53,3 +53,17 @@ test('ImmoGR exposes official municipality catalogue and UI consumes it', () => 
   assert.match(ui, /communes\.map/);
   assert.match(ui, /commune-priorities\.csv/);
 });
+
+test('database commune seed matches the official runtime catalogue and leaves user priorities blank', async () => {
+  const { IMMOGR_COMMUNES } = await import('../src/immogr/communes.ts');
+  const sql = read('migrations/031_immogr_core.sql');
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS immogr_communes/);
+  assert.match(sql, /commune_id integer REFERENCES immogr_communes\(bfs_id\)/);
+  const seed = sql.split('INSERT INTO immogr_communes')[1].split('ON CONFLICT')[0];
+  for (const commune of IMMOGR_COMMUNES) {
+    assert.match(seed, new RegExp('\\(' + commune.bfsId + ", '" + commune.name.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&') + "'"));
+  }
+  assert.equal((seed.match(/\(\d+, '/g) || []).length, 100);
+  assert.doesNotMatch(seed, /,\s*[12],\s*(?:true|false)/i);
+  assert.doesNotMatch(seed, /\(\d+, "/);
+});
