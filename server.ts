@@ -216,12 +216,14 @@ function pooledGeminiClient(byokKey?: string): any {
 }
 const buildGeminiAdapterFromKey = (key: string) => {
   const base = process.env.GEMINI_BASE_URL || '';
+  return createGeminiAdapter(createGeminiClient(key, base) as any);
 };
 const codeRouterState = newRouterState();
 
 /** Structured code authoring via the existing Router/JSON-output capability. Generated code is never executed by BiForge. */
 async function callCodeAuthor(input: { packageMd: string; pkg: import('./server/codeExecutor.ts').TaskPackage; taskId: string; projectId: string }): Promise<unknown> {
   if (!ai) throw Object.assign(new Error('MODEL_NOT_CONFIGURED: GEMINI_API_KEY is not configured'), { code: 'MODEL_NOT_CONFIGURED' });
+  const adapter = createGeminiAdapter(ai as any);
   const adapters: Record<string, import('./server/adapter.ts').ProviderAdapter> = { gemini: adapter };
   const registry = registryForGeminiCascade('STRONG').filter((entry) => entry.capabilities.includes('json_output'));
   if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY) {

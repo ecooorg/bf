@@ -110,7 +110,7 @@ Separate workspace, not an agent. `server/immofinder/` (sources, normalise, dedu
 
 ### ImmoFinder status (P128.1)
 
-Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,Routes}.ts` (the repo keeps `server/` flat), `src/ImmoFinder.tsx` (route `/immofinder`, home card `start-immofinder`), `.github/workflows/immofinder-cron.yml`. The run is an in-process async job guarded by `immofinder_runs` (one open run, 30-minute expiry) instead of the job queue. Source parsing is generic (same-site object links, page text, Gemini extraction verified against the text); unverified on live markup.
+Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,Routes}.ts` (the repo keeps `server/` flat), `src/ImmoFinder.tsx` (route `/immofinder`, home card `start-immofinder`), the retired ImmoFinder schedule workflow (removed from the active repository on 2026-11-27). The run is an in-process async job guarded by `immofinder_runs` (one open run, 30-minute expiry) instead of the job queue. Source parsing is generic (same-site object links, page text, Gemini extraction verified against the text); unverified on live markup.
 
 ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune queries (rotation by finished real runs), picks hits (host policy) and feeds them to the same extraction/filter/persist function as catalogue sources. Product quality contract: see **ImmoFinder search result quality** below.
 

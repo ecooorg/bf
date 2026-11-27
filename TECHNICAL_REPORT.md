@@ -1,5 +1,5 @@
 ## 2026-11-27 — ImmoFinder decommission and ImmoGR WP1 foundation
-- **CHANGE:** ImmoFinder manual/scheduled execution and production routes are being retired; old code/data remain read-only archive. ImmoGR receives an isolated namespace and sole active property-search authority.
+- **CHANGE:** ImmoFinder manual/scheduled execution and production routes have been retired; old code/data remain read-only archive. ImmoGR receives an isolated namespace and sole active property-search authority.
 - **OBSERVED:** Render service bf is configured for auto-deploy from main; exact-commit deployment and CI must be verified after this change.
 - **NOT_RUN:** ImmoGR live discovery, source permissions, real listing extraction, and owner-approved real-result acceptance.
 
