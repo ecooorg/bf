@@ -13,8 +13,10 @@
     "manualResearchMode": "user_initiated_browser_and_explicit_structured_capture",
     "manualResearchDoesNotGrantAutomationPermission": true,
     "noServerSideProxyForManualReview": true,
-    "noBulkPageCopying": true,
-    "manualDatabaseCaptureRequiresSourceReview": true
+    "personalNotebookCaptureEnabled": true,
+    "personalNotebookScope": "single_owner_private_use",
+    "localSavedPageProcessing": "user_selected_local_files_processed_in_browser_before_explicit_save",
+    "localFileImportDoesNotEnableRemoteCrawling": true
   },
   "sources": [
     {
@@ -29,8 +31,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -45,8 +46,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -61,8 +61,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -77,8 +76,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -93,8 +91,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -109,8 +106,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -125,8 +121,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -141,8 +136,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -157,8 +151,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -173,8 +166,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -189,8 +181,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -205,8 +196,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -221,8 +211,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -237,8 +226,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -253,8 +241,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -269,8 +256,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -285,8 +271,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -301,8 +286,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -317,8 +301,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -333,8 +316,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -349,8 +331,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -365,8 +346,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -381,8 +361,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -397,8 +376,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -413,8 +391,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -429,8 +406,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "terms_review_required",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -445,8 +421,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -461,8 +436,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     },
     {
@@ -477,8 +451,7 @@
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
-        "databaseCaptureStatus": "not_assessed",
-        "captureRightsEvidenceUrl": null
+        "personalNotebookCaptureStatus": "enabled"
       }
     }
   ],
@@ -547,6 +520,13 @@
       "evidenceNotes"
     ],
     "automationStatusFieldRemains": "sources[].status",
-    "databaseCapturePermissionField": "sources[].manualReview.databaseCaptureStatus"
+    "personalNotebookCapture": "enabled",
+    "localFileProcessing": [
+      "html",
+      "htm",
+      "txt"
+    ],
+    "localProcessingLimitBytes": 5242880,
+    "fileUploadToServer": false
   }
 }
