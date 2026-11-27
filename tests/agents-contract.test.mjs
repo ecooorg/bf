@@ -82,7 +82,7 @@ test('ImmoFinder is retired at the API boundary and cannot be restarted by old w
   assert.match(server, /IMMOFINDER_RETIRED/);
   assert.match(server, /\/api\/immofinder/);
   assert.match(main, /ImmoFinder is permanently retired/);
-  for (const workflow of ['immofinder-cron.yml', 'immofinder-diagnostics-poll.yml', 'immofinder-health.yml', 'restore-immofinder-routes.yml']) {
+  for (const workflow of ['immofinder-cron.yml', 'immofinder-diagnostics-poll.yml', 'immofinder-health.yml', 'restore-immofinder-routes.yml', 'ci-data-minimal.yml']) {
     assert.equal(existsSync(path.join(root, '.github/workflows', workflow)), false, workflow + ' must be retired');
   }
 });

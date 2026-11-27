@@ -1,5 +1,3 @@
-> ImmoFinder was permanently retired on 2026-11-27. ImmoGR is the sole active property-search product. This document is part of the current ImmoGR authority set.
-
 /** ImmoGR domain contracts. This file deliberately has no legacy property-search imports. */
 export type ImmoGRResultCategory = 'direct_rental' | 'private_owner_prospect';
 export type ImmoGROwnerClass = 'private_owner' | 'agency' | 'management_company' | 'tour_operator' | 'intermediary' | 'unknown';

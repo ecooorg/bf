@@ -55,7 +55,7 @@ import type { KeySlot } from './server/keyPool.ts';
 import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
-import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
+import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
 import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, applyUngroundedStatisticGate, applyGroundedNumberCheck, buildSearchEvidenceText, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';

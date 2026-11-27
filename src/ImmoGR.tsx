@@ -1,5 +1,3 @@
-> ImmoFinder was permanently retired on 2026-11-27. ImmoGR is the sole active property-search product. This document is part of the current ImmoGR authority set.
-
 import { useEffect, useState, type CSSProperties } from 'react';
 type ImmoGRStatus = { product: string; stage: string; liveSearchEnabled: boolean; message: string; resultCategories: string[] };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20, minHeight: 150 };

@@ -1,5 +1,3 @@
-> ImmoFinder was permanently retired on 2026-11-27. ImmoGR is the sole active property-search product. This document is part of the current ImmoGR authority set.
-
 import type { Express } from 'express';
 /** WP1 status only. Discovery and persistence are intentionally not activated before source/quality gates. */
 export function registerImmoGRRoutes(app: Express): void {
