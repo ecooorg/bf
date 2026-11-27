@@ -1,3 +1,7 @@
+## 2026-11-27 — Complete ImmoGR source navigation (P131.14)
+- Added verified homepage links for the remaining three registered sources; all 29 sources now have direct homepage navigation.
+- Tightened the ImmoGR foundation test to require a valid HTTPS homepage for every source.
+
 ## 2026-11-27 — ImmoGR WP2 personal notebook improvements (P131.13)
 - Fixed CI copy-lint and ImmoGR manual-import assertions; full verification DAG passed (18/18 stages, zero failures/timeouts).
 - Added official homepage navigation for 26 registered sources and browser-local import for HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON (5 MB limit).

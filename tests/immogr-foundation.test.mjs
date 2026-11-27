@@ -100,8 +100,8 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(ui, /file itself was not uploaded|original file was not uploaded/);
   assert.equal(registry.sources.length, 29);
   assert.ok(registry.sources.every((source) => source.manualReview?.personalNotebookCaptureStatus === 'enabled'));
-  assert.ok(registry.sources.filter((source) => source.homepageUrl).length >= 20);
-  assert.ok(registry.sources.filter((source) => source.homepageUrl).every((source) => new URL(source.homepageUrl).protocol === 'https:'));
+  assert.equal(registry.sources.filter((source) => source.homepageUrl).length, 29);
+  assert.ok(registry.sources.every((source) => source.homepageUrl && new URL(source.homepageUrl).protocol === 'https:'));
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immogr_manual_reviews/);
   assert.match(migration, /REFERENCES immogr_localities/);
   assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);

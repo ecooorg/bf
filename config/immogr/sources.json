@@ -48,7 +48,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.ferienhausmiete.de/"
     },
     {
       "id": "flatfox",
@@ -239,7 +240,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://www.stnet.ch/de/export-ferienwohnungen/"
     },
     {
       "id": "edomizil",
@@ -462,7 +464,8 @@
         "lastReviewedAt": null,
         "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
         "personalNotebookCaptureStatus": "enabled"
-      }
+      },
+      "homepageUrl": "https://apartmentsswitzerland.ch/en/"
     },
     {
       "id": "alpine_market_api",

@@ -1,3 +1,7 @@
+## 2026-11-27 — Complete 29-source navigation
+- **CHANGE:** All 29 source registry entries now include verified HTTPS homepage links; the manual research UI exposes the direct source-homepage action for every source.
+- **TEST:** Added an exact 29/29 HTTPS homepage assertion. CI run to be verified after this commit.
+
 ## 2026-11-27 — ImmoGR CI recovery and WP2 local import
 - **CI PASS:** run `45990529842`, commit `8441df5397bdcdded7d3d66b355a851eb6707519`; verification DAG 18 PASS, 0 FAIL, 0 TIMEOUT, 0 BLOCKED, 0 policy skips. `lint:copy` and `test:core` passed; secret scan passed; evidence gate passed.
 - **CHANGE:** manual research UI now has verified source homepage links for 26 sources and client-side extraction for HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON. The original file is not uploaded; selected notes are saved explicitly.
