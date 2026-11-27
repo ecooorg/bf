@@ -59,3 +59,12 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - A source adapter cannot run before the authorization gate passes; manual notebook capture and search-provider snippets never count as acquisition authorization.
 - Before any network transport is enabled, tests must cover DNS/IP SSRF protection, redirect revalidation, robots decisions, per-host rate limits, response size/time limits, content-type checks, cancellation and audit logging.
 - At least one real source must have written or contractually documented permission and an owner-approved API/feed scope before its adapter can be activated.
+
+## WP3 bounded research-probe acceptance
+
+- A source can be probed by the local ImmoGR agent only with a source-specific documented permission for limited research-purpose automated requests and a positive robots/access review.
+- The probe gate rejects sources with explicit scripted-probe prohibitions, missing permission evidence, unapproved hosts/methods, non-HTTPS URLs, pagination, and plans exceeding the source's two- or three-request ceiling.
+- Probes are owner-triggered, single-host, GET/HEAD-only diagnostics. They do not enable scheduled collection, listing harvesting, automatic retries, or dataset persistence.
+- Any API key or personal credential is read only from the Owner's local secret store; never commit or log it.
+- Record probe availability/schema/quality outcomes separately from full acquisition authorization. Passing a probe does not authorize regular acquisition.
+- No probe is performed by ChatGPT on behalf of the local agent; source tests are run from the Owner's environment using their own accounts and keys.
