@@ -4,8 +4,8 @@ import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/loc
 import { downloadAllLogs } from './allLogs.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
-type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
-type GroupMode = 'group1' | 'group2' | 'both';
+type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
+type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
 type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string };
 type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
@@ -18,7 +18,7 @@ export default function ImmoGR() {
   const [error, setError] = useState('');
   const [locality, setLocality] = useState('');
   const [groupMode, setGroupMode] = useState<GroupMode>(() => {
-    try { const saved = localStorage.getItem('immogr.groupMode'); return saved === 'group1' || saved === 'group2' ? saved : 'both'; } catch { return 'both'; }
+    try { const saved = localStorage.getItem('immogr.groupMode'); return saved === 'group1' || saved === 'group2' || saved === 'chur' ? saved : 'both'; } catch { return 'both'; }
   });
   const [localities, setLocalities] = useState<LocalityOption[]>([]);
   const [manualLocalities, setManualLocalities] = useState<LocalityOption[]>([]);
@@ -299,7 +299,7 @@ export default function ImmoGR() {
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Target localities</h2>
       <p style={{ color: '#9aadc5' }}>The search geography is the exact owner-defined locality list, not municipalities. Only these 44 localities are in scope; all other places are excluded. Group selection is remembered in this browser.</p>
-      <label>Enabled locality groups<select value={groupMode} onChange={(e) => changeGroupMode(e.target.value as GroupMode)} style={field}><option value="group1">Group 1 · 22 important localities</option><option value="group2">Group 2 · 22 secondary localities</option><option value="both">Both groups · all 44 localities</option></select></label>
+      <label>Enabled locality groups<select value={groupMode} onChange={(e) => changeGroupMode(e.target.value as GroupMode)} style={field}><option value="group1">Group 1 · 22 important localities</option><option value="group2">Group 2 · 22 secondary localities</option><option value="both">Both groups · all 44 localities</option><option value="chur">Chur · standalone</option></select></label>
       <p style={{ color: '#9aadc5', fontSize: 13 }}>The selection controls which localities appear in search and which locations the discovery API will accept.</p>
     </section>
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
@@ -323,7 +323,7 @@ export default function ImmoGR() {
       </details>
       <p style={{ color: '#9aadc5' }}>Search current candidate URLs for one selected locality. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records.</p>
       <form onSubmit={discover} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, alignItems: 'end' }}>
-        <label>Target locality<select required value={locality} onChange={(e) => setLocality(e.target.value)} style={field}><option value="">Select a target locality</option>{localities.map((item) => <option key={item.id} value={item.name}>{item.name} · Group {item.group}</option>)}</select></label>
+        <label>Target locality<select required value={locality} onChange={(e) => setLocality(e.target.value)} style={field}><option value="">Select a target locality</option>{localities.map((item) => <option key={item.id} value={item.name}>{item.name} · {item.group === 0 ? 'Standalone' : 'Group ' + item.group}</option>)}</select></label>
         <label>Discovery category<select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} style={field}><option value="direct_rental">Direct Rental leads</option><option value="private_owner_prospect">Private Owner Prospect leads</option></select></label>
         <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
       </form>
@@ -339,7 +339,6 @@ export default function ImmoGR() {
       <p style={{ color: '#9aadc5' }}>Select a source, open its page, and save your observations. Automation status is shown separately and does not hide manual research.</p>
       <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
       {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>Automation note: {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
-      {sources.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>{sources.map((source) => <button type="button" key={source.id} onClick={() => selectManualSource(source.id)} aria-pressed={selectedSourceId === source.id} style={{ border: selectedSourceId === source.id ? '2px solid #79c7ff' : '1px solid #40536b', borderRadius: 8, padding: '7px 10px', background: '#101f33', color: '#eef4ff', cursor: 'pointer' }}>{source.name}</button>)}</div>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
