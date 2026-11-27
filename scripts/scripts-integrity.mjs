@@ -29,7 +29,7 @@ const ALLOW = new Set([
   'restore-verify-test.mjs',
   'lint-copy.mjs', 'migrate.mjs', 'monitor-connections.mjs', 'pack-simple.mjs', 'patch-pack.mjs',
   'patch-quality-report.mjs', 'patch-tools.mjs', 'project-user-value-eval.mjs', 'project-user-value-live.mjs',
-  'run-dag.mjs', 'schemaValidate.mjs', 'scripts-integrity.mjs', 'statusGraph.mjs', 'verify-connections.mjs',
+  'run-dag.mjs', 'schemaValidate.mjs', 'scripts-integrity.mjs', 'start.mjs', 'statusGraph.mjs', 'verify-connections.mjs',
   'version-metadata.mjs', 'workflow-preflight.mjs', 'write-build-stamp.mjs',
 ]);
 
