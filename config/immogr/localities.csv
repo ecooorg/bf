@@ -1,6 +1,7 @@
 # Owner-defined locality target list; all unlisted localities are out of scope.
-# group=1: important; group=2: secondary. Settings may enable group1, group2, or both.
+# group=0: standalone Chur; group=1: important; group=2: secondary. Settings may enable group1, group2, both, or Chur.
 id,locality,canton,group
+chur,"Chur",GR,0
 araschgen,"Araschgen",GR,1
 bonaduz,"Bonaduz",GR,1
 churwalden,"Churwalden",GR,1
