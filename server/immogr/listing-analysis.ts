@@ -1,4 +1,59 @@
-import { normalizeLocalityLabel } from '../../src/immogr/local-schema.ts';
+function normalizeLocalityLabel(value: string): string {
+ return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').toLocaleLowerCase('de-CH').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+}
+function numericValues(value: string): number[] {
+ return (value.match(/\d[\d'’.,]*/g) || []).map((token) => {
+  let normalized = token.replace(/[’'\s]/g, '');
+  if (/[,.]\d{3}$/.test(normalized)) normalized = normalized.replace(/[,.]/g, '');
+  else if (normalized.includes(',') && normalized.includes('.')) {
+   const decimal = normalized.lastIndexOf(',') > normalized.lastIndexOf('.') ? ',' : '.';
+   normalized = normalized.replace(/[,.]/g, (mark) => mark === decimal ? '.' : '');
+  } else if (normalized.includes(',')) normalized = normalized.replace(',', '.');
+  return Number(normalized);
+ }).filter((number) => Number.isFinite(number));
+}
+function quoteSupports(field: string, value: unknown, quote: string): boolean {
+ const q = normalizeEvidenceText(quote), v = normalizeEvidenceText(String(value ?? ''));
+ if (!v || !q) return false;
+ const numbers = numericValues(quote);
+ const numberMatches = (n: unknown) => typeof n === 'number' || (typeof n === 'string' && n.trim())
+  ? numbers.some((item) => Math.abs(item - Number(n)) < 0.011) : false;
+ switch (field) {
+  case 'title': return q.includes(v) || v.includes(q);
+  case 'locality': return q.includes(v);
+  case 'propertyType':
+   if (value === 'apartment') return /wohnung|apartment|flat/.test(q);
+   if (value === 'house') return /haus|house/.test(q);
+   if (value === 'chalet') return /chalet/.test(q);
+   if (value === 'room') return /zimmer|room|einzelzimmer/.test(q);
+   return value === 'other' && /immobilie|property|objekt/.test(q);
+  case 'priceAmount': return /chf|eur|€|fr\\.?\\s*\\d/i.test(quote) && numberMatches(value);
+  case 'currency': return value === 'CHF' ? /\\bchf\\b/i.test(quote) : value === 'EUR' && /\\beur\\b|€/i.test(quote);
+  case 'pricePeriod':
+   if (value === 'month') return /monat|monthly|per month|pro monat|mois|mese|\\/mt\\.?|\\/monat/.test(q);
+   if (value === 'week') return /woche|weekly|per week|pro woche|semaine|\\/week/.test(q);
+   if (value === 'night') return /nacht|nightly|per night|pro nacht|nuit|\\/night/.test(q);
+   return value === 'season' && /saison|season|stagione/.test(q);
+  case 'rooms': return /zimmer|räume|rooms?|pieces?/.test(q) && numberMatches(value);
+  case 'areaSqm': return /(m²|m2|qm|quadr(at)?meter)/.test(q) && numberMatches(value);
+  case 'availability': return q.includes(v) || v.includes(q);
+  case 'ownerClass':
+   if (value === 'private_owner') return /von privat|privatvermieter|private owner|private landlord|privater vermieter/.test(q);
+   if (value === 'agency') return /agentur|makler|agency|real estate agent/.test(q);
+   if (value === 'management_company') return /verwaltung|management company|property management/.test(q);
+   if (value === 'tour_operator') return /reiseveranstalter|tour operator|ferienanbieter/.test(q);
+   return value === 'intermediary' && /nachmieter|current tenant|mieter sucht/.test(q);
+  case 'directContact':
+   if (value === 'contact_form') return /kontaktformular|contact form/.test(q);
+   if (value === 'platform_message') return /nachricht senden|message seller|plattformnachricht/.test(q);
+   if (value === 'phone') return /telefon|phone|anrufen/.test(q);
+   if (value === 'email') return /e-?mail/.test(q);
+   if (value === 'website') return /website|webseite|homepage/.test(q);
+   return value === 'none' && /kein kontakt|no contact/.test(q);
+  case 'minTermYears': return /jahr|years?|ans?|années?/.test(q) && numberMatches(value);
+  default: return false;
+ }
+}
 export type ImmoGRListingEvidence = { field: string; quote: string };
 export type ImmoGRListingCandidate = {
  title: string; url: string; locality: string | null; localityId: string | null;
@@ -56,17 +111,19 @@ export function normalizeImmoGRListingAnalysis(raw: Record<string, unknown>, con
   const evidence: ImmoGRListingEvidence[] = (Array.isArray(record.evidence) ? record.evidence : []).flatMap((entry) => {
    if (!entry || typeof entry !== 'object') return [];
    const e = entry as Record<string, unknown>, field = clean(e.field, 60), quote = clean(e.quote, 500);
-   if (!field || quote.length < 8 || !pageText.includes(normalizeEvidenceText(quote))) return [];
+   if (!field || quote.length < 8 || !pageText.includes(normalizeEvidenceText(quote)) || !quoteSupports(field, record[field], quote)) return [];
    return [{ field, quote }];
   });
   const hasEvidence = (field: string) => evidence.some((entry) => entry.field === field);
   const title = hasEvidence('title') ? clean(record.title, 240) : '';
   let url = '';
   try { const parsed = new URL(clean(record.url, 2048) || context.pageUrl); const host = parsed.hostname.toLowerCase().replace(/^www\./, ''); parsed.hash = ''; if ((host === sourceHost || host.endsWith('.' + sourceHost)) && allowed.has(parsed.toString())) url = parsed.toString(); } catch { /* invalid or invented URL */ }
+  if (url && seenListingUrls.has(url)) { rejectedCandidateCount++; continue; }
+  if (url) seenListingUrls.add(url);
   const localityText = hasEvidence('locality') ? clean(record.locality, 120) : '';
   const locality = context.localities.find((entry) => normalizeLocalityLabel(entry.name) === normalizeLocalityLabel(localityText));
   const propertyTypeRaw = clean(record.propertyType, 40);
-  const propertyType = (validPropertyTypes.has(propertyTypeRaw) ? propertyTypeRaw : 'unknown') as ImmoGRListingCandidate['propertyType'];
+  const propertyType = (hasEvidence('propertyType') && validPropertyTypes.has(propertyTypeRaw) ? propertyTypeRaw : 'unknown') as ImmoGRListingCandidate['propertyType'];
   const amount = hasEvidence('priceAmount') ? Number(String(record.priceAmount ?? '').replace(/[’'\s]/g, '').replace(',', '.')) : NaN;
   const priceAmount = Number.isFinite(amount) && amount >= 0 && amount <= 1000000 ? amount : null;
   const currencyRaw = clean(record.currency, 8).toUpperCase();
