@@ -50,7 +50,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       const sourceId = String(req.query.sourceId || '').trim();
       const pool = await getPool();
       const result = await pool.query(
-        'SELECT id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes FROM immogr_manual_reviews WHERE ($1 = \'\' OR source_id = $1) ORDER BY reviewed_at DESC LIMIT 100',
+        'SELECT id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome, result_category, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes FROM immogr_manual_reviews WHERE ($1 = \'\' OR source_id = $1) ORDER BY reviewed_at DESC LIMIT 100',
         [sourceId],
       );
       return res.json({ reviews: result.rows });
@@ -73,6 +73,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const currency = String(body.currency || 'CHF').trim().toUpperCase();
     const pricePeriod = String(body.pricePeriod || 'unknown');
     const ownerClass = String(body.ownerClass || 'unknown');
+    const resultCategory = String(body.resultCategory || 'direct_rental');
     const availability = String(body.availability || '').trim();
     const accessOutcome = String(body.accessOutcome || 'reviewed');
     const notes = String(body.notes || '').trim();
@@ -80,7 +81,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     let parsedUrl: URL | null = null;
     try { parsedUrl = new URL(canonicalUrl); } catch { /* validated below */ }
     if (!source || !parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol) || Boolean(parsedUrl.username || parsedUrl.password) || canonicalUrl.length > 2048 ||
-      !allowedLocality || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) || !validPropertyTypes.has(propertyType) ||
+      !allowedLocality || !['direct_rental', 'private_owner_prospect'].includes(resultCategory) || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) || !validPropertyTypes.has(propertyType) ||
       !validAccessOutcomes.has(accessOutcome) || (priceRaw !== null && (!Number.isFinite(priceRaw) || priceRaw < 0 || priceRaw > 1000000)) ||
       !['CHF', 'EUR'].includes(currency) || pageTitle.length > 300 || availability.length > 500 || notes.length > 5000) {
       return res.status(400).json({ error: 'Invalid manual research record. Check source, HTTPS/HTTP URL, target locality and field values.' });
@@ -89,15 +90,15 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       const pool = await getPool();
       const result = await pool.query(
         `INSERT INTO immogr_manual_reviews
-          (source_id, canonical_url, locality_id, capture_method, reviewer_id, manual_access_outcome, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes, source_snapshot)
-         VALUES ($1,$2,$3,'manual_user_review','owner',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb)
-         RETURNING id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome`,
-        [sourceId, canonicalUrl, localityId, accessOutcome, pageTitle || null, propertyType, priceRaw, currency, pricePeriod, ownerClass, availability || null, notes || null, JSON.stringify({ sourceName: source.name, automationStatus: source.status, capturedAt: new Date().toISOString() })],
+          (source_id, canonical_url, locality_id, capture_method, reviewer_id, manual_access_outcome, result_category, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes, source_snapshot)
+         VALUES ($1,$2,$3,'manual_user_review','owner',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb)
+         RETURNING id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome, result_category`,
+        [sourceId, canonicalUrl, localityId, accessOutcome, resultCategory, pageTitle || null, propertyType, priceRaw, currency, pricePeriod, ownerClass, availability || null, notes || null, JSON.stringify({ sourceName: source.name, automationStatus: source.status, capturedAt: new Date().toISOString(), evidenceClass: 'human_observed' })],
       );
       return res.status(201).json({ success: true, review: result.rows[0] });
     } catch (error) {
       console.error('[ImmoGR] manual review save failed', String((error as Error)?.message || error).slice(0, 180));
-      return res.status(503).json({ error: 'Could not save the manual research record. Check that migration 034_immogr_manual_reviews has been applied and DATABASE_URL is configured.' });
+      return res.status(503).json({ error: 'Could not save the manual research record. Check that migration 036_immogr_research_category has been applied and DATABASE_URL is configured.' });
     }
   });
 
