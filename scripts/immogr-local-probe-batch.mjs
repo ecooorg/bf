@@ -30,7 +30,7 @@ export function assessBatchProbe(source, entry) {
     return { allowed: false, status: 'authorization_required', reason: policy?.reason || 'No explicit limited-probe authorization is recorded.' };
   }
   const authorization = sourceAuthorization(source);
-  if (!authorization || !authorization.reference || !authorization.reviewedAt || !authorization.allowedHosts.length || ![2, 3].includes(authorization.maxRequests)) {
+  if (!authorization || !authorization.reference || !authorization.reviewedAt || !policy.termsReviewedAt || !policy.robotsReviewedAt || !authorization.allowedHosts.length || ![2, 3].includes(authorization.maxRequests)) {
     return { allowed: false, status: 'authorization_incomplete', reason: 'The source probe authorization record is incomplete.' };
   }
   if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 2) {
