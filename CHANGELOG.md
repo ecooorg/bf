@@ -1,3 +1,6 @@
+## 2026-11-27 — ImmoGR WP2 manual research activation (P131.12)
+- Activated the WP2 manual-research UI/API stage and made its locality selector independent of discovery filters.
+
 ## 2026-11-27 — ImmoGR notebook privacy hardening (P131.12)
 - Added authenticated-only notebook APIs, saved-note history, and local file extraction; remote crawling remains disabled.
 
