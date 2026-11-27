@@ -75,3 +75,8 @@ The Owner confirms that the existing official names for the 44 target localities
 ## D-IMMOGR-015 — Chur as a standalone search target (2026-11-27)
 
 Chur is an explicit fourth locality selection, separate from group 1, group 2, and both groups. It is not added to either 22-locality group. The existing 44 owner-defined localities and their group membership remain unchanged; Chur is stored as a standalone locality with target_group 0 and is returned only when groupMode=chur.
+
+
+## D-IMMOGR-016 — Temporary broad-discovery experiment (2026-11-27)
+
+The Owner explicitly supersedes D-IMMOGR-013 for the bounded discovery experiment only. The 29 selected sources are search hints, not a returned-domain allowlist; candidate URLs from other public domains may be shown. The Owner may select any combination of the exact 45 registered localities (44 owner-defined targets plus standalone Chur). The complete discovery response is capped at 100 unique candidate URLs. This changes search-engine URL discovery only: no listing page is fetched, parsed, crawled, persisted as a listing, or treated as verified. Source-specific terms, robots, probe authorization and automated-acquisition gates remain unchanged. After the experiment, review yield, domain distribution, locality relevance, duplicates, latency and provider usage before deciding whether to retain broad discovery or restore source-domain filtering.
