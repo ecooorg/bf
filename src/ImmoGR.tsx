@@ -16,6 +16,10 @@ export default function ImmoGR() {
   const [searched, setSearched] = useState(false);
   useEffect(() => {
     let active = true;
+    fetch('/api/immogr/communes', { credentials: 'same-origin' })
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Commune reference unavailable'); return body; })
+      .then((body) => { if (active) setCommunes(Array.isArray(body.communes) ? body.communes : []); })
+      .catch((reason) => { if (active) setSearchError(reason instanceof Error ? reason.message : 'Commune reference unavailable'); });
     fetch('/api/immogr/status', { credentials: 'same-origin' })
       .then(async (response) => {
         const body = await response.json().catch(() => ({}));
