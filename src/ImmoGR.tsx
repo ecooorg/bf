@@ -34,6 +34,7 @@ export default function ImmoGR() {
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
   const [showPageImages, setShowPageImages] = useState(false);
   const [probeSecondUrl, setProbeSecondUrl] = useState('');
+  const [sourceSettingsMessage, setSourceSettingsMessage] = useState('');
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(() => {
     try { const saved = JSON.parse(localStorage.getItem('immogr.enabledSourceIds') || '[]'); return Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []; } catch { return []; }
   });
@@ -173,7 +174,7 @@ export default function ImmoGR() {
     anchor.click();
     URL.revokeObjectURL(objectUrl);
     setSearchError('');
-    setManualMessage('Selected-source batch plan downloaded. The local agent checks the registry authorization separately and skips sources without approval.');
+    setSourceSettingsMessage('Batch plan downloaded. The local agent checks registry authorization separately and skips sources without approval.');
   }
   function downloadLocalProbePlan() {
     const sourceId = selectedSourceId;
@@ -274,10 +275,11 @@ export default function ImmoGR() {
         <summary>Search settings · sources ({selectedSourceIds.length} selected of {sources.length || 29})</summary>
         <p style={{ color: '#9aadc5', fontSize: 13 }}>Choose the sources to include in discovery. Your selection is saved in this browser. Selecting a source does not change its automated-access status or grant access rights; it only limits the search-engine discovery request to the sources you choose.</p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <button type="button" onClick={() => setSelectedSourceIds(sources.map((source) => source.id))} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Select all</button>
-          <button type="button" onClick={() => setSelectedSourceIds([])} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Clear selection</button>
+          <button type="button" onClick={() => { setSelectedSourceIds(sources.map((source) => source.id)); setSourceSettingsMessage(''); }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Select all</button>
+          <button type="button" onClick={() => { setSelectedSourceIds([]); setSourceSettingsMessage(''); }} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Clear selection</button>
           <button type="button" onClick={downloadSelectedProbeBatch} disabled={!selectedSourceIds.length} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Export selected sources for local probe</button>
         </div>
+        {sourceSettingsMessage && <p role="status" style={{ color: '#9fe2b2', fontSize: 13 }}>{sourceSettingsMessage}</p>}
         <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
           <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
           <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus}</small></span>
