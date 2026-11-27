@@ -242,3 +242,14 @@ ImmoGR is a private, single-user notebook for the Owner's own housing search. Th
 ## Owner clarification — private notebook and local copies (2026-11-27)
 
 The Owner may save pages/screenshots locally and process those copies manually or with local automation. ImmoGR's browser-side local import accepts HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON up to 5 MB, extracts text locally, and requires the Owner to review and explicitly save notes. The original file is not uploaded. Remote crawling, proxying and technical access-control bypass remain separate and are not authorized by this local workflow.
+
+
+## Limited research-probe policy
+
+Each source record now has a `probePolicy` independent of its normal acquisition `status`:
+
+- `prohibited`: current source review records an explicit restriction on scripted/bulk/crawling access; local batch runner skips it.
+- `not_reviewed`: no source-specific limited-probe permission is recorded; local batch runner sends no requests.
+- `authorized_for_limited_probe`: may be set only after current terms/operator permission and the intended research scope are reviewed. The record must contain `authorizationReference`, `reviewedAt`, exact `allowedHosts`, and `maxRequests` of 2 or 3.
+
+The batch plan file contains only source IDs and page URLs. It cannot grant itself authorization. The current registry has 7 sources marked prohibited and 22 not reviewed; none is currently authorized. See `docs/IMMOGR_PROBE_READINESS.md`.
