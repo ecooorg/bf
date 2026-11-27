@@ -7,41 +7,31 @@ import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
 
 installEmergencyDiagnostics();
 
-/** Project Mode routes (primary workspace). Retired lab route removed; Project Mode only. */
-const isProject = ['/project', '/project-legacy', '/architect'].some((path) =>
-  window.location.pathname === path || window.location.pathname.startsWith(`${path}/`),
-);
+const path = window.location.pathname;
+const isProject = ['/project', '/project-legacy', '/architect'].some((route) => path === route || path.startsWith(route + '/'));
+const isImmoGR = path === '/immogr' || path.startsWith('/immogr/');
+const isRetiredImmoFinder = path === '/immofinder' || path.startsWith('/immofinder/');
 
-/** Project Mode is a separate chunk — Simple Mode (/) must not wait for it to parse. */
 const ProjectMode = lazy(() => import('./ProjectMode.tsx'));
-const ImmoFinder = lazy(() => import('./ImmoFinder.tsx'));
-const isImmo = window.location.pathname === '/immofinder' || window.location.pathname.startsWith('/immofinder/');
+const ImmoGR = lazy(() => import('./ImmoGR.tsx'));
 
 function ProjectRoot() {
-  return (
-    <Suspense
-      fallback={
-        <div className="shell">
-          <div className="empty">
-            <h1>BiForge</h1>
-            <p>Loading…</p>
-          </div>
-        </div>
-      }
-    >
-      <ProjectMode />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className="shell"><div className="empty"><h1>BiForge</h1><p>Loading…</p></div></div>}><ProjectMode /></Suspense>;
 }
-
-function ImmoRoot() {
-  return <Suspense fallback={<div className="shell"><div className="empty"><h1>ImmoFinder</h1><p>Loading…</p></div></div>}><ImmoFinder /></Suspense>;
+function ImmoGRRoot() {
+  return <Suspense fallback={<div className="shell"><div className="empty"><h1>ImmoGR</h1><p>Loading…</p></div></div>}><ImmoGR /></Suspense>;
 }
-
-const Root = isImmo ? ImmoRoot : isProject ? ProjectRoot : App;
-
+function RetiredImmoFinder() {
+  return <main className="shell" style={{ maxWidth: 760, margin: '0 auto', padding: 32 }}>
+    <h1>ImmoFinder is permanently retired</h1>
+    <p>The previous property-search tool has been stopped and preserved as historical archive. Its search, API, scheduled jobs, and data updates are disabled.</p>
+    <p>ImmoGR is the new independent property-search project. Its live search will open only after the new source and quality checks are complete.</p>
+    <p><a href="/immogr">Open ImmoGR</a> · <a href="/">BiForge home</a></p>
+  </main>;
+}
+const Root = isRetiredImmoFinder ? RetiredImmoFinder : isImmoGR ? ImmoGRRoot : isProject ? ProjectRoot : App;
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary label={isImmo ? 'ImmoFinder' : isProject ? 'Project' : 'BiForge'}><Root /></ErrorBoundary>
+    <ErrorBoundary label={isRetiredImmoFinder ? 'ImmoFinder retired' : isImmoGR ? 'ImmoGR' : isProject ? 'Project' : 'BiForge'}><Root /></ErrorBoundary>
   </React.StrictMode>
 );

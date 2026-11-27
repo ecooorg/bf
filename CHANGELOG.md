@@ -1,3 +1,11 @@
+## 2026-11-27 — ImmoFinder retired; ImmoGR WP1 started
+- Retired ImmoFinder UI/API/workflows and removed legacy live-acceptance automation; preserved historical source and data read-only.
+- Established isolated ImmoGR product entry, API status, configuration/data namespace, specifications, source research, and acceptance gates.
+
+---
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 ## P131.9a — locality pre-filter + 410 demotion + G6 push integrity (2026-11-26)
 - **Problem:** last live run 0 kept (82 locality prefilter, 19 outside_target, UrbanHome 410s); connector truncation took live.ts offline.
 - **Change:** `liveFilters.ts` (titleHint locality gate, tourist skip, 410 weight/block); entity-safe plainText; G6 in OPERATIONS.

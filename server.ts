@@ -42,21 +42,20 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
-import { registerImmoFinderRoutes, isImmoCronCall, isImmoDiagnosticsCall, stopImmoFinderWorker } from './server/immofinderRoutes.ts';
+import { registerImmoGRRoutes } from './server/immogr/index.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
 import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { waitForModelStart, minModelIntervalMs, ModelQueueDeadlineError } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
-import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { resolveGeminiKeySlots, KeyPoolState, classifyKeyError, shouldRotateKeySlot } from './server/keyPool.ts';
 import { GeminiKeyPool, callWithKeyPool, createPooledClient, PoolExhaustedError } from './server/geminiKeyPool.ts';
 import type { KeySlot } from './server/keyPool.ts';
 import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
-import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
+import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
 import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, applyUngroundedStatisticGate, applyGroundedNumberCheck, buildSearchEvidenceText, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
@@ -80,7 +79,7 @@ import { readLlmLatencyConfig } from './server/llmLatencyConfig.ts';
 import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
-// Install before runtime diagnostics are emitted; ImmoFinder traces are captured until run completion.
+// Install shared application log capture before runtime diagnostics are emitted.
 installLogCapture();
 
 /** Build a Gemini client with an optional base URL and explicitly bounded SDK retries.
@@ -216,14 +215,12 @@ function pooledGeminiClient(byokKey?: string): any {
 }
 const buildGeminiAdapterFromKey = (key: string) => {
   const base = process.env.GEMINI_BASE_URL || '';
-  return createGeminiAdapter(createGeminiClient(key, base) as any);
 };
 const codeRouterState = newRouterState();
 
 /** Structured code authoring via the existing Router/JSON-output capability. Generated code is never executed by BiForge. */
 async function callCodeAuthor(input: { packageMd: string; pkg: import('./server/codeExecutor.ts').TaskPackage; taskId: string; projectId: string }): Promise<unknown> {
   if (!ai) throw Object.assign(new Error('MODEL_NOT_CONFIGURED: GEMINI_API_KEY is not configured'), { code: 'MODEL_NOT_CONFIGURED' });
-  const adapter = createGeminiAdapter(ai as any);
   const adapters: Record<string, import('./server/adapter.ts').ProviderAdapter> = { gemini: adapter };
   const registry = registryForGeminiCascade('STRONG').filter((entry) => entry.capabilities.includes('json_output'));
   if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY) {
@@ -262,18 +259,6 @@ async function callCodeAuthor(input: { packageMd: string; pkg: import('./server/
     sensitivity: 'normal', paidApproved: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? ['groq', 'cloudflare-workers-ai'] : [], deadlineAt: Date.now() + timeoutMs + 5_000,
   });
   if (routed.status !== 'ok' || !routed.response) throw new Error(`CODE_AUTHOR_UNAVAILABLE: ${routed.decision.reason ?? routed.response?.errorClass ?? 'no response'}`);
-  return routed.response.output;
-}
-
-/** ImmoFinder: one structured extraction call through the existing Router (LIGHT Gemini cascade). */
-async function callImmoLlm(system: string, prompt: string): Promise<unknown> {
-  if (!ai) throw new Error('MODEL_NOT_CONFIGURED: GEMINI_API_KEY is not configured');
-  const registry = registryForGeminiCascade('LIGHT').filter((entry) => entry.capabilities.includes('json_output'));
-  const routed = await routeCall({ requestId: `immofinder-${Date.now()}`, system, prompt, json: true, maxOutputTokens: 2048, metadata: { role: 'immofinder' } }, {
-    registry, adapters: { gemini: createGeminiAdapter(ai as any) }, state: codeRouterState, required: ['json_output'], maxCalls: Math.min(3, Math.max(1, registry.length)), timeoutMs: 60_000,
-    sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 65_000,
-  });
-  if (routed.status !== 'ok' || !routed.response) throw new Error(`IMMOFINDER_LLM_UNAVAILABLE: ${routed.decision.reason ?? routed.response?.errorClass ?? 'no response'}`);
   return routed.response.output;
 }
 
@@ -401,7 +386,7 @@ registerAuthRoutes(app, {
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/')) return next();
   if (req.path === '/api/health' || req.path === '/api/session' || req.path === '/api/login' || req.path === '/api/logout') return next();
-  if (isImmoCronCall(req) || isImmoDiagnosticsCall(req)) return next(); // secrets are verified (timing-safe) by the ImmoFinder middleware; bad secrets still get 401 there
+  if (req.path === '/api/immofinder' || req.path.startsWith('/api/immofinder/')) return res.status(410).json({ success: false, error: 'ImmoFinder is permanently retired. Use ImmoGR.', code: 'IMMOFINDER_RETIRED' });
   if (!authenticated(req)) {
     return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
   }
@@ -455,8 +440,8 @@ registerProjectRoutes(app, {
   codeRouterState,
 });
 
-// ImmoFinder GR module: server/immofinder*.ts (P128.1)
-registerImmoFinderRoutes(app, { authenticated, appAuthEnabled: APP_AUTH_ENABLED, llm: ai ? callImmoLlm : null });
+// ImmoGR is an independent property-search module; no ImmoFinder code is imported.
+registerImmoGRRoutes(app);
 
 
 const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language. Answer in the user's language; do not cite or rely on state-controlled outlets of Russia and Belarus; prefer international and regional sources.`;
@@ -2785,7 +2770,6 @@ async function start() {
         const taskPrompt = task.input.criteria.length ? `${task.input.task}\n\nAcceptance criteria:\n- ${task.input.criteria.join('\n- ')}` : task.input.task;
         const result = await runAnalysis({ projectId: task.projectId, expectedVersion: Number(project.state_version), task: taskPrompt, artifactIds: task.input.artifactRefs, taskId: task.id, runId: run.id, artifactFilename: filename, artifactId: `artifact_${logicalArtifact}`, signal }, {
           registry: [...registryForGeminiCascade('STRONG'), ...REGISTRY_ALL.filter((e) => e.providerId !== 'gemini')],
-          adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID ? { 'cloudflare-workers-ai': createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, apiKey: process.env.CLOUDFLARE_API_TOKEN }) } : {}) },
           keySlots: geminiKeySlots,
           keyPoolState: geminiKeyPoolState,
           buildGeminiAdapter: buildGeminiAdapterFromKey,
@@ -2807,7 +2791,6 @@ async function start() {
     stopKeepAlive?.();
     const force = setTimeout(() => process.exit(0), 25_000);
     force.unref();
-    try { await stopImmoFinderWorker(); } catch (e) { console.error('ImmoFinder worker stop failed', e); }
     try { if (projectWorker) await projectWorker.stop(); } catch (e) { console.error('Project worker stop failed', e); }
     try { await closeDatabase(); } catch { /* best effort */ }
     await new Promise<void>((resolve) => { if (httpServer) { httpServer.close(() => resolve()); (httpServer as any).closeAllConnections?.(); } else resolve(); });

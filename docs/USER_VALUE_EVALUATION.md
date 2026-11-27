@@ -1,3 +1,8 @@
+## ImmoGR evaluation authority (2026-11-27)
+Historical ImmoFinder production runs are archive evidence only and do not establish ImmoGR quality. ImmoGR must establish its own independently labeled real-page evaluation set and user-reviewed live outcomes.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 
 ## P131.9 first production run — below acceptance
 - **OBSERVED:** 87 candidates, 19 detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls. Direct sources yielded no new listings. Several preview rows were false positives due to a contact-route diagnostic bug.

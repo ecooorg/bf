@@ -1,3 +1,8 @@
+## ImmoGR architecture authority (2026-11-27)
+ImmoFinder architecture text below is historical only. ImmoGR is a clean implementation under src/immogr/ and server/immogr/; no ImmoFinder code, adapters, classifiers, filters, data tables, or search pipeline may be imported or reused. The normative design is IMMOGR_ARCHITECTURE.md.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 ## ImmoFinder admission boundary (C131)
 - R1–R14 in `TECHNICAL_SPECIFICATION.md` are authoritative: L1 requires a fetched, URL-matched residential detail page, configured-locality evidence, ≥3 page-confirmed rooms and the approved exclusion checks.
 - Price, publication date, direct phone/email and photos are optional for L1; snippets are discovery-only. L2/L3 owner reachability and letters have separate evidence gates. Never reinstate superseded P129–P130 mandatory monthly-price/date/direct-contact rules.

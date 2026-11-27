@@ -24,6 +24,15 @@ const required = [
   ['docs/DECISIONS.md', ['D-2026-10-30-01', 'D-2026-10-30-02', 'D-2026-10-30-03']],
   ['docs/TEST_MAP.md', ['agents-contract', 'providers-models']],
   ['docs/MODEL_REGISTRY.md', ['Gemini free-key allowlist', 'gemini-3.5-flash-lite']],
+  ['docs/IMMOGR_PRODUCT_SPECIFICATION.md', ['Direct Rental', 'Private Owner Prospect']],
+  ['docs/IMMOGR_ARCHITECTURE.md', ['Strict isolation', 'Evidence-first extraction']],
+  ['docs/IMMOGR_SOURCE_REGISTRY.md', ['research_required', 'permission']],
+  ['docs/IMMOGR_DATA_MODEL.md', ['immogr_listings', 'immogr_evidence']],
+  ['docs/IMMOGR_QUALITY_STANDARD.md', ['Evidence coverage', 'precision']],
+  ['docs/IMMOGR_ACCEPTANCE_CRITERIA.md', ['30 real pages', 'three consecutive']],
+  ['docs/IMMOGR_DECISIONS.md', ['D-IMMOGR-001']],
+  ['docs/IMMOGR_KNOWLEDGE_EXTRACTION.md', ['Pure domain core', 'No legacy code reuse']],
+  ['docs/IMMOGR_ROADMAP.md', ['WP0', 'WP1']],
 ];
 for (const [rel, needles] of required) {
   const p = join(root, rel);
@@ -69,7 +78,7 @@ if (existsSync(docsDir)) {
   const allowProse = new Set([
     'ARCHITECTURE.md', 'API_CONTRACTS.md', 'TESTING_AND_ACCEPTANCE.md',
     'USER_VALUE_EVALUATION.md', 'SECURITY_AND_PRIVACY.md', 'OPERATIONS_AND_RELEASES.md',
-    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md', 'EXPERIMENTS.md', 'BIFORGE Perestroika.md'
+    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md', 'EXPERIMENTS.md', 'BIFORGE Perestroika.md', 'IMMOGR_PRODUCT_SPECIFICATION.md', 'IMMOGR_ARCHITECTURE.md', 'IMMOGR_SOURCE_REGISTRY.md', 'IMMOGR_DATA_MODEL.md', 'IMMOGR_QUALITY_STANDARD.md', 'IMMOGR_ACCEPTANCE_CRITERIA.md', 'IMMOGR_DECISIONS.md', 'IMMOGR_KNOWLEDGE_EXTRACTION.md', 'IMMOGR_ROADMAP.md'
   ]);
   const allowJsonPrefixes = ['generated-', 'schema-', 'architecture-', 'verification-manifest', 'p120-acceptance-record'];
   for (const name of readdirSync(docsDir)) {

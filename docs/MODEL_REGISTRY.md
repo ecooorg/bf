@@ -1,3 +1,8 @@
+## ImmoGR model usage boundary (2026-11-27)
+No ImmoFinder model role or prompt is active. ImmoGR may use approved provider transport only after deterministic page acquisition and structured evidence extraction; models may resolve ambiguity but cannot invent facts or replace evidence. Provider limits and budgets are specified in IMMOGR_ARCHITECTURE.md and IMMOGR_QUALITY_STANDARD.md.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # Model registry and sources
 
 **Authority:** Runtime allowlists and cascades live in code (`server/modelAvailability.ts`, `server/modelRegistry.ts`) and `config/model-sources.json`. This document is the prose summary for assistants; it must not diverge from those sources. When a patch changes cascades or allowed ids, update this file in the same delivery.

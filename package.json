@@ -26,9 +26,8 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/immofinder-quality.test.mjs tests/immofinder-verify.test.mjs tests/immofinder-live.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/fact-path-contracts.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-resume-lease.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-user-value-live.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-standalone.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/fact-path-contracts.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-resume-lease.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-user-value-live.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-standalone.test.mjs",
     "test:app-builder": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs",
-    "test:immofinder": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/immofinder-quality.test.mjs tests/immofinder-verify.test.mjs tests/immofinder-live.test.mjs",
     "test:security": "node --import tsx --test --test-timeout=60000 tests/security-headers.test.mjs tests/security-redact.test.mjs",
     "test:answer-quality": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/conversation-simple-direct.test.mjs tests/fact-path-contracts.test.mjs",
     "test:agents": "node --import tsx --test tests/agents-contract.test.mjs",
@@ -54,8 +53,7 @@
     "test:carousel": "node --import tsx --test tests/providers-models.test.mjs --test-name-pattern=carousel|Carousel|allowlist || node --test tests/governance-repo.test.mjs",
     "carousel:live": "node --import tsx scripts/carousel-live-smoke.mjs",
     "test:search-heuristics": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/search-decoupling.test.mjs",
-    "workflow:preflight": "node scripts/workflow-preflight.mjs",
-    "immofinder:pilot": "node --import tsx scripts/immofinder-source-pilot.mjs"
+    "workflow:preflight": "node scripts/workflow-preflight.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,3 +1,8 @@
+## ImmoGR / ImmoFinder data boundary (2026-11-27)
+ImmoFinder is retired. Preserve its historical encrypted snapshot and diagnostics; do not publish or decrypt personal data into the repository. ImmoGR must collect only evidence necessary for the requested rental/owner qualification, respect source terms and access controls, and store contact data with provenance and retention rules. No bypass of authentication, robots, rate limits, paywalls, or site access restrictions.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # Security and Privacy
 
 **Authority:** Security constraints are binding. This file consolidates durable security rules; endpoint-specific requirements live in `../TECHNICAL_SPECIFICATION.md` and `API_CONTRACTS.md`.

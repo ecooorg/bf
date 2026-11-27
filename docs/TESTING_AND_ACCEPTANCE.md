@@ -1,3 +1,8 @@
+## Property-search test status (2026-11-27)
+ImmoFinder-specific test suites are retired from active CI. ImmoGR tests must validate new code and real-page evidence independently; never reuse legacy ImmoFinder fixtures as ImmoGR gold labels. See IMMOGR_QUALITY_STANDARD.md and IMMOGR_ACCEPTANCE_CRITERIA.md.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 
 ### Production run d13257a3 evidence
 - Completed run: 87 candidates, 19 detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls. This is below acceptance; no claim of user value.

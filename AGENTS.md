@@ -1,3 +1,5 @@
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # AGENTS.md — Hard Gates, Delivery Rules, and Session Protocol
 
 This file is **binding** for every AI assistant and contributor. It is not advisory.  
@@ -6,6 +8,33 @@ If any other note, chat summary, or prior assistant message conflicts with this 
 **Read §0 and §1 before the first edit, the first patch ZIP, or the first Navigator instruction in a session.**
 
 ---
+
+## 0.1 Owner decision — ImmoFinder permanently retired; ImmoGR is the only active property-search product
+
+**Effective 2026-11-27. This section overrides every earlier ImmoFinder instruction in this file and every prior ImmoFinder roadmap, specification, report, experiment, decision, issue, workflow, test plan, or assistant summary.**
+
+- **ImmoFinder is permanently stopped and archived.** No manual or scheduled searches, background workers, delivery, enrichment, diagnostics polling, health automation, route restoration, or other ImmoFinder operation may run. Its UI is removed from the active product, its API returns HTTP 410, and all ImmoFinder GitHub Actions automations are retired.
+- **No further ImmoFinder development.** Do not repair, optimize, extend, port, or revive its implementation. Do not use old ImmoFinder roadmaps, technical reports, specifications, experiments, decisions, or historical assistant plans to choose tasks or define requirements. Their only status is read-only historical archive.
+- **ImmoGR is the sole authority for all future property-search work.** Use only the current docs/IMMOGR_*.md specifications, architecture, source registry, data model, quality standard, acceptance criteria, decisions, knowledge extraction, and roadmap. If an old document conflicts with ImmoGR, ImmoGR wins.
+- **Strict implementation isolation.** New business logic, adapters, configuration, data, migrations, runs, diagnostics, and tests belong in src/immogr/, server/immogr/, config/immogr/, data/immogr/, and the new immogr_ database namespace. ImmoGR MUST NOT import, call, copy, or depend on server/immofinder*, src/ImmoFinder*, config/immofinder.json, immofinder_* database tables, or ImmoFinder scripts. Shared BiForge platform infrastructure (authentication, Express host, database connection, generic logging, and provider transport) may be used; no legacy property-search business logic may be reused.
+- **Archive preservation.** Keep legacy source, configuration, migrations, database rows, encrypted snapshots, and diagnostic records intact as historical material. They are read-only and MUST NOT be queried or mutated by ImmoGR. Do not drop legacy tables or delete historical evidence as part of this reset.
+- **Documentation scope.** Every maintained Markdown document carries this retirement notice. Historical text below the notice remains for audit only. The old ROADMAP.md, TECHNICAL_REPORT.md, TECHNICAL_SPECIFICATION.md, CHANGELOG.md, and C131/C127 notes MUST NOT be treated as an ImmoGR plan or requirement source.
+- **WP1 exception.** The owner explicitly approved a documentation-heavy ImmoGR foundation, historical knowledge extraction, source research, and direct-main delivery. Earlier cycle-specific ImmoFinder gates and documentation-percentage limits do not block this initial WP1. General security, secret handling, evidence honesty, CI, and production verification gates remain in force.
+- **Reactivation is forbidden without a new explicit owner decision.** Do not restore old workflows, routes, UI, cron triggers, or code even if old secrets or database tables remain configured.
+
+### ImmoGR single-source-of-truth
+
+| Area | Sole current authority |
+|---|---|
+| Product purpose and result categories | docs/IMMOGR_PRODUCT_SPECIFICATION.md |
+| New engine and isolation | docs/IMMOGR_ARCHITECTURE.md |
+| Source eligibility and access research | docs/IMMOGR_SOURCE_REGISTRY.md |
+| Persistence | docs/IMMOGR_DATA_MODEL.md |
+| Quality and evidence | docs/IMMOGR_QUALITY_STANDARD.md |
+| Acceptance | docs/IMMOGR_ACCEPTANCE_CRITERIA.md |
+| Owner-approved decisions | docs/IMMOGR_DECISIONS.md |
+| Historical lessons (not executable authority) | docs/IMMOGR_KNOWLEDGE_EXTRACTION.md |
+| Current programme stages | docs/IMMOGR_ROADMAP.md |
 
 ## 0. Hard gates (fail closed)
 
@@ -280,7 +309,7 @@ Bulk compression of past history requires **explicit Navigator approval** in tha
 
 ### Documentation layout (binding)
 
-- **Canonical prose under `docs/` (allowlist):** `ARCHITECTURE.md`, `API_CONTRACTS.md`, `TESTING_AND_ACCEPTANCE.md`, `USER_VALUE_EVALUATION.md`, `SECURITY_AND_PRIVACY.md`, `OPERATIONS_AND_RELEASES.md`, `DATA_AND_ARTIFACTS.md`, `DECISIONS.md`, `TEST_MAP.md`, `MODEL_REGISTRY.md`, `VIX-CONCEPT.md` (open VIX only on explicit Navigator request).  
+- **Canonical prose under docs/ (allowlist):** IMMOGR_PRODUCT_SPECIFICATION.md, IMMOGR_ARCHITECTURE.md, IMMOGR_SOURCE_REGISTRY.md, IMMOGR_DATA_MODEL.md, IMMOGR_QUALITY_STANDARD.md, IMMOGR_ACCEPTANCE_CRITERIA.md, IMMOGR_DECISIONS.md, IMMOGR_KNOWLEDGE_EXTRACTION.md, IMMOGR_ROADMAP.md, `ARCHITECTURE.md`, `API_CONTRACTS.md`, `TESTING_AND_ACCEPTANCE.md`, `USER_VALUE_EVALUATION.md`, `SECURITY_AND_PRIVACY.md`, `OPERATIONS_AND_RELEASES.md`, `DATA_AND_ARTIFACTS.md`, `DECISIONS.md`, `TEST_MAP.md`, `MODEL_REGISTRY.md`, `VIX-CONCEPT.md` (open VIX only on explicit Navigator request).  
 - **Machine artifacts under `docs/`:** `generated-*.json`, `schema-*.json`, `architecture-*.json`, `verification-manifest.json`, `p120-acceptance-record.json` (and future generated inventories).  
 - **MUST NOT** add a new cycle/audit/report markdown (`C12x_*`, diagnostic/audit reports, one-off remediation analyses) under `docs/`. New facts go into the canonical files, `TECHNICAL_REPORT.md`, `CHANGELOG.md`, or `docs/DECISIONS.md`.  
 - **MUST NOT** create nested folders under `docs/`.  

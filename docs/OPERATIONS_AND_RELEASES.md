@@ -1,3 +1,8 @@
+## Property-search operations status (2026-11-27)
+ImmoFinder scheduled workflows, diagnostics polling, health checks, route restoration, and production live-acceptance job are retired. Do not use their secrets or endpoints. ImmoGR release verification must bind exact main commit, CI result, Render deploy identity, and live ImmoGR search evidence.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # Operations and Releases
 
 ## Quick orientation

@@ -70,6 +70,8 @@ test('docs layout: only allowlisted prose and machine JSON under docs/', () => {
     'ARCHITECTURE.md', 'API_CONTRACTS.md', 'TESTING_AND_ACCEPTANCE.md',
     'USER_VALUE_EVALUATION.md', 'SECURITY_AND_PRIVACY.md', 'OPERATIONS_AND_RELEASES.md',
     'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md', 'EXPERIMENTS.md', 'BIFORGE Perestroika.md',
+    'IMMOGR_PRODUCT_SPECIFICATION.md', 'IMMOGR_ARCHITECTURE.md', 'IMMOGR_SOURCE_REGISTRY.md', 'IMMOGR_DATA_MODEL.md',
+    'IMMOGR_QUALITY_STANDARD.md', 'IMMOGR_ACCEPTANCE_CRITERIA.md', 'IMMOGR_DECISIONS.md', 'IMMOGR_KNOWLEDGE_EXTRACTION.md', 'IMMOGR_ROADMAP.md',
   ]);
   const names = readdirSync(docsDir);
   const nested = names.filter((n) => {

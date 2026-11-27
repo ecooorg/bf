@@ -1,0 +1,105 @@
+> ImmoFinder was permanently retired on 2026-11-27. ImmoGR is the sole active property-search product. This document is part of the current ImmoGR authority set.
+
+{
+  "schemaVersion": 1,
+  "product": "ImmoGR",
+  "status": "research_required",
+  "policy": {
+    "snippetsAreDiscoveryOnly": true,
+    "requireSpecificListingPage": true,
+    "requireSourceTermsReview": true,
+    "requireRobotsAndAccessReview": true,
+    "noAuthenticationOrPaywallBypass": true,
+    "noAutomatedContactOrOutreach": true
+  },
+  "sources": [
+    {
+      "id": "happyholiday",
+      "name": "HappyHoliday",
+      "category": "holiday_rental",
+      "status": "research_required",
+      "ownerSignal": "site claims direct private landlords",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "ferienhausmiete",
+      "name": "Ferienhausmiete",
+      "category": "holiday_rental",
+      "status": "research_required",
+      "ownerSignal": "unknown",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "flatfox",
+      "name": "Flatfox",
+      "category": "classified_marketplace",
+      "status": "research_required",
+      "ownerSignal": "mixed private and professional; listing-specific check required",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "tutti",
+      "name": "Tutti",
+      "category": "classified_marketplace",
+      "status": "research_required",
+      "ownerSignal": "mixed; advertiser-specific check required",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "anibis",
+      "name": "Anibis",
+      "category": "classified_marketplace",
+      "status": "research_required",
+      "ownerSignal": "mixed; advertiser-specific check required",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "homegate",
+      "name": "Homegate",
+      "category": "property_portal",
+      "status": "research_required",
+      "ownerSignal": "private landlord listing path exists; listing-specific check required",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "newhome",
+      "name": "Newhome",
+      "category": "property_portal",
+      "status": "research_required",
+      "ownerSignal": "mixed; publisher authorization required by platform rules",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "womilo",
+      "name": "Womilo",
+      "category": "property_marketplace",
+      "status": "research_required",
+      "ownerSignal": "private and professional; partner-import attribution required",
+      "permission": "not yet verified"
+    },
+    {
+      "id": "comparis",
+      "name": "Comparis",
+      "category": "aggregator",
+      "status": "excluded_pending_written_permission",
+      "ownerSignal": "aggregated and direct listings",
+      "permission": "terms prohibit automated scraping/crawling without rights"
+    },
+    {
+      "id": "housenet",
+      "name": "Housenet",
+      "category": "agency_portal",
+      "status": "excluded_pending_written_permission",
+      "ownerSignal": "agency-supplied",
+      "permission": "terms prohibit automated collection without written consent"
+    },
+    {
+      "id": "immobilier",
+      "name": "immobilier.ch",
+      "category": "agency_portal",
+      "status": "low_priority",
+      "ownerSignal": "professional agencies",
+      "permission": "not yet verified"
+    }
+  ]
+}

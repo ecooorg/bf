@@ -1,3 +1,13 @@
+# CURRENT NORMATIVE PROPERTY-SEARCH CONTRACT — ImmoGR (2026-11-27)
+
+**ImmoFinder is permanently retired.** All ImmoFinder-specific requirements and historical cycles in this file are superseded and archive-only. They MUST NOT be used to implement or operate any property-search function.
+
+**ImmoGR is the sole active property-search product.** Its binding product requirements are in docs/IMMOGR_PRODUCT_SPECIFICATION.md; architecture in docs/IMMOGR_ARCHITECTURE.md; evidence and quality in docs/IMMOGR_QUALITY_STANDARD.md; acceptance in docs/IMMOGR_ACCEPTANCE_CRITERIA.md; and programme stages in docs/IMMOGR_ROADMAP.md. General BiForge requirements outside property search remain unchanged.
+
+---
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # CURRENT NORMATIVE CONTRACT — 2026-11-01 (C124)
 
 > This block is the current binding product contract. It takes precedence over any older statement below that conflicts with it. The remainder of this file is retained as the technical and historical record; do not silently rewrite past entries to make them look current.

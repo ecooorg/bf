@@ -1,3 +1,13 @@
+# CURRENT PROPERTY-SEARCH PROGRAMME — ImmoGR only (2026-11-27)
+
+**Owner decision:** ImmoFinder is permanently retired. Every ImmoFinder phase, WP, acceptance target, or next-step note in the historical text below is archived and MUST NOT be executed. This file's old ImmoFinder content is retained only as historical record. The active property-search roadmap is exclusively docs/IMMOGR_ROADMAP.md.
+
+**Current state:** WP1 foundation is in progress: retirement/decommission, legacy knowledge extraction, new product specification, strict isolation, source research, UI entry point, and a clean ImmoGR code/config/data/test namespace. No live ImmoGR search is enabled until source eligibility and real-page quality gates are met.
+
+---
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 ## C131 current execution — P131.9 (2026-11-26)
 - **OBSERVED:** main @ d8aa670 Core CI #45862026277 is red (15 ImmoFinder failures); Render service `bf` auto-deploys `main`, and d8aa670 was live at audit time. Failures include short index fixtures, superseded 44/12-locality assumptions, legacy TrustEngine/pipeline assertions and stale room/source defaults.
 - **CHANGE:** align tests to the C131 source-first runner and retire automated legacy-search payload restoration; no legacy algorithm is an acceptable production fallback.

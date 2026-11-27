@@ -1,3 +1,12 @@
+## 2026-11-27 — ImmoFinder decommission and ImmoGR WP1 foundation
+- **CHANGE:** ImmoFinder manual/scheduled execution and production routes are being retired; old code/data remain read-only archive. ImmoGR receives an isolated namespace and sole active property-search authority.
+- **OBSERVED:** Render service bf is configured for auto-deploy from main; exact-commit deployment and CI must be verified after this change.
+- **NOT_RUN:** ImmoGR live discovery, source permissions, real listing extraction, and owner-approved real-result acceptance.
+
+---
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 ## P131.9 production run d13257a3 — below acceptance
 - **OBSERVED:** Completed production run: 9 index pages, 87 candidates, 19 fetched detail pages, 2 kept, 0 new, 2 updated, 0 Serper calls, 2 Gemini calls, 0 infra failures. HappyHoliday 90 hits/62 candidates/12 fetched/0 kept; Ferienhausmiete 69 hits/25 candidates/7 fetched/2 kept; Flatfox index 1/hits 0; remaining portals 0 queries. Rejections: locality mismatch 28, below rooms 9, no contact route 6, unknown rooms 1, agency 1.
 - **OBSERVED:** Preview showed 8 kept=true rows while authoritative counts.kept=2 because no-contact-route rejection did not update preview. Diagnostics endpoint returns only completed reports and has no result.status; CI's terminal-status poll therefore waits forever.

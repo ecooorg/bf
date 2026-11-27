@@ -1,3 +1,8 @@
+## Property-search data boundary (2026-11-27)
+Legacy immofinder_* tables, migrations, encrypted snapshots, and data/immofinder/ diagnostics are preserved read-only; ImmoGR MUST NOT read or write them. New records and evidence belong only to the immogr_* schema and data/immogr/ namespace.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # Data, Schemas, and Artifacts
 
 ## Data and schemas

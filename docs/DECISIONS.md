@@ -1,3 +1,9 @@
+## D-2026-11-27-01 — ImmoFinder retirement and ImmoGR replacement
+
+**Owner decision (2026-11-27):** Stop and permanently archive ImmoFinder. Do not continue its roadmap, reports, source logic, UI, API, scheduled work, or database writes. Build ImmoGR from a clean codebase with independent configuration, data, search processes, UI, API, and tests; use prior work only for abstract lessons documented in IMMOGR_KNOWLEDGE_EXTRACTION.md. All property-search decisions from this date forward are recorded in IMMOGR_DECISIONS.md. Preserve legacy source and records as read-only history.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 ## D-2026-11-26-01 — Connected tools and direct-main execution
 
 **Owner direction (2026-11-26):** When a suitable connected plugin/connector is available, the Assistant executes the Owner's requested work directly through it; repository changes go straight to `main` without branches or PRs when specified. This does not waive §8 authorization, security, secret-handling or evidence gates.

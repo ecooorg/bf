@@ -452,10 +452,11 @@ export default function App() {
                 ? <StateNotice kind="unavailable"><strong>Currently unavailable</strong> — Project workspace is turned off for this site. Your browser is working normally.</StateNotice>
                 : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> building software with a verifiable artifact.</p>}
             </button>
-            <button type="button" className="panel" data-testid="start-immofinder" onClick={() => { window.location.href = '/immofinder'; }} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
-              <h2>ImmoFinder</h2>
-              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Private holiday-rental owners in Graubünden</p>
-              <p>Find owners who rent flats short-term, see listing links and contacts, and get a German long-term lease draft.</p>
+            <button type="button" className="panel" data-testid="start-immogr" onClick={() => { window.location.href = '/immogr'; }} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
+              <h2>ImmoGR</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Independent property and private-owner discovery for Graubünden</p>
+              <p>Research verified rental listings and private-owner prospects with page-level evidence, source transparency, and quality review.</p>
+              <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Current stage:</em> building the new search foundation; live search is not yet enabled.</p>
             </button>
           </div>
           <p style={{ marginTop: 20, fontSize: 13, color: '#8fa6c2' }}>Tip: open <strong>More → User guide</strong> anytime for help.</p>

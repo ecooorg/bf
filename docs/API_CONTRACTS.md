@@ -1,3 +1,8 @@
+## Property-search API status (2026-11-27)
+All /api/immofinder/* endpoints are retired and return HTTP 410. No ImmoFinder cron/diagnostic secret bypass remains. ImmoGR uses the separate /api/immogr/* namespace; its current API design is in IMMOGR_ARCHITECTURE.md.
+
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 
 ### C131 secret-authorized manual automation
 - `POST /api/immofinder/run` with `X-Immofinder-Secret` is treated as a schedule tick by default. Automation that explicitly requests a manual production run must send `{ "wave": "full", "manualRun": true }`; the same configured secret is required. This bypasses only the schedule-due check, not run concurrency, PostgreSQL queueing, R1–R14 admission gates, or owner-review requirements. `manualRun` does not enable the scheduler.

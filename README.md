@@ -1,3 +1,5 @@
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # BiForge
 
 BiForge helps users converse, solve expert problems, and turn software goals into validated downloadable artifacts. Product success is judged by real user outcomes; tests and CI are supporting evidence, not substitutes.
@@ -15,3 +17,8 @@ Specialist details live in `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `doc
 `docs/VIX-CONCEPT.md` is long-horizon strategic context, not authorization for immediate work. 
 
 Machine schemas and generated inventories are data for tools, not competing prose sources of truth.
+
+
+## Property-search product status
+
+ImmoFinder was permanently retired on 2026-11-27. All prior ImmoFinder implementation and documents are preserved as a read-only archive and are not current instructions. ImmoGR is the only active property-search project. Its complete current specifications and WP roadmap are in the docs/IMMOGR_*.md documents.

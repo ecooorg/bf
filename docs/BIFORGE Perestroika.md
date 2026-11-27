@@ -1,3 +1,5 @@
+> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
+
 # BiForge C127 “Perestroika” — Consolidated Diagnostic Report and Execution Plan
 
 **Prepared:** 2026-11-06 · **Audience:** the AI Assistant (executor) and the Navigator (owner) · **Baseline:** release 126.31, commit `4cfd0bf` **Inputs:** R126-AI-1 (external audit), R126-AI-2 (process audit), AI-1-AI-2 (cross-review), and the repository archive `bf-126-31-green.zip`, which I inspected directly. The logs, the CI artifacts and the 44-page dialogue PDF were **not** in the archive I received; everything about them below is quoted from the reports and marked as such.
