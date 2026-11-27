@@ -142,7 +142,7 @@ export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT)
   return tied.some((rule) => rule.type === 'allow');
 }
 
-export export function buildProbePlan(planInput, sourceRegistry) {
+export function buildProbePlan(planInput, sourceRegistry) {
   if (!planInput || typeof planInput !== 'object' || typeof planInput.sourceId !== 'string' || !Array.isArray(planInput.urls)) {
     throw new Error('Plan must contain a registered sourceId and a urls array.');
   }
