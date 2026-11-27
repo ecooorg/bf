@@ -168,7 +168,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     });
     return res.json({
       success: true, status: 'discovery_only', category, locality: selected.name, localityGroup: selected.group, groupMode,
-      generatedAt: new Date().toISOString(), leads, queries: result.queries,
+      generatedAt: new Date().toISOString(), requestId, diagnostics: diagnosticDetails, leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
       disclaimer: 'These are live search-engine URL leads, not verified property listings. No result page was fetched or parsed. Review each source manually and check its terms before any automated access.',
 
