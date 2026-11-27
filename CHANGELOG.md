@@ -1,3 +1,9 @@
+## 2026-11-27 — ImmoGR Gemini key isolation and search diagnostics (P131.19)
+- Removed model-wide quota parking: each Gemini key now cools down independently per model, so a 429 from one Google project cannot suppress other project keys.
+- Restricted ImmoGR discovery candidates to the selected source domains and deduplicated normalized listing URLs before returning them.
+- Added a per-candidate decision journal with title, sanitized URL, host, scope decision and duplicate reason.
+- Aligned migration health diagnostics with the active runner by excluding archived ImmoFinder migrations from pending checks.
+
 ## 2026-11-27 — Load dotenv before production migrations (P131.18a)
 - Fixed startup ordering: load the environment file before checking DATABASE_URL, apply migrations before starting the server, and stop on migration failure.
 
