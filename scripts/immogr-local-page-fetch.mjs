@@ -64,7 +64,7 @@ function requestOnce(urlString, method, maxBytes) {
     const request = https.request(url, {
       method,
       headers: { 'User-Agent': USER_AGENT, Accept: method === 'HEAD' ? 'text/html,*/*;q=0.1' : 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.1' },
-      lookup: (_hostname, _options, callback) => callback(null, address.address, address.family),
+      lookup: (_hostname, options, callback) => options?.all ? callback(null, [address]) : callback(null, address.address, address.family),
     }, (response) => {
       const chunks = [];
       let bytes = 0;
@@ -84,7 +84,9 @@ function requestOnce(urlString, method, maxBytes) {
         location: response.headers.location || null,
       }));
     });
-    request.setTimeout(REQUEST_TIMEOUT_MS, () => request.destroy(new Error('Request timed out.')));
+    const timeout = setTimeout(() => request.destroy(new Error('Request timed out.')), REQUEST_TIMEOUT_MS);
+    timeout.unref?.();
+    request.on('close', () => clearTimeout(timeout));
     request.on('error', reject);
     request.end();
   });
@@ -167,7 +169,7 @@ async function main() {
   const absolutePlanPath = path.resolve(planPath);
   const input = JSON.parse(await readFile(absolutePlanPath, 'utf8'));
   const plan = buildProbePlan(input);
-  const outputDir = path.resolve(path.dirname(absolutePlanPath), input.outputDir || '.immogr-local-probe-output');
+  const outputDir = path.resolve(path.dirname(absolutePlanPath), '.immogr-local-probe-output');
   await mkdir(outputDir, { recursive: true });
   const records = [];
 
