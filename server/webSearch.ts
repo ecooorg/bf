@@ -800,7 +800,7 @@ export function extractGrounding(resp: any): { sources: WebSource[]; queries: st
       try { title = new URL(url).hostname; } catch { title = url.slice(0, 60); }
     }
     sources.push({ title, url });
-    if (sources.length >= MAX_SOURCES) break;
+    if (sources.length >= maxSources) break;
   }
   const queries = (Array.isArray(gm?.webSearchQueries) ? gm.webSearchQueries : [])
     .filter((q: unknown) => typeof q === 'string' && q.trim())
@@ -830,6 +830,7 @@ export async function fetchWebSearchDigest(opts: {
   timeoutMs?: number;
   maxAttempts?: number;
   onAttempt?: (model: string) => void;
+  maxSources?: number;
 }): Promise<WebSearchResult> {
   const models = opts.models.filter(Boolean);
   if (!models.length) return skippedWebSearch('failed', 'no_model');
@@ -854,7 +855,7 @@ export async function fetchWebSearchDigest(opts: {
         },
       });
       const text = responseText(resp).trim();
-      const { sources, queries } = extractGrounding(resp);
+      const { sources, queries } = extractGrounding(resp, opts.maxSources ?? MAX_SOURCES);
       if (text.length < MIN_DIGEST_CHARS) { last = { ...skippedWebSearch('failed', 'empty'), model }; continue; }
       if (!sources.length && !queries.length) { last = { ...skippedWebSearch('no_grounding', 'no_grounding'), model }; continue; }
       return { status: 'used', digest: text.slice(0, MAX_DIGEST_CHARS), sources, queries, model };
@@ -1692,7 +1693,7 @@ export function resultAgeDays(date: string, today: string): number | null {
 }
 
 /** Build a compact digest + sources from a Serper /search JSON body. Every line carries its source label; old dated results are marked. Pure. */
-export function digestFromSerperResponse(rawData: any, query: string, opts: { today?: string; freshness?: 'now' | 'recent' | 'none' } = {}): { digest: string; sources: WebSource[]; queries: string[]; policyDropped: PolicyCounts; keptResults: number } {
+export function digestFromSerperResponse(rawData: any, query: string, opts: { today?: string; freshness?: 'now' | 'recent' | 'none'; maxSources?: number } = {}): { digest: string; sources: WebSource[]; queries: string[]; policyDropped: PolicyCounts; keptResults: number } {
   // P125.1 (WP2): excluded hosts are removed before anything is turned into digest text or a source.
   const { data, dropped: policyDropped, kept: keptResults } = filterSerperData(rawData);
   const maxAge = maxAgeDaysFor(opts.freshness);
@@ -1711,7 +1712,7 @@ export function digestFromSerperResponse(rawData: any, query: string, opts: { to
   const seen = new Set<string>();
   const pushSource = (title: string, url: string) => {
     const u = String(url || '').trim();
-    if (!/^https?:\/\//i.test(u) || seen.has(u) || sources.length >= MAX_SOURCES) return;
+    if (!/^https?:\/\//i.test(u) || seen.has(u) || sources.length >= (opts.maxSources ?? MAX_SOURCES)) return;
     seen.add(u);
     sources.push({ title: cleanTitle(title) || (() => { try { return new URL(u).hostname; } catch { return u.slice(0, 60); } })(), url: u });
   };
@@ -1991,6 +1992,8 @@ export async function fetchSerperDigestMulti(opts: {
   country?: string;
   /** P124.28: extra planner queries appended after the expansion (deduplicated, still capped by WEB_SEARCH_MAX_QUERIES). */
   extraQueries?: string[];
+  maxQueries?: number;
+  maxSources?: number;
   /** P124.39: freshness class of the plan, passed to every sub-query. */
   freshness?: 'now' | 'recent' | 'none';
   /** P125.5: rank sources by national authorities for this sourceCountry constraint. */
@@ -2004,7 +2007,7 @@ export async function fetchSerperDigestMulti(opts: {
     if (q.length >= 3 && !queries.some((e) => e.toLowerCase() === q.toLowerCase())) queries.push(q);
   }
   const timeoutMs = Math.max(8000, opts.timeoutMs ?? 28_000);
-  const maxQ = Math.max(1, Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5));
+  const maxQ = Math.max(1, Math.min(45, opts.maxQueries ?? (Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5)));
   const slice = queries.slice(0, maxQ);
   const claimed = new Set<string>(); // URLs already opened by a sibling sub-query (R-5)
   const perQueryTimeout = Math.max(6000, Math.floor(timeoutMs / Math.min(slice.length, 3)));
@@ -2022,10 +2025,11 @@ export async function fetchSerperDigestMulti(opts: {
         country: opts.country,
         freshness: opts.freshness,
         claimedUrls: claimed,
+        maxSources: opts.maxSources ?? MAX_SOURCES,
       }),
     ),
   );
-  let merged = mergeWebSearchResults(results, base);
+  let merged = mergeWebSearchResults(results, base, opts.maxSources ?? MAX_SOURCES);
 
   // Always open official rate pages for rate-like questions (SERP often ranks news, not the data table).
   if (isRateTopic(base) || isRateTopic(opts.userText || '')) {
@@ -2079,6 +2083,7 @@ export async function fetchSerperDigest(opts: {
   /** P124.39: freshness class of the plan; decides which dated results are marked old. */
   freshness?: 'now' | 'recent' | 'none';
   claimedUrls?: Set<string>;
+  maxSources?: number;
 }): Promise<WebSearchResult> {
   const key = String(opts.apiKey || '').trim();
   if (!key) return skippedWebSearch('skipped', 'no_serper_key');
@@ -2101,7 +2106,7 @@ export async function fetchSerperDigest(opts: {
       return { ...skippedWebSearch('failed', `serper_http_${res.status}:${body.slice(0, 80)}`), model: 'serper' };
     }
     const data = await res.json();
-    const { digest: snippetDigest, sources, queries, policyDropped, keptResults } = digestFromSerperResponse(data, q, { today: opts.today, freshness: opts.freshness });
+    const { digest: snippetDigest, sources, queries, policyDropped, keptResults } = digestFromSerperResponse(data, q, { today: opts.today, freshness: opts.freshness, maxSources: opts.maxSources ?? MAX_SOURCES });
     const policyDiag = { digestCharsPerQuery: [], digestCharsBeforeBudget: 0, droppedByBudget: 0, sourcePolicyDropped: policyDropped };
     if (totalPolicyCounts(policyDropped) > 0 && !sources.length && keptResults === 0) {
       return { status: 'no_relevant_data', digest: '', sources: [], queries: [q], reason: 'source_policy_filtered', model: 'serper', diagnostics: policyDiag };
