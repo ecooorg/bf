@@ -32,6 +32,10 @@ export default function ImmoGR() {
   const [manualMessage, setManualMessage] = useState('');
   const [localPageInspection, setLocalPageInspection] = useState<LocalPageInspection | null>(null);
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
+  const [showPageImages, setShowPageImages] = useState(false);
+  const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(() => {
+    try { const saved = JSON.parse(localStorage.getItem('immogr.enabledSourceIds') || '[]'); return Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []; } catch { return []; }
+  });
   useEffect(() => {
     let active = true;
     fetch('/api/immogr/localities?groupMode=' + groupMode, { credentials: 'same-origin' })
@@ -52,6 +56,12 @@ export default function ImmoGR() {
       .then((body) => setSources(Array.isArray(body.sources) ? body.sources : []))
       .catch((reason) => setManualMessage(reason instanceof Error ? reason.message : 'Source registry unavailable'));
   }, []);
+  useEffect(() => {
+    try { localStorage.setItem('immogr.enabledSourceIds', JSON.stringify(selectedSourceIds)); } catch { /* Browser storage may be unavailable. */ }
+  }, [selectedSourceIds]);
+  useEffect(() => {
+    if (sources.length) setSelectedSourceIds((current) => current.filter((id) => sources.some((source) => source.id === id)));
+  }, [sources]);
   useEffect(() => {
     if (!selectedSourceId) { setManualReviews([]); return; }
     fetch('/api/immogr/manual-reviews?sourceId=' + encodeURIComponent(selectedSourceId), { credentials: 'same-origin' })
@@ -161,14 +171,46 @@ export default function ImmoGR() {
   async function discover(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSearching(true); setSearchError(''); setLeads([]); setSearched(false);
     try {
-      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locality, groupMode, category }) });
+      if (!selectedSourceIds.length) throw new Error('Select at least one source in Search settings.');
+      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locality, groupMode, category, sourceIds: selectedSourceIds }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || ('Discovery failed (' + response.status + ')'));
       setLeads(Array.isArray(body.leads) ? body.leads : []); setSearched(true);
     } catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Discovery failed'); }
     finally { setSearching(false); }
   }
-  return <main className="shell" data-testid="immogr-root" style={{ maxWidth: 1120, margin: '0 auto', padding: 24 }}>
+  return <main className="shell immogr-shell" data-testid="immogr-root" style={{ maxWidth: 1440, width: '100%', margin: '0 auto', padding: 'clamp(12px, 2.5vw, 28px)' }}>
+    <style>{`
+      .immogr-shell { box-sizing: border-box; color: #eef4ff; }
+      .immogr-shell * { box-sizing: border-box; }
+      .immogr-panel { min-width: 0; padding: clamp(14px, 2vw, 24px) !important; }
+      .immogr-shell input, .immogr-shell select, .immogr-shell textarea { font-size: 16px; min-height: 48px; }
+      .immogr-shell button, .immogr-shell summary, .immogr-shell label.immogr-source-toggle { min-height: 48px; }
+      .immogr-shell button { touch-action: manipulation; }
+      .immogr-shell a { overflow-wrap: anywhere; }
+      .immogr-inspector { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .85fr); gap: 14px; }
+      .immogr-inspector-main, .immogr-inspector-side { min-width: 0; }
+      .immogr-inspector pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 48vh; overflow: auto; font-size: 14px; line-height: 1.55; }
+      .immogr-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+      .immogr-photo-card { min-width: 0; border: 1px solid #40536b; border-radius: 10px; padding: 8px; }
+      .immogr-photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: #101f33; }
+      .immogr-source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+      .immogr-source-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #40536b; border-radius: 9px; background: #101f33; }
+      .immogr-source-toggle input { width: 22px; height: 22px; min-height: 22px; accent-color: #54a9e8; }
+      .immogr-settings summary, .immogr-shell details > summary { cursor: pointer; padding: 10px 4px; font-weight: 650; }
+      @media (max-width: 760px) {
+        .immogr-inspector { grid-template-columns: minmax(0, 1fr); }
+        .immogr-shell h1 { font-size: 30px !important; }
+        .immogr-shell h2 { font-size: 21px; }
+        .immogr-shell form { grid-template-columns: minmax(0, 1fr) !important; }
+        .immogr-shell form > label, .immogr-shell form > div { grid-column: 1 / -1 !important; }
+        .immogr-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (min-width: 761px) and (max-width: 1100px) {
+        .immogr-shell { padding: 18px !important; }
+        .immogr-inspector { grid-template-columns: minmax(0, 1.2fr) minmax(220px, .8fr); }
+      }
+    `}</style>
     <p><a href="/">← BiForge home</a></p>
     <header style={{ margin: '22px 0 28px' }}>
       <p style={{ color: '#9fd8ff', letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>INDEPENDENT PROPERTY DISCOVERY</p>
@@ -176,32 +218,45 @@ export default function ImmoGR() {
       <p style={{ color: '#9aadc5', maxWidth: 760 }}>An evidence-first search system for long-term rentals and private-owner prospects in Graubünden.</p>
       <span style={{ display: 'inline-block', border: '1px solid #52647a', borderRadius: 999, padding: '5px 12px', fontSize: 13 }}>WP2 · Manual source research</span>
     </header>
-    <section style={{ ...panel, marginBottom: 18 }} aria-live="polite">
+    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} aria-live="polite">
       <h2 style={{ marginTop: 0 }}>Search engine status</h2>
       {error && <p role="alert">{error}</p>}
       {!status && !error && <p>Checking ImmoGR status…</p>}
       {status && <><p><strong>{status.stage}</strong></p><p>{status.message}</p><p style={{ color: '#f4d28b', marginBottom: 0 }}>Live URL discovery: {status.liveDiscoveryEnabled ? 'available' : 'not configured'} · Verified listing admission: disabled · Automated source-page acquisition: disabled.</p></>}
     </section>
-    <section style={{ ...panel, marginBottom: 18 }}>
+    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Target localities</h2>
       <p style={{ color: '#9aadc5' }}>The search geography is the exact owner-defined locality list, not municipalities. Only these 44 localities are in scope; all other places are excluded. Group selection is remembered in this browser.</p>
       <label>Enabled locality groups<select value={groupMode} onChange={(e) => changeGroupMode(e.target.value as GroupMode)} style={field}><option value="group1">Group 1 · 22 important localities</option><option value="group2">Group 2 · 22 secondary localities</option><option value="both">Both groups · all 44 localities</option></select></label>
       <p style={{ color: '#9aadc5', fontSize: 13 }}>The selection controls which localities appear in search and which locations the discovery API will accept.</p>
     </section>
-    <section style={{ ...panel, marginBottom: 18 }}>
+    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }}>
       <h2 style={{ marginTop: 0 }}>Live discovery leads</h2>
+      <details className="immogr-settings" style={{ margin: '12px 0 18px', border: '1px solid #40536b', borderRadius: 10, padding: 12, background: '#0e1c2e' }}>
+        <summary>Search settings · sources ({selectedSourceIds.length} selected of {sources.length || 29})</summary>
+        <p style={{ color: '#9aadc5', fontSize: 13 }}>Choose the sources to include in discovery. Your selection is saved in this browser. Selecting a source does not change its automated-access status or grant access rights; it only limits the search-engine discovery request to the sources you choose.</p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          <button type="button" onClick={() => setSelectedSourceIds(sources.map((source) => source.id))} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Select all</button>
+          <button type="button" onClick={() => setSelectedSourceIds([])} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Clear selection</button>
+        </div>
+        <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
+          <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
+          <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus}</small></span>
+        </label>)}</div>
+      </details>
       <p style={{ color: '#9aadc5' }}>Search current candidate URLs for one selected locality. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records.</p>
       <form onSubmit={discover} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, alignItems: 'end' }}>
         <label>Target locality<select required value={locality} onChange={(e) => setLocality(e.target.value)} style={field}><option value="">Select a target locality</option>{localities.map((item) => <option key={item.id} value={item.name}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Discovery category<select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} style={field}><option value="direct_rental">Direct Rental leads</option><option value="private_owner_prospect">Private Owner Prospect leads</option></select></label>
-        <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !locality} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || !locality) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
+        <button type="submit" disabled={!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: (!status?.liveDiscoveryEnabled || searching || !locality || selectedSourceIds.length === 0) ? 0.55 : 1 }}>{searching ? 'Searching…' : 'Find live leads'}</button>
       </form>
       {searchError && <p role="alert">{searchError}</p>}
       {searched && <p>{leads.length} candidate URL(s) returned for {locality}. Each needs manual page and access review.</p>}
       {leads.length > 0 && <ul style={{ paddingLeft: 20 }}>{leads.map((lead) => <li key={lead.url} style={{ margin: '12px 0' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title}</a><div style={{ color: '#9aadc5', fontSize: 12 }}>{lead.host} · UNVERIFIED URL · manual source review required</div></li>)}</ul>}
+      <p style={{ color: '#9aadc5', fontSize: 12 }}>Selected sources: {sources.filter((source) => selectedSourceIds.includes(source.id)).map((source) => source.name).join(', ') || 'none'}.</p>
       <p style={{ color: '#f4d28b', fontSize: 12, marginBottom: 0 }}>A search result is not a property listing. No price, locality, owner, contact, or availability is verified at this stage.</p>
     </section>
-    <section style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
+    <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
       <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Select a source, open its page, and save your observations. Automation status is shown separately and does not hide manual research.</p>
       <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
@@ -212,18 +267,33 @@ export default function ImmoGR() {
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
         <label style={{ gridColumn: '1 / -1' }}>Import a local page or document (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
-          <h3 style={{ marginTop: 0 }}>Local page inspector</h3>
-          <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from your selected local HTML file. Nothing here was fetched by ImmoGR or uploaded. Image URLs are listed as links; images are not loaded automatically.</p>
-          <p><strong>{localPageInspection.title || 'Untitled page'}</strong> · {localPageInspection.text.length.toLocaleString()} text characters · {localPageInspection.links.length} links · {localPageInspection.images.length} image URLs · {localPageInspection.jsonLd.length} JSON-LD block(s)</p>
+          <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
+          <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from the HTML file you selected or imported from your local ImmoGR agent. The page's scripts are not executed and its original file is not uploaded. Photo URLs are listed first; thumbnails load only after you explicitly choose to show them.</p>
+          <p><strong>{localPageInspection.title || 'Untitled page'}</strong> · {localPageInspection.text.length.toLocaleString()} text characters · {localPageInspection.links.length} links · {localPageInspection.images.length} photo URLs · {localPageInspection.jsonLd.length} JSON-LD block(s)</p>
           {localPageInspection.sourceUrl && <p style={{ overflowWrap: 'anywhere', fontSize: 12 }}>Page URL: {localPageInspection.sourceUrl}</p>}
-          <details><summary>Extracted page text</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{localPageInspection.text || 'No readable body text found.'}</pre></details>
-          <details><summary>Image URLs ({localPageInspection.images.length})</summary><ul>{localPageInspection.images.map((item, index) => <li key={item.url + index} style={{ overflowWrap: 'anywhere', margin: '6px 0' }}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>{item.alt ? ' · ' + item.alt : ''}</li>)}</ul></details>
+          <div className="immogr-inspector">
+            <div className="immogr-inspector-main"><details open><summary>Listing text</summary><pre>{localPageInspection.text || 'No readable body text found.'}</pre></details></div>
+            <aside className="immogr-inspector-side">
+              <h4 style={{ margin: '8px 0' }}>Photos ({localPageInspection.images.length})</h4>
+              <button type="button" onClick={() => setShowPageImages((current) => !current)} disabled={!localPageInspection.images.length} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>{showPageImages ? 'Hide photo previews' : 'Load photo previews'}</button>
+              <p style={{ color: '#9aadc5', fontSize: 12 }}>Photo files are requested directly from their hosts only after you tap the button. No ImmoGR image proxy is used.</p>
+              {showPageImages && <div className="immogr-photo-grid">{localPageInspection.images.map((item, index) => {
+                let previewable = false;
+                try { const imageUrl = new URL(item.url); previewable = imageUrl.protocol === 'https:' && !imageUrl.username && !imageUrl.password && !/^(localhost|.*\\.local)$/i.test(imageUrl.hostname) && !/^\\d{1,3}(?:\\.\\d{1,3}){3}$/.test(imageUrl.hostname) && !imageUrl.hostname.includes(':'); } catch { /* invalid preview URL */ }
+                return <div className="immogr-photo-card" key={item.url + index}>
+                  {previewable ? <a href={item.url} target="_blank" rel="noopener noreferrer"><img src={item.url} alt={item.alt || 'Listing photo'} title={item.title || item.alt || 'Listing photo'} loading="lazy" referrerPolicy="no-referrer" /></a> : <p style={{ color: '#9aadc5', fontSize: 12 }}>Preview unavailable for this URL scheme or host.</p>}
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>{item.alt || item.title || 'Open photo'}</a>
+                </div>;
+              })}</div>}
+              <details style={{ marginTop: 10 }}><summary>Photo URLs</summary><ul>{localPageInspection.images.map((item, index) => <li key={item.url + index} style={{ overflowWrap: 'anywhere', margin: '6px 0' }}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>{item.alt ? ' · ' + item.alt : ''}</li>)}</ul></details>
+            </aside>
+          </div>
           <details><summary>Page links ({localPageInspection.links.length})</summary><ul>{localPageInspection.links.map((item, index) => <li key={item.url + index} style={{ overflowWrap: 'anywhere', margin: '6px 0' }}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.text || item.url}</a></li>)}</ul></details>
           <details><summary>Metadata and JSON-LD</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify({ metadata: localPageInspection.metadata, jsonLd: localPageInspection.jsonLd }, null, 2)}</pre></details>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
             <button type="button" onClick={() => { const blob = new Blob([localPageSnapshot], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'immogr-local-page-snapshot.html'; anchor.click(); URL.revokeObjectURL(url); }}>Save local HTML snapshot</button>
             <button type="button" onClick={() => { const blob = new Blob([JSON.stringify(localPageInspection, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'immogr-page-inspection.json'; anchor.click(); URL.revokeObjectURL(url); }}>Export extracted data</button>
-            <button type="button" onClick={() => { setLocalPageInspection(null); setLocalPageSnapshot(''); }}>Close inspector</button>
+            <button type="button" onClick={() => { setLocalPageInspection(null); setLocalPageSnapshot(''); setShowPageImages(false); }}>Close viewer</button>
           </div>
         </div>}
         <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{manualLocalities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
