@@ -37,5 +37,9 @@ test('robots rules honor the longest matching path and allow tie-break', () => {
   const rules = 'User-agent: *\nDisallow: /private\nAllow: /private/public\n';
   assert.equal(isAllowedByRobots(rules, 'https://example.ch/private/secret'), false);
   assert.equal(isAllowedByRobots(rules, 'https://example.ch/private/public/page'), true);
-  assert.equal(isAllowedByRobots(rules, 'https://example.ch/listing/1'), true);
+  assert.equal(isAllowedByRobots(rules, 'https://example.ch/listing/1'), true);\n  assert.equal(isAllowedByRobots('User-agent: *\\nDisallow: /private
+});
+, 'https://example.ch/private'), false);\n  assert.equal(isAllowedByRobots('User-agent: *\\nDisallow: /private
+});
+, 'https://example.ch/private/child'), true);
 });
