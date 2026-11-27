@@ -364,3 +364,15 @@ Complete before sending a ZIP (`FOR_ASSISTANT`):
 Cross-cutting decisions: `docs/DECISIONS.md` (including Navigator/ZIP rules under `D-2026-10-30-07` and successors).  
 Product requirements: `TECHNICAL_SPECIFICATION.md`.  
 Working rules and hard gates: **this file**.
+
+## Owner-approved rule-conflict escalation (binding)
+
+Existing repository rules are safeguards for the product, not an end in themselves. If an Assistant or contributor identifies an AGENTS.md rule, legacy instruction, technical constraint, or documentation rule that materially blocks or undermines the Owner's stated product goal or an Owner-approved ImmoGR decision:
+
+1. **Stop and disclose:** describe the exact conflicting rule, the product outcome it blocks, and the smallest proposed change in the chat before bypassing or editing the rule.
+2. **Obtain Owner confirmation:** do not silently ignore, weaken, or rewrite the rule. Ask the Owner to confirm the proposed change.
+3. **Apply the confirmed change:** after confirmation, amend AGENTS.md and every affected authoritative document, configuration contract, and test in the same delivery where practical. Preserve historical records and make the new precedence explicit.
+4. **No redundant confirmation:** an explicit approval in the Owner's current message that identifies the rule change or superseding decision counts as confirmation; still disclose material safety, security, privacy, or third-party access concerns.
+5. **Do not treat stale rules as immutable:** when a confirmed product decision supersedes an earlier rule, the superseding decision governs the affected scope. Unrelated hard gates remain in force.
+
+This rule does not authorize secret handling violations, unsafe access-control bypass, unlawful collection, unapproved spending, destructive operations, or production actions that require separate authorization.
