@@ -186,7 +186,7 @@ async function main() {
   const planPath = process.argv[2];
   if (!planPath || process.argv.includes('--help')) {
     process.stdout.write('Usage: node --import tsx scripts/immogr-local-page-fetch.mjs <local-plan.json>\n');
-    process.stdout.write('Plan JSON: { "source": { "id": "...", "probeAuthorization": { ... } }, "urls": ["https://..."] }\n');
+    process.stdout.write('Plan JSON: { "sourceId": "registered-source-id", "urls": ["https://..."] }; authorization is read only from config/immogr/sources.json\n');
     process.exitCode = planPath ? 0 : 2;
     return;
   }
