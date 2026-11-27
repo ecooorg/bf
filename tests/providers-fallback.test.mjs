@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { QUOTA_COOLDOWN_MS, MODEL_PARK_MS, TRANSIENT_COOLDOWN_MS } from '../server/geminiKeyPool.ts';
+import { QUOTA_COOLDOWN_MS, TRANSIENT_COOLDOWN_MS, GeminiKeyPool, callWithKeyPool, PoolExhaustedError } from '../server/geminiKeyPool.ts';
 import { SearchCircuitBreaker } from '../server/searchCarousel.ts';
 
 const server = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
 const client = fs.readFileSync(new URL('../src/ConversationScreens.tsx', import.meta.url), 'utf8');
 
 test('P126.13: quota pauses never exceed one minute (minute quotas only)', () => {
-  assert.ok(QUOTA_COOLDOWN_MS <= 60_000 && MODEL_PARK_MS <= 60_000 && TRANSIENT_COOLDOWN_MS <= 60_000);
+  assert.ok(QUOTA_COOLDOWN_MS <= 60_000 && TRANSIENT_COOLDOWN_MS <= 60_000);
   const b = new SearchCircuitBreaker();
   b.failure('gemini', 'hard', 0);
   assert.equal(b.isOpen('gemini', 61_000), false);
@@ -45,4 +45,21 @@ test('P126.13: client retries automatically after a failed request', () => {
   assert.match(client, /autoRetriesRef/);
   assert.match(client, /retrying automatically/);
   assert.match(client, /autoRetriesRef\.current >= 3/);
+});
+
+test('Gemini quota cooldown is isolated per project key and never parks a model globally', async () => {
+  const slots = Array.from({ length: 4 }, (_, slot) => ({ slot, envName: `GEMINI_API_KEY_${slot}`, key: `independent-project-${slot}` }));
+  const pool = new GeminiKeyPool(slots);
+  const quotaError = Object.assign(new Error('RESOURCE_EXHAUSTED: quota exceeded'), { status: 429 });
+  await assert.rejects(
+    callWithKeyPool({ pool, model: 'gemini-3.5-flash-lite', maxKeyAttempts: 1, now: () => 10, call: async () => { throw quotaError; } }),
+    PoolExhaustedError,
+  );
+  assert.equal(pool.slotsFor('gemini-3.5-flash-lite', 10).length, 3, 'one project quota must cool only its own slot/model pair');
+  assert.equal(pool.slotsFor('gemini-3.1-flash-lite', 10).length, 4, 'a quota on one model must not cool the same keys on another model');
+  await assert.rejects(
+    callWithKeyPool({ pool, model: 'gemini-3.5-flash-lite', maxKeyAttempts: 4, now: () => 10, call: async () => { throw quotaError; } }),
+    (error) => error instanceof PoolExhaustedError && error.attempted === 3,
+  );
+  assert.equal(pool.snapshot(10).cooledPairs, 4);
 });
