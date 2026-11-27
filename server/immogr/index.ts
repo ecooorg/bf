@@ -160,7 +160,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         apiKey: process.env.SERPER_API_KEY as string,
         userText, today, timeoutMs: 25_000, num: 10,
         fetchPages: false, maxPages: 1, extraQueries,
-        maxQueries: Math.min(29, sourceScope.sources.length), maxSources: 100,
+        maxQueries: Math.min(29, sourceScope.sources.length), maxSources: 100, extraQueriesFirst: true,
       });
       serperStatus = fallback.status;
       serperReason = fallback.reason || null;
