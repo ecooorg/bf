@@ -23,6 +23,7 @@
 - Collect at least five representative real pages per source candidate only through permitted manual review or an authorized access method; label page types, owner signals, price semantics, contact routes, and access outcomes.
 - Obtain written permissions or official partner/API access before automated acquisition; currently no consumer portal has passed this gate.
 - Evaluate Lookmove API, discover.swiss, STnet OpenBooking, and e-domizil as licensed-feed candidates; do not purchase or sign without explicit owner approval.
+- Pilot Graubünden Tourism pages for explicit owner/contact signals; use Apartments Switzerland only as a discovery/manual-review lead; assess Alpine Market API strictly as property-fact enrichment.
 - Approve, pause, or exclude sources with documented evidence.
 
 ## WP3 — Page acquisition and page representation

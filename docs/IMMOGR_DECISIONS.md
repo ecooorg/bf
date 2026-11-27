@@ -37,3 +37,8 @@ Flatradar.ch, aptari.ai, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdv
 ## D-IMMOGR-007 — Quarantine legacy runtime and migrations (2026-11-27)
 
 ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in Git but are excluded before the active migration runner reads migration contents or checks their versions. Existing legacy schema and rows remain preserved unchanged.
+
+
+## D-IMMOGR-008 — Manual owner signals are not long-term offers (2026-11-27)
+
+A tourism-provider page can be a valuable Private Owner Prospect when it explicitly identifies private/family ownership and provides a property-level contact route. Weekly holiday availability does not prove long-term availability. The Chalet Willi/Arosa page is a manual research example only: it is not a Direct Rental and is not an admitted listing. Source-page automation remains subject to the source operator's terms and permission.

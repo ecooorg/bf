@@ -218,6 +218,30 @@
       "status": "research_required",
       "ownerSignal": "Replacement-tenant listings can surface early termination opportunities.",
       "permission": "Useful supplementary category; verify original owner/landlord distinction and access rules."
+    },
+    {
+      "id": "graubuenden_tourism",
+      "name": "Graubünden Tourism / regional destination listings",
+      "category": "tourism_provider_directory",
+      "status": "research_required",
+      "ownerSignal": "Some provider pages explicitly state family ownership and expose a property-level contact route; page ownership and contact attribution must be checked per listing",
+      "permission": "Manual review example exists (Chalet Willi, Arosa). Copyright and automated acquisition rights are not established; obtain written permission or an authorized feed before crawling."
+    },
+    {
+      "id": "apartments_switzerland",
+      "name": "Apartments Switzerland",
+      "category": "mixed_classifieds_aggregator",
+      "status": "discovery_only",
+      "ownerSignal": "Listings may be posted by owners, agencies or tenants and may be republished from public sources; original advertiser must be verified",
+      "permission": "Terms allow linking and short quotes with a backlink, but prohibit crawling at a rate that affects service and republishing content as a dataset. Use only for URL discovery/manual review; no automated detail-page extraction or persistent copied listing dataset."
+    },
+    {
+      "id": "alpine_market_api",
+      "name": "Alpine Market Public Data API v1",
+      "category": "property_reference_api",
+      "status": "permission_required",
+      "ownerSignal": "Public API excludes owner and transaction-party identities; useful only for physical property facts/comparables, not direct owner contact or primary rental discovery",
+      "permission": "Public API licence is evaluation and non-commercial use; confirm internal ImmoGR integration and retention rights with operator. Platform terms separately prohibit automated scraping; use API only, never scrape the portal."
     }
   ],
   "monitoring": {
