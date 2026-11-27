@@ -77,7 +77,9 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
   assert.match(engine, /status: 'discovery_only'/);
-  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest|immofinder/i);
+  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\\(|immofinder/i);
+  assert.match(engine, /fetchSerperDigestMulti/);
+  assert.match(engine, /fetchPages: false/);
   assert.match(page, /Live discovery leads/);
   assert.doesNotMatch(main, /import\('\.\/ImmoFinder\.tsx'\)/);
   assert.doesNotMatch(server, /registerImmoFinderRoutes|callImmoLlm|stopImmoFinderWorker/);
