@@ -175,6 +175,9 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   const ui = read('src/ImmoGR.tsx');
   assert.match(ui, /data-testid="immogr-page-inspector"/);
   assert.match(ui, /Load photo previews/);
+  assert.match(ui, /Download local probe plan/);
+  assert.match(ui, /downloadLocalProbePlan/);
+  assert.match(ui, /probeSecondUrl/);
   assert.match(ui, /immogr-photo-grid/);
   assert.match(ui, /min-height: 48px/);
   assert.match(ui, /@media \(max-width: 760px\)/);
