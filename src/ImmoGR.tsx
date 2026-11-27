@@ -16,6 +16,7 @@ export default function ImmoGR() {
     try { const saved = localStorage.getItem('immogr.groupMode'); return saved === 'group1' || saved === 'group2' ? saved : 'both'; } catch { return 'both'; }
   });
   const [localities, setLocalities] = useState<LocalityOption[]>([]);
+  const [manualLocalities, setManualLocalities] = useState<LocalityOption[]>([]);
   const [category, setCategory] = useState<'direct_rental' | 'private_owner_prospect'>('direct_rental');
   const [leads, setLeads] = useState<DiscoveryLead[]>([]);
   const [searching, setSearching] = useState(false);
@@ -35,6 +36,12 @@ export default function ImmoGR() {
       .catch((reason) => { if (active) setSearchError(reason instanceof Error ? reason.message : 'Locality reference unavailable'); });
     return () => { active = false; };
   }, [groupMode]);
+  useEffect(() => {
+    fetch('/api/immogr/localities?groupMode=both', { credentials: 'same-origin' })
+      .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Manual locality reference unavailable'); return body; })
+      .then((body) => setManualLocalities(Array.isArray(body.localities) ? body.localities : []))
+      .catch(() => setManualLocalities([]));
+  }, []);
   useEffect(() => {
     fetch('/api/immogr/sources', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'Source registry unavailable'); return body; })
@@ -59,7 +66,7 @@ export default function ImmoGR() {
   }
   function selectManualSource(sourceId: string) {
     setSelectedSourceId(sourceId);
-    setManualDraft((current) => ({ ...current, canonicalUrl: '', localityId: localities[0]?.id || '' }));
+    setManualDraft((current) => ({ ...current, canonicalUrl: '', localityId: manualLocalities[0]?.id || localities[0]?.id || '' }));
     setManualMessage('');
   }
   async function saveManualReview(event: FormEvent<HTMLFormElement>) {
@@ -159,7 +166,7 @@ export default function ImmoGR() {
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
         <label style={{ gridColumn: '1 / -1' }}>Import a locally saved page (.html/.htm/.txt, up to 5 MB)<input type="file" accept=".html,.htm,.txt,text/html,text/plain" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; selected notes are saved only when you submit the form.</span></label>
-        <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{localities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
+        <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{manualLocalities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
         <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>
         <label>Price<input type="number" min="0" max="1000000" step="0.01" value={manualDraft.priceAmount} onChange={(e) => setManualDraft({ ...manualDraft, priceAmount: e.target.value })} style={field} /></label>
