@@ -32,7 +32,7 @@ Deploy only after WP1 and the real-page acceptance gate pass. First release is m
 ## WP2 — all-source manual research acceptance
 
 - All 29 entries in `config/immogr/sources.json` appear in the ImmoGR source research interface.
-- Every source has a “Ручной просмотр” action independent of its automated-acquisition status.
+- Every source has a “Manual review” action independent of its automated-acquisition status.
 - Clicking the action opens the original source in a user-controlled browser context; no server-side fetch or crawler is triggered.
 - A user can explicitly save a structured manual observation with source, canonical URL, locality, observed-at time, reviewer, access outcome and evidence notes, subject to a source-specific database-capture rights check.
 - Sources with restrictive or unclear reuse/database terms have capture status `terms_review_required`; the UI must not silently treat permission to view as permission to copy listing content into ImmoGR.

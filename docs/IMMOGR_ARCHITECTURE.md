@@ -45,7 +45,7 @@ ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded f
 Manual source research is a first-class path separate from automated page acquisition:
 
 1. Render every source-registry entry in the ImmoGR source/research UI, regardless of its automated-acquisition status.
-2. The “Ручной просмотр” action opens the original URL in a user-controlled browser tab/window. The app does not fetch the page server-side as a side effect of the click.
+2. The “Manual review” action opens the original URL in a user-controlled browser tab/window. The app does not fetch the page server-side as a side effect of the click.
 3. The user explicitly submits a structured capture form. The API validates the source ID, URL, locality ID, allowed observation fields and authenticated reviewer.
 4. Persist the observation in `immogr_manual_reviews`, with `capture_method=manual_user_review`, canonical URL, observed timestamp, reviewer, access outcome and field-level evidence notes.
 5. Keep manual observations separate from `immogr_source_pages` records produced by authorized server acquisition. Manual capture alone does not satisfy the fetched-page admission gate for an automated Direct Rental.
