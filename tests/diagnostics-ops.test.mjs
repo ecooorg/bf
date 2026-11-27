@@ -68,3 +68,25 @@ test('ImmoFinder diagnostics, database snapshots, and automation are permanently
   }
   assert.doesNotMatch(read('server/allLogs.ts'), /exportRepairSnapshot|immofinder\/listings/);
 });
+
+
+test('ImmoGR search diagnostics expose provider failures and a direct ZIP download', () => {
+  const page = read('src/ImmoGR.tsx');
+  const engine = read('server/immogr/index.ts');
+  assert.match(page, /downloadAllLogs/);
+  assert.match(page, /Download diagnostics \(ZIP\)/);
+  assert.match(page, /Last search diagnostics/);
+  assert.match(page, /body\.reason/);
+  assert.match(engine, /discovery_failed/);
+  assert.match(engine, /attemptedModels/);
+  assert.match(engine, /requestId/);
+  assert.match(engine, /providerStatus/);
+});
+
+test('Google service-account JSON is classified as secret in diagnostics', () => {
+  const config = read('server/diagnosticsConfig.ts');
+  const redaction = read('server/redact.ts');
+  assert.match(config, /SERVICE_ACCOUNT/);
+  assert.match(redaction, /GOOGLE_SERVICE_ACCOUNT_JSON/);
+  assert.match(redaction, /CREDENTIALS_JSON/);
+});
