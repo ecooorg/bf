@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/local-schema.ts';
+import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/local-page-inspector.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
@@ -29,6 +30,8 @@ export default function ImmoGR() {
   const [manualSaving, setManualSaving] = useState(false);
   const [manualReviews, setManualReviews] = useState<Array<{ id: string; canonical_url: string; locality_id: string; reviewed_at: string; manual_access_outcome: string; page_title: string | null; price_amount: string | null; currency: string; price_period: string; owner_class: string }>>([]);
   const [manualMessage, setManualMessage] = useState('');
+  const [localPageInspection, setLocalPageInspection] = useState<LocalPageInspection | null>(null);
+  const [localPageSnapshot, setLocalPageSnapshot] = useState('');
   useEffect(() => {
     let active = true;
     fetch('/api/immogr/localities?groupMode=' + groupMode, { credentials: 'same-origin' })
@@ -102,6 +105,9 @@ export default function ImmoGR() {
         const raw = await file.text();
         const documentCopy = new DOMParser().parseFromString(raw, 'text/html');
         schemaFacts = extractSchemaFactsFromJsonLd(Array.from(documentCopy.querySelectorAll('script[type="application/ld+json"]')).map((script) => script.textContent || ''));
+        const sourceUrl = manualDraft.canonicalUrl || documentCopy.querySelector('link[rel="canonical"]')?.getAttribute('href') || '';
+        setLocalPageInspection(inspectLocalHtmlDocument(documentCopy, sourceUrl));
+        setLocalPageSnapshot(raw);
         title = (documentCopy.title || file.name).slice(0, 300);
         documentCopy.querySelectorAll('script,style,noscript,svg,nav,footer,header').forEach((node) => node.remove());
         extracted = (documentCopy.body?.innerText || documentCopy.body?.textContent || '').replace(/\s+/g, ' ').trim();
@@ -204,6 +210,21 @@ export default function ImmoGR() {
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The page opens directly from its source; ImmoGR does not proxy it.</span></div>
         <label style={{ gridColumn: '1 / -1' }}>Import a local page or document (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
+        {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
+          <h3 style={{ marginTop: 0 }}>Local page inspector</h3>
+          <p style={{ color: '#9aadc5', fontSize: 12 }}>Extracted from your selected local HTML file. Nothing here was fetched by ImmoGR or uploaded. Image URLs are listed as links; images are not loaded automatically.</p>
+          <p><strong>{localPageInspection.title || 'Untitled page'}</strong> · {localPageInspection.text.length.toLocaleString()} text characters · {localPageInspection.links.length} links · {localPageInspection.images.length} image URLs · {localPageInspection.jsonLd.length} JSON-LD block(s)</p>
+          {localPageInspection.sourceUrl && <p style={{ overflowWrap: 'anywhere', fontSize: 12 }}>Page URL: {localPageInspection.sourceUrl}</p>}
+          <details><summary>Extracted page text</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{localPageInspection.text || 'No readable body text found.'}</pre></details>
+          <details><summary>Image URLs ({localPageInspection.images.length})</summary><ul>{localPageInspection.images.map((item, index) => <li key={item.url + index} style={{ overflowWrap: 'anywhere', margin: '6px 0' }}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>{item.alt ? ' · ' + item.alt : ''}</li>)}</ul></details>
+          <details><summary>Page links ({localPageInspection.links.length})</summary><ul>{localPageInspection.links.map((item, index) => <li key={item.url + index} style={{ overflowWrap: 'anywhere', margin: '6px 0' }}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.text || item.url}</a></li>)}</ul></details>
+          <details><summary>Metadata and JSON-LD</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify({ metadata: localPageInspection.metadata, jsonLd: localPageInspection.jsonLd }, null, 2)}</pre></details>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+            <button type="button" onClick={() => { const blob = new Blob([localPageSnapshot], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'immogr-local-page-snapshot.html'; anchor.click(); URL.revokeObjectURL(url); }}>Save local HTML snapshot</button>
+            <button type="button" onClick={() => { const blob = new Blob([JSON.stringify(localPageInspection, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'immogr-page-inspection.json'; anchor.click(); URL.revokeObjectURL(url); }}>Export extracted data</button>
+            <button type="button" onClick={() => { setLocalPageInspection(null); setLocalPageSnapshot(''); }}>Close inspector</button>
+          </div>
+        </div>}
         <label>Locality<select required value={manualDraft.localityId} onChange={(e) => setManualDraft({ ...manualDraft, localityId: e.target.value })} style={field}><option value="">Select locality</option>{manualLocalities.map((item) => <option key={item.id} value={item.id}>{item.name} · Group {item.group}</option>)}</select></label>
         <label>Page / property title<input value={manualDraft.pageTitle} onChange={(e) => setManualDraft({ ...manualDraft, pageTitle: e.target.value })} maxLength={300} style={field} /></label>
         <label>Property type<select value={manualDraft.propertyType} onChange={(e) => setManualDraft({ ...manualDraft, propertyType: e.target.value })} style={field}><option value="unknown">Unknown</option><option value="apartment">Apartment</option><option value="house">House</option><option value="chalet">Chalet</option><option value="room">Room</option><option value="other">Other</option></select></label>
