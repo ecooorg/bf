@@ -9,6 +9,7 @@ type ManualSource = { id: string; name: string; category: string; status: string
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
 const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
+const validPropertyTypes = new Set(['apartment', 'house', 'chalet', 'room', 'other', 'unknown']);
 const validAccessOutcomes = new Set(['reviewed', 'in_progress', 'blocked_by_source', 'no_relevant_inventory']);
 
 /** Live discovery returns candidate URLs only. It never fetches listing pages or persists unverified leads. */
@@ -64,8 +65,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const allowedLocality = IMMOGR_LOCALITIES.find((item) => item.id === localityId);
     let parsedUrl: URL | null = null;
     try { parsedUrl = new URL(canonicalUrl); } catch { /* validated below */ }
-    if (!source || !parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol) || canonicalUrl.length > 2048 ||
-      !allowedLocality || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) ||
+    if (!source || !parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol) || Boolean(parsedUrl.username || parsedUrl.password) || canonicalUrl.length > 2048 ||
+      !allowedLocality || !validOwnerClasses.has(ownerClass) || !validPricePeriods.has(pricePeriod) || !validPropertyTypes.has(propertyType) ||
       !validAccessOutcomes.has(accessOutcome) || (priceRaw !== null && (!Number.isFinite(priceRaw) || priceRaw < 0 || priceRaw > 1000000)) ||
       !['CHF', 'EUR'].includes(currency) || pageTitle.length > 300 || availability.length > 500 || notes.length > 5000) {
       return res.status(400).json({ error: 'Invalid manual research record. Check source, HTTPS/HTTP URL, target locality and field values.' });
