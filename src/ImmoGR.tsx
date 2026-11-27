@@ -15,7 +15,7 @@ const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, ba
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
 export default function ImmoGR() {
   const [status, setStatus] = useState<ImmoGRStatus | null>(null);
-  const [error, setError] = useState('');
+
   const [locality, setLocality] = useState('');
   const [groupMode, setGroupMode] = useState<GroupMode>(() => {
     try { const saved = localStorage.getItem('immogr.groupMode'); return saved === 'group1' || saved === 'group2' || saved === 'chur' ? saved : 'both'; } catch { return 'both'; }
@@ -83,7 +83,7 @@ export default function ImmoGR() {
   useEffect(() => {
     fetch('/api/immogr/status', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || ('Status unavailable (' + response.status + ')')); return body as ImmoGRStatus; })
-      .then(setStatus).catch((reason) => setError(reason instanceof Error ? reason.message : 'Status unavailable'));
+      .then(setStatus).catch((reason) => setSearchError(reason instanceof Error ? reason.message : 'Status unavailable'));
   }, []);
   function changeGroupMode(value: GroupMode) {
     setGroupMode(value); setLeads([]); setSearched(false);
