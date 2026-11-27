@@ -39,3 +39,16 @@ The WP1 status endpoint is informational only. A real search endpoint and schedu
 ### Legacy runtime and migration quarantine
 
 ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in the repository but are excluded before the active migration runner reads migration contents or checks their versions. The existing legacy schema and rows are preserved unchanged.
+
+## User-initiated manual research path (Owner-approved 2026-11-27)
+
+Manual source research is a first-class path separate from automated page acquisition:
+
+1. Render every source-registry entry in the ImmoGR source/research UI, regardless of its automated-acquisition status.
+2. The “Ручной просмотр” action opens the original URL in a user-controlled browser tab/window. The app does not fetch the page server-side as a side effect of the click.
+3. The user explicitly submits a structured capture form. The API validates the source ID, URL, locality ID, allowed observation fields and authenticated reviewer.
+4. Persist the observation in `immogr_manual_reviews`, with `capture_method=manual_user_review`, canonical URL, observed timestamp, reviewer, access outcome and field-level evidence notes.
+5. Keep manual observations separate from `immogr_source_pages` records produced by authorized server acquisition. Manual capture alone does not satisfy the fetched-page admission gate for an automated Direct Rental.
+6. Never use a server-side proxy, hidden browser automation, credential/cookie capture, or bypass of authentication, paywalls, CAPTCHAs, rate limits or technical restrictions to simulate manual viewing.
+
+A framed in-app viewer is optional and must not be assumed to work: source CSP/X-Frame-Options and browser cross-origin isolation commonly prevent embedding or reading arbitrary third-party pages. The safe baseline is an external tab plus an in-app capture panel.
