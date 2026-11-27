@@ -27,7 +27,7 @@ export function inspectLocalHtmlDocument(documentCopy: Document, sourceUrl: stri
   for (const anchor of Array.from(documentCopy.querySelectorAll('a[href]'))) {
     const url = safePageUrl(anchor.getAttribute('href'), baseUrl);
     if (!url) continue;
-    links.push({ url, text: (anchor.textContent || anchor.getAttribute('aria-label') || '').replace(/\\s+/g, ' ').trim().slice(0, 500) });
+    links.push({ url, text: (anchor.textContent || anchor.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 500) });
   }
   const images: LocalPageImage[] = [];
   const imageCandidates = [
@@ -35,7 +35,7 @@ export function inspectLocalHtmlDocument(documentCopy: Document, sourceUrl: stri
     ...Array.from(documentCopy.querySelectorAll('source')),
   ];
   for (const node of imageCandidates) {
-    const raw = node.getAttribute('src') || node.getAttribute('data-src') || node.getAttribute('srcset')?.split(',')[0]?.trim().split(/\\s+/)[0];
+    const raw = node.getAttribute('src') || node.getAttribute('data-src') || node.getAttribute('srcset')?.split(',')[0]?.trim().split(/\s+/)[0];
     const url = safePageUrl(raw, baseUrl);
     if (!url) continue;
     images.push({
@@ -55,7 +55,7 @@ export function inspectLocalHtmlDocument(documentCopy: Document, sourceUrl: stri
     .filter(Boolean)
     .slice(0, 30);
   const body = documentCopy.body;
-  const text = (body?.innerText || body?.textContent || '').replace(/[\\t\\r\\n ]+/g, ' ').trim().slice(0, 100_000);
+  const text = (body?.innerText || body?.textContent || '').replace(/[\t\r\n ]+/g, ' ').trim().slice(0, 100_000);
   return {
     title: (documentCopy.title || metadata['og:title'] || '').trim().slice(0, 500),
     sourceUrl: safePageUrl(sourceUrl, '') || canonical || '',
