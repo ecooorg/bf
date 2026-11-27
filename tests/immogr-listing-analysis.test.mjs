@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { buildImmoGRListingPrompt, normalizeImmoGRListingAnalysis, parseImmoGRModelJson } from '../server/immogr/listing-analysis.ts';
 const pageUrl = 'https://portal.example.ch/listing/123';
 const pageText = "2.5 Zimmer Wohnung in Chur. Nettomiete CHF 1'850 pro Monat. Frei ab 1. Dezember 2026. 2.5 Zimmer, 64 m².";
@@ -51,4 +52,27 @@ test('numeric values must match the numbers inside their own currency quote', ()
  const result = normalizeImmoGRListingAnalysis({ ...good, candidates: [candidate] }, { pageUrl, sourceHost: 'portal.example.ch', pageText, category: 'direct_rental', localities, allowedLinks: [] });
  assert.equal(result.candidates[0].priceAmount, null);
  assert.equal(result.candidates[0].qualification, 'needs_review');
+});
+
+test('server endpoint is owner-authenticated and never fetches the remote page', () => {
+ const server = readFileSync(new URL('../server/immogr/index.ts', import.meta.url), 'utf8');
+ const start = server.indexOf("app.post('/api/immogr/analyze-local-page'");
+ const end = server.indexOf('const discoveryHandler', start);
+ assert.ok(start >= 0 && end > start);
+ const route = server.slice(start, end);
+ assert.match(route, /requireOwner\(req, res\)/);
+ assert.match(route, /pageText\.slice\(0, 30000\)/);
+ assert.match(route, /generateContent/);
+ assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
+ assert.match(route, /remotePageFetched: false/);
+});
+test('UI sends only extracted text and same-source links, not the original local file', () => {
+ const ui = readFileSync(new URL('../src/ImmoGR.tsx', import.meta.url), 'utf8');
+ const start = ui.indexOf('async function analyzeLocalPage()');
+ const end = ui.indexOf('function downloadSelectedProbeBatch()', start);
+ const action = ui.slice(start, end);
+ assert.match(action, /pageText: localPageInspection\.text/);
+ assert.match(action, /links: localPageInspection\.links/);
+ assert.doesNotMatch(action, /localPageSnapshot|setLocalPageSnapshot/);
+ assert.match(ui, /immogr-ai-listing-cards/);
 });
