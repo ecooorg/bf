@@ -279,7 +279,7 @@ export default function ImmoGR() {
               <p style={{ color: '#9aadc5', fontSize: 12 }}>Photo files are requested directly from their hosts only after you tap the button. No ImmoGR image proxy is used.</p>
               {showPageImages && <div className="immogr-photo-grid">{localPageInspection.images.map((item, index) => {
                 let previewable = false;
-                try { const imageUrl = new URL(item.url); previewable = imageUrl.protocol === 'https:' && !imageUrl.username && !imageUrl.password && !/^(localhost|.*\\.local)$/i.test(imageUrl.hostname) && !/^\\d{1,3}(?:\\.\\d{1,3}){3}$/.test(imageUrl.hostname) && !imageUrl.hostname.includes(':'); } catch { /* invalid preview URL */ }
+                try { const imageUrl = new URL(item.url); previewable = imageUrl.protocol === 'https:' && !imageUrl.username && !imageUrl.password && !/^(localhost|.*\.local)$/i.test(imageUrl.hostname) && !/^\d{1,3}(?:\.\d{1,3}){3}$/.test(imageUrl.hostname) && !imageUrl.hostname.includes(':'); } catch { /* invalid preview URL */ }
                 return <div className="immogr-photo-card" key={item.url + index}>
                   {previewable ? <a href={item.url} target="_blank" rel="noopener noreferrer"><img src={item.url} alt={item.alt || 'Listing photo'} title={item.title || item.alt || 'Listing photo'} loading="lazy" referrerPolicy="no-referrer" /></a> : <p style={{ color: '#9aadc5', fontSize: 12 }}>Preview unavailable for this URL scheme or host.</p>}
                   <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>{item.alt || item.title || 'Open photo'}</a>
