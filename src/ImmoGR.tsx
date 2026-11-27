@@ -5,7 +5,7 @@ type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: bool
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both';
-type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string };
+type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string };
 type ManualDraft = { canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 const emptyManualDraft: ManualDraft = { canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
@@ -282,7 +282,7 @@ export default function ImmoGR() {
         {sourceSettingsMessage && <p role="status" style={{ color: '#9fe2b2', fontSize: 13 }}>{sourceSettingsMessage}</p>}
         <div className="immogr-source-grid">{sources.map((source) => <label className="immogr-source-toggle" key={source.id}>
           <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => { setSourceSettingsMessage(''); setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id)); }} />
-          <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus}</small></span>
+          <span><strong>{source.name}</strong><br /><small style={{ color: '#9aadc5' }}>{source.automationStatus} · probe: {source.probePolicyStatus || 'not_reviewed'}</small></span>
         </label>)}</div>
       </details>
       <p style={{ color: '#9aadc5' }}>Search current candidate URLs for one selected locality. Results are unverified leads only; ImmoGR does not fetch listing pages or turn search snippets into property records.</p>
