@@ -70,6 +70,10 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(ui, /localityIds: selectedLocalityIds/);
   assert.match(ui, /immogr\.searchLocalityIds\.v1/);
   assert.match(ui, /immogr-locality-grid/);
+  assert.equal((ui.match(/<details className="immogr-selection-block">/g) || []).length, 2);
+  assert.match(ui, /<summary><span>Sources<\/span>/);
+  assert.match(ui, /<summary><span>Localities<\/span>/);
+  assert.doesNotMatch(ui, /<details className="immogr-selection-block" open>/);
   assert.match(ui, /Download logs/);
   assert.match(ui, /Search/);
   assert.match(ui, /Personal notebook and research tools/);
