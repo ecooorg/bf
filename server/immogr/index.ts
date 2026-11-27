@@ -129,8 +129,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     }
     const localityNames = selectedLocalities.map((item) => item.name);
     const intent = category === 'direct_rental'
-      ? 'current apartment or house rental opportunities, long-term rental, monthly rent, private landlords and individual property advertisements'
-      : 'holiday apartments or chalets offered by private owners, including owners who may consider long-term rental';
+      ? 'specific apartment or house offered for long-term rental by a private owner, published monthly rent no higher than CHF 2,000, target-locality detail pages only'
+      : 'specific seasonal or holiday apartment or chalet in a target locality, evidence of private ownership, direct property contact, potentially suitable for a long-term rental of three years or more; do not imply owner willingness';
     const selectedSourceInstructions = sourceScope.sources.map((source) => source.name + ' (' + source.host + ')').join('; ');
     const userText = 'Find current public candidate URLs for ' + intent + ' in these selected Graubünden localities: ' + localityNames.join(', ') + '. Search ONLY on these owner-selected source domains: ' + selectedSourceInstructions + '. Do not return results from other domains, aggregators, search pages, or unrelated sites. Do not broaden the geographic intent beyond the selected localities. Prefer individual property detail pages. Do not invent URLs or claim that a result is verified. Return as many distinct candidate URLs as the search grounding provides, up to 100 total.';
     const requestId = randomUUID();
