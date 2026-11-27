@@ -19,13 +19,13 @@
 - [x] Add independent evidence-first PostgreSQL foundation (`immogr_*`) with commune FK, source pages, listing, owner, contact, evidence, run, event and review records; add CI isolation tests.
 - Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
 
-## WP2 — Source intelligence, manual research and real-page validation (ACTIVE)
+## WP2 — Source intelligence, manual research and real-page validation (IMPLEMENTATION COMPLETE; OWNER VALIDATION OPEN)
 **Owner decision 2026-11-27:** test every registered source for actual research value, regardless of whether automated acquisition is permitted. An automation restriction changes the acquisition mode; it does not remove a source from manual research.
 
 - [x] Replace municipality targeting with the exact owner-defined 44-locality catalogue (22 group 1, 22 group 2); expose independent group toggles and seed `immogr_localities`.
-- [ ] Enrich all 44 localities with spelling variants, historical names, language variants and postcode evidence; never infer adjacent localities from municipal membership.
-- [ ] Inventory and manually test **all 29 registered source candidates**. No source is skipped solely because automated scraping, scripts, reuse or API access is restricted.
-- [ ] For every source, record operator, business model, first-party/aggregator status, actual source lineage, coverage of the 44 localities, private-owner signals, page types, price semantics, contact routes, freshness, duplicate behavior, manual access outcome, and applicable terms/access constraints.
+- [ ] Enrich all 44 localities with spelling variants, historical names, language variants and postcode evidence; never infer adjacent localities from municipal membership. This requires authoritative place/postcode evidence; formatting normalization alone is not an alias catalogue.
+- [ ] Inventory and manually test **all 29 registered source candidates**. No source is skipped solely because automated scraping, scripts, reuse or API access is restricted. All 29 are present in the UI, but their actual manual-review states remain `not_started`; do not mark this complete until page visits are recorded.
+- [ ] For every source, record operator, business model, first-party/aggregator status, actual source lineage, coverage of the 44 localities, private-owner signals, page types, price semantics, contact routes, freshness, duplicate behavior, manual access outcome, and applicable terms/access constraints. Desk research is not a substitute for user-operated page review.
 - [ ] Perform an initial human-operated access check for every source. For sources with relevant live inventory, inspect at least five representative property/detail pages where available; record zero-yield, unavailable, blocked, login-only, irrelevant or stale outcomes instead of inventing samples.
 - [ ] Distinguish **manual research eligibility** from **automated acquisition eligibility**. Existing `status` values in `config/immogr/sources.json` continue to govern automation only; every source has a separate manual-research state.
 - [x] Add a user-initiated manual research panel for all 29 sources, original-page opening, structured personal-note capture, and browser-side local HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON import (up to 5 MB; source file is not uploaded).
@@ -75,3 +75,10 @@
 **WP2 structured local import:** HTML JSON-LD suggestions are parsed client-side into editable candidate fields; the Owner must verify them before save. No source page is fetched by ImmoGR.
 
 **WP2 structured-import refinement (2026-11-27):** local JSON-LD extraction now recognizes German, French and Italian rental-period labels, preserves schema.org availability values as unverified suggestions, and normalizes locality spelling/diacritics only for exact label matching. It deliberately does not infer geographic aliases such as “St.” → “Sankt”; those require owner-reviewed locality evidence.
+
+
+### WP2 / WP3 transition — 2026-11-27
+
+The WP2 software deliverables are in place: exact 44-locality selector, 29-source registry/UI, authenticated personal notebook, additive persistence contract, local document import and local structured-data suggestions. WP2 is **not operationally accepted**: all 29 source records still show `manualReview.status=not_started`, no five-page source samples have been entered, and locality aliases/postcodes have not yet been verified against authoritative evidence. Those are real research activities, not tasks that can be truthfully completed by changing code or relabelling records.
+
+WP3 has started with a fail-closed authorization and page-representation contract. It intentionally activates no source: the current registry contains no source with a complete documented API/feed authorization, terms/robots approval and exact host allowlist. This permits implementation to proceed without silently treating manual browsing, public visibility, or the private notebook as remote acquisition permission.
