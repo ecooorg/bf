@@ -154,3 +154,8 @@ This report records implementation and verification state only. It does not assi
 ## P131.8d — Preflight exception for server/immofinder/
 - **OBSERVED:** test:models flagged WP3 paths as nested folders.
 - **CHANGE:** allow server/immofinder and sources; delete empty placeholder.
+
+## 2026-11-27 — ImmoGR WP2 scope and manual research decision
+- **CHANGE:** Documented all-29-source manual research regardless of automation status; separated manual observations from fetched pages; specified user-initiated review/capture, provenance, evidence and access boundaries. Added AGENTS owner-confirmed rule-amendment process.
+- **OWNER DECISION:** Manual review uses ordinary user-controlled browsing and explicit structured submission. This does not grant automated acquisition rights or authorize bypasses. No UI, API, DB migration or real-page source pilot implemented in this documentation change.
+- **NOT_RUN:** Manual inspection of 29 sources, five-page samples, implementation tests, CI for this commit, and production deployment verification.
