@@ -1,1481 +1,728 @@
 {
-  "schemaVersion": 2,
-  "kind": "immofinder_post_run_bundle",
-  "generatedAt": "2026-11-27T03:37:01.787Z",
-  "runId": "3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0",
-  "traceId": null,
-  "runtime": {
-    "generatedAt": "2026-11-27T03:37:01.787Z",
-    "commit": "4a64850",
-    "node": "v22.12.0",
-    "uptimeSec": 9178,
-    "keepAliveEnv": "true",
-    "keepAliveDisabled": false,
-    "renderExternalUrlSet": true,
-    "serperConfigured": true,
-    "geminiConfigured": true,
-    "diagnosticDbWriteFailures": 0
-  },
-  "settingsSummary": {
-    "scheduleMode": "manual",
-    "everyHours": 3,
-    "profile": "burst",
-    "minRooms": 3,
-    "communeCount": 4,
-    "communeSample": [
-      "Chur",
-      "Churwalden",
-      "Felsberg",
-      "Landquart"
-    ],
-    "enabledSources": [
-      "search",
-      "portal-immoscout24",
-      "portal-homegate",
-      "portal-newhome",
-      "portal-flatfox",
-      "portal-tutti",
-      "portal-anibis",
-      "portal-petitesannonces",
-      "portal-immobilier",
-      "portal-acheter-louer",
-      "portal-immostreet",
-      "portal-home",
-      "portal-icasa",
-      "portal-urbanhome",
-      "ferienhausmiete",
-      "happyholiday",
-      "landwirtschaft-gr",
-      "swiss-portals"
-    ],
-    "municipalityGroups": {
-      "group1": true,
-      "group2": false
-    },
-    "maxAiPages": 200
-  },
-  "configSummary": {
-    "municipalityCount": 121,
-    "sourceIds": [
-      "ferienhausmiete",
-      "happyholiday",
-      "landwirtschaft-gr",
-      "portal-tutti",
-      "portal-homegate",
-      "portal-anibis",
-      "portal-flatfox"
-    ],
-    "browserRenderHosts": [
-      "happyholiday.ch",
-      "flatfox.ch",
-      "homegate.ch",
-      "immoscout24.ch",
-      "newhome.ch",
-      "urbanhome.ch"
-    ],
-    "discoveryEnabled": true,
-    "portalSourceIds": [
-      "portal-immoscout24",
-      "portal-homegate",
-      "portal-newhome",
-      "portal-flatfox",
-      "portal-tutti",
-      "portal-anibis",
-      "portal-petitesannonces",
-      "portal-immobilier",
-      "portal-acheter-louer",
-      "portal-immostreet",
-      "portal-home",
-      "portal-icasa",
-      "portal-urbanhome"
-    ],
-    "minRoomsFloor": 3
-  },
-  "database": {
-    "status": "ok",
-    "database": "bf_81oe",
-    "databaseTime": "2026-11-27T03:37:01.784Z",
-    "listings": {
-      "total": 2,
-      "visible": 0,
-      "hidden": 2
-    },
-    "seen": {
-      "total": 614,
-      "checked_24h": 64
-    },
-    "pool": {
-      "total": 3,
-      "idle": 3,
-      "waiting": 0
-    },
-    "latencyMs": 9
-  },
-  "result": {
-    "counts": {
-      "index_pages": 6,
-      "candidates": 16,
-      "fetched": 14,
-      "kept": 0,
-      "kept_l1": 0,
-      "kept_l2": 0,
-      "new": 0,
-      "updated": 0,
-      "skipped": 0,
-      "infra_failures": 1,
-      "serper_calls": 8,
-      "gemini_calls": 0,
-      "serper_available": 1,
-      "gemini_available": 1
-    },
-    "filtered": {
-      "source_locality_mismatch": 92,
-      "outside_target": 13,
-      "rooms_unknown": 1
-    },
-    "estCostUsd": 0.008,
-    "errors": [
-      {
-        "source": "portal-homegate",
-        "code": "detail_fetch_failed",
-        "detail": "HTTP 403"
-      }
-    ],
-    "sourceStats": [
-      {
-        "id": "happyholiday",
-        "queries": 4,
-        "hits": 90,
-        "candidates": 2,
-        "fetched": 2,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 90,
-        "consecutiveBad": 2
-      },
-      {
-        "id": "ferienhausmiete",
-        "queries": 1,
-        "hits": 16,
-        "candidates": 12,
-        "fetched": 12,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 1,
-        "geo": 15,
-        "consecutiveBad": 12
-      },
-      {
-        "id": "portal-acheter-louer",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-anibis",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-flatfox",
-        "queries": 1,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-home",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-homegate",
-        "queries": 4,
-        "hits": 2,
-        "candidates": 2,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 1
-      },
-      {
-        "id": "portal-icasa",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immobilier",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immoscout24",
-        "queries": 4,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immostreet",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-newhome",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-petitesannonces",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-tutti",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-urbanhome",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      }
-    ],
-    "wavesRun": [
-      "extended"
-    ],
-    "preview": [
-      {
-        "url": "happyholiday.ch/haus/ferienhaus-chesa-sur-alvra-graubuenden-berguen",
-        "title": "Chesa sur Alvra in Bergün",
-        "source": "happyholiday",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "happyholiday.ch/haus/ferienhaus-muntanella-graubuenden-berguen",
-        "title": "Ferienhaus Muntanella in Bergün",
-        "source": "happyholiday",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/278114.htm",
-        "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk...",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/50275.htm",
-        "title": "Haus Culmoina, Valbella",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/464721.htm",
-        "title": "Haus Katrin",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/191606.htm",
-        "title": "Haus Salonder",
-        "source": "ferienhausmiete",
-        "municipality": "Chur",
-        "rooms": null,
-        "kept": false,
-        "reason": "rooms_unknown",
-        "detail": "rooms_unknown"
-      },
-      {
-        "url": "www.ferienhausmiete.de/26917.htm",
-        "title": "IGLSON",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/41111.htm",
-        "title": "Ferienhaus Crapanaira 2-10Personen",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/54712.htm",
-        "title": "Crap da Flem",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/16699.htm",
-        "title": "Casa al Lag",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/4868634.htm",
-        "title": "La Muotta Falera",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/50772.htm",
-        "title": "Casa Ansiel",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/43781.htm",
-        "title": "Madrisa Alm",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.ferienhausmiete.de/87926.htm",
-        "title": "Bohemia Apartments",
-        "source": "ferienhausmiete",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted"
-      },
-      {
-        "url": "www.homegate.ch/mieten/4003510401",
-        "title": "Helle 4.5-Zimmer-Wohnung in Felsberg, Hintere Gasse 37 ...",
-        "source": "portal-homegate",
-        "municipality": null,
-        "rooms": null,
-        "kept": false,
-        "reason": "fetch_blocked",
-        "detail": "HTTP 403"
-      }
-    ]
-  },
-  "quality": {
-    "runId": "3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0",
-    "wave": "extended",
-    "counts": {
-      "index_pages": 6,
-      "candidates": 16,
-      "fetched": 14,
-      "kept": 0,
-      "kept_l1": 0,
-      "kept_l2": 0,
-      "new": 0,
-      "updated": 0,
-      "skipped": 0,
-      "infra_failures": 1,
-      "serper_calls": 8,
-      "gemini_calls": 0,
-      "serper_available": 1,
-      "gemini_available": 1
-    },
-    "filtered": {
-      "source_locality_mismatch": 92,
-      "outside_target": 13,
-      "rooms_unknown": 1
-    },
-    "errors": 1,
-    "sourceStats": [
-      {
-        "id": "happyholiday",
-        "queries": 4,
-        "hits": 90,
-        "candidates": 2,
-        "fetched": 2,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 90,
-        "consecutiveBad": 2
-      },
-      {
-        "id": "ferienhausmiete",
-        "queries": 1,
-        "hits": 16,
-        "candidates": 12,
-        "fetched": 12,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 1,
-        "geo": 15,
-        "consecutiveBad": 12
-      },
-      {
-        "id": "portal-acheter-louer",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-anibis",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-flatfox",
-        "queries": 1,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-home",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-homegate",
-        "queries": 4,
-        "hits": 2,
-        "candidates": 2,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 1
-      },
-      {
-        "id": "portal-icasa",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immobilier",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immoscout24",
-        "queries": 4,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-immostreet",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-newhome",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-petitesannonces",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-tutti",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-urbanhome",
-        "queries": 0,
-        "hits": 0,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      }
-    ],
-    "wavesRun": [
-      "extended"
-    ],
-    "completeness": {
-      "total": 2,
-      "hidden": 2,
-      "with": {
-        "published": 0,
-        "price": 2,
-        "priceMonthly": 0,
-        "rooms": 2,
-        "phone": 0,
-        "email": 0,
-        "contact": 0,
-        "photos": 2,
-        "owner": 2,
-        "specificLink": 1
-      },
-      "pct": {
-        "published": 0,
-        "price": 100,
-        "rooms": 100,
-        "contact": 0,
-        "photos": 100
-      },
-      "fullCards": 0,
-      "fullCardsPct": 0,
-      "dateSource": {
-        "none": 2
-      },
-      "bySource": [
-        {
-          "id": "ferienhausmiete",
-          "total": 2,
-          "published": 0,
-          "price": 2,
-          "rooms": 2,
-          "contact": 0,
-          "photos": 2
-        }
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-27T03:41:13.758Z",
+  "runId": "4520fea5-f93b-4a51-acfe-7105d954764a",
+  "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+  "eventCount": 23,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
+  "events": [
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "run_started",
+      "at": "2026-11-27T03:39:38.869Z",
+      "elapsedMs": 0,
+      "wave": "carousel",
+      "dryRun": false,
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Maienfeld",
+        "Fläsch",
+        "Jenins",
+        "Malans",
+        "Grüsch",
+        "Seewis-Pardisla",
+        "Schiers",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Laax",
+        "Versam",
+        "Valendas",
+        "Castrisch",
+        "Ilanz",
+        "Bonaduz",
+        "Rhäzüns",
+        "Rothenbrunnen",
+        "Rodels",
+        "Realta",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Parpan",
+        "Valbella",
+        "Lenzerheide",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen",
+        "Castiel",
+        "Lüen",
+        "St. Peter-Molinis",
+        "Peist"
       ],
-      "weakHosts": [
-        {
-          "host": "ferienhausmiete.de",
-          "total": 2,
-          "noDate": 2,
-          "noContact": 2
-        }
+      "minRooms": 3,
+      "discoveryEnabled": true,
+      "privateQueryTemplates": 4,
+      "portalQueryTemplates": 13,
+      "maxCandidatesPerQuery": 8,
+      "pageLimit": 420,
+      "runMaxDurationMs": 2700000,
+      "llmEnabled": true,
+      "searchEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "discovery_plan",
+      "at": "2026-11-27T03:39:38.869Z",
+      "elapsedMs": 0,
+      "wave": "carousel",
+      "finishAll": true,
+      "coverAllCommunes": false,
+      "cycle": 238,
+      "selectedCommunes": [
+        "Realta",
+        "Cazis",
+        "Thusis",
+        "Maladers"
+      ],
+      "queryCountTotal": 68,
+      "queryOffset": 0,
+      "queryCountThisWave": 68,
+      "maxCandidatesPerQuery": 6,
+      "pageLimit": 420,
+      "resultsPerQuery": 10,
+      "serperMinIntervalMs": 1500,
+      "serperMaxPerMinute": 40,
+      "queryFamilies": [
+        "private",
+        "portals"
       ]
     },
-    "cardQuality": {
-      "visible": 0,
-      "withAbout": 0,
-      "aboutDup": 0,
-      "titleEcho": 0,
-      "genericLink": 0,
-      "evidenceOnly": 0,
-      "issueCounts": {},
-      "weakSamples": [],
-      "pct": {
-        "aboutDup": 0,
-        "genericLink": 0,
-        "noContact": 0,
-        "noPublished": 0
-      }
-    },
-    "previewSamples": [
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Chesa sur Alvra in Bergün"
-      },
-      {
-        "host": "happyholiday.ch",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Ferienhaus Muntanella in Bergün"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk..."
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Haus Culmoina, Valbella"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Haus Katrin"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "rooms_unknown",
-        "detail": "rooms_unknown",
-        "municipality": "Chur",
-        "rooms": null,
-        "title": "Haus Salonder"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "IGLSON"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Ferienhaus Crapanaira 2-10Personen"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Crap da Flem"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Casa al Lag"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "La Muotta Falera"
-      },
-      {
-        "host": "ferienhausmiete.de",
-        "kept": false,
-        "reason": "outside_target",
-        "detail": "municipality_not_whitelisted",
-        "municipality": null,
-        "rooms": null,
-        "title": "Casa Ansiel"
-      }
-    ]
-  },
-  "assistantHints": [
-    "fetched_but_zero_kept — quality gates rejected all detail pages (rooms/locality/agency/for_sale)",
-    "high_source_locality_mismatch — HappyHoliday/index inventory is mostly outside selected communes",
-    "outside_target present — municipality_not_whitelisted or similar on examined pages",
-    "source_happyholiday_consecutiveBad=2",
-    "source_ferienhausmiete_consecutiveBad=12",
-    "source_portal-homegate_consecutiveBad=1",
-    "infra_failures>0 — detail fetch HTTP errors (403/410/429); check browserRenderHosts and robots"
-  ],
-  "eventCount": 0,
-  "logSource": "process_trace_buffer+application_logs+console",
-  "events": [],
-  "applicationLogCount": 3,
-  "applicationLogs": [
     {
-      "timestamp": "2026-11-27T03:33:00.992Z",
-      "level": "info",
-      "component": "console",
-      "event": "console_output",
-      "message": "{\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0\",\"dryRun\":false,\"wave\":\"full\"}"
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:39:38.971Z",
+      "elapsedMs": 102,
+      "source": "search",
+      "queryIndex": 1,
+      "queryTotal": 68,
+      "query": "\"Realta\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "timestamp": "2026-11-27T03:37:01.735Z",
-      "level": "info",
-      "component": "console",
-      "event": "console_output",
-      "message": "{\"type\":\"immofinder_search_quality_summary\",\"runId\":\"3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":16,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":1,\"serper_calls\":8,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92,\"outside_target\":13,\"rooms_unknown\":1},\"errors\":1,\"sourceStats\":[{\"id\":\"happyholiday\",\"queries\":4,\"hits\":90,\"candidates\":2,\"fetched\":2,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":0,\"geo\":90,\"consecutiveBad\":2},{\"id\":\"ferienhausmiete\",\"queries\":1,\"hits\":16,\"candidates\":12,\"fetched\":12,\"llm\":0,\"kept\":0,\"new\":0,\"agencies\":0,\"junk\":1,\"geo\":15,\"consecutiveBad\":12},{\"id\":\"portal-acheter-louer\",\"queries\":0,\"hits\":0,\"candidates\":0,\"fetched\""
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:39:43.567Z",
+      "elapsedMs": 4698,
+      "source": "search",
+      "queryIndex": 2,
+      "queryTotal": 68,
+      "query": "\"Cazis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
     },
     {
-      "timestamp": "2026-11-27T03:37:01.735Z",
-      "level": "info",
-      "component": "immofinder",
-      "event": "search_quality_summary",
-      "message": "Search quality, card completeness and weak-sample summary for All Logs",
-      "details": {
-        "runId": "3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0",
-        "wave": "full",
-        "counts": {
-          "index_pages": 6,
-          "candidates": 16,
-          "fetched": 14,
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:39:48.176Z",
+      "elapsedMs": 9307,
+      "source": "search",
+      "queryIndex": 3,
+      "queryTotal": 68,
+      "query": "\"Thusis\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:39:52.771Z",
+      "elapsedMs": 13902,
+      "source": "search",
+      "queryIndex": 4,
+      "queryTotal": 68,
+      "query": "\"Maladers\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:39:57.376Z",
+      "elapsedMs": 18507,
+      "source": "portal-homegate",
+      "queryIndex": 5,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Realta\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:01.986Z",
+      "elapsedMs": 23117,
+      "source": "portal-homegate",
+      "queryIndex": 6,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Cazis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:06.588Z",
+      "elapsedMs": 27719,
+      "source": "portal-homegate",
+      "queryIndex": 7,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Thusis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:11.192Z",
+      "elapsedMs": 32323,
+      "source": "portal-homegate",
+      "queryIndex": 8,
+      "queryTotal": 68,
+      "query": "site:homegate.ch \"Maladers\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"3 ½\" OR \"3.5-Zimmer\") mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:15.794Z",
+      "elapsedMs": 36925,
+      "source": "search",
+      "queryIndex": 9,
+      "queryTotal": 68,
+      "query": "\"Realta\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:20.397Z",
+      "elapsedMs": 41528,
+      "source": "search",
+      "queryIndex": 10,
+      "queryTotal": 68,
+      "query": "\"Cazis\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:24.998Z",
+      "elapsedMs": 46129,
+      "source": "search",
+      "queryIndex": 11,
+      "queryTotal": 68,
+      "query": "\"Thusis\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:29.601Z",
+      "elapsedMs": 50732,
+      "source": "search",
+      "queryIndex": 12,
+      "queryTotal": 68,
+      "query": "\"Maladers\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:34.203Z",
+      "elapsedMs": 55334,
+      "source": "portal-immoscout24",
+      "queryIndex": 13,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Realta\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:38.813Z",
+      "elapsedMs": 59944,
+      "source": "portal-immoscout24",
+      "queryIndex": 14,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Cazis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:43.420Z",
+      "elapsedMs": 64551,
+      "source": "portal-immoscout24",
+      "queryIndex": 15,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Thusis\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:48.021Z",
+      "elapsedMs": 69152,
+      "source": "portal-immoscout24",
+      "queryIndex": 16,
+      "queryTotal": 68,
+      "query": "site:immoscout24.ch \"Maladers\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung mieten",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:52.621Z",
+      "elapsedMs": 73752,
+      "source": "search",
+      "queryIndex": 17,
+      "queryTotal": 68,
+      "query": "\"Realta\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:40:57.242Z",
+      "elapsedMs": 78373,
+      "source": "search",
+      "queryIndex": 18,
+      "queryTotal": 68,
+      "query": "\"Cazis\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:41:01.845Z",
+      "elapsedMs": 82976,
+      "source": "search",
+      "queryIndex": 19,
+      "queryTotal": 68,
+      "query": "\"Thusis\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "serper_query_failed",
+      "at": "2026-11-27T03:41:06.445Z",
+      "elapsedMs": 87576,
+      "source": "search",
+      "queryIndex": 20,
+      "queryTotal": 68,
+      "query": "\"Maladers\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "error": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}",
+      "errorName": "Error"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "fa21cc29-d2f3-494b-884e-d7c5ed68d378",
+      "event": "run_completed",
+      "at": "2026-11-27T03:41:13.580Z",
+      "elapsedMs": 94711,
+      "durationMs": 94711,
+      "counts": {
+        "sources": 0,
+        "index_pages": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "snippet_only": 0,
+        "skipped_known": 0,
+        "skipped_seen": 0,
+        "skipped_geo": 0,
+        "search_queries": 20,
+        "serper_calls": 20,
+        "serper_fallback": 0,
+        "llm_skipped_no_rooms": 0,
+        "kept": 0,
+        "new": 0,
+        "updated": 0,
+        "llm_calls": 0,
+        "enriched": 0
+      },
+      "filtered": {},
+      "errors": [
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-homegate",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "portal-immoscout24",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_failed",
+          "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+        },
+        {
+          "source": "search",
+          "code": "search_abort",
+          "detail": "20 consecutive Serper failures"
+        }
+      ],
+      "sourceStats": [
+        {
+          "id": "search",
+          "queries": 12,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
           "kept": 0,
-          "kept_l1": 0,
-          "kept_l2": 0,
           "new": 0,
-          "updated": 0,
-          "skipped": 0,
-          "infra_failures": 1,
-          "serper_calls": 8,
-          "gemini_calls": 0,
-          "serper_available": 1,
-          "gemini_available": 1
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
         },
-        "filtered": {
-          "source_locality_mismatch": 92,
-          "outside_target": 13,
-          "rooms_unknown": 1
+        {
+          "id": "portal-homegate",
+          "queries": 4,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
         },
-        "errors": 1,
-        "sourceStats": [
-          {
-            "id": "happyholiday",
-            "queries": 4,
-            "hits": 90,
-            "candidates": 2,
-            "fetched": 2,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 90,
-            "consecutiveBad": 2
-          },
-          {
-            "id": "ferienhausmiete",
-            "queries": 1,
-            "hits": 16,
-            "candidates": 12,
-            "fetched": 12,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 1,
-            "geo": 15,
-            "consecutiveBad": 12
-          },
-          {
-            "id": "portal-acheter-louer",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-anibis",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-flatfox",
-            "queries": 1,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-home",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-homegate",
-            "queries": 4,
-            "hits": 2,
-            "candidates": 2,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 1
-          },
-          {
-            "id": "portal-icasa",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-immobilier",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-immoscout24",
-            "queries": 4,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-immostreet",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-newhome",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-petitesannonces",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-tutti",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          },
-          {
-            "id": "portal-urbanhome",
-            "queries": 0,
-            "hits": 0,
-            "candidates": 0,
-            "fetched": 0,
-            "llm": 0,
-            "kept": 0,
-            "new": 0,
-            "agencies": 0,
-            "junk": 0,
-            "geo": 0,
-            "consecutiveBad": 0
-          }
-        ],
-        "wavesRun": [
-          "extended"
-        ],
-        "completeness": {
-          "total": 2,
-          "hidden": 2,
-          "with": {
-            "published": 0,
-            "price": 2,
-            "priceMonthly": 0,
-            "rooms": 2,
-            "phone": 0,
-            "email": 0,
-            "contact": 0,
-            "photos": 2,
-            "owner": 2,
-            "specificLink": 1
-          },
-          "pct": {
-            "published": 0,
-            "price": 100,
-            "rooms": 100,
-            "contact": 0,
-            "photos": 100
-          },
-          "fullCards": 0,
-          "fullCardsPct": 0,
-          "dateSource": {
-            "none": 2
-          },
-          "bySource": [
-            {
-              "id": "ferienhausmiete",
-              "total": 2,
-              "published": 0,
-              "price": 2,
-              "rooms": 2,
-              "contact": 0,
-              "photos": 2
-            }
-          ],
-          "weakHosts": [
-            {
-              "host": "ferienhausmiete.de",
-              "total": 2,
-              "noDate": 2,
-              "noContact": 2
-            }
-          ]
-        },
-        "cardQuality": {
-          "visible": 0,
-          "withAbout": 0,
-          "aboutDup": 0,
-          "titleEcho": 0,
-          "genericLink": 0,
-          "evidenceOnly": 0,
-          "issueCounts": {},
-          "weakSamples": [],
-          "pct": {
-            "aboutDup": 0,
-            "genericLink": 0,
-            "noContact": 0,
-            "noPublished": 0
-          }
-        },
-        "previewSamples": [
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Chesa sur Alvra in Bergün"
-          },
-          {
-            "host": "happyholiday.ch",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Ferienhaus Muntanella in Bergün"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Maisonette Fewo ****, 3 SZ , 2 Bäder , 2 Balk..."
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Haus Culmoina, Valbella"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Haus Katrin"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "rooms_unknown",
-            "detail": "rooms_unknown",
-            "municipality": "Chur",
-            "rooms": null,
-            "title": "Haus Salonder"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "IGLSON"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Ferienhaus Crapanaira 2-10Personen"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Crap da Flem"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Casa al Lag"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "La Muotta Falera"
-          },
-          {
-            "host": "ferienhausmiete.de",
-            "kept": false,
-            "reason": "outside_target",
-            "detail": "municipality_not_whitelisted",
-            "municipality": null,
-            "rooms": null,
-            "title": "Casa Ansiel"
-          }
-        ]
-      }
+        {
+          "id": "portal-immoscout24",
+          "queries": 4,
+          "hits": 0,
+          "candidates": 0,
+          "fetched": 0,
+          "llm": 0,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 0,
+          "geo": 0,
+          "consecutiveBad": 0
+        }
+      ],
+      "wavesRun": [
+        "carousel"
+      ],
+      "previewCount": 0,
+      "preview": [],
+      "estimatedCostUsd": 0.02
     }
   ],
-  "consoleTail": [
-    "[phone]T01:04:13.634Z [info] {\"type\":\"immofinder_durable_worker_started\",\"workerId\":\"immo-[phone]fad-[phone]b2e117f\",\"pollMs\":15000}",
-    "[phone]T01:04:14.234Z [log] Project Mode worker started",
-    "[phone]T01:04:14.236Z [log] BiForge v131 (4a64850) on :10000 (production)",
-    "[phone]T01:04:14.237Z [log] [KeepAlive] started, target: https://bf-3tqo.onrender.com, cadence 11–13 min (hard schedule, timed visits)",
-    "[phone]T01:04:28.640Z [info] {\"type\":\"immofinder_immofinder_scope_expansion_skipped\",\"reason\":\"settings_already_updated\",\"updatedAt\":\"[phone]T23:36:04.923Z\"}",
-    "[phone]T01:04:43.638Z [info] {\"type\":\"immofinder_immofinder_boot_run_skipped\",\"reason\":\"threshold_already_satisfied\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\"}",
-    "[phone]T01:05:13.833Z [log] [KeepAlive] ok #1 health=200 in 512ms; cadence 11–13 min",
-    "[phone]T01:05:28.641Z [info] {\"type\":\"immofinder_internal_schedule_started\",\"checkEveryMin\":10,\"bootDelaySec\":75}",
-    "[phone]T01:05:28.645Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:05:28.645Z\"}",
-    "[phone]T01:15:28.646Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:15:28.646Z\"}",
-    "[phone]T01:17:01.457Z [log] [KeepAlive] ok #2 health=200 in 85ms; cadence 11–13 min",
-    "[phone]T01:25:28.647Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:25:28.647Z\"}",
-    "[phone]T01:29:48.554Z [log] [KeepAlive] ok #3 health=200 in 80ms; cadence 11–13 min",
-    "[phone]T01:35:28.647Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:35:28.647Z\"}",
-    "[phone]T01:42:30.756Z [log] [KeepAlive] ok #4 health=200 in 84ms; cadence 11–13 min",
-    "[phone]T01:45:28.649Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:45:28.649Z\"}",
-    "[phone]T01:53:42.870Z [log] [KeepAlive] ok #5 health=200 in 71ms; cadence 11–13 min",
-    "[phone]T01:55:28.649Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T01:55:28.648Z\"}",
-    "[phone]T02:05:28.653Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:05:28.653Z\"}",
-    "[phone]T02:06:32.395Z [log] [KeepAlive] ok #6 health=200 in 74ms; cadence 11–13 min",
-    "[phone]T02:15:28.657Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:15:28.657Z\"}",
-    "[phone]T02:18:26.936Z [log] [KeepAlive] ok #7 health=200 in 326ms; cadence 11–13 min",
-    "[phone]T02:25:28.661Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:25:28.661Z\"}",
-    "[phone]T02:30:02.627Z [log] [KeepAlive] ok #8 health=200 in 87ms; cadence 11–13 min",
-    "[phone]T02:35:28.663Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:35:28.663Z\"}",
-    "[phone]T02:42:13.398Z [log] [KeepAlive] ok #9 health=200 in 84ms; cadence 11–13 min",
-    "[phone]T02:45:28.665Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:45:28.665Z\"}",
-    "[phone]T02:54:20.043Z [log] [KeepAlive] ok #10 health=200 in 77ms; cadence 11–13 min",
-    "[phone]T02:55:28.665Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T02:55:28.665Z\"}",
-    "[phone]T03:05:28.665Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T03:05:28.665Z\"}",
-    "[phone]T03:07:07.883Z [log] [KeepAlive] ok #11 health=200 in 89ms; cadence 11–13 min",
-    "[phone]T03:15:28.670Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T03:15:28.670Z\"}",
-    "[phone]T03:19:11.214Z [log] [KeepAlive] ok #12 health=200 in 78ms; cadence 11–13 min",
-    "[phone]T03:25:28.674Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T23:41:17.310Z\",\"now\":\"[phone]T03:25:28.674Z\"}",
-    "[phone]T03:29:19.603Z [info] {\"type\":\"immofinder_immofinder_repair_bootstrap\",\"audit\":{\"applied\":true,\"duplicate\":false,\"summary\":{\"applied\":0,\"unchanged\":0,\"rejected\":0,\"not_found\":0},\"results\":[]},\"bundled\":{\"bundled\":false,\"reason\":\"no_repair_file\"},\"publication\":{}}",
-    "[phone]T03:32:04.285Z [log] [KeepAlive] ok #13 health=200 in 76ms; cadence 11–13 min",
-    "[phone]T03:33:00.985Z [info] {\"type\":\"immofinder_run_request\",\"via\":\"session\",\"secretHeaderPresent\":false,\"secretConfigured\":true,\"cronAuth\":false}",
-    "[phone]T03:33:00.986Z [info] {\"type\":\"immofinder_run_start\",\"trigger\":\"manual\",\"dryRun\":false}",
-    "[phone]T03:33:00.992Z [info] {\"type\":\"immofinder_run_accepted\",\"trigger\":\"manual\",\"runId\":\"3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0\",\"dryRun\":false,\"wave\":\"full\"}",
-    "[phone]T03:33:14.271Z [info] {\"type\":\"immofinder_database_diagnostics_start\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T03:33:14.270Z\",\"listings\":{\"total\":2,\"visible\":0,\"hidden\":2},\"seen\":{\"total\":614,\"checked_24h\":64},\"pool\":{\"total\":4,\"idle\":4,\"waiting\":0},\"latencyMs\":133}",
-    "[phone]T03:33:35.561Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":9,\"after\":8,\"failedRows\":1,\"durationMs\":20005,\"retryAfter\":77,\"parallel\":true}",
-    "[phone]T03:33:56.283Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16771,\"retryAfter\":44,\"parallel\":true}",
-    "[phone]T03:34:16.384Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16725,\"retryAfter\":44,\"parallel\":true}",
-    "[phone]T03:34:36.222Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16313,\"retryAfter\":43,\"parallel\":true}",
-    "[phone]T03:34:56.057Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16426,\"retryAfter\":44,\"parallel\":true}",
-    "[phone]T03:35:15.867Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16217,\"retryAfter\":33,\"parallel\":true}",
-    "[phone]T03:35:28.675Z [info] {\"type\":\"immofinder_schedule_tick\",\"trigger\":\"internal\",\"mode\":\"manual\",\"everyHours\":3,\"dailyAt\":\"06:00\",\"timezone\":\"Europe/Zurich\",\"due\":false,\"skipped\":\"manual_only\",\"lastRealRunAt\":\"[phone]T03:33:00.988Z\",\"now\":\"[phone]T03:35:28.675Z\"}",
-    "[phone]T03:35:35.426Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":15607,\"retryAfter\":43,\"parallel\":true}",
-    "[phone]T03:35:55.262Z [info] {\"type\":\"immofinder_serper_redirect_resolution\",\"before\":7,\"after\":3,\"failedRows\":0,\"durationMs\":16485,\"retryAfter\":43,\"parallel\":true}",
-    "[phone]T03:35:55.623Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":353,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":417455,\"textChars\":6626,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:35:55.623Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":353,\"status\":200,\"directTextChars\":6626}",
-    "[phone]T03:35:55.623Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":353,\"ok\":true,\"status\":200,\"bodyChars\":417455,\"textChars\":6626,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:35:57.099Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1466,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":418343,\"textChars\":6372,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:35:57.099Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1466,\"status\":200,\"directTextChars\":6372}",
-    "[phone]T03:35:57.099Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1466,\"ok\":true,\"status\":200,\"bodyChars\":418343,\"textChars\":6372,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:35:58.619Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1518,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":427139,\"textChars\":7364,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:35:58.619Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1518,\"status\":200,\"directTextChars\":7364}",
-    "[phone]T03:35:58.619Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1518,\"ok\":true,\"status\":200,\"bodyChars\":427139,\"textChars\":7364,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:36:00.124Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1503,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":450614,\"textChars\":4861,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:36:00.124Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1503,\"status\":200,\"directTextChars\":4861}",
-    "[phone]T03:36:00.124Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1503,\"ok\":true,\"status\":200,\"bodyChars\":450614,\"textChars\":4861,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:36:01.734Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1601,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":636760,\"textChars\":22833,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:36:01.735Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1602,\"status\":200,\"directTextChars\":22833}",
-    "[phone]T03:36:01.735Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":1602,\"ok\":true,\"status\":200,\"bodyChars\":636760,\"textChars\":22833,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:36:03.145Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":902,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":602021,\"textChars\":22672,\"finalHost\":\"happyholiday.ch\",\"error\":null}",
-    "[phone]T03:36:03.145Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":902,\"status\":200,\"directTextChars\":22672}",
-    "[phone]T03:36:03.146Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"happyholiday.ch\",\"elapsedMs\":902,\"ok\":true,\"status\":200,\"bodyChars\":602021,\"textChars\":22672,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:36:04.437Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":999,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":469121,\"textChars\":6932,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:04.438Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1000,\"ok\":true,\"status\":200,\"bodyChars\":469121,\"textChars\":6932,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:06.128Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1686,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":319984,\"textChars\":9068,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:06.129Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1686,\"ok\":true,\"status\":200,\"bodyChars\":319984,\"textChars\":9068,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:07.584Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1445,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":405030,\"textChars\":8567,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:07.584Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1446,\"ok\":true,\"status\":200,\"bodyChars\":405030,\"textChars\":8567,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:09.051Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1414,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":455756,\"textChars\":10548,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:09.051Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1414,\"ok\":true,\"status\":200,\"bodyChars\":455756,\"textChars\":10548,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:10.551Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1412,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":472587,\"textChars\":11020,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:10.551Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1412,\"ok\":true,\"status\":200,\"bodyChars\":472587,\"textChars\":11020,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:12.334Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1697,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":539728,\"textChars\":25340,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:12.334Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1697,\"ok\":true,\"status\":200,\"bodyChars\":539728,\"textChars\":25340,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:13.576Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1036,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":444807,\"textChars\":11339,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:13.576Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1036,\"ok\":true,\"status\":200,\"bodyChars\":444807,\"textChars\":11339,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:15.018Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1375,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":280073,\"textChars\":11442,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:15.018Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1375,\"ok\":true,\"status\":200,\"bodyChars\":280073,\"textChars\":11442,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:16.546Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1519,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":427385,\"textChars\":12015,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:16.546Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1519,\"ok\":true,\"status\":200,\"bodyChars\":427385,\"textChars\":12015,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:18.122Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1567,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":429617,\"textChars\":10086,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:18.122Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1567,\"ok\":true,\"status\":200,\"bodyChars\":429617,\"textChars\":10086,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:19.609Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1076,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":418073,\"textChars\":11210,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:19.610Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1076,\"ok\":true,\"status\":200,\"bodyChars\":418073,\"textChars\":11210,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:21.062Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1429,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":491868,\"textChars\":10842,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:21.062Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1429,\"ok\":true,\"status\":200,\"bodyChars\":491868,\"textChars\":10842,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:22.580Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1444,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":503153,\"textChars\":14220,\"finalHost\":\"www.ferienhausmiete.de\",\"error\":null}",
-    "[phone]T03:36:22.580Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.ferienhausmiete.de\",\"elapsedMs\":1444,\"ok\":true,\"status\":200,\"bodyChars\":503153,\"textChars\":14220,\"fetchMode\":\"direct\"}",
-    "[phone]T03:36:23.540Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":907,\"ok\":true,\"status\":200,\"fetchMode\":\"direct\",\"bodyChars\":12352,\"textChars\":0,\"finalHost\":\"flatfox.ch\",\"error\":null}",
-    "[phone]T03:36:23.540Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"jina_fallback_failed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":907,\"directStatus\":200,\"directTextChars\":0,\"directError\":\"\\n\\n<!DOCTYPE html>\\n<html lang=\\\"de\\\">\\n    <head>\\n        <meta charset=\\\"utf-8\\\">\\n        <meta http-equiv=\\\"X-UA-Compatible\\\" content=\\\"IE=edge,chrome=1\\\">\\n        <meta name=\\\"viewport\\\" content=\\\"wid",
-    "[phone]T03:37:00.333Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_rejected\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":37611,\"status\":200,\"textChars\":0,\"challenge\":false,\"finalHost\":\"flatfox.ch\"}",
-    "[phone]T03:37:01.448Z [info] {\"type\":\"immofinder_fetch_fallback\",\"host\":\"flatfox.ch\",\"outcome\":\"jina_reader_unavailable\",\"directStatus\":200,\"directTextChars\":0}",
-    "[phone]T03:37:01.448Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"flatfox.ch\",\"elapsedMs\":38815,\"ok\":true,\"status\":200,\"bodyChars\":12352,\"textChars\":0,\"fetchMode\":\"direct\"}",
-    "[phone]T03:37:01.686Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"direct_result\",\"requestedHost\":\"www.homegate.ch\",\"elapsedMs\":234,\"ok\":false,\"status\":403,\"fetchMode\":\"direct\",\"bodyChars\":5680,\"textChars\":0,\"finalHost\":\"www.homegate.ch\",\"error\":\"<!DOCTYPE html><html lang=\\\"en-US\\\"><head><title>Just a moment...</title><meta http-equiv=\\\"Content-Type\\\" content=\\\"text/html; charset=UTF-8\\\"><meta",
-    "[phone]T03:37:01.686Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"browser_fallback_skipped_challenge\",\"requestedHost\":\"www.homegate.ch\",\"elapsedMs\":234,\"status\":403,\"directTextChars\":0}",
-    "[phone]T03:37:01.687Z [info] {\"type\":\"immofinder_fetch_trace\",\"event\":\"fetch_completed\",\"requestedHost\":\"www.homegate.ch\",\"elapsedMs\":235,\"ok\":false,\"status\":403,\"bodyChars\":5680,\"textChars\":0,\"fetchMode\":\"direct_challenge_blocked\"}",
-    "[phone]T03:37:01.689Z [info] {\"type\":\"immofinder_database_diagnostics_end\",\"status\":\"ok\",\"database\":\"bf_81oe\",\"databaseTime\":\"[phone]T03:37:01.687Z\",\"listings\":{\"total\":2,\"visible\":0,\"hidden\":2},\"seen\":{\"total\":614,\"checked_24h\":64},\"pool\":{\"total\":3,\"idle\":3,\"waiting\":0},\"latencyMs\":2}",
-    "[phone]T03:37:01.735Z [info] {\"type\":\"immofinder_search_quality_summary\",\"runId\":\"3b84679f-8c8d-4d9e-84b9-d4fd6d22cba0\",\"wave\":\"full\",\"counts\":{\"index_pages\":6,\"candidates\":16,\"fetched\":14,\"kept\":0,\"kept_l1\":0,\"kept_l2\":0,\"new\":0,\"updated\":0,\"skipped\":0,\"infra_failures\":1,\"serper_calls\":8,\"gemini_calls\":0,\"serper_available\":1,\"gemini_available\":1},\"filtered\":{\"source_locality_mismatch\":92,\"outside"
-  ]
+  "result": {
+    "counts": {
+      "sources": 0,
+      "index_pages": 0,
+      "candidates": 0,
+      "fetched": 0,
+      "snippet_only": 0,
+      "skipped_known": 0,
+      "skipped_seen": 0,
+      "skipped_geo": 0,
+      "search_queries": 20,
+      "serper_calls": 20,
+      "serper_fallback": 0,
+      "llm_skipped_no_rooms": 0,
+      "kept": 0,
+      "new": 0,
+      "updated": 0,
+      "llm_calls": 0,
+      "enriched": 0
+    },
+    "filtered": {},
+    "errors": [
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-homegate",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "portal-immoscout24",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_failed",
+        "detail": "Serper HTTP 400: {\"message\":\"Not enough credits\",\"statusCode\":400}"
+      },
+      {
+        "source": "search",
+        "code": "search_abort",
+        "detail": "20 consecutive Serper failures"
+      }
+    ],
+    "sourceStats": [
+      {
+        "id": "search",
+        "queries": 12,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-homegate",
+        "queries": 4,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-immoscout24",
+        "queries": 4,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      }
+    ],
+    "wavesRun": [
+      "carousel"
+    ],
+    "preview": []
+  }
 }
