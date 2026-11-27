@@ -60,3 +60,8 @@ The Owner may save pages or screenshots through ordinary browser functions and p
 
 
 The source registry and personal review endpoints require application authentication; they fail closed when app authentication is disabled. Saved personal research is not exposed through public routes.
+
+
+### Local structured metadata suggestions
+
+When a user imports local HTML/HTM, ImmoGR reads embedded `application/ld+json` in the browser and suggests only explicit title, property type, price, currency, price period, locality and availability fields. Suggestions are editable and remain user-unverified until reviewed; missing or ambiguous values stay unknown. Malformed JSON-LD is ignored. The original file remains on the user's device.

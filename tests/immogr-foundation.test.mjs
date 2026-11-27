@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { extractSchemaFactsFromJsonLd } from '../src/immogr/local-schema.ts';
 
 const read = (file) => readFileSync(new URL('../' + file, import.meta.url), 'utf8');
 
@@ -105,4 +106,28 @@ test('ImmoGR personal notebook exposes all sources and validates owner-submitted
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immogr_manual_reviews/);
   assert.match(migration, /REFERENCES immogr_localities/);
   assert.doesNotMatch(migration, /immofinder_|DROP TABLE|TRUNCATE/i);
+});
+
+test('ImmoGR local HTML JSON-LD extraction suggests facts without asserting verification', () => {
+  const facts = extractSchemaFactsFromJsonLd([JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Apartment',
+    name: 'Bright apartment in Felsberg',
+    address: { '@type': 'PostalAddress', addressLocality: 'Felsberg' },
+    offers: {
+      '@type': 'Offer',
+      price: "1'650",
+      priceCurrency: 'CHF',
+      priceSpecification: { unitText: 'month' },
+      availabilityStarts: '2026-12-01'
+    }
+  })]);
+  assert.equal(facts.pageTitle, 'Bright apartment in Felsberg');
+  assert.equal(facts.propertyType, 'apartment');
+  assert.equal(facts.priceAmount, '1650');
+  assert.equal(facts.currency, 'CHF');
+  assert.equal(facts.pricePeriod, 'month');
+  assert.equal(facts.localityName, 'Felsberg');
+  assert.equal(facts.availability, '2026-12-01');
+  assert.deepEqual(extractSchemaFactsFromJsonLd(['not json']), {});
 });
