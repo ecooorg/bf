@@ -219,5 +219,7 @@ test('ImmoGR broad discovery is bounded to 100 candidate URLs without selected-d
   assert.doesNotMatch(routes, /result\.sources\.filter\(\(source\) => isDiscoveryUrlInScope/);
   assert.match(search, /maxQueries\?: number/);
   assert.match(search, /maxSources\?: number/);
+  assert.match(search, /sources\.length >= maxSources/);
+  assert.doesNotMatch(search, /sources\.length >= MAX_SOURCES\) continue/);
   assert.match(search, /Math\.min\(45, opts\.maxQueries/);
 });
