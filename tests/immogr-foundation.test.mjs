@@ -65,7 +65,7 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(routes, /maxSources: 100/);
   assert.match(routes, /fetchPages: false/);
   assert.match(routes, /isDiscoveryUrlInScope\(source\.url, sourceScope\.sources\)/);
-  assert.match(routes, /candidateSources\.slice\(0, 100\)/);
+  assert.match(routes, /acceptedCandidates\.slice\(0, 100\)/);
   assert.match(ui, /fetch\('\/api\/immogr\/localities\?groupMode=/);
   assert.match(ui, /localityIds: selectedLocalityIds/);
   assert.match(ui, /immogr\.searchLocalityIds\.v1/);
