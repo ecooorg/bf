@@ -1,6 +1,6 @@
 import type { Express } from 'express';
 import { fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
-import { IMMOGR_COMMUNES } from '../../src/immogr/communes.ts';
+import { IMMOGR_COMMUNES } from './communes.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[] };
 
 /** Live discovery returns candidate URLs only. It never fetches listing pages or persists unverified leads. */
