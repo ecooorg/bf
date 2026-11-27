@@ -184,9 +184,9 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     };
     res.setHeader('X-Request-Id', requestId);
     void recordApplicationLog({
-      level: result.status === 'used' ? 'info' : 'error', component: 'immogr',
-      event: result.status === 'used' ? 'discovery_succeeded' : 'discovery_failed',
-      requestId, message: result.status === 'used' ? 'ImmoGR grounded discovery completed' : 'ImmoGR grounded discovery provider failed',
+      level: result?.status === 'used' ? 'info' : 'error', component: 'immogr',
+      event: result?.status === 'used' ? 'discovery_succeeded' : 'discovery_failed',
+      requestId, message: result?.status === 'used' ? 'ImmoGR search completed' : 'ImmoGR search providers failed',
       details: diagnosticDetails,
     }).catch(() => {});
     if (!result || result.status !== 'used') {
