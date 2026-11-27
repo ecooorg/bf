@@ -268,10 +268,10 @@ export default function ImmoGR() {
       .immogr-photo-card { min-width: 0; border: 1px solid #40536b; border-radius: 10px; padding: 8px; }
       .immogr-photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: #101f33; }
       .immogr-source-grid, .immogr-locality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
-      .immogr-selection-block { margin-bottom: 20px; }
-      .immogr-selection-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-      .immogr-selection-heading h2 { margin: 0 0 10px; font-size: 20px; }
-      .immogr-selection-heading span { color: #9aadc5; font-size: 13px; }
+      .immogr-selection-block { margin-bottom: 12px; }
+      .immogr-selection-block > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 48px; padding: 8px 10px; border: 1px solid #40536b; border-radius: 9px; background: #101f33; cursor: pointer; font-size: 18px; font-weight: 700; }
+      .immogr-selection-block > summary span:last-child { color: #9aadc5; font-size: 13px; font-weight: 500; text-align: right; }
+      .immogr-selection-block[open] > summary { margin-bottom: 10px; }
       .immogr-selection-actions, .immogr-search-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
       .immogr-selection-actions button, .immogr-search-actions button { padding: 9px 14px; border: 1px solid #52708f; border-radius: 8px; background: #152b43; color: #eef4ff; }
       .immogr-search-actions { justify-content: flex-end; margin-top: 18px; }
@@ -304,8 +304,8 @@ export default function ImmoGR() {
       <h1 style={{ fontSize: 32, margin: '8px 0' }}>ImmoGR · Rental search</h1>
     </header>
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-search">
-      <div className="immogr-selection-block">
-        <div className="immogr-selection-heading"><h2>Sources</h2><span>{selectedSourceIds.length} / {sources.length || 29}</span></div>
+      <details className="immogr-selection-block">
+        <summary><span>Sources</span><span>{selectedSourceIds.length} / {sources.length || 29} selected</span></summary>
         <div className="immogr-selection-actions">
           <button type="button" onClick={() => setSelectedSourceIds(sources.map((source) => source.id))}>Select all</button>
           <button type="button" onClick={() => setSelectedSourceIds([])}>Clear</button>
@@ -314,9 +314,9 @@ export default function ImmoGR() {
           <input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={(event) => setSelectedSourceIds((current) => event.target.checked ? [...current, source.id] : current.filter((id) => id !== source.id))} />
           <span>{source.name}</span>
         </label>)}</div>
-      </div>
-      <div className="immogr-selection-block">
-        <div className="immogr-selection-heading"><h2>Localities</h2><span>{selectedLocalityIds.length} / {manualLocalities.length || 45}</span></div>
+      </details>
+      <details className="immogr-selection-block">
+        <summary><span>Localities</span><span>{selectedLocalityIds.length} / {manualLocalities.length || 45} selected</span></summary>
         <div className="immogr-selection-actions">
           <button type="button" onClick={() => setSelectedLocalityIds(manualLocalities.map((item) => item.id))}>Select all</button>
           <button type="button" onClick={() => setSelectedLocalityIds([])}>Clear</button>
@@ -325,7 +325,7 @@ export default function ImmoGR() {
           <input type="checkbox" checked={selectedLocalityIds.includes(item.id)} onChange={(event) => setSelectedLocalityIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} />
           <span>{item.name}</span>
         </label>)}</div>
-      </div>
+      </details>
       <div className="immogr-search-actions">
         <button type="button" onClick={() => void downloadSearchDiagnostics()} disabled={diagnosticsDownloading}>{diagnosticsDownloading ? 'Preparing logs…' : 'Download logs'}</button>
         <button type="button" onClick={() => void discover()} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
