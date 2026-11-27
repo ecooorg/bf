@@ -18,7 +18,8 @@
 
 ## WP2 — Source eligibility and real-page research
 - Build the authoritative 44-commune catalogue with IDs, aliases, historical names and postcodes.
-- Collect at least five representative real pages per source candidate and label their page types, owner signals, price semantics, contact routes, and access outcomes.
+- Collect at least five representative real pages per source candidate only through permitted manual review or an authorized access method; label page types, owner signals, price semantics, contact routes, and access outcomes.
+- Obtain written permissions or official partner/API access before automated acquisition; currently no candidate source has passed this gate.
 - Approve, pause, or exclude sources with documented evidence.
 
 ## WP3 — Page acquisition and page representation

@@ -13,3 +13,8 @@ Keep ImmoFinder source, migrations, tables, snapshots, and diagnostics as histor
 
 ## D-IMMOGR-004 — Evidence-first and source-permission-first (2026-11-27)
 No source is automatically crawled until terms, robots, access controls, rate limits, and at least five real detail pages have been reviewed. Search snippets are discovery-only. No automatic outreach is permitted.
+
+
+## D-IMMOGR-005 — Permission-first source activation (2026-11-27)
+
+A source with terms that prohibit scraping, automated scripts, reuse, or external data linking is excluded until written permission or a documented authorized API/feed is obtained. Publicly visible listings and search-engine indexing do not grant a collection licence. A source with unclear terms remains research-only, not active. At WP1 terms review, no source is approved for automated detail-page acquisition.

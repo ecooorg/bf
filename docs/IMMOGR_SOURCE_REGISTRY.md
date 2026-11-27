@@ -34,3 +34,26 @@ For every source, record: operator and business model; private-owner eligibility
 
 ## Research status
 No source has yet passed the five-real-page pilot, terms review, and access review. Do not call any source “supported”, “approved”, or “scrapeable” until those checks are recorded. A search-provider result is not a substitute for source permission or page-level evidence.
+
+
+## Terms and access review — 2026-11-27
+
+The following official terms were checked during WP1 research. Public visibility and the presence of private-owner ads do not grant permission to automate collection or reuse.
+
+| Source | Official terms / evidence | WP1 disposition |
+|---|---|---|
+| Homegate / SMG | https://www.homegate.ch/c/en/about-us/legal-issues/gbc — section 7 prohibits systematically selecting marketplace content, including scraping, copying, republication, and linking it with other data. | Excluded pending written permission or a contractually authorized feed/API. |
+| Flatfox | https://flatfox.ch/c/en/gtc/ — section 4.2 restricts additional use and reuse/exploitation of listing advertisements to the advertiser and Flatfox unless separately agreed. | Excluded pending written permission or a documented authorized data feed. |
+| Tutti | https://www.tutti.help/hc/de/articles/115003331547-Nutzungsbedingungen — user terms prohibit automated scripts for collecting information from or otherwise interacting with the platform. | Excluded pending written permission or an authorized API/feed. |
+| Anibis | https://www.anibis.help/hc/de/articles/14609777649170-Nutzungsbedingungen — user terms prohibit automated scripts for collecting information from or otherwise interacting with the platform. | Excluded pending written permission or an authorized API/feed. |
+| Womilo | https://www.womilo.ch/en/agb — section 12 expressly prohibits automated scraping without Womilo's consent. The platform supports both private and company listings, and some listings are partner-imported. | Excluded pending written consent; high-value owner-signal research candidate only. |
+| HappyHoliday.ch | https://happyholiday.ch/allgemeine-geschaftsbedingungen/ — operator is Gruppenhaussuche.ch AG; providers publish their own holiday properties. The reviewed AGB do not grant an automated collection licence. | Research-only; clarify permission and inspect robots/access rules before any automation. |
+| Ferienhausmiete | https://www.ferienhausmiete.de/pdfs/documents/agb?lang=1 — operator terms identify it as a holiday-home intermediary. Automated access/reuse permission has not been established. | Research-only; no crawler until current access terms are reviewed and permission is confirmed. |
+| Newhome | https://blog.newhome.ch/assets/lbwp-cdn/newhome-blog/files/1610715785/2012015_newhome_richtlinien_en.pdf — publisher guidelines require the relevant publisher/owner relationship; this does not establish a general third-party scraping licence. | Permission required; do not automate based on public visibility. |
+| Comparis | https://www.comparis.ch/immobilien/immobilienportale/allgemeine-geschaeftsbedingungen — reviewed terms prohibit crawling/scraping and reuse without rights. | Excluded pending written permission or an approved API. |
+| Housenet | https://housenet.ch/en/terms-of-use — terms prohibit automated collection without written consent; inventory is agency-supplied. | Excluded pending written consent. |
+| Anibis / Tutti | The terms above also prohibit automated scripts for collecting information or interacting with the platform. | Do not build or run automated page acquisition for these domains. |
+
+### Practical consequence
+
+At this review point, **no candidate source is approved for automated listing-page acquisition**. This is an intentional compliance stop, not an engine failure. Continue research, identify official APIs/partner feeds, and request written permission where valuable. Search-engine snippets may help identify candidate URLs, but must never become admitted listing cards. Do not silently reinterpret a source's prohibition as permission to use browser automation or a third-party proxy.

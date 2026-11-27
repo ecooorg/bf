@@ -17,7 +17,7 @@
       "category": "holiday_rental",
       "status": "research_required",
       "ownerSignal": "site claims direct private landlords",
-      "permission": "not yet verified"
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
     },
     {
       "id": "ferienhausmiete",
@@ -25,55 +25,55 @@
       "category": "holiday_rental",
       "status": "research_required",
       "ownerSignal": "unknown",
-      "permission": "not yet verified"
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
     },
     {
       "id": "flatfox",
       "name": "Flatfox",
       "category": "classified_marketplace",
-      "status": "research_required",
+      "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed private and professional; listing-specific check required",
-      "permission": "not yet verified"
+      "permission": "GTC 4.2 restricts reuse/exploitation of listings to the advertiser and Flatfox; written permission or an authorized feed required"
     },
     {
       "id": "tutti",
       "name": "Tutti",
       "category": "classified_marketplace",
-      "status": "research_required",
+      "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed; advertiser-specific check required",
-      "permission": "not yet verified"
+      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform"
     },
     {
       "id": "anibis",
       "name": "Anibis",
       "category": "classified_marketplace",
-      "status": "research_required",
+      "status": "excluded_pending_written_permission",
       "ownerSignal": "mixed; advertiser-specific check required",
-      "permission": "not yet verified"
+      "permission": "GTC prohibit automated scripts to collect platform information or interact with the platform"
     },
     {
       "id": "homegate",
       "name": "Homegate",
       "category": "property_portal",
-      "status": "research_required",
+      "status": "excluded_pending_written_permission",
       "ownerSignal": "private landlord listing path exists; listing-specific check required",
-      "permission": "not yet verified"
+      "permission": "SMG GTC section 7 prohibit systematic selection of marketplace content, including scraping, and reuse outside the marketplace"
     },
     {
       "id": "newhome",
       "name": "Newhome",
       "category": "property_portal",
-      "status": "research_required",
+      "status": "permission_required",
       "ownerSignal": "mixed; publisher authorization required by platform rules",
-      "permission": "not yet verified"
+      "permission": "publisher/owner permission rules are not an automated access licence; written permission or approved feed required"
     },
     {
       "id": "womilo",
       "name": "Womilo",
       "category": "property_marketplace",
-      "status": "research_required",
+      "status": "excluded_pending_written_permission",
       "ownerSignal": "private and professional; partner-import attribution required",
-      "permission": "not yet verified"
+      "permission": "GTC section 12 prohibit automated scraping without Womilo consent"
     },
     {
       "id": "comparis",
@@ -97,7 +97,7 @@
       "category": "agency_portal",
       "status": "low_priority",
       "ownerSignal": "professional agencies",
-      "permission": "not yet verified"
+      "permission": "No automated access authorization established; keep research-only until current terms, robots, and written permission/API position are confirmed."
     }
   ]
 }
