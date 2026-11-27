@@ -14,7 +14,7 @@
 |---|---|
 | immogr_communes | Historical administrative reference only; not the ImmoGR search geography. |
 | immogr_localities | Exact owner-selected Graubünden localities keyed by stable locality ID and assigned to group 1 or 2. |
-| immogr_sources | Source registry, terms/access review, activation state, rate policy, source adapter version. |
+| immogr_sources | Source registry, terms/access review, separate manual-view and database-capture rights state, activation state, rate policy, source adapter version. |
 | immogr_source_pages | Fetched page observations: requested/final URL, HTTP status, content type, fetch time, content fingerprint, access decision, parser version. |
 | immogr_listings | Canonical property record, result category, locality ID, property type, normalized price/period, owner class, quality state. |
 | immogr_owners | Evidence-backed owner or advertiser identity and entity class; unknown remains valid. |
@@ -42,6 +42,6 @@ Suggested fields:
 - `reviewer_id`, `reviewed_at`, `manual_access_outcome`;
 - structured observed fields for page type, property type, price amount/currency/period, rental mode, owner/advertiser class and signal, contact-route type, freshness and relevance;
 - concise reviewer notes and links to `immogr_evidence` records;
-- `created_at`, `updated_at`, and review-state history.
+- `capture_rights_status_snapshot` copied from the source registry at save time, plus `created_at`, `updated_at`, and review-state history.
 
-Manual records must not contain copied full-page HTML, session cookies, passwords, or unnecessary personal data. Store source URL and provenance; keep uncertain facts as unknown or inference. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record.
+Manual records must not contain copied full-page HTML, session cookies, passwords, or unnecessary personal data. Store source URL and provenance; keep uncertain facts as unknown or inference. A manual observation is a research artifact, not an automatically admitted listing and not a substitute for a fetched-page evidence record. Database capture must check the source-specific `databaseCaptureStatus`; where rights are unclear or restrictive, do not persist copied listing content until the issue is resolved.
