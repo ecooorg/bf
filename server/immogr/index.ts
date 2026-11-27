@@ -169,7 +169,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'One or more localities are outside the owner-defined ImmoGR list.' });
       }
       const scope = resolveDiscoverySourceScope(sourceIds, sourceRegistry.sources);
-      if ('error' in scope || scope.sources.length !== 4 || scope.sources.some((source: any) => source.probePolicy?.status === 'prohibited')) {
+      const selectedRegistrySources = sourceIds.map((id: unknown) => sourceRegistry.sources.find((source) => source.id === id));
+      if ('error' in scope || scope.sources.length !== 4 || selectedRegistrySources.some((source) => !source || source.probePolicy?.status === 'prohibited')) {
         return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'Selected sources are invalid or marked prohibited in the source registry.' });
       }
       const results: any[] = [];
