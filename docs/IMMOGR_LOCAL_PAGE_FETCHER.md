@@ -15,24 +15,12 @@ Create a JSON file outside the repository, for example `my-source-probe.json`:
 
 ```json
 {
-  "source": {
-    "id": "source-id",
-    "scriptedProbeProhibited": false,
-    "probeAuthorization": {
-      "reference": "URL or precise reference to the reviewed permission",
-      "reviewedAt": "2026-11-27T10:00:00.000Z",
-      "researchPurposeAllowed": true,
-      "robotsAllowed": true,
-      "allowedHosts": ["example.ch"],
-      "allowedMethods": ["GET"],
-      "maxRequests": 2
-    }
-  },
+  "sourceId": "source-id",
   "urls": ["https://example.ch/listing/123"]
 }
 ```
 
-The values above are placeholders, not a permission grant for any real source. Replace them only after the source-specific review. Set `scriptedProbeProhibited: true` when the source expressly prohibits scripted requests. A two-request plan means one robots.txt request plus one page request. A three-request plan may include robots.txt plus at most two explicitly listed pages. The host must match exactly.
+The source ID and URLs are only a request plan. Authorization is read from `config/immogr/sources.json`; the local plan cannot grant itself permission. A source must have `probePolicy.status = authorized_for_limited_probe`, a dated review, an authorization reference, an exact host allowlist, and a 2- or 3-request ceiling. A two-request plan means one robots.txt request plus one page request. A three-request plan may include robots.txt plus at most two explicitly listed pages. Sources marked `prohibited` are blocked by the local runner.
 
 ## Run
 
@@ -62,3 +50,18 @@ Import the resulting HTML file into ImmoGR's local page inspector. The original 
 - Authenticated APIs/feeds require a separate adapter and credential integration; never place API keys or passwords in the plan JSON.
 - Redirects are stopped rather than followed because every HTTP request must be counted inside the strict cap.
 - This is a diagnostic/local snapshot path, not recurring acquisition or a production crawler.
+
+
+## Batch research check for all 29 registered sources
+
+The repository includes `config/immogr/source-probe-batch.template.json` with one homepage URL for each of the 29 registered sources. The owner-local batch runner checks every registry entry and records a per-source outcome:
+
+```sh
+npm run immogr:probe-batch -- config/immogr/source-probe-batch.template.json
+```
+
+It reads authorization only from the source registry, skips sources marked `prohibited` or without explicit authorization, and runs eligible probes sequentially through the same bounded local fetcher. The report is written next to the plan as `immogr-local-probe-batch-report.json`; successful HTML snapshots and per-source reports remain in `.immogr-local-probe-batch/<source-id>/.immogr-local-probe-output/`.
+
+Current readiness: 7 sources are explicitly marked `prohibited` for scripted/bulk/crawling access; the other 22 have no recorded authorization for limited automated probes. Therefore the current template will send **zero network requests** until source-specific authorization is documented. This is a readiness report, not evidence that a live probe has run.
+
+The runner uses anonymous HTTPS GET requests only. It does not use personal API keys, logins, cookies or account sessions. Sources requiring authentication or licensed APIs need a separately approved integration; credentials must never be placed in the batch JSON.
