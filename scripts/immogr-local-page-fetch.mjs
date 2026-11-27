@@ -155,7 +155,7 @@ export export function buildProbePlan(planInput, sourceRegistry) {
       ? 'Probe denied by the current source policy.'
       : 'Probe authorization has not been recorded in the ImmoGR source registry.');
   }
-  if (!policy.authorizationReference || !policy.reviewedAt || !Array.isArray(policy.allowedHosts) || !policy.allowedHosts.length || ![2, 3].includes(policy.maxRequests)) {
+  if (!policy.authorizationReference || !policy.reviewedAt || !policy.termsReviewedAt || !policy.robotsReviewedAt || !Array.isArray(policy.allowedHosts) || !policy.allowedHosts.length || ![2, 3].includes(policy.maxRequests)) {
     throw new Error('The source probe authorization record is incomplete.');
   }
   const source = {
