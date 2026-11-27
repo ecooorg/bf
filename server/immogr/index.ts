@@ -6,7 +6,7 @@ import { getPool } from '../database.ts';
 import { recordApplicationLog } from '../projectDiagnostics.ts';
 import { fetchSerperDigestMulti, fetchWebSearchDigest, type SearchClientLike } from '../webSearch.ts';
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
-import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
+import { resolveDiscoverySourceScope } from './discovery-scope.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
 type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown>; probePolicy?: { status?: string } };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
