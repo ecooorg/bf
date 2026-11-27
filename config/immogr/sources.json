@@ -683,9 +683,9 @@
       },
       "homepageUrl": "https://apartmentsswitzerland.ch/en/",
       "probePolicy": {
-        "status": "prohibited",
-        "reason": "The current source review records an explicit restriction on scripted/crawling/bulk automated requests. No local probe may run unless the source operator provides a new permission that supersedes this restriction.",
-        "reviewedAt": "2026-11-27",
+        "status": "not_reviewed",
+        "reason": "Terms restrict crawling and automated detail-page extraction; limited probe permission has not been established. Do not probe until the exact permitted scope is confirmed.",
+        "reviewedAt": null,
         "authorizationReference": null,
         "allowedHosts": [],
         "maxRequests": null
