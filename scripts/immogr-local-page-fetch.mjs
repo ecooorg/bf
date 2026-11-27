@@ -57,7 +57,7 @@ function requestOnce(urlString, method, maxBytes) {
   return new Promise(async (resolve, reject) => {
     let url;
     try { url = new URL(urlString); } catch { reject(new Error('Invalid request URL.')); return; }
-    if (url.protocol !== 'https:' || url.username || url.password) { reject(new Error('Only credential-free HTTPS URLs are allowed.')); return; }
+    if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) { reject(new Error('Only credential-free HTTPS URLs on the standard port are allowed.')); return; }
     let address;
     try { address = await resolvePublicAddress(url.hostname); } catch (error) { reject(error); return; }
     const started = Date.now();
@@ -115,9 +115,10 @@ function robotsGroups(text) {
 }
 
 function robotsPatternMatches(pattern, target) {
-  const escaped = pattern.split('*').map((part) => part.replace(/[.*+?^\u0024{}()|[\]\\]/g, '\\$&')).join('.*');
-  const expression = new RegExp('^' + escaped + (pattern.endsWith('$') ? '' : ''));
-  return expression.test(target);
+  const endAnchored = pattern.endsWith('$');
+  const core = endAnchored ? pattern.slice(0, -1) : pattern;
+  const escaped = core.split('*').map((part) => Array.from(part).map((char) => '\\.^$+?()[]{}|'.includes(char) ? '\\' + char : char).join('')).join('.*');
+  return new RegExp('^' + escaped + (endAnchored ? '$' : '')).test(target);
 }
 
 export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT) {
@@ -126,8 +127,12 @@ export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT)
   const groups = robotsGroups(robotsText);
   const matching = groups.filter((group) => group.agents.some((agent) => agent === '*' || userAgent.toLowerCase().includes(agent)));
   if (!matching.length) return true;
-  const specificity = Math.max(...matching.flatMap((group) => group.agents.filter((agent) => agent !== '*').map((agent) => agent.length)), 0);
-  const rules = matching.filter((group) => group.agents.some((agent) => agent.length === specificity && (agent === '*' || userAgent.toLowerCase().includes(agent)))).flatMap((group) => group.rules);
+  const specificAgents = matching.flatMap((group) => group.agents.filter((agent) => agent !== '*' && userAgent.toLowerCase().includes(agent)));
+  const specificity = Math.max(...specificAgents.map((agent) => agent.length), 0);
+  const selectedGroups = matching.filter((group) => group.agents.some((agent) => specificAgents.length
+    ? agent !== '*' && agent.length === specificity && userAgent.toLowerCase().includes(agent)
+    : agent === '*'));
+  const rules = selectedGroups.flatMap((group) => group.rules);
   const matched = rules.filter((rule) => robotsPatternMatches(rule.value, target)).sort((a, b) => b.value.length - a.value.length);
   if (!matched.length) return true;
   const longest = matched[0].value.length;
