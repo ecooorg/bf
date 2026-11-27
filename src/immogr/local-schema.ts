@@ -8,6 +8,12 @@ export type LocalSchemaFacts = {
   availability?: string;
 };
 
+/** Conservative label normalization: formatting and diacritics only, never geographic alias inference. */
+export function normalizeLocalityLabel(value: string): string {
+  return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')
+    .toLocaleLowerCase('de-CH').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+}
+
 function flattenJsonLd(value: unknown, output: Record<string, unknown>[], seen = new Set<object>()): void {
   if (Array.isArray(value)) {
     for (const item of value) flattenJsonLd(item, output, seen);
@@ -53,11 +59,11 @@ function normalizePrice(value: unknown): string | undefined {
 }
 
 function pricePeriodFrom(value: unknown): LocalSchemaFacts['pricePeriod'] {
-  const text = String(value || '').toLowerCase();
-  if (/month|monthly|p1m|\bmon\b/.test(text)) return 'month';
-  if (/week|weekly|p1w/.test(text)) return 'week';
-  if (/night|nightly|perday|p1d/.test(text)) return 'night';
-  if (/season/.test(text)) return 'season';
+  const text = String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/month|monthly|monat|mois|mese|p1m|\bmon\b/.test(text)) return 'month';
+  if (/week|weekly|woche|semaine|settimana|p1w|\bwee?k\b/.test(text)) return 'week';
+  if (/night|nightly|nacht|nuit|notte|p1n/.test(text)) return 'night';
+  if (/season|saison|stagione/.test(text)) return 'season';
   return undefined;
 }
 
@@ -83,7 +89,7 @@ export function extractSchemaFactsFromJsonLd(scripts: string[]): LocalSchemaFact
   const currencyValue = offers?.priceCurrency ?? priceSpecification?.priceCurrency ?? record.priceCurrency;
   const unit = priceSpecification?.unitText ?? priceSpecification?.unitCode ?? priceSpecification?.billingDuration ?? offers?.unitText;
   const locality = address?.addressLocality ?? address?.name;
-  const availability = offers?.availabilityStarts ?? offers?.validFrom ?? record.availabilityStarts;
+  const availability = offers?.availability ?? offers?.availabilityStarts ?? offers?.validFrom ?? record.availabilityStarts;
   const facts: LocalSchemaFacts = {};
   const name = asText(record.name);
   if (name) facts.pageTitle = name.slice(0, 300);
