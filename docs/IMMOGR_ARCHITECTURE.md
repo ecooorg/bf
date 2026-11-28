@@ -35,7 +35,6 @@ ImmoGR is a clean implementation. Its business logic, adapters, configuration, p
 ## Live activation gate
 The WP1 status endpoint is informational only. A real search endpoint and scheduler must not be enabled until source research, page acquisition, evidence model, independent tests, and the first real-page acceptance gate are complete. The initial release is manual-only; scheduling is a later owner-approved decision.
 
-
 ### Legacy runtime and migration quarantine
 
 ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in the repository but are excluded before the active migration runner reads migration contents or checks their versions. The existing legacy schema and rows are preserved unchanged.
@@ -53,31 +52,15 @@ Manual source research is a first-class path separate from automated page acquis
 
 A framed in-app viewer is optional and must not be assumed to work: source CSP/X-Frame-Options and browser cross-origin isolation commonly prevent embedding or reading arbitrary third-party pages. The safe baseline is an external tab plus an in-app capture panel.
 
-
 ### Private local-copy processing (Owner-approved 2026-11-27)
 
 The Owner may save pages or screenshots through ordinary browser functions and process those local copies manually or with local automation. ImmoGR's local import supports user-selected HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files up to 5 MB: text extraction runs in the browser, the original file is not uploaded, and the Owner reviews/edits the extracted notes before explicit database save. This local workflow does not fetch the remote source, use a proxy, or grant remote crawling permission. The saved record retains source URL, locality, capture time and structured facts/notes. Verified source homepage links are shown for registry entries where available.
 
-
 The source registry and personal review endpoints require application authentication; they fail closed when app authentication is disabled. Saved personal research is not exposed through public routes.
-
 
 ### Local structured metadata suggestions
 
 When a user imports local HTML/HTM, ImmoGR reads embedded `application/ld+json` in the browser and suggests only explicit title, property type, price, currency, price period, locality and availability fields. Suggestions are editable and remain user-unverified until reviewed; missing or ambiguous values stay unknown. Malformed JSON-LD is ignored. The original file remains on the user's device.
-## WP3 authorized acquisition contract (initial implementation)
-
-`server/immogr/acquisition-contract.ts` defines the fail-closed policy boundary and typed page representation. Automated acquisition is eligible only when a source explicitly has `status=authorized_api` or `status=authorized_feed`, a matching authorization mode, a dated authorization reference, explicit terms and robots approval, and an exact HTTPS host allowlist. URL credentials and non-HTTPS URLs are rejected. Public visibility, a manual-review state, local owner-held copies, or a discovery result cannot satisfy this gate.
-
-The contract defines page blocks for metadata, JSON-LD, primary listing, related listing, navigation, footer and other content, plus a source-adapter interface. It does not yet perform network requests or enable any source. A transport implementation must additionally enforce DNS/IP SSRF checks, redirect revalidation, robots policy, per-host rate limits, bounded response size/time, content-type validation, cancellation and auditable fetch outcomes before it can be activated.
-
-## Bounded local-agent research probes (Owner-approved 2026-11-27)
-
-A technical probe is automated access even when it is only two or three requests and is initiated by the Owner's own local ImmoGR agent. It is distinct from manual browsing and from recurring acquisition. The local agent may run a probe only when a source-specific record explicitly documents that limited research-purpose requests are permitted, robots/access rules allow them, the exact host and GET/HEAD methods are allowlisted, and the plan contains no more than two or three requests to one host. Explicit scripted-access prohibitions always win. A probe is not a licence for pagination, listing harvesting, background retries, recurring schedules, or data ingestion at scale.
-
-The policy contract is implemented in `server/immogr/probe-policy.ts`. Credentials/API keys, if required by an approved API, must remain in the Owner's local secret store and must never be written to the repository or probe log. Probe outcomes should record only availability, status/content type, response shape/schema signals, latency and a minimal quality assessment. Do not persist listing datasets from this diagnostic path. The local runner reads the authorization record from `config/immogr/sources.json`; a local JSON plan cannot self-authorize. The batch runner enumerates all 29 sources, skips prohibited or unreviewed sources without requests, and runs eligible probes sequentially from the Owner's environment. No probes have been run by ChatGPT or claimed as completed.
-
-
 ## Local page inspector (WP3 first UI slice)
 
 The manual research form can inspect a user-selected local HTML/HTM snapshot in-browser. It extracts readable body text, page title, canonical/source URL, ordinary HTTP(S) links, image/source URLs (including lazy `data-src` and the first `srcset` candidate), basic meta tags, and JSON-LD blocks. It never executes page scripts, embeds the page, or automatically loads remote images. Unsafe schemes and credential-bearing URLs are omitted. The inspector displays text and URL lists, and offers explicit downloads of the original local HTML snapshot and a JSON extraction report. The extracted notes remain editable in the manual research form and are saved to ImmoGR only when the Owner submits that form. This is not a remote URL fetcher: browser CORS prevents arbitrary cross-origin reads, so a later local-agent transport must deliver a bounded HTML response to this same parser and must independently enforce host/redirect/IP/size/time controls.
