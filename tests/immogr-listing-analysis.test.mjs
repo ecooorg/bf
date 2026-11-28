@@ -106,3 +106,12 @@ test('remote URL Context is source-authorization gated and every extracted candi
  assert.match(route, /allCandidatesRequireReview: true/);
  assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
 });
+
+test('remote URL Context UI is shown only for source-authorized sources and keeps results review-only', () => {
+ const ui = readFileSync(new URL('../src/ImmoGR.tsx', import.meta.url), 'utf8');
+ assert.match(ui, /remoteAnalysisEnabled/);
+ assert.match(ui, /Analyze URL with Gemini/);
+ assert.match(ui, /\/api\/immogr\/analyze-url/);
+ assert.match(ui, /Needs review · URL Context/);
+ assert.match(ui, /not saved automatically/);
+});
