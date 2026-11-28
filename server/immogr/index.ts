@@ -107,13 +107,13 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
 
   app.get('/api/immogr/status', (_req, res) => {
     res.json({
-      product: 'ImmoGR', stage: 'WP2_MANUAL_RESEARCH', liveDiscoveryEnabled,
-      liveSearchEnabled: false, listingQualificationEnabled: false,
+      product: 'ImmoGR', stage: 'WP3_SEARCH_PIPELINE', liveDiscoveryEnabled,
+      liveSearchEnabled: liveDiscoveryEnabled, listingQualificationEnabled: Boolean(searchClient && searchModels.length),
       localPageAnalysisEnabled: Boolean(searchClient && searchModels.length), urlContextConfigured: Boolean(searchClient && searchModels.length), remotePageAcquisitionEnabled: Boolean(searchClient && searchModels.length),
       resultCategories: ['direct_rental', 'private_owner_prospect'],
       message: liveDiscoveryEnabled
-        ? 'Live discovery returns URL leads only. The authenticated notebook can analyze owner-imported local page copies into evidence-backed listing cards; it does not fetch remote pages or save candidates automatically.'
-        : 'Manual research and local-page analysis are available when Gemini is configured. Discovery returns URL leads only; remote URL analysis is available when the configured search model supports URL Context.',
+        ? 'Live search discovers candidate URLs, retrieves bounded public HTML pages, extracts structured and textual evidence, and stores reviewable listing candidates.'
+        : 'Configure a search provider and Gemini listing model to enable full discovery, retrieval and evidence-backed extraction.',
     });
   });
 
