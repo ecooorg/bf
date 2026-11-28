@@ -5,7 +5,7 @@ export interface ImmoConfig {
   municipalityGroups?: { group1: { label: string; municipalities: string[] }; group2: { label: string; municipalities: string[] } };
   stopAgencies: string[]; minRooms: number; platformDomains: string[];
   sources: { id: string; url: string; phase: number; cityUrl?: string; detailPattern?: string; cutMarkers?: string[]; privateTitleHint?: string; maxDetailPages?: number; indexUrls?: string[] }[];
-  fetch: { userAgent: string; perHostDelayMs: number; respectRobotsTxt: boolean; browserRenderHosts?: string[]; browserRenderMinTextChars?: number; maxBrowserRendersPerRun?: number };
+  fetch: { userAgent: string; perHostDelayMs: number; browserRenderHosts?: string[]; browserRenderMinTextChars?: number; maxBrowserRendersPerRun?: number };
   limits: { maxDetailPagesPerSource: number; recheckAfterDays: number; fetchTimeoutMs: number; maxPageBytes: number };
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
