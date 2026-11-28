@@ -1,5 +1,3 @@
-> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
-
 # BiForge
 
 BiForge helps users converse, solve expert problems, and turn software goals into validated downloadable artifacts. Product success is judged by real user outcomes; tests and CI are supporting evidence, not substitutes.
