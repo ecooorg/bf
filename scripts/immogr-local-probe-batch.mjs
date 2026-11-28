@@ -3,15 +3,15 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { evaluateResearchProbe } from '../server/immogr/probe-validation.ts';
+import { validateResearchProbe } from '../server/immogr/probe-validation.ts';
 
 /** Evaluate source URL plans using technical validation only. */
 export function assessBatchProbe(source, entry) {
   if (!entry) return { allowed: false, status: 'not_planned', reason: 'No probe entry was supplied.' };
   if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 20) return { allowed: false, status: 'invalid_plan', reason: 'Provide between one and twenty URLs.' };
   const requests = entry.urls.map((url) => ({ url, method: 'GET' }));
-  const decision = evaluateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
-  if (!decision.allowed) return { allowed: false, status: 'invalid_plan', reason: decision.reasons.join(', ') };
+  const decision = validateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
+  if (!decision.valid) return { allowed: false, status: 'invalid_plan', reason: decision.reasons.join(', ') };
   return { allowed: true, status: 'ready' };
 }
 
