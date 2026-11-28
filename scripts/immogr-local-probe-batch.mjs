@@ -5,51 +5,14 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { evaluateResearchProbe } from '../server/immogr/probe-policy.ts';
 
-function sourceAuthorization(source) {
-  const policy = source.probePolicy;
-  if (!policy || policy.status !== 'authorized_for_limited_probe') return null;
-  return {
-    reference: policy.authorizationReference || '',
-    reviewedAt: policy.reviewedAt || '',
-    researchPurposeAllowed: true,
-    robotsAllowed: true,
-    allowedHosts: Array.isArray(policy.allowedHosts) ? policy.allowedHosts : [],
-    allowedMethods: ['GET'],
-    maxRequests: policy.maxRequests,
-  };
-}
-
-/** Evaluate one source without sending a request. */
+/** Evaluate source URL plans using technical validation only. */
 export function assessBatchProbe(source, entry) {
   if (!entry) return { allowed: false, status: 'not_planned', reason: 'No probe entry was supplied.' };
-  const policy = source.probePolicy;
-  if (policy?.status === 'prohibited') {
-    return { allowed: false, status: 'blocked_by_source_policy', reason: policy.reason || 'The source policy prohibits scripted probes.' };
-  }
-  if (policy?.status !== 'authorized_for_limited_probe') {
-    return { allowed: false, status: 'authorization_required', reason: policy?.reason || 'No explicit limited-probe authorization is recorded.' };
-  }
-  const authorization = sourceAuthorization(source);
-  if (!authorization || !authorization.reference || !authorization.reviewedAt || !policy.termsReviewedAt || !policy.robotsReviewedAt || !authorization.allowedHosts.length || ![2, 3].includes(authorization.maxRequests)) {
-    return { allowed: false, status: 'authorization_incomplete', reason: 'The source probe authorization record is incomplete.' };
-  }
-  if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 2) {
-    return { allowed: false, status: 'invalid_plan', reason: 'A probe must contain one or two explicitly selected HTTPS page URLs.' };
-  }
-  let requests;
-  try {
-    const first = new URL(entry.urls[0]);
-    if (first.protocol !== 'https:') throw new Error('HTTPS required.');
-    requests = [{ url: new URL('/robots.txt', first.origin).toString(), method: 'GET' }, ...entry.urls.map((url) => ({ url, method: 'GET' }))];
-  } catch (error) {
-    return { allowed: false, status: 'invalid_plan', reason: error instanceof Error ? error.message : 'Invalid probe URL.' };
-  }
-  const decision = evaluateResearchProbe(
-    { id: source.id, probeAuthorization: authorization },
-    { sourceId: source.id, requests },
-  );
-  if (!decision.allowed) return { allowed: false, status: 'blocked_by_probe_gate', reason: decision.reasons.join(', ') };
-  return { allowed: true, status: 'ready', authorizationReference: decision.reference, maxRequests: decision.maxRequests };
+  if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 20) return { allowed: false, status: 'invalid_plan', reason: 'Provide between one and twenty URLs.' };
+  const requests = entry.urls.map((url) => ({ url, method: 'GET' }));
+  const decision = evaluateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
+  if (!decision.allowed) return { allowed: false, status: 'invalid_plan', reason: decision.reasons.join(', ') };
+  return { allowed: true, status: 'ready' };
 }
 
 async function main() {
@@ -108,7 +71,7 @@ async function main() {
   const summary = results.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
   const report = {
     generatedAt: new Date().toISOString(),
-    mode: 'owner_triggered_local_limited_research_probe',
+    mode: 'owner_triggered_local_source_test',
     sourceCount: registry.sources.length,
     requestsSentByThisBatch: results.some((item) => item.status === 'probe_failed') ? null : results.reduce((sum, item) => sum + (item.requestCount || 0), 0),
     summary,
