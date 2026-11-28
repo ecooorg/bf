@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateResearchProbe } from '../server/immogr/probe-policy.ts';
-test('accepts an ordinary HTTPS GET without source-specific permission metadata', () => {
+test('accepts an ordinary HTTPS GET for a registered source', () => {
   const result = evaluateResearchProbe({ id: 'example' }, { sourceId: 'example', requests: [{ url: 'https://example.ch/listing/1', method: 'GET' }] });
   assert.equal(result.allowed, true);
 });
