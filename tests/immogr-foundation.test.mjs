@@ -33,6 +33,7 @@ test('ImmoGR exposes saved search results, run history and measured source yield
   assert.match(routes, /\/api\/immogr\/listings/);
   assert.match(routes, /\/api\/immogr\/runs/);
   assert.match(routes, /\/api\/immogr\/source-scorecard/);
+  assert.match(routes, /pipeline_exception/);
   assert.match(routes, /count\(DISTINCT e\.listing_id\)/);
   assert.match(routes, /for \(const source of sourceRegistry\.sources\)/);
   assert.match(ui, /Source performance/);
