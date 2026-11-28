@@ -105,6 +105,75 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     }
   });
 
+
+  app.get('/api/immogr/runs', async (req, res) => {
+    if (!requireOwner(req, res)) return;
+    try {
+      const pool = await getPool();
+      const result = await pool.query(
+        'SELECT id, mode, category, status, counters, started_at, finished_at FROM immogr_runs ORDER BY started_at DESC LIMIT 30',
+      );
+      return res.json({ runs: result.rows });
+    } catch (error) {
+      console.error('[ImmoGR] run history unavailable', String((error as Error)?.message || error).slice(0,160));
+      return res.status(503).json({ error: 'ImmoGR run history is unavailable. Check database connectivity and migrations.' });
+    }
+  });
+
+  app.get('/api/immogr/listings', async (req, res) => {
+    if (!requireOwner(req, res)) return;
+    const category = ['direct_rental','private_owner_prospect'].includes(String(req.query.category)) ? String(req.query.category) : '';
+    const localityId = String(req.query.localityId || '').slice(0,80);
+    const limit = Math.max(1, Math.min(100, Number.isFinite(Number(req.query.limit)) ? Math.floor(Number(req.query.limit)) : 30));
+    try {
+      const pool = await getPool();
+      const result = await pool.query(
+        `SELECT l.id, l.canonical_url AS url, l.category, l.locality_id AS "localityId",
+          loc.locality_name AS locality, l.property_type AS "propertyType", l.owner_class AS "ownerClass",
+          l.monthly_rent_chf AS "priceAmount", CASE WHEN l.monthly_rent_chf IS NOT NULL THEN 'CHF' ELSE NULL END AS currency,
+          l.price_period AS "pricePeriod", l.qualification_state AS qualification, l.last_seen_at AS "lastSeenAt",
+          (SELECT sp.source_id FROM immogr_evidence e JOIN immogr_source_pages sp ON sp.id=e.source_page_id
+           WHERE e.listing_id=l.id ORDER BY e.observed_at DESC LIMIT 1) AS "sourceId",
+          (SELECT s.operator_name FROM immogr_evidence e JOIN immogr_source_pages sp ON sp.id=e.source_page_id
+           JOIN immogr_sources s ON s.id=sp.source_id WHERE e.listing_id=l.id ORDER BY e.observed_at DESC LIMIT 1) AS "sourceName",
+          COALESCE((SELECT json_agg(json_build_object('field', evidence.field_name, 'quote', evidence.quote)
+            ORDER BY evidence.observed_at DESC) FROM (
+              SELECT field_name, quote, observed_at FROM immogr_evidence
+              WHERE listing_id=l.id ORDER BY observed_at DESC LIMIT 12
+            ) evidence), '[]'::json) AS evidence
+         FROM immogr_listings l LEFT JOIN immogr_localities loc ON loc.locality_id=l.locality_id
+         WHERE ($1='' OR l.category=$1) AND ($2='' OR l.locality_id=$2)
+         ORDER BY l.last_seen_at DESC LIMIT $3`,
+        [category, localityId, limit],
+      );
+      return res.json({ listings: result.rows, count: result.rows.length });
+    } catch (error) {
+      console.error('[ImmoGR] listing search unavailable', String((error as Error)?.message || error).slice(0,160));
+      return res.status(503).json({ error: 'ImmoGR saved listings are unavailable. Check database connectivity and migrations.' });
+    }
+  });
+
+  app.get('/api/immogr/source-scorecard', async (req, res) => {
+    if (!requireOwner(req, res)) return;
+    try {
+      const pool = await getPool();
+      const result = await pool.query(
+        `SELECT s.id AS "sourceId", s.operator_name AS "sourceName", s.canonical_domain AS domain,
+          count(sp.id) FILTER (WHERE sp.retrieval_status='retrieved')::int AS retrieved_pages,
+          count(sp.id) FILTER (WHERE sp.retrieval_status='failed')::int AS failed_pages,
+          count(DISTINCT e.listing_id)::int AS extracted_listings,
+          max(sp.observed_at) AS "lastObservedAt"
+         FROM immogr_sources s LEFT JOIN immogr_source_pages sp ON sp.source_id=s.id
+         LEFT JOIN immogr_evidence e ON e.source_page_id=sp.id
+         GROUP BY s.id,s.operator_name,s.canonical_domain ORDER BY extracted_listings DESC,retrieved_pages DESC,s.operator_name`,
+      );
+      return res.json({ sources: result.rows });
+    } catch (error) {
+      console.error('[ImmoGR] source scorecard unavailable', String((error as Error)?.message || error).slice(0,160));
+      return res.status(503).json({ error: 'ImmoGR source scorecard is unavailable. Check database connectivity and migrations.' });
+    }
+  });
+
   app.get('/api/immogr/status', (_req, res) => {
     res.json({
       product: 'ImmoGR', stage: 'WP3_SEARCH_PIPELINE', liveDiscoveryEnabled,
