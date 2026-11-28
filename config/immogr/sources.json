@@ -431,7 +431,7 @@
     "allowedOutcomes": [
       "reviewed",
       "in_progress",
-      "blocked_by_source",
+      "request_failed",
       "no_relevant_inventory",
       "not_started"
     ],
