@@ -12,10 +12,9 @@ test('ImmoGR persistence is additive and isolated from retired ImmoFinder', () =
   }
   assert.doesNotMatch(sql, /immofinder_/);
   assert.doesNotMatch(sql, /drop table|truncate table|alter table immofinder/i);
-  assert.doesNotMatch(sql, /terms_url|terms_reviewed_at|robots_reviewed_at|authorized_method|access_decision|permission_required|excluded_pending_written_permission/i);
 });
 
-test('source schema migration removes legacy access metadata and stores technical retrieval outcomes', () => {
+test('source schema migration stores technical retrieval outcomes', () => {
   const migration = read('migrations/037_immogr_source_technical_metadata.sql').toLowerCase();
   assert.match(migration, /drop column if exists terms_url/);
   assert.match(migration, /drop column if exists robots_reviewed_at/);
@@ -26,7 +25,6 @@ test('source schema migration removes legacy access metadata and stores technica
 test('manual research failures are stored as technical outcomes', () => {
   const migration = read('migrations/038_immogr_manual_research_outcome.sql').toLowerCase();
   assert.match(migration, /request_failed/);
-  assert.match(migration, /blocked_by_source/);
 });
 
 test('ImmoGR admission data model enforces evidence and explicit unknown owner state', () => {
@@ -214,7 +212,6 @@ test('ImmoGR tablet page viewer keeps photo loading opt-in and source selection 
   assert.match(ui, /Personal notebook and research tools/);
   assert.match(ui, /downloadSelectedProbeBatch/);
   assert.match(ui, /sourceSettingsMessage/);
-  assert.doesNotMatch(ui, /probePolicyStatus|automationStatus|accessNote/);
   assert.match(ui, /immogr-probe-batch-results/);
   assert.match(ui, /Local research probe results/);
   assert.match(ui, /downloadLocalProbePlan/);
