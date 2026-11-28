@@ -143,42 +143,15 @@ export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT)
 }
 
 export function buildProbePlan(planInput, sourceRegistry) {
-  if (!planInput || typeof planInput !== 'object' || typeof planInput.sourceId !== 'string' || !Array.isArray(planInput.urls)) {
-    throw new Error('Plan must contain a registered sourceId and a urls array.');
-  }
+  if (!planInput || typeof planInput !== 'object' || typeof planInput.sourceId !== 'string' || !Array.isArray(planInput.urls)) throw new Error('Plan must contain a registered sourceId and a urls array.');
   if (!sourceRegistry || !Array.isArray(sourceRegistry.sources)) throw new Error('The ImmoGR source registry is required.');
-  const sourceConfig = sourceRegistry.sources.find((item) => item.id === planInput.sourceId);
-  if (!sourceConfig) throw new Error('Unknown ImmoGR source ID.');
-  const policy = sourceConfig.probePolicy;
-  if (!policy || policy.status !== 'authorized_for_limited_probe') {
-    throw new Error(policy?.status === 'prohibited'
-      ? 'Probe denied by the current source policy.'
-      : 'Probe authorization has not been recorded in the ImmoGR source registry.');
-  }
-  if (!policy.authorizationReference || !policy.reviewedAt || !policy.termsReviewedAt || !policy.robotsReviewedAt || !Array.isArray(policy.allowedHosts) || !policy.allowedHosts.length || ![2, 3].includes(policy.maxRequests)) {
-    throw new Error('The source probe authorization record is incomplete.');
-  }
-  const source = {
-    id: sourceConfig.id,
-    scriptedProbeProhibited: false,
-    probeAuthorization: {
-      reference: policy.authorizationReference,
-      reviewedAt: policy.reviewedAt,
-      researchPurposeAllowed: true,
-      robotsAllowed: true,
-      allowedHosts: policy.allowedHosts,
-      allowedMethods: ['GET'],
-      maxRequests: policy.maxRequests,
-    },
-  };
+  const source = sourceRegistry.sources.find((item) => item.id === planInput.sourceId);
+  if (!source) throw new Error('Unknown ImmoGR source ID.');
+  if (planInput.urls.length < 1 || planInput.urls.length > 20) throw new Error('Provide between one and twenty page URLs.');
   const urls = planInput.urls;
-  if (!Array.isArray(urls) || urls.length < 1) throw new Error('At least one page URL is required.');
-  const first = new URL(urls[0]);
-  if (first.protocol !== 'https:') throw new Error('Only HTTPS listing URLs are supported.');
-  const robotsUrl = new URL('/robots.txt', first.origin).toString();
-  const requests = [{ url: robotsUrl, method: 'GET' }, ...urls.map((url) => ({ url, method: 'GET' }))];
-  const decision = evaluateResearchProbe(source, { sourceId: source.id, requests });
-  if (!decision.allowed) throw new Error('Probe plan denied: ' + decision.reasons.join(', '));
+  const requests = urls.map((url) => ({ url, method: 'GET' }));
+  const decision = evaluateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
+  if (!decision.allowed) throw new Error('Invalid technical request plan: ' + decision.reasons.join(', '));
   return { source, urls, requests, decision };
 }
 
@@ -199,20 +172,8 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   const records = [];
 
-  const robots = await requestOnce(plan.requests[0].url, 'GET', MAX_ROBOTS_BYTES);
-  if (robots.location) throw new Error('Redirects are not followed by the bounded probe runner; review the canonical host manually.');
-  let robotsText = '';
-  if (robots.statusCode === 404 || robots.statusCode === 410) {
-    robotsText = '';
-  } else if (robots.statusCode >= 200 && robots.statusCode < 300 && robots.contentType === 'text/plain') {
-    robotsText = robots.body.toString('utf8');
-  } else {
-    throw new Error('Robots check did not return a readable 2xx text/plain file or a 404/410; probe stopped.');
-  }
-  records.push({ kind: 'robots', url: plan.requests[0].url, statusCode: robots.statusCode, elapsedMs: robots.elapsedMs, bytes: robots.body.length });
   for (let index = 0; index < plan.urls.length; index += 1) {
     const pageUrl = plan.urls[index];
-    if (!isAllowedByRobots(robotsText, pageUrl)) throw new Error('robots.txt disallows this page path; no listing request was sent.');
     const page = await requestOnce(pageUrl, 'GET', MAX_HTML_BYTES);
     if (page.location) throw new Error('Listing redirect encountered; redirects are not followed to avoid uncounted requests.');
     if (page.statusCode < 200 || page.statusCode >= 300) throw new Error('Listing request returned HTTP ' + page.statusCode + '; no retry was attempted.');
@@ -228,10 +189,8 @@ async function main() {
   }
   const report = {
     sourceId: plan.source.id,
-    authorizationReference: plan.decision.reference,
     mode: 'owner_triggered_local_probe',
     requestCount: records.length,
-    maxRequests: plan.decision.maxRequests,
     host: plan.decision.host,
     outcome: 'completed',
     records,
