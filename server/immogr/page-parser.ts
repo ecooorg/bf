@@ -18,7 +18,7 @@ function stripMarkup(value: string): string {
 }
 function attr(tag: string, name: string): string {
   const escaped=name.replace(/[.*+?^{}()|[\]\\]/g,'\\$&');
-  const match=tag.match(new RegExp('\\b'+escaped+'\\s*=\\s*(?:"([^"]*)"|\\'([^\\']*)\\'|([^\\s>]+))','i'));
+  const match=tag.match(new RegExp(`\\b${escaped}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,'i'));
   return decodeEntities(match?.[1] ?? match?.[2] ?? match?.[3] ?? '');
 }
 export function parseImmoGRHtml(html: string, pageUrl: string): ParsedHtmlPage {
