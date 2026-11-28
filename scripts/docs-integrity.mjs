@@ -26,13 +26,13 @@ const required = [
   ['docs/MODEL_REGISTRY.md', ['Gemini free-key allowlist', 'gemini-3.5-flash-lite']],
   ['docs/IMMOGR_PRODUCT_SPECIFICATION.md', ['Direct Rental', 'Private Owner Prospect']],
   ['docs/IMMOGR_ARCHITECTURE.md', ['Strict isolation', 'Evidence-first extraction']],
-  ['docs/IMMOGR_SOURCE_REGISTRY.md', ['research_required', 'permission']],
+  ['docs/IMMOGR_SOURCE_REGISTRY.md', ['canonical homepage', 'technical retrieval']],
   ['docs/IMMOGR_DATA_MODEL.md', ['immogr_listings', 'immogr_evidence']],
   ['docs/IMMOGR_QUALITY_STANDARD.md', ['Evidence coverage', 'precision']],
   ['docs/IMMOGR_ACCEPTANCE_CRITERIA.md', ['30 real pages', 'three consecutive']],
   ['docs/IMMOGR_DECISIONS.md', ['D-IMMOGR-001']],
   ['docs/IMMOGR_KNOWLEDGE_EXTRACTION.md', ['Pure domain core', 'No legacy code reuse']],
-  ['docs/IMMOGR_ROADMAP.md', ['WP0', 'WP1']],
+  ['docs/IMMOGR_ROADMAP.md', ['Phase 1 — Complete the search engine', 'Phase 2 — Short technical and usefulness test of every source']],
   ['docs/IMMOGR_PROBE_READINESS.md', ['limited research probe readiness', 'Registered sources: **29**']],
 ];
 for (const [rel, needles] of required) {
