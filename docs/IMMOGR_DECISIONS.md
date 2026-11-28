@@ -90,3 +90,7 @@ Discovery results are rendered as unverified candidate cards and never treated a
 ## D-IMMOGR-018 — Evidence-backed listing extraction from local page copies (2026-11-27)
 
 The Owner wants individual property cards rather than search-result URLs. The first implementation is user-triggered AI analysis of a page copy selected and imported locally. Gemini may split a catalogue into multiple listing candidates, but the server validates every fact against a quotation in submitted text, permits only the original page URL or observed same-source links, and exact-matches localities. Direct Rental and Private Owner Prospect use independent evidence gates. AI suggestions are not saved or admitted automatically. Remote URL Context and browser acquisition remain disabled until source-specific terms, robots, approved method and host scope are documented.
+
+
+## D-IMMOGR-019 — URL Context remains source-authorized and review-only (2026-11-28)
+Gemini URL Context may analyze only one user-selected HTTPS URL from a source whose registry entry explicitly records authorized status, authorization reference, allowed host and positive request limit, with the global feature switch enabled. The model must confirm successful retrieval metadata. Remote results are suggestions only, always require human review and local evidence validation, and are never auto-saved. The current source catalog authorizes no source for remote URL retrieval.
