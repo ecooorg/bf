@@ -464,6 +464,9 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
 
   app.post('/api/immogr/search', async (req, res) => {
     if (!requireOwner(req, res)) return;
+    let runId: string | null = null;
+    let pool: any = null;
+    try {
     if ((!searchClient || !searchModels.length) && !serperEnabled) {
       return res.status(503).json({ success: false, code: 'SEARCH_PROVIDER_UNAVAILABLE', error: 'Configure Gemini Google Search or Serper to start ImmoGR search.' });
     }
@@ -479,9 +482,9 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       return res.status(mockResponse.statusCode || 502).json(mockResponse.payload || { success: false, code: 'DISCOVERY_FAILED' });
     }
     const leads = (mockResponse.payload.leads || []).slice(0, maxPages);
-    const runId = randomUUID();
+    runId = randomUUID();
     const startedAt = new Date();
-    const pool = await getPool();
+    pool = await getPool();
     const category = req.body?.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
     const localityIds = Array.isArray(req.body?.localityIds) ? req.body.localityIds.map(String) : [];
     const selectedSources = sourceRegistry.sources.filter((source) => (req.body?.sourceIds || []).includes(source.id));
@@ -599,6 +602,15 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     await pool.query("UPDATE immogr_runs SET status=$2,finished_at=now(),counters=$3::jsonb WHERE id=$1", [runId, finalStatus, JSON.stringify({ discovered: leads.length, fetched: fetchedCount, failed: failedCount, analyzed: pageResults.filter((item) => item.status === 'analyzed').length, candidates: candidates.length })]);
     void recordApplicationLog({ level: finalStatus === 'failed' ? 'error' : 'info', component: 'immogr', event: 'search_pipeline_completed', message: 'ImmoGR discovery, acquisition and extraction pipeline completed', details: { runId, status: finalStatus, discovered: leads.length, fetched: fetchedCount, failed: failedCount, candidates: candidates.length, durationMs: Date.now() - startedAt.getTime() } }).catch(() => {});
     return res.json({ success: finalStatus !== 'failed', runId, status: finalStatus, discovered: mockResponse.payload.leads.length, fetched: fetchedCount, failed: failedCount, candidateCount: candidates.length, candidates, pages: pageResults, generatedAt: new Date().toISOString() });
+    } catch (error) {
+      if (runId && pool) {
+        try {
+          await pool.query("UPDATE immogr_runs SET status='failed',finished_at=now(),error_code='pipeline_exception' WHERE id=$1 AND status='running'", [runId]);
+        } catch { /* preserve the original pipeline error */ }
+      }
+      console.error('[ImmoGR] search pipeline failed', runId || 'before_run_creation', String((error as Error)?.message || error).slice(0,240));
+      return res.status(500).json({ success: false, code: 'SEARCH_PIPELINE_FAILED', runId, error: 'ImmoGR search pipeline failed. Inspect run history and application diagnostics.' });
+    }
   });
 
 
