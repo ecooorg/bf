@@ -1,8 +1,3 @@
-## 2026-11-28 — Permission-gated Gemini URL Context (P131.23)
-- Added a single-URL Gemini URL Context analysis route with owner authentication, a global feature switch, and source-specific authorization reference, host allowlist, and request-limit gates.
-- Verify successful URL Context retrieval metadata; all remote suggestions remain needs-review and are never auto-saved.
-- Added UI entry point only for sources explicitly marked remote-analysis-enabled; no current catalog source is authorized, so remote reading remains inactive by default.
-
 ## 2026-11-27 — ImmoGR evidence validation hardening (P131.22)
 - Require a listing-detail URL for qualified private-owner prospects.
 - Remove personal phone numbers, email addresses and person-addressed contact lines from evidence quotations.
