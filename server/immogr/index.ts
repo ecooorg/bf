@@ -440,7 +440,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         const sinceLast = Date.now() - (hostLastStarted.get(requestedHost) || 0);
         if (sinceLast < 500) await pause(500 - sinceLast);
         hostLastStarted.set(requestedHost, Date.now());
-        const fetched = await fetchImmoGRPage(lead.url);
+        const fetched = await fetchImmoGRPage(lead.url, { allowedHosts: [new URL(source.homepageUrl || '').hostname] });
         releaseHost();
         if (!fetched.ok) {
           await pool.query(
