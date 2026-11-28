@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS immogr_sources (
   id text PRIMARY KEY,
   canonical_domain text NOT NULL,
   operator_name text,
-  status text NOT NULL CHECK (status IN ('active','discovery_only','research_required','degraded','retired','not_a_feasible_source','low_priority')),
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
