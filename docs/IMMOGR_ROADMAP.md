@@ -112,3 +112,10 @@ WP3 has started with a fail-closed authorization and page-representation contrac
 - [ ] Implement Gemini URL Context only for sources with explicit reviewed acquisition authorization.
 - [ ] Add Playwright fallback only for authorized public pages requiring JavaScript rendering.
 - [ ] Review official feeds and portal alerts as separate discovery channels.
+
+
+## WP2 — Permission-gated URL Context
+- [x] Add Gemini URL Context single-URL analysis with source-specific authorization and global feature gates.
+- [x] Render remote suggestions only for sources whose registry explicitly enables remote analysis; keep every card in needs-review state and prohibit auto-save.
+- [ ] Obtain and record source-specific authorization before enabling any portal for remote URL Context. Current catalog has zero authorized remote sources.
+- [ ] Run a controlled end-to-end test on an explicitly authorized listing URL and compare extracted facts with a user-selected local page copy.
