@@ -14,10 +14,9 @@ export function isShortPageBrowserCandidate(
   return textChars >= 120 && textChars < minChars && allowed.some((value) => host === value || host.endsWith('.' + value));
 }
 
-/** Polite fetcher: honest User-Agent, per-host delay, robots.txt, timeout, size cap, http(s) only. */
+/** Legacy fetcher: honest User-Agent, per-host delay, timeout, size cap and public-target validation. */
 export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fetch, isPublicTarget: (url: string) => Promise<boolean> = isPublicFetchTarget, options: { allowJina?: boolean; allowBrowser?: boolean } = {}) {
-  type RobotsRule = { allow: boolean; path: string };
-  const last = new Map<string, number>(); const robots = new Map<string, RobotsRule[]>();
+  const last = new Map<string, number>();
   let browserRenders = 0;
   const browserRenderLimit = Math.max(0, Math.min(3, Math.floor(cfg.fetch.maxBrowserRendersPerRun ?? 2)));
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -52,50 +51,6 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       const body = await readPrefix(r);
       return { ok: r.ok, status: r.status, body, finalUrl: r.url || url, location: r.headers.get('location') || undefined };
     } finally { clearTimeout(t); }
-  }
-  async function disallowed(u: URL): Promise<boolean> {
-    let rules = robots.get(u.host);
-    if (!rules) {
-      const groups: { agents: string[]; rules: RobotsRule[] }[] = [];
-      let current: { agents: string[]; rules: RobotsRule[] } | null = null;
-      try {
-        const r = await get(`${u.protocol}//${u.host}/robots.txt`, 8000, 'error');
-        if (r.ok) {
-          for (const line of r.body.split(/\r?\n/)) {
-            const clean = line.split('#')[0].trim();
-            const m = /^(user-agent|allow|disallow)\s*:\s*(.*)$/i.exec(clean);
-            if (!m) continue;
-            const key = m[1].toLowerCase(); const value = m[2].trim();
-            if (key === 'user-agent') {
-              if (current && current.rules.length) { groups.push(current); current = null; }
-              if (!current) current = { agents: [], rules: [] };
-              current.agents.push(value.toLowerCase());
-            } else if (current && value) {
-              current.rules.push({ allow: key === 'allow', path: value });
-            }
-          }
-          if (current) groups.push(current);
-        }
-      } catch { /* unavailable robots.txt means no additional path restriction */ }
-      const ua = String(cfg.fetch.userAgent || '').split(/[\s(/]/, 1)[0].toLowerCase();
-      const specific = groups.filter((g) => g.agents.some((a) => a !== '*' && a && ua.includes(a)));
-      const longest = specific.reduce((n, g) => Math.max(n, ...g.agents.filter((a) => a !== '*' && a && ua.includes(a)).map((a) => a.length)), 0);
-      const selected = longest > 0
-        ? specific.filter((g) => g.agents.some((a) => a !== '*' && a.length === longest && ua.includes(a)))
-        : groups.filter((g) => g.agents.includes('*'));
-      rules = selected.flatMap((g) => g.rules);
-      robots.set(u.host, rules);
-    }
-    const target = `${u.pathname}${u.search}`;
-    const matches = rules.map((rule) => {
-      const pattern = rule.path.endsWith('$') ? rule.path.slice(0, -1) : rule.path;
-      const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-      const regex = new RegExp(`^${escaped}${rule.path.endsWith('$') ? '$' : ''}`);
-      return regex.test(target) ? { ...rule, specificity: rule.path.replace(/[\*$]/g, '').length } : null;
-    }).filter((x): x is RobotsRule & { specificity: number } => Boolean(x));
-    if (!matches.length) return false;
-    matches.sort((a, b) => b.specificity - a.specificity || Number(b.allow) - Number(a.allow));
-    return !matches[0].allow;
   }
   const normalizeTarget = (raw: string) => {
     try {
@@ -211,7 +166,6 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         logFetch('blocked_non_public_target', { hop, protocol: target.protocol, host: target.hostname });
         return { ok: false, status: 0, body: 'blocked non-public target', finalUrl: currentUrl, fetchMode: redirected ? 'blocked_non_public_redirect' : 'blocked_non_public' };
       }
-      if (cfg.fetch.respectRobotsTxt && await disallowed(target)) { logFetch('blocked_robots_txt', { hop, host: target.host, path: target.pathname }); return { ok: false, status: 403, body: 'blocked by robots.txt', finalUrl: currentUrl, fetchMode: 'robots_blocked' }; }
       const wait = (last.get(target.host) || 0) + cfg.fetch.perHostDelayMs - Date.now(); if (wait > 0) await sleep(wait);
       last.set(target.host, Date.now());
       try { direct = await get(currentUrl, cfg.limits.fetchTimeoutMs, 'manual'); }
