@@ -88,3 +88,21 @@ test('contact details are excluded from evidence and catalog pages cannot qualif
  const catalogResult = normalizeImmoGRListingAnalysis({ pageType: 'catalog', candidates: [privateCandidate] }, { pageUrl, sourceHost: 'portal.example.ch', pageText: catalogText, category: 'private_owner_prospect', localities, allowedLinks: [] });
  assert.equal(catalogResult.candidates[0].qualification, 'needs_review');
 });
+
+test('remote URL Context is source-authorization gated and every extracted candidate remains review-only', () => {
+ const server = readFileSync(new URL('../server/immogr/index.ts', import.meta.url), 'utf8');
+ const start = server.indexOf("app.post('/api/immogr/analyze-url'");
+ const end = server.indexOf("// AI analysis of a user-selected local page copy", start);
+ assert.ok(start >= 0 && end > start);
+ const route = server.slice(start, end);
+ assert.match(route, /requireOwner\(req, res\)/);
+ assert.match(route, /IMMOGR_URL_CONTEXT_ENABLED/);
+ assert.match(route, /probePolicy\?\.status === 'authorized'/);
+ assert.match(route, /authorizationReference/);
+ assert.match(route, /allowedHosts\.includes\(host\)/);
+ assert.match(route, /tools: \[\{ urlContext: \{\} \}\]/);
+ assert.match(route, /urlRetrievalStatus/);
+ assert.match(route, /qualification: 'needs_review'/);
+ assert.match(route, /allCandidatesRequireReview: true/);
+ assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
+});
