@@ -6,6 +6,6 @@ test('accepts an ordinary HTTPS GET for a registered source', () => {
   assert.equal(result.valid, true);
 });
 test('retains transport safety checks and single-host request plans', () => {
-  assert.equal(validateResearchProbe({ id: 'x' }, { sourceId: 'x', requests: [{ url: 'http://example.ch/', method: 'GET' }] }).allowed, false);
-  assert.equal(validateResearchProbe({ id: 'x' }, { sourceId: 'x', requests: [{ url: 'https://a.ch/', method: 'GET' }, { url: 'https://b.ch/', method: 'GET' }] }).allowed, false);
+  assert.equal(validateResearchProbe({ id: 'x' }, { sourceId: 'x', requests: [{ url: 'http://example.ch/', method: 'GET' }] }).valid, false);
+  assert.equal(validateResearchProbe({ id: 'x' }, { sourceId: 'x', requests: [{ url: 'https://a.ch/', method: 'GET' }, { url: 'https://b.ch/', method: 'GET' }] }).valid, false);
 });
