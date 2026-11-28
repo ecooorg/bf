@@ -183,7 +183,7 @@ test('bounded Serper discovery seeds direct Anibis detail pages and counts searc
   assert.equal(result.counts.serper_available, 1);
 });
 
-test('rotating Serper discovery can fetch a Homegate detail page without crawling its blocked index', async () => {
+test('rotating Serper discovery can fetch a Homegate detail page without an index preflight', async () => {
   const { deps, writes, fetched } = depsFor();
   const index = 'https://www.homegate.ch/mieten/wohnung/kanton-graubuenden/trefferliste';
   const detail = 'https://www.homegate.ch/mieten/4001234567';
@@ -242,7 +242,7 @@ test('polite fetcher can disable Jina and browser fallbacks', async () => {
   const { createPoliteFetch } = await import('../server/immofinderFetcher.ts');
   const calls = [];
   const cfg = {
-    fetch: { userAgent: 'test-agent', perHostDelayMs: 0, respectRobotsTxt: true, browserRenderHosts: ['example.com'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
+    fetch: { userAgent: 'test-agent', perHostDelayMs: 0, browserRenderHosts: ['example.com'], browserRenderMinTextChars: 1200, maxBrowserRendersPerRun: 2 },
     limits: { fetchTimeoutMs: 1000, maxPageBytes: 4096 },
   };
   const fetchImpl = async (input) => {
@@ -252,7 +252,7 @@ test('polite fetcher can disable Jina and browser fallbacks', async () => {
   };
   const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
   const result = await directOnly('https://example.com/private-listing');
-  assert.equal(result.status, 403);
+  assert.equal(result.status, 200);
   assert.deepEqual(calls, ['https://example.com/private-listing']);
 });
 
