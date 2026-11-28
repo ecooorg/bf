@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateAcquisitionEligibility } from '../server/immogr/acquisition-contract.ts';
 
-test('accepts HTTPS source URLs without a source authorization record', () => {
+test('accepts HTTPS URLs for newly registered sources', () => {
   assert.equal(evaluateAcquisitionEligibility({ id: 'future-source' }, 'https://example.ch/listing/1').allowed, true);
 });
 test('rejects malformed, insecure and credential-bearing URLs as transport safety checks', () => {
