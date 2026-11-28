@@ -4,7 +4,7 @@ export type ProbeDecision =
   | { allowed: true; sourceId: string; maxRequests: number; host: string; reference: string }
   | { allowed: false; sourceId: string; reasons: string[] };
 
-/** Technical validation only; source policy classification is intentionally outside this layer. */
+/** Technical validation only. */
 export function evaluateResearchProbe(source: ProbeSource, plan: ProbePlan): ProbeDecision {
   const reasons: string[] = [];
   if (plan.sourceId !== source.id) reasons.push('source_id_mismatch');
