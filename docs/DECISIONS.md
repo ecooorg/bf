@@ -16,7 +16,7 @@
 
 **Execution amendment:** Do not block implementation on owner-labelled Gold data and do not fabricate labels. WP1 evidence is the existing real run/event diagnostics, saved public-page evidence already retained in tests, source/reference inventories, and deterministic provider-free contract tests. Report operational funnel and invariant results only; do not claim precision, recall, false-positive rate, or owner-confirmed quality without independent labels. Preserve raw diagnostics and encrypted snapshots; do not infer their contents without decryption access.
 
-**Acceptance boundary:** WP3/WP4 changes require offline invariant tests and saved-page evidence checks. CI is not live user value. WP7 remains conditional on a measured live recall gap; if none is observable, record NOT_TRIGGERED rather than inventing one. This decision supersedes only the Gold Set dependency and owner-input questions; R1–R14, privacy, robots, budget and no-auto-send rules remain binding.
+**Acceptance boundary:** WP3/WP4 changes require offline invariant tests and saved-page evidence checks. CI is not live user value. WP7 remains conditional on a measured live recall gap; if none is observable, record NOT_TRIGGERED rather than inventing one. This decision supersedes only the Gold Set dependency and owner-input questions; R1–R14, privacy, budget and no-auto-send rules remain binding.
 
 ## D-2026-11-25-02 — Navigator delegation for C131 execution
 
