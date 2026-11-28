@@ -3,7 +3,7 @@ import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/l
 import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/local-page-inspector.ts';
 import { downloadAllLogs } from './allLogs.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[]; urlContextConfigured?: boolean; remotePageAcquisitionEnabled?: boolean };
-type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
+type DiscoveryLead = { title: string; url: string; host: string; verification: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
 type ManualSource = { id: string; name: string; category: string; ownerSignal: string; homepageUrl?: string };
