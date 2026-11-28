@@ -126,10 +126,14 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     let pageUrl: URL | null = null;
     try { pageUrl = new URL(String(body.canonicalUrl || '').trim()); } catch { /* invalid URL */ }
     const host = pageUrl?.hostname.toLowerCase().replace(/^www\./, '') || '';
+    let sourceHomepage: URL | null = null;
+    try { sourceHomepage = source?.homepageUrl ? new URL(source.homepageUrl) : null; } catch { /* invalid registry homepage */ }
+    const sourceHost = sourceHomepage?.hostname.toLowerCase().replace(/^www\./, '') || '';
+    const hostMatches = Boolean(sourceHost && host && (host === sourceHost || host.endsWith('.' + sourceHost)));
     const localityIds = Array.isArray(body.localityIds) ? [...new Set(body.localityIds.filter((id: unknown) => typeof id === 'string'))] : [];
     const localities = localityIds.map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)).filter((item): item is NonNullable<typeof item> => Boolean(item));
     const category = body.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
-    if (!source || !pageUrl || pageUrl.protocol !== 'https:' || pageUrl.username || pageUrl.password || !localities.length || localities.length !== localityIds.length) {
+    if (!source || !pageUrl || pageUrl.protocol !== 'https:' || pageUrl.username || pageUrl.password || !hostMatches || !localities.length || localities.length !== localityIds.length) {
       return res.status(400).json({ success: false, code: 'INVALID_SOURCE_URL', error: 'Select a registered source and provide a credential-free HTTPS URL on that source domain and valid ImmoGR localities.' });
     }
     const prompt = [
