@@ -5590,20 +5590,6 @@
     {
       "type": "immofinder_trace",
       "traceId": "22ab8039-6640-40c0-9b4f-7c1d900fb463",
-      "event": "candidate_fetch_failed",
-      "at": "2026-11-25T18:13:25.408Z",
-      "elapsedMs": 412725,
-      "source": "search",
-      "url": "www.properstar.lu/suisse/tschiertschen/louer/appartement/prix-croissant",
-      "status": 403,
-      "fetchMode": "robots_blocked",
-      "durationMs": 653,
-      "error": "blocked by robots.txt",
-      "finalUrl": "www.properstar.lu/suisse/tschiertschen/louer/appartement/prix-croissant"
-    },
-    {
-      "type": "immofinder_trace",
-      "traceId": "22ab8039-6640-40c0-9b4f-7c1d900fb463",
       "event": "candidate_snippet_fallback_after_fetch_failure",
       "at": "2026-11-25T18:13:25.408Z",
       "elapsedMs": 412725,
