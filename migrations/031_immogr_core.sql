@@ -4,12 +4,6 @@ CREATE TABLE IF NOT EXISTS immogr_sources (
   canonical_domain text NOT NULL,
   operator_name text,
   status text NOT NULL CHECK (status IN ('active','discovery_only','research_required','degraded','retired','not_a_feasible_source','low_priority')),
-  terms_url text,
-  terms_reviewed_at timestamptz,
-  terms_version_or_hash text,
-  robots_reviewed_at timestamptz,
-  authorized_method text,
-  decision_reason text NOT NULL,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -38,7 +32,7 @@ CREATE TABLE IF NOT EXISTS immogr_source_pages (
   content_type text,
   observed_at timestamptz NOT NULL DEFAULT now(),
   content_fingerprint text,
-  access_decision text NOT NULL CHECK (access_decision IN ('manual_review','retrieved','failed')),
+  retrieval_status text NOT NULL CHECK (retrieval_status IN ('retrieved','failed')),
   parser_version text,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb
 );
