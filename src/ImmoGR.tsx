@@ -93,6 +93,28 @@ export default function ImmoGR() {
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || ('Status unavailable (' + response.status + ')')); return body as ImmoGRStatus; })
       .then(setStatus).catch((reason) => setSearchError(reason instanceof Error ? reason.message : 'Status unavailable'));
   }, []);
+  useEffect(() => {
+    fetch('/api/immogr/listings?limit=30', { credentials: 'same-origin' })
+      .then(async (response) => { if (!response.ok) return null; return response.json().catch(() => null); })
+      .then((body) => {
+        const saved = Array.isArray(body?.listings) ? body.listings : [];
+        if (!saved.length) return;
+        setLeads(saved.map((item: any) => {
+          const evidence = Array.isArray(item.evidence) ? item.evidence : [];
+          const url = String(item.url || '');
+          return {
+            ...item,
+            title: evidence.find((entry: any) => entry.field === 'title')?.quote || url,
+            host: (() => { try { return new URL(url).hostname; } catch { return ''; } })(),
+            priceAmount: item.priceAmount == null ? null : Number(item.priceAmount),
+            verification: item.qualification || 'needs_review',
+          };
+        }));
+        setSearched(true);
+        setSearchDiagnostics({ source: 'saved_search_results', resultCount: saved.length });
+      })
+      .catch(() => {});
+  }, []);
   function changeGroupMode(value: GroupMode) {
     setGroupMode(value); setLeads([]); setSearched(false);
     try { localStorage.setItem('immogr.groupMode', value); } catch { /* selection remains usable for this session */ }
