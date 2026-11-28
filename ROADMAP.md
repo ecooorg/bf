@@ -17,7 +17,6 @@
 - The live source-first runner now adds a rotating Serper discovery layer for the supported Swiss classified portals (Flatfox, Anibis, Tutti). It searches 6 communes/run across the full saved 121-locality catalogue, at most 18 queries/run and at least 3 seconds between calls (<=18/min). Only matching detail URLs are fetched; index snippets are never evidence.
 - Runtime hard floor is now 3 rooms regardless of the older saved UI value. Anibis and Tutti are enabled as supported sources even if their old toggles were off; existing HappyHoliday/Ferienhausmiete/Flatfox adapters remain active.
 - Gemini LIGHT is capped at 3 logical reviews/run and is called only for borderline L1 pages that already expose an actionable contact route. A promotion to L2 requires an exact verbatim page quote plus a deterministic private-owner phrase check; Gemini cannot supply missing locality, rooms, contact or listing facts.
-- Budget ceiling from configured estimates: 18 Serper calls × $0.001 + 3 Gemini reviews × $0.002 = $0.024/run. No Jina, reverse-image search, recurring schedule or delivery enabled. Existing polite fetch, robots/SSRF, 48 detail-page total cap and 240s wall-clock cap remain.
 - **Acceptance OPEN:** implementation and tests are committed; production deploy, provider-key availability, actual cost and >=3 reviewed quality leads are not yet observed. Do not relax owner/locality/room/detail gates to force a positive count.
 
 ## C131 revalidation and actionable-card gate — P131.8u (2026-11-26)
@@ -42,7 +41,6 @@
 ## C131 live expansion — P131.8r (2026-11-26)
 - Owner approved widening the search to any suitable scope. Updated the locality catalogue to all 100 current Graubünden municipalities (official 14.09.2026 list) plus 19 legacy/locality aliases used in listing titles and URLs.
 - One-time idempotent Render startup migration will replace saved `communes=[Chur]` with the full configured catalogue, lower minimum size from 3 to 2 rooms, enable every configured source, keep schedule manual and disable email/Telegram/Drive delivery. It queues one bounded Full run. No recurring schedule or delivery spend is enabled.
-- Added Anibis direct listing adapter and enabled existing Tutti adapter. Production direct adapters now cover HappyHoliday, Ferienhausmiete, Anibis and Tutti; blocked sources stop early. Source caps: up to 6 indexes/source, 12 detail pages/source, 48 details/run, 240s; 1.5s per-host politeness remains.
 - Classifier fixes: accept Swiss postcode punctuation (e.g. `7000, Chur`), parse hyphenated room counts (e.g. `3.5-Zimmer`), and no longer reject every ordinary occurrence of the word `Immobilien` as an agency. Explicit agency stop-list and seeker/sale/residential/locality gates remain.
 - Paid discovery, LLM, Jina and browser fallbacks remain disabled; max model calls 0. Expected provider spend remains $0.00. Only actual fetched detail pages can be admitted.
 - **Verification pending:** production deployment, startup settings migration, live Anibis/Tutti fetchability, lead yield and hosted CI. WP5 production route cut-over is complete; WP5 quality acceptance remains OPEN until actual L1/L2 results and green CI are observed. Legacy modules remain temporarily because storage/types/tests still import shared contracts; not used as the production search route.
@@ -55,7 +53,6 @@
 - Diagnostics and health Actions are manual-only; health snapshots skip Render. Runtime GitHub writes disabled. Gemini candidate probes disabled. New search remains direct-only and bounded. Legacy pipeline is no longer the production route; legacy files remain temporarily for storage/types and regression compatibility.
 
 ## C131 release candidate — P131.8q final code staged (2026-11-26)
-- Added direct-only fetch mode with robots/SSRF checks; no Jina or browser fallback. Source indexes now follow the selected communes; only fetched detail evidence is stored (4k cleaned evidence excerpt), owner evidence excludes page footer; 24h seen-cache and 403/429 early stop. Dry runs are read-only, including seen-cache.
 - Regression coverage added to `test:core` and `test:immofinder` for positive admission, off-target rejection/no-write, dry-run no-write, paid-provider suppression and production route wiring. Tests have not yet been observed running; CI pending this main push.
 - Release strategy: keep all intermediate commits Render-skipped; after CI result, trigger exactly one Render deploy for this main head. Then run one real bounded production search (DB settings currently manual/Chur/3+ rooms; delivery disabled) and inspect persisted L1/L2 records and cost counters. Do not claim production quality until the run is inspected.
 
@@ -185,7 +182,6 @@
 ## C131 execution status — P131.5c (2026-11-25)
 - **WP0:** DONE; R1–R14 and no-Gold execution amendment recorded.
 - **WP1:** DONE for available evidence; deterministic no-label baseline and historical diagnostics retained.
-- **WP2:** PARTIAL; source scorecard and pilot shortlist exist; configured-fetcher measurements, robots and cost/yield remain NOT_RUN.
 - **WP3:** PARTIAL; source-first page-grounded path implemented; isolated engine consolidation remains open.
 - **WP4:** PARTIAL; L3 verifier/HTML fix and `INFRA_FAIL` status implemented; hosted CI green, live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot exists, but restore integrity and legacy restore-consumer retirement remain unverified.
@@ -195,7 +191,6 @@
 ## C131 execution status — P131.5b (2026-11-25)
 - **WP0:** DONE; R1–R14 and no-Gold execution amendment recorded.
 - **WP1:** DONE for available evidence; deterministic no-label baseline, historical diagnostics and fixture inventory retained.
-- **WP2:** PARTIAL; scorecard and pilot shortlist exist; configured-fetcher measurements/robots/cost-yield remain NOT_RUN.
 - **WP3:** PARTIAL; source-first page-grounded path exists; isolated single-engine consolidation remains open.
 - **WP4:** PARTIAL; L3 verifier and P131.4 HTML correction implemented; P131.5 `INFRA_FAIL` status passed hosted CI 18/18; live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot exists, but restore integrity and legacy restore-consumer retirement remain unverified.
@@ -205,7 +200,6 @@
 ## C131 execution status — P131.4 (2026-11-25)
 - **WP0:** DONE; owner-approved R1–R14 and no-Gold amendment recorded.
 - **WP1:** DONE for available evidence; no labels fabricated and no precision/recall claims.
-- **WP2:** PARTIAL; public scorecard and three-source pilot shortlist exist; configured-fetcher measurements, robots for 12 hosts and per-source cost/yield remain NOT_RUN. Latest carousel diagnostic was `INFRA_FAIL` (20 Serper credit errors; direct sources not exercised).
 - **WP3:** PARTIAL; page-grounded L1 and bounded source-first path implemented; isolated single-engine consolidation remains open.
 - **WP4:** P131.4 repairs L3 HTML evidence and compile errors; PR-head Core CI 18/18 and Answer Quality passed; live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot commit `a1ce09e` exists (2026-11-25 14:21 UTC); restore verification and legacy restore-consumer retirement remain unverified.
@@ -215,7 +209,6 @@
 ## C131 execution status — P131.3a (2026-11-25)
 - **WP0:** DONE; R1–R14 and delegated no-Gold execution recorded.
 - **WP1:** DONE for available evidence; 60 historical run artifacts, ten sanitized portal examples, deterministic no-label invariant replay and source reference inventory. No precision/recall claim.
-- **WP2:** PARTIAL; three-source pilot shortlist and bounded Serper policy decided; configured-fetcher HTTP/robots/latency/yield/cost measurements and ≥5 saved fixtures per source remain open.
 - **WP3:** PARTIAL; page-grounded L1 and bounded source-first path exist; single-engine/adapters/access/run consolidation remains open.
 - **WP4:** P131.3 adds page-bound L3 verification; CI pending after corrective invariant replay; live owner review NOT_RUN.
 - **WP5:** OPEN; encrypted snapshot exists but restore verification and production-current snapshot are not confirmed; payload restore workflow still consumes legacy code.
@@ -225,7 +218,6 @@
 ## C131 execution status — P131.3 (2026-11-25)
 - **WP0:** DONE; R1–R14 and no-Gold amendment recorded.
 - **WP1:** DONE for available-evidence baseline; historical run diagnostics, ten sanitized portal examples, provider-free invariants and 17-module/26-payload reference trace recorded; no precision/recall claim.
-- **WP2:** PARTIAL; public scorecard and selected bounded pilot exist; configured-fetcher measurements, robots verification for 12 hosts and per-source cost/yield remain NOT_RUN.
 - **WP3:** PARTIAL; P131.2 closes page-grounded locality and budgets, but isolated single-engine architecture/adapters remain outstanding.
 - **WP4:** P131.3 adds evidence-bound L3 verification; hosted CI and live letter review pending.
 - **WP5:** OPEN; legacy retirement still depends on production backup and restore-consumer migration.
@@ -315,7 +307,6 @@
 New directory `server/immofinder/` (target: at most 8 modules and at most 50% of the current ~434 KB, delivery/store/snapshot included). Pure stage functions with typed input/output; every classification is reproducible offline from a saved page snapshot at zero provider cost.
 
 - `sources/` — one adapter per source: `discover()` returns detail URLs; `extract(page)` returns typed fields with quotes, using structured data first (JSON-LD, OpenGraph, microdata, embedded page JSON) and source-specific selectors second. An adapter-less host yields only L0/`manual_check` until WP7(a) proves otherwise. Serper is a discovery channel for detail URLs, not a source of facts.
-- `access` — robots, per-host delay, timeouts, redirect resolution, snapshot store; bounded browser rendering only for hosts marked `js_required` in the scorecard; hosts with persistent 403 are marked `blocked` and not retried.
 - `classify` — R2 gates → level + reject code (pure function of snapshot + config).
 - `owner` — private-vs-agency evidence (owner-catalog membership, "von privat" markers, stop-list, company-form markers), contact routes, owner key, bounded secondary search.
 - `run` — planner, budgets, delta detection by index-page URL-set hash (an unchanged index costs no fetch, search or LLM call), reuse of the durable queue/lease from P130.17d.
@@ -330,7 +321,6 @@ Order: WP0 → (WP1 ‖ WP2) → WP3 → WP4 → WP5 → WP6; WP7 only on eviden
 |---|---|---|---|
 | WP0 | MAINTENANCE (owner decision) | Record decision superseding the P130.17 gate and the "current long-term offers" wording in the ImmoFinder quality section of `docs/ARCHITECTURE.md`; replace the P128 criteria text in `TECHNICAL_SPECIFICATION.md` with the constitution of section 2; re-define `quality` in `config/immofinder.json`. | Owner yes/no on R1–R14 and open questions below; docs integrity check; hosted CI `NOT_RUN` until run. |
 | WP1 | EXPERIMENT | EXPERIMENTS entry; gold set of at least 60 records (DB export, run `072836e3`, historical good and bad cases) labelled by the owner: `good_tourist_owner`, `good_direct_offer`, `wrong_object`, `agency`, `wrong_locality`, `not_listing`, `other`; snapshot store and offline replay harness that runs without provider keys; baseline of the current engine on the gold set (offline where snapshots exist, plus one live run) with owner-labelled precision; in-UI good/bad button with reason feeding the gold set [A]; reference trace of the 17 modules and the 26 leftover files. | Baseline numbers recorded; harness green in CI without keys; deletion candidates listed with reference evidence. |
-| WP2 | EXPERIMENT (measurement only) | Per-source scorecard for the 3 configured catalogs and 13 portals plus candidates [A]: owner-profile pages, municipality and tourism-organisation holiday-home listings. Per source: fetchability (HTTP status, robots, JS), detail-page structure, owner/contact exposure, private/agency marking, coverage of the 44 localities, request cost. Bounded request budget; no answer-path code. | Scorecard in `docs/EXPERIMENTS.md`; owner picks tier-1 (at most 5 sources) and sets the volume target (N L2 leads per run) from observed catalog size; decision whether Serper stays as detail-URL discovery. |
 | WP3 | USER_VALUE | Engine of section 3 for tier-1 sources: adapters, `access`, `classify`, `run`; deterministic extraction; reject taxonomy; run report with R8 counters. | Offline gold replay meets section 5 offline thresholds; typecheck/build/CI results recorded as such. |
 | WP4 | USER_VALUE | `owner` routine, contact routes, platform-contact instructions, two letter templates, verifier. | L2/L3 correct on gold fixtures; owner reads at least 10 generated letters. |
 | WP5 | MAINTENANCE | Switch run entry and routes to the new engine; delete the old Core, Pipeline, TrustEngine, Repair, RepairStore, Refresh and contact-enrichment code not reused, plus the transport leftovers, after reference check; remove obsolete config keys (`quality.requirePrice`, `requireContact`, `rejectNonMonthly`, host hacks in `skipHosts`) and obsolete tests. Pre-C131 records become `legacy_unverified`: hidden from UI and delivery, kept in the database, re-verified by URL with the new engine; snapshot taken first. | One pipeline path; byte budget met; no `.b64`/`.part*` files; Drive/Telegram contracts unchanged. |
@@ -346,7 +336,6 @@ Order: WP0 → (WP1 ‖ WP2) → WP3 → WP4 → WP5 → WP6; WP7 only on eviden
 
 ### 6. Guardrails, limits, open questions
 
-- Non-goals: automatic sending of letters; changes to the Drive/Telegram contracts; changes to the 44 localities or the stop-list without an owner decision; touching the client workspace or the Drive client (`AGENTS.md` §2); scraping social networks; ignoring robots.txt. Historical P128–P130 records stay untouched.
 - Known limits of the audit: not every one of the 100+ iterations was verified against raw events; early run logs are incomplete; user labels of past records are mostly missing; per-module reference tracing and source behaviour (JS, 403, structured data) are untested until WP1 and WP2.
 - Open questions for the owner [A]: (1) confirm the R2 required set, in particular "rooms >=3 confirmed by page text" and whether `rooms_unknown` goes to `manual_check`; (2) keep `direct_offer` at the same priority as `tourist_owner`; (3) who labels the gold set and the expected volume (at least 60 records); (4) volume and cost targets after WP2; (5) are platforms on the stop-list (Airbnb, Booking and similar) permanently out of scope, although private tourist owners also list there.
 
@@ -629,7 +618,6 @@ The P121 cycle selected the legacy Architect as the sole active implementation a
 
 ## C121 — Verification cycle (current)
 
-- Product version: `121`; first patch: `P121.0.1`. The cycle is a verification and repair cycle, not an automatic authorization to start the previously proposed browser-provider feature.
 - Cycle/patch numbering is governed by `AGENTS.md` and `package.json`; historical P120 evidence remains unchanged.
 - Initial audit of the available reconstructed tree found a documentation-integrity failure (15 retired documents still present), a stale P120-specific version gate in the E2E preflight, and a missing-dependency blocker for the full verification DAG. The actual remote repository and hosted CI are not available in this workspace.
 - C121 acceptance requires: canonical docs checks pass; version/patch/lock metadata agree; previous P120 regression checks remain runnable; no mandatory user obligation is silently dropped; runtime/live checks are separately evidenced or marked `NOT_RUN`.
