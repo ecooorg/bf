@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Owner-local, source-by-source diagnostic probe plan. Add no credentials. A source runs only after its probePolicy in config/immogr/sources.json is explicitly authorized_for_limited_probe.",
+  "description": "Owner-local source test plan. Add no credentials. The runner validates URL structure and network safety before retrieving the selected pages.",
   "probes": [
     {
       "sourceId": "happyholiday",
