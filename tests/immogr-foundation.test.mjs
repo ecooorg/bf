@@ -27,6 +27,16 @@ test('manual research failures are stored as technical outcomes', () => {
   assert.match(migration, /request_failed/);
 });
 
+test('ImmoGR exposes saved search results, run history and measured source yield', () => {
+  const routes = read('server/immogr/index.ts');
+  const ui = read('src/ImmoGR.tsx');
+  assert.match(routes, /\/api\/immogr\/listings/);
+  assert.match(routes, /\/api\/immogr\/runs/);
+  assert.match(routes, /\/api\/immogr\/source-scorecard/);
+  assert.match(routes, /count\(DISTINCT e\.listing_id\)/);
+  assert.match(ui, /fetch\('\/api\/immogr\/listings\?limit=30'/);
+});
+
 test('ImmoGR listings support rooms as a normalized property type', () => {
   const migration = read('migrations/039_immogr_room_property_type.sql').toLowerCase();
   assert.match(migration, /'room'/);
