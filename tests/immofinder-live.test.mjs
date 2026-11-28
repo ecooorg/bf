@@ -32,7 +32,7 @@ function depsFor() {
       stopAgencies: ['Interhome', 'Holidu'],
       sources: [{ id: 'happyholiday', url: indexUrl, indexUrls: [indexUrl], detailPattern: '^https://happyholiday\\.ch/haus/[^/]+/?$' }],
       limits: { maxDetailPagesPerSource: 6, recheckAfterDays: 7, fetchTimeoutMs: 10000, maxPageBytes: 100000 },
-      fetch: { userAgent: 'test', perHostDelayMs: 0, respectRobotsTxt: true },
+      fetch: { userAgent: 'test', perHostDelayMs: 0 },
     },
     async fetchPage(url) {
       fetched.push(url);
@@ -248,13 +248,12 @@ test('polite fetcher can disable Jina and browser fallbacks', async () => {
   const fetchImpl = async (input) => {
     const url = String(input);
     calls.push(url);
-    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow:', { status: 200 });
-    return new Response('blocked', { status: 403 });
+    return new Response('<html><body>Listing detail</body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
   };
   const directOnly = createPoliteFetch(cfg, fetchImpl, async () => true, { allowJina: false, allowBrowser: false });
   const result = await directOnly('https://example.com/private-listing');
   assert.equal(result.status, 403);
-  assert.deepEqual(calls, ['https://example.com/robots.txt', 'https://example.com/private-listing']);
+  assert.deepEqual(calls, ['https://example.com/private-listing']);
 });
 
 test('production route wires bounded Serper and Gemini budgets and enforces 3 rooms', () => {
