@@ -14,7 +14,7 @@ const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'conf
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
 const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
 const validPropertyTypes = new Set(['apartment', 'house', 'chalet', 'room', 'other', 'unknown']);
-const validAccessOutcomes = new Set(['reviewed', 'in_progress', 'blocked_by_source', 'no_relevant_inventory']);
+const validAccessOutcomes = new Set(['reviewed', 'in_progress', 'request_failed', 'no_relevant_inventory']);
 
 /** Live discovery returns candidate URLs only. It never fetches listing pages or persists unverified leads. */
 export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependencies = {}): void {
