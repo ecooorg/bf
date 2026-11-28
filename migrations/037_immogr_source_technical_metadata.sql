@@ -1,4 +1,4 @@
--- Remove legacy source permission metadata and normalize stored retrieval outcomes.
+-- Remove legacy source metadata and normalize stored retrieval outcomes.
 ALTER TABLE immogr_sources DROP CONSTRAINT IF EXISTS immogr_sources_status_check;
 ALTER TABLE immogr_sources DROP COLUMN IF EXISTS status;
 
