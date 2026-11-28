@@ -3,7 +3,7 @@
   "description": "BiForge",
   "private": true,
   "version": "131",
-  "patch": "131.22",
+  "patch": "131.23",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
