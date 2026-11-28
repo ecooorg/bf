@@ -1,5 +1,5 @@
-# ImmoGR — probe readiness
+# ImmoGR — Source Test Harness
 
-This document has been retired as part of stage 1 of the source-policy reset. Its previous readiness counts and per-source access decisions are no longer maintained here. Stage 2 will replace them with a fresh, source-by-source review of all registered candidates.
+The previous readiness matrix has been retired. The local test runner is a technical diagnostic tool for checking whether a source responds and whether its pages contain useful structured or unstructured property information.
 
-No network probes were run as part of this documentation change.
+The test report should distinguish transport outcome, page type, extraction quality, locality coverage and useful candidate yield. Source ranking will be based on measured results from the same test procedure.
