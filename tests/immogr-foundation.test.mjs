@@ -96,7 +96,8 @@ test('ImmoGR exposes locality groups and UI submits locality-scoped discovery', 
   assert.match(ui, /Download logs/);
   assert.match(ui, /Search/);
   assert.match(ui, /Personal notebook and research tools/);
-  assert.match(ui, /maxPages: 10/);\n  assert.match(ui, /fetch\('\/api\/immogr\/search'/);
+  assert.match(ui, /maxPages: 10/);
+  assert.match(ui, /fetch\('\/api\/immogr\/search'/);
 });
 
 test('locality database migration is additive and seeds exact owner scope', async () => {
@@ -259,8 +260,9 @@ test('ImmoGR discovery and local research render separate, category-aware candid
   assert.match(ui, /category, sourceIds: selectedSourceIds/);
   assert.match(ui, /data-testid="immogr-candidate-cards"/);
   assert.match(ui, /canonicalUrl: current\.canonicalUrl \|\| importedSourceUrl/);
-  assert.match(ui, /Unverified discovery lead/);
-  assert.match(ui, /no page fetched/);
+  assert.match(ui, /Qualified candidate/);
+  assert.match(ui, /Evidence confidence/);
+  assert.match(routes, /\/api\/immogr\/search/);
   assert.match(ui, /data-testid="immogr-manual-category"/);
   assert.match(ui, /data-testid="immogr-local-research-card"/);
   assert.match(ui, /data-testid="immogr-saved-research-cards"/);
