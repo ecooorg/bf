@@ -2,16 +2,18 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/local-schema.ts';
 import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/local-page-inspector.ts';
 import { downloadAllLogs } from './allLogs.ts';
-type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[] };
+type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[]; urlContextConfigured?: boolean; remotePageAcquisitionEnabled?: boolean };
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
-type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string };
+type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string; remoteAnalysisEnabled?: boolean };
 type ManualDraft = { resultCategory: 'direct_rental' | 'private_owner_prospect'; canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
 type ProbeBatchReport = { generatedAt: string; sourceCount: number; requestsSentByThisBatch: number | null; summary: Record<string, number>; results: ProbeBatchResult[] };
 type ListingAnalysisCandidate = { title: string; url: string; locality: string | null; localityId: string | null; propertyType: string; priceAmount: number | null; currency: string | null; pricePeriod: string; rooms: number | null; areaSqm: number | null; availability: string | null; ownerClass: string; directContact: string; minTermYears: number | null; qualification: string; confidence: string; reasons: string[]; evidence: Array<{ field: string; quote: string }> };
 type ListingAnalysisResult = { pageType: string; pageTitle: string; candidates: ListingAnalysisCandidate[]; rejectedCandidateCount: number; notes: string[]; category: 'direct_rental' | 'private_owner_prospect' };
+type RemoteUrlCandidate = { title: string; url: string; locality: string; propertyType: string; priceAmount: number | null; currency: string | null; pricePeriod: string; rooms: number | null; areaSqm: number | null; availability: string; ownerClass: string; directContact: string; minTermYears: number | null; qualification: string; evidence: Array<{ field: string; quote: string }> };
+type RemoteUrlAnalysis = { candidates: RemoteUrlCandidate[]; pageType: string; notes: string[]; retrievedUrls: string[] };
 const emptyManualDraft: ManualDraft = { resultCategory: 'direct_rental', canonicalUrl: '', localityId: '', pageTitle: '', propertyType: 'unknown', priceAmount: '', currency: 'CHF', pricePeriod: 'unknown', ownerClass: 'unknown', availability: '', accessOutcome: 'reviewed', notes: '' };
 const panel: CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 20 };
 const field: CSSProperties = { display: 'block', width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 8, border: '1px solid #40536b', background: '#101f33', color: '#eef4ff' };
@@ -42,6 +44,8 @@ export default function ImmoGR() {
   const [localPageSnapshot, setLocalPageSnapshot] = useState('');
   const [listingAnalysis, setListingAnalysis] = useState<ListingAnalysisResult | null>(null);
   const [analyzingPage, setAnalyzingPage] = useState(false);
+  const [remoteUrlAnalysis, setRemoteUrlAnalysis] = useState<RemoteUrlAnalysis | null>(null);
+  const [analyzingRemoteUrl, setAnalyzingRemoteUrl] = useState(false);
   const [showPageImages, setShowPageImages] = useState(false);
   const [probeSecondUrl, setProbeSecondUrl] = useState('');
   const [sourceSettingsMessage, setSourceSettingsMessage] = useState('');
@@ -206,6 +210,21 @@ export default function ImmoGR() {
       setManualMessage('Analysis complete: ' + (result.candidates?.length || 0) + ' candidate card(s). Every displayed fact has been checked against a quote from the local page copy. Review before saving.');
     } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not analyze the local page.'); }
     finally { setAnalyzingPage(false); }
+  }
+  async function analyzeRemoteUrl() {
+    const source = sources.find((item) => item.id === selectedSourceId);
+    if (!source?.remoteAnalysisEnabled) { setManualMessage('Remote URL analysis is not authorized for this source. Use local page import and analysis instead.'); return; }
+    if (!manualDraft.canonicalUrl || !selectedLocalityIds.length) { setManualMessage('Enter a listing URL and select at least one target locality.'); return; }
+    setAnalyzingRemoteUrl(true); setRemoteUrlAnalysis(null);
+    setManualMessage('Gemini URL Context is reading this single approved URL. Results will remain unverified until reviewed against a local page copy.');
+    try {
+      const response = await fetch('/api/immogr/analyze-url', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sourceId: selectedSourceId, canonicalUrl: manualDraft.canonicalUrl, category: manualDraft.resultCategory, localityIds: selectedLocalityIds }) });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok || !body.success) throw new Error(body.error || ('URL analysis failed (' + response.status + ')'));
+      setRemoteUrlAnalysis({ candidates: Array.isArray(body.candidates) ? body.candidates : [], pageType: String(body.pageType || 'unknown'), notes: Array.isArray(body.notes) ? body.notes : [], retrievedUrls: Array.isArray(body.retrievedUrls) ? body.retrievedUrls : [] });
+      setManualMessage('Gemini URL Context returned ' + (body.candidates?.length || 0) + ' suggestion(s). They are all needs-review and are not saved automatically.');
+    } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not analyze the URL.'); }
+    finally { setAnalyzingRemoteUrl(false); }
   }
   function downloadSelectedProbeBatch() {
     const selected = sources.filter((source) => selectedSourceIds.includes(source.id) && source.homepageUrl);
@@ -375,7 +394,7 @@ export default function ImmoGR() {
       {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>Automation note: {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button><span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button>{sources.find((source) => source.id === selectedSourceId)?.remoteAnalysisEnabled && <button type="button" onClick={() => void analyzeRemoteUrl()} disabled={analyzingRemoteUrl || !manualDraft.canonicalUrl || !selectedLocalityIds.length} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #6b8fb5', background: '#193b5c', color: '#fff', fontWeight: 600 }}>{analyzingRemoteUrl ? 'Reading URL…' : 'Analyze URL with Gemini'}</button>}<span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
         <label style={{ gridColumn: '1 / -1' }}>Second page URL for a three-request probe (optional)<input type="url" value={probeSecondUrl} onChange={(e) => setProbeSecondUrl(e.target.value)} placeholder="https://same-source.example/another-page" style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>The local runner counts robots.txt as request one. Add at most two page URLs; all must use the same authorized host.</span></label>
         <label style={{ gridColumn: '1 / -1' }}>Import a local page, document or variant-B probe report (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
@@ -444,6 +463,18 @@ export default function ImmoGR() {
         <button type="submit" disabled={manualSaving || !manualDraft.localityId || !manualDraft.canonicalUrl} style={{ padding: '11px 16px', borderRadius: 8, border: 0, background: '#2473ad', color: '#fff', fontWeight: 700 }}>{manualSaving ? 'Saving…' : 'Save personal research note'}</button>
       </form>}
       {manualMessage && <p role="status" aria-live="polite">{manualMessage}</p>}
+      {remoteUrlAnalysis && <section data-testid="immogr-remote-url-cards" style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+        <h3>Gemini URL Context suggestions · {remoteUrlAnalysis.candidates.length}</h3>
+        <p className="immogr-card-meta">Page type: {remoteUrlAnalysis.pageType}. Every card is unverified and needs review. Retrieved URLs: {remoteUrlAnalysis.retrievedUrls.join(', ') || 'not reported'}.</p>
+        {remoteUrlAnalysis.candidates.map((candidate, index) => <article className="immogr-research-card" key={candidate.url + index}>
+          <span className="immogr-card-badge">Needs review · URL Context</span><h4>{candidate.title || 'Untitled listing candidate'}</h4>
+          <p><a href={candidate.url} target="_blank" rel="noopener noreferrer">{candidate.url}</a></p>
+          <p>{candidate.locality || 'Locality unknown'} · {candidate.propertyType} · {candidate.priceAmount == null ? 'Price unknown' : candidate.priceAmount + ' ' + (candidate.currency || '') + ' / ' + candidate.pricePeriod} · {candidate.rooms ?? '—'} rooms · {candidate.areaSqm ?? '—'} m²</p>
+          <p>Availability: {candidate.availability || 'Unknown'} · Owner: {candidate.ownerClass} · Contact: {candidate.directContact} · Minimum term: {candidate.minTermYears ?? 'unknown'} years</p>
+          {candidate.evidence.map((entry, evidenceIndex) => <p className="immogr-card-meta" key={entry.field + evidenceIndex}><strong>{entry.field}:</strong> “{entry.quote}”</p>)}
+        </article>)}
+      </section>
+
       {manualReviews.length > 0 && <div style={{ marginTop: 18 }}><h3>Saved research cards ({manualReviews.length})</h3><div className="immogr-lead-list" data-testid="immogr-saved-research-cards">{manualReviews.map((review) => <article className="immogr-research-card" key={review.id}><span className="immogr-card-badge">Human-observed · unverified</span><h3 style={{ margin: '4px 0 8px' }}><a href={review.canonical_url} target="_blank" rel="noopener noreferrer">{review.page_title || review.canonical_url}</a></h3><p>{review.result_category === 'direct_rental' ? 'Direct Rental' : review.result_category === 'private_owner_prospect' ? 'Private Owner Prospect' : 'Unclassified research'} · {manualLocalities.find((item) => item.id === review.locality_id)?.name || review.locality_id}</p><p>{review.property_type} · {review.price_amount ? `${review.price_amount} ${review.currency} / ${review.price_period}` : 'Price unknown'}</p><p>Advertiser: {review.owner_class} · availability: {review.availability || 'Unknown'}</p>{review.reviewer_notes && <p>{review.reviewer_notes}</p>}<p className="immogr-card-meta">{review.manual_access_outcome} · saved {new Date(review.reviewed_at).toLocaleString()}</p></article>)}</div></div>}
       <p style={{ color: '#9aadc5', fontSize: 12, marginBottom: 0 }}>Notes are unverified. Keep the source URL for follow-up. Do not enter passwords or session tokens.</p>
     </section>
