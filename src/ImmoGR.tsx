@@ -6,7 +6,7 @@ type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: bool
 type DiscoveryLead = { title: string; url: string; host: string; verification: string; accessReview: string };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
-type ManualSource = { id: string; name: string; category: string; automationStatus: string; ownerSignal: string; accessNote: string; homepageUrl?: string; probePolicyStatus?: string; remoteAnalysisEnabled?: boolean };
+type ManualSource = { id: string; name: string; category: string; ownerSignal: string; homepageUrl?: string };
 type ManualDraft = { resultCategory: 'direct_rental' | 'private_owner_prospect'; canonicalUrl: string; localityId: string; pageTitle: string; propertyType: string; priceAmount: string; currency: string; pricePeriod: string; ownerClass: string; availability: string; accessOutcome: string; notes: string };
 type ProbeBatchResult = { sourceId: string; sourceName: string; status: string; reason?: string; requestCount?: number | null; reportPath?: string | null };
 type ProbeBatchReport = { generatedAt: string; sourceCount: number; requestsSentByThisBatch: number | null; summary: Record<string, number>; results: ProbeBatchResult[] };
@@ -213,10 +213,9 @@ export default function ImmoGR() {
   }
   async function analyzeRemoteUrl() {
     const source = sources.find((item) => item.id === selectedSourceId);
-    if (!source?.remoteAnalysisEnabled) { setManualMessage('Remote URL analysis is not authorized for this source. Use local page import and analysis instead.'); return; }
     if (!manualDraft.canonicalUrl || !selectedLocalityIds.length) { setManualMessage('Enter a listing URL and select at least one target locality.'); return; }
     setAnalyzingRemoteUrl(true); setRemoteUrlAnalysis(null);
-    setManualMessage('Gemini URL Context is reading this single approved URL. Results will remain unverified until reviewed against a local page copy.');
+    setManualMessage('Gemini URL Context is analyzing this URL. Results will remain unverified until reviewed against a local page copy.');
     try {
       const response = await fetch('/api/immogr/analyze-url', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sourceId: selectedSourceId, canonicalUrl: manualDraft.canonicalUrl, category: manualDraft.resultCategory, localityIds: selectedLocalityIds }) });
       const body = await response.json().catch(() => ({}));
@@ -238,7 +237,7 @@ export default function ImmoGR() {
     anchor.click();
     URL.revokeObjectURL(objectUrl);
     setSearchError('');
-    setSourceSettingsMessage('Batch plan downloaded. The local agent checks registry authorization separately and skips sources without approval.');
+    setSourceSettingsMessage('Batch plan downloaded. The local agent will validate the URL plan and run the selected source tests.');
   }
   function downloadLocalProbePlan() {
     const sourceId = selectedSourceId;
@@ -256,7 +255,7 @@ export default function ImmoGR() {
       anchor.download = 'immogr-probe-' + sourceId + '.json';
       anchor.click();
       URL.revokeObjectURL(objectUrl);
-      setManualMessage('Local probe plan downloaded. It contains only the source ID and page URLs; the local agent checks the registry authorization before sending any request.');
+      setManualMessage('Local source test plan downloaded. It contains the selected source ID and page URLs.');
     } catch (reason) { setManualMessage(reason instanceof Error ? reason.message : 'Could not create the local probe plan.'); }
   }
   function openSourceHomepage() {
@@ -390,12 +389,12 @@ export default function ImmoGR() {
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
       <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Select a source, open its page, and save your observations. Automation status is shown separately and does not hide manual research.</p>
-      <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name} · automation: {source.automationStatus}</option>)}</select></label>
-      {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>Automation note: {sources.find((source) => source.id === selectedSourceId)?.accessNote}</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
+      <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
+      {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>Source selected for technical evaluation.</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
         <label style={{ gridColumn: '1 / -1' }}>Original listing URL<input required type="url" value={manualDraft.canonicalUrl} onChange={(e) => setManualDraft({ ...manualDraft, canonicalUrl: e.target.value })} placeholder="https://…" style={field} /></label>
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button>{sources.find((source) => source.id === selectedSourceId)?.remoteAnalysisEnabled && <button type="button" onClick={() => void analyzeRemoteUrl()} disabled={analyzingRemoteUrl || !manualDraft.canonicalUrl || !selectedLocalityIds.length} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #6b8fb5', background: '#193b5c', color: '#fff', fontWeight: 600 }}>{analyzingRemoteUrl ? 'Reading URL…' : 'Analyze URL with Gemini'}</button>}<span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the plan only runs on your local agent if the source registry explicitly authorizes it.</span></div>
-        <label style={{ gridColumn: '1 / -1' }}>Second page URL for a three-request probe (optional)<input type="url" value={probeSecondUrl} onChange={(e) => setProbeSecondUrl(e.target.value)} placeholder="https://same-source.example/another-page" style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>The local runner counts robots.txt as request one. Add at most two page URLs; all must use the same authorized host.</span></label>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" onClick={openManualSource} disabled={!manualDraft.canonicalUrl} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open original page ↗</button><button type="button" onClick={downloadLocalProbePlan} disabled={!manualDraft.canonicalUrl || !selectedSourceId} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Download local probe plan</button>{<button type="button" onClick={() => void analyzeRemoteUrl()} disabled={analyzingRemoteUrl || !manualDraft.canonicalUrl || !selectedLocalityIds.length} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #6b8fb5', background: '#193b5c', color: '#fff', fontWeight: 600 }}>{analyzingRemoteUrl ? 'Reading URL…' : 'Analyze URL with Gemini'}</button>}<span style={{ color: '#9aadc5', fontSize: 12, alignSelf: 'center' }}>The original page opens directly; the local agent can test the selected URL.</span></div>
+        <label style={{ gridColumn: '1 / -1' }}>Additional page URL (optional)<input type="url" value={probeSecondUrl} onChange={(e) => setProbeSecondUrl(e.target.value)} placeholder="https://same-source.example/another-page" style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Add another page URL from the same host.</span></label>
         <label style={{ gridColumn: '1 / -1' }}>Import a local page, document or variant-B probe report (HTML, TXT, MD, PDF, DOCX, XLSX, PPTX, CSV, TSV, JSON · up to 5 MB)<input type="file" accept=".html,.htm,.txt,.md,.pdf,.docx,.xlsx,.pptx,.csv,.tsv,.json,text/html,text/plain,application/pdf" onChange={(e) => void importLocalPageFile(e.target.files?.[0])} style={field} /><span style={{ color: '#9aadc5', fontSize: 12 }}>Read and extract locally in this browser. The original file is not uploaded; extraction runs in this browser and notes are saved only when you submit the form. Scanned-image OCR is not yet supported.</span></label>
         {localPageInspection && <div style={{ gridColumn: '1 / -1', border: '1px solid #40536b', borderRadius: 10, padding: 14, background: '#0e1c2e' }} data-testid="immogr-page-inspector">
           <h3 style={{ marginTop: 0 }}>Local page viewer</h3>
