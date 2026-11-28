@@ -9,13 +9,9 @@
     "noAutomatedContactOrOutreach": true,
     "manualResearchEnabled": true,
     "manualResearchMode": "user_initiated_browser_and_explicit_structured_capture",
-    "noServerSideProxyForManualReview": true,
     "personalNotebookCaptureEnabled": true,
     "personalNotebookScope": "single_owner_private_use",
-    "localSavedPageProcessing": "user_selected_local_files_processed_in_browser_before_explicit_save",
-    "localFileImportDoesNotEnableRemoteCrawling": true,
-    "automationArchitectureEnabled": true,
-    "sourceAvailabilityIsRuntimeDetermined": true
+    "localSavedPageProcessing": "user_selected_local_files_processed_in_browser_before_explicit_save"
   },
   "sources": [
     {
@@ -28,7 +24,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://happyholiday.ch/"
@@ -43,7 +39,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.ferienhausmiete.de/"
@@ -52,12 +48,12 @@
       "id": "flatfox",
       "name": "Flatfox",
       "category": "classified_marketplace",
-      "ownerSignal": "mixed private and professional; listing-specific check required",
+      "ownerSignal": "mixed private and professional; listing-level details need inspection",
       "manualReview": {
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://flatfox.ch/"
@@ -66,12 +62,12 @@
       "id": "tutti",
       "name": "Tutti",
       "category": "classified_marketplace",
-      "ownerSignal": "mixed; advertiser-specific check required",
+      "ownerSignal": "mixed; advertiser details need inspection",
       "manualReview": {
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.tutti.ch/"
@@ -80,12 +76,12 @@
       "id": "anibis",
       "name": "Anibis",
       "category": "classified_marketplace",
-      "ownerSignal": "mixed; advertiser-specific check required",
+      "ownerSignal": "mixed; advertiser details need inspection",
       "manualReview": {
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.anibis.ch/"
@@ -94,12 +90,12 @@
       "id": "homegate",
       "name": "Homegate",
       "category": "property_portal",
-      "ownerSignal": "private landlord listing path exists; listing-specific check required",
+      "ownerSignal": "private landlord listing path exists; listing-level details need inspection",
       "manualReview": {
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.homegate.ch/"
@@ -108,12 +104,12 @@
       "id": "newhome",
       "name": "Newhome",
       "category": "property_portal",
-      "ownerSignal": "mixed; publisher authorization required by platform rules",
+      "ownerSignal": "mixed; publisher-managed platform",
       "manualReview": {
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.newhome.ch/"
@@ -127,7 +123,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.womilo.ch/"
@@ -141,7 +137,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.comparis.ch/immobilien/default"
@@ -155,7 +151,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://housenet.ch/en/"
@@ -170,7 +166,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.immobilier.ch/"
@@ -184,7 +180,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.lookmove.ch/EN"
@@ -198,7 +194,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://developer.discover.swiss/"
@@ -213,7 +209,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.stnet.ch/de/export-ferienwohnungen/"
@@ -227,7 +223,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.e-domizil.ch/"
@@ -242,7 +238,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://flatradar.ch/en"
@@ -257,7 +253,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://aptari.ai/en"
@@ -271,7 +267,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.lookmove.ch/EN"
@@ -286,7 +282,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://flatli.ch/en"
@@ -301,7 +297,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.urbanhome.ch/"
@@ -316,7 +312,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://apartmentszurich.ch/en/"
@@ -331,7 +327,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://realadvisor.ch/en"
@@ -346,7 +342,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://homematch.ch/en"
@@ -361,7 +357,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.wgzimmer.ch/"
@@ -376,7 +372,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.students.ch/"
@@ -391,7 +387,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.nachmieter.ch/"
@@ -406,7 +402,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://www.graubuenden.ch/en/booking/accommodation"
@@ -421,7 +417,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://apartmentsswitzerland.ch/en/"
@@ -435,7 +431,7 @@
         "status": "not_started",
         "inspectedPageCount": 0,
         "lastReviewedAt": null,
-        "notes": "Owner-approved user-initiated manual research; automated acquisition remains governed independently by status and permission.",
+        "notes": "Manual research observations are stored separately.",
         "personalNotebookCaptureStatus": "enabled"
       },
       "homepageUrl": "https://alpinemarket.ch/developers"
