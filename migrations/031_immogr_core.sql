@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS immogr_sources (
   id text PRIMARY KEY,
   canonical_domain text NOT NULL,
   operator_name text,
-  status text NOT NULL CHECK (status IN ('active','discovery_only','research_required','permission_required','excluded_pending_written_permission','degraded','retired','not_a_feasible_source','low_priority')),
+  status text NOT NULL CHECK (status IN ('active','discovery_only','research_required','degraded','retired','not_a_feasible_source','low_priority')),
   terms_url text,
   terms_reviewed_at timestamptz,
   terms_version_or_hash text,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS immogr_sources (
 
 CREATE TABLE IF NOT EXISTS immogr_runs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  mode text NOT NULL CHECK (mode IN ('manual_discovery','manual_review','authorized_acquisition','evaluation')),
+  mode text NOT NULL CHECK (mode IN ('manual_discovery','manual_review','source_acquisition','evaluation')),
   category text CHECK (category IN ('direct_rental','private_owner_prospect')),
   commune_id integer,
   status text NOT NULL CHECK (status IN ('queued','running','succeeded','partial','failed','cancelled')),
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS immogr_source_pages (
   content_type text,
   observed_at timestamptz NOT NULL DEFAULT now(),
   content_fingerprint text,
-  access_decision text NOT NULL CHECK (access_decision IN ('manual_review','authorized','blocked_terms','blocked_robots','blocked_rate_limit','blocked_auth','failed')),
+  access_decision text NOT NULL CHECK (access_decision IN ('manual_review','retrieved','failed')),
   parser_version text,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb
 );
