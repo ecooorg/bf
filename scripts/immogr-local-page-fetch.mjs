@@ -10,7 +10,6 @@ import { evaluateResearchProbe } from '../server/immogr/probe-policy.ts';
 
 const USER_AGENT = 'ImmoGR-LocalResearch/1.0';
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
-const MAX_ROBOTS_BYTES = 256 * 1024;
 const REQUEST_TIMEOUT_MS = 10_000;
 
 function ipv4IsPublic(ip) {
@@ -92,56 +91,6 @@ function requestOnce(urlString, method, maxBytes) {
   });
 }
 
-function robotsGroups(text) {
-  const groups = [];
-  let group = { agents: [], rules: [] };
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.split('#')[0].trim();
-    if (!line) continue;
-    const colon = line.indexOf(':');
-    if (colon < 0) continue;
-    const key = line.slice(0, colon).trim().toLowerCase();
-    const value = line.slice(colon + 1).trim();
-    if (key === 'user-agent') {
-      if (group.agents.length && group.rules.length) {
-        groups.push(group);
-        group = { agents: [], rules: [] };
-      }
-      group.agents.push(value.toLowerCase());
-    } else if ((key === 'allow' || key === 'disallow') && group.agents.length && value) {
-      group.rules.push({ type: key, value });
-    }
-  }
-  if (group.agents.length) groups.push(group);
-  return groups;
-}
-
-function robotsPatternMatches(pattern, target) {
-  const endAnchored = pattern.endsWith('$');
-  const core = endAnchored ? pattern.slice(0, -1) : pattern;
-  const escaped = core.split('*').map((part) => Array.from(part).map((char) => '\\.^$+?()[]{}|'.includes(char) ? '\\' + char : char).join('')).join('.*');
-  return new RegExp('^' + escaped + (endAnchored ? '$' : '')).test(target);
-}
-
-export function isAllowedByRobots(robotsText, urlString, userAgent = USER_AGENT) {
-  const url = new URL(urlString);
-  const target = url.pathname + url.search;
-  const groups = robotsGroups(robotsText);
-  const matching = groups.filter((group) => group.agents.some((agent) => agent === '*' || userAgent.toLowerCase().includes(agent)));
-  if (!matching.length) return true;
-  const specificAgents = matching.flatMap((group) => group.agents.filter((agent) => agent !== '*' && userAgent.toLowerCase().includes(agent)));
-  const specificity = Math.max(...specificAgents.map((agent) => agent.length), 0);
-  const selectedGroups = matching.filter((group) => group.agents.some((agent) => specificAgents.length
-    ? agent !== '*' && agent.length === specificity && userAgent.toLowerCase().includes(agent)
-    : agent === '*'));
-  const rules = selectedGroups.flatMap((group) => group.rules);
-  const matched = rules.filter((rule) => robotsPatternMatches(rule.value, target)).sort((a, b) => b.value.length - a.value.length);
-  if (!matched.length) return true;
-  const longest = matched[0].value.length;
-  const tied = matched.filter((rule) => rule.value.length === longest);
-  return tied.some((rule) => rule.type === 'allow');
-}
-
 export function buildProbePlan(planInput, sourceRegistry) {
   if (!planInput || typeof planInput !== 'object' || typeof planInput.sourceId !== 'string' || !Array.isArray(planInput.urls)) throw new Error('Plan must contain a registered sourceId and a urls array.');
   if (!sourceRegistry || !Array.isArray(sourceRegistry.sources)) throw new Error('The ImmoGR source registry is required.');
@@ -159,7 +108,7 @@ async function main() {
   const planPath = process.argv[2];
   if (!planPath || process.argv.includes('--help')) {
     process.stdout.write('Usage: node --import tsx scripts/immogr-local-page-fetch.mjs <local-plan.json>\n');
-    process.stdout.write('Plan JSON: { "sourceId": "registered-source-id", "urls": ["https://..."] }; authorization is read only from config/immogr/sources.json\n');
+    process.stdout.write('Plan JSON: { "sourceId": "registered-source-id", "urls": ["https://..."] }\n');
     process.exitCode = planPath ? 0 : 2;
     return;
   }
