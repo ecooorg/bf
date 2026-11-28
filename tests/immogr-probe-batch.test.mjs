@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { assessBatchProbe } from '../scripts/immogr-local-probe-batch.mjs';
-test('batch assessment does not require source permission metadata', () => {
+test('batch assessment validates only the technical request plan', () => {
   assert.equal(assessBatchProbe({ id: 'sample' }, { sourceId: 'sample', urls: ['https://sample.example/listing/1'] }).allowed, true);
 });
 test('batch assessment validates URL plan shape', () => {
