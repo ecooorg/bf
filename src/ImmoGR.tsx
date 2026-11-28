@@ -3,7 +3,7 @@ import { extractSchemaFactsFromJsonLd, normalizeLocalityLabel } from './immogr/l
 import { inspectLocalHtmlDocument, type LocalPageInspection } from './immogr/local-page-inspector.ts';
 import { downloadAllLogs } from './allLogs.ts';
 type ImmoGRStatus = { product: string; stage: string; liveDiscoveryEnabled: boolean; liveSearchEnabled: boolean; listingQualificationEnabled: boolean; message: string; resultCategories: string[]; urlContextConfigured?: boolean; remotePageAcquisitionEnabled?: boolean };
-type DiscoveryLead = { title: string; url: string; host: string; verification: string };
+type DiscoveryLead = { title: string; url: string; host: string; verification: string; locality?: string | null; propertyType?: string; priceAmount?: number | null; currency?: string | null; pricePeriod?: string; ownerClass?: string; qualification?: string; confidence?: string; sourceName?: string; evidence?: Array<{ field: string; quote: string }> };
 type LocalityOption = { id: string; name: string; canton: 'GR'; group: 0 | 1 | 2 };
 type GroupMode = 'group1' | 'group2' | 'both' | 'chur';
 type ManualSource = { id: string; name: string; category: string; ownerSignal: string; homepageUrl?: string };
@@ -281,7 +281,7 @@ export default function ImmoGR() {
     try {
       if (!selectedSourceIds.length) throw new Error('Select at least one source.');
       if (!selectedLocalityIds.length) throw new Error('Select at least one locality.');
-      const response = await fetch('/api/immogr/discovery', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localityIds: selectedLocalityIds, category, sourceIds: selectedSourceIds }) });
+      const response = await fetch('/api/immogr/search', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localityIds: selectedLocalityIds, category, sourceIds: selectedSourceIds, maxPages: 10 }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         const diagnostics = body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : {
@@ -293,8 +293,8 @@ export default function ImmoGR() {
         const detail = body.reason ? ' · ' + String(body.reason).slice(0, 180) : '';
         throw new Error((body.error || ('Discovery failed (' + response.status + ')')) + detail);
       }
-      setSearchDiagnostics(body.diagnostics && typeof body.diagnostics === 'object' ? body.diagnostics : { httpStatus: response.status, resultCount: Array.isArray(body.leads) ? body.leads.length : 0 });
-      setLeads(Array.isArray(body.leads) ? body.leads : []); setSearched(true);
+      setSearchDiagnostics({ httpStatus: response.status, runId: body.runId, status: body.status, discovered: body.discovered, fetched: body.fetched, failed: body.failed, candidateCount: body.candidateCount });
+      setLeads(Array.isArray(body.candidates) ? body.candidates.map((item: any) => ({ ...item, host: (() => { try { return new URL(item.url).hostname; } catch { return ''; } })(), verification: item.qualification || 'needs_review' })) : []); setSearched(true);
     } catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Discovery failed'); }
     finally { setSearching(false); }
   }
@@ -381,8 +381,8 @@ export default function ImmoGR() {
         <button type="button" onClick={() => void discover()} disabled={!status?.liveDiscoveryEnabled || searching || !selectedSourceIds.length || !selectedLocalityIds.length}>{searching ? 'Searching…' : 'Search'}</button>
       </div>
       {searchError && <p role="alert">{searchError}</p>}
-      {searched && <p role="status">{leads.length} candidate URLs found (maximum 100). Results are unverified.</p>}
-      {leads.length > 0 && <div className="immogr-lead-list" data-testid="immogr-candidate-cards">{leads.map((lead) => <article className="immogr-lead-card" key={lead.url}><span className="immogr-card-badge">Unverified discovery lead</span><h3 style={{ margin: '4px 0 8px' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title || lead.host}</a></h3><p className="immogr-card-meta">{lead.host}</p><p>{category === 'direct_rental' ? 'Direct Rental candidate' : 'Private Owner Prospect candidate'}</p><p className="immogr-card-meta">Search geography: {selectedLocalityIds.map((id) => manualLocalities.find((item) => item.id === id)?.name).filter(Boolean).join(', ')}</p><p className="immogr-card-meta">URL discovery only · no page fetched · no price or ownership verified</p></article>)}</div>}
+      {searched && <p role="status">{leads.length} property candidates extracted from retrieved pages. Review evidence before relying on any result.</p>}
+      {leads.length > 0 && <div className="immogr-lead-list" data-testid="immogr-candidate-cards">{leads.map((lead) => <article className="immogr-lead-card" key={lead.url}><span className="immogr-card-badge">{lead.qualification === 'qualified_candidate' ? 'Qualified candidate' : 'Needs review'}</span><h3 style={{ margin: '4px 0 8px' }}><a href={lead.url} target="_blank" rel="noopener noreferrer">{lead.title || lead.host}</a></h3><p className="immogr-card-meta">{lead.sourceName || lead.host} · {lead.locality || 'Locality unknown'}</p><p>{lead.propertyType || 'Property type unknown'}{lead.priceAmount != null ? ' · ' + lead.priceAmount + ' ' + (lead.currency || '') + ' / ' + (lead.pricePeriod || 'period unknown') : ' · Price unknown'} · {lead.ownerClass || 'Owner unknown'}</p><p className="immogr-card-meta">Evidence confidence: {lead.confidence || 'low'} · {lead.evidence?.length || 0} evidence quotes</p>{lead.evidence?.slice(0,3).map((item,index) => <blockquote key={index} className="immogr-card-meta">{item.field}: “{item.quote}”</blockquote>}</article>)}</div>}
     </section>
     <details className="immogr-advanced">
       <summary>Personal notebook and research tools</summary>
