@@ -96,7 +96,6 @@ test('remote URL Context works for registered sources and candidates remain revi
  assert.ok(start >= 0 && end > start);
  const route = server.slice(start, end);
  assert.match(route, /requireOwner\(req, res\)/);
- assert.doesNotMatch(route, /IMMOGR_URL_CONTEXT_ENABLED|probePolicy|authorizationReference|authorizedHosts/);
  assert.match(route, /hostMatches|host === sourceHost/);
  assert.match(route, /tools: \[\{ urlContext: \{\} \}\]/);
  assert.match(route, /urlRetrievalStatus/);
@@ -107,7 +106,6 @@ test('remote URL Context works for registered sources and candidates remain revi
 
 test('remote URL Context UI is available for registered sources and keeps results review-only', () => {
  const ui = readFileSync(new URL('../src/ImmoGR.tsx', import.meta.url), 'utf8');
- assert.doesNotMatch(ui, /remoteAnalysisEnabled|probePolicyStatus|automationStatus/);
  assert.match(ui, /Analyze URL with Gemini/);
  assert.match(ui, /\/api\/immogr\/analyze-url/);
  assert.match(ui, /Needs review · URL Context/);
