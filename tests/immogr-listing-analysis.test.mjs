@@ -89,7 +89,7 @@ test('contact details are excluded from evidence and catalog pages cannot qualif
  assert.equal(catalogResult.candidates[0].qualification, 'needs_review');
 });
 
-test('remote URL Context is available without source permission metadata and candidates remain review-only', () => {
+test('remote URL Context works for registered sources and candidates remain review-only', () => {
  const server = readFileSync(new URL('../server/immogr/index.ts', import.meta.url), 'utf8');
  const start = server.indexOf("app.post('/api/immogr/analyze-url'");
  const end = server.indexOf("// AI analysis of a user-selected local page copy", start);
@@ -105,7 +105,7 @@ test('remote URL Context is available without source permission metadata and can
  assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
 });
 
-test('remote URL Context UI is available without a source authorization flag and keeps results review-only', () => {
+test('remote URL Context UI is available for registered sources and keeps results review-only', () => {
  const ui = readFileSync(new URL('../src/ImmoGR.tsx', import.meta.url), 'utf8');
  assert.doesNotMatch(ui, /remoteAnalysisEnabled|probePolicyStatus|automationStatus/);
  assert.match(ui, /Analyze URL with Gemini/);
