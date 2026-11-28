@@ -4,8 +4,8 @@
 
 ## Foundation
 - ImmoGR has independent UI, API, code, configuration, data and tests.
-- The source inventory contains technical identifiers, names, categories and canonical homepages; no source permission status is required to register or test a source.
-- Adding a new source requires technical metadata and an adapter or generic retrieval path, not a source-specific authorization record.
+- The source inventory contains technical identifiers, names, categories and canonical homepages.
+- Adding a source requires technical metadata and an adapter or generic retrieval path.
 
 ## Search engine
 - Search accepts the selected locality scope and searches the configured source inventory.
@@ -17,7 +17,7 @@
 ## Source usefulness test
 - Every registered source can be run through the same short technical test.
 - The report records request outcome, page type, number of concrete property candidates, locality coverage, price/rooms/area fields, owner/contact signals, freshness and parsing quality.
-- Sources are compared by useful unique information, not by permission or authorization status.
+- Sources are compared by useful unique information and measured technical reliability.
 - The report separates transport failures, empty results, irrelevant content and successful useful extraction.
 
 ## Technical safeguards
