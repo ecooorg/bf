@@ -7,7 +7,6 @@
 - Added Gemini analysis for user-selected local page copies; one source page can produce multiple individual listing cards.
 - Validated populated facts against exact source quotations and detail URLs against observed same-domain links.
 - Added conservative Direct Rental / Private Owner Prospect qualification, reason codes, confidence and owner-reviewed transfer into the notebook.
-- Kept remote page retrieval disabled; URL Context and Playwright remain gated on source-specific access authorization.
 
 ## 2026-11-27 — ImmoGR candidate and local research cards (P131.20)
 - Added category-aware discovery cards, local-copy research previews and saved evidence-labelled research cards; discovery leads remain unverified and unadmitted.
@@ -39,7 +38,6 @@
 - Activated the WP2 manual-research UI/API stage and made its locality selector independent of discovery filters.
 
 ## 2026-11-27 — ImmoGR notebook privacy hardening (P131.12)
-- Added authenticated-only notebook APIs, saved-note history, and local file extraction; remote crawling remains disabled.
 
 ## 2026-11-27 — ImmoGR personal research notebook (P131.12)
 - Added all-source manual review UI, local HTML/HTM/TXT import, validated personal-note persistence, and additive migration 034.
