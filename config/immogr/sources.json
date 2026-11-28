@@ -1,7 +1,6 @@
 {
   "schemaVersion": 1,
   "product": "ImmoGR",
-  "status": "research_required",
   "policy": {
     "snippetsAreDiscoveryOnly": true,
     "requireSpecificListingPage": true,
@@ -18,7 +17,6 @@
       "id": "happyholiday",
       "name": "HappyHoliday",
       "category": "holiday_rental",
-      "status": "research_required",
       "ownerSignal": "site claims direct private landlords",
       "manualReview": {
         "status": "not_started",
@@ -33,7 +31,6 @@
       "id": "ferienhausmiete",
       "name": "Ferienhausmiete",
       "category": "holiday_rental",
-      "status": "research_required",
       "ownerSignal": "unknown",
       "manualReview": {
         "status": "not_started",
@@ -160,7 +157,6 @@
       "id": "immobilier",
       "name": "immobilier.ch",
       "category": "agency_portal",
-      "status": "low_priority",
       "ownerSignal": "professional agencies",
       "manualReview": {
         "status": "not_started",
@@ -203,7 +199,6 @@
       "id": "stnet_openbooking",
       "name": "STnet OpenBooking e-Marketplace",
       "category": "holiday_rental_data_exchange",
-      "status": "not_a_feasible_source",
       "ownerSignal": "Swiss holiday-home offers from connected booking systems; classified providers preferred",
       "manualReview": {
         "status": "not_started",
@@ -232,7 +227,6 @@
       "id": "flatradar_ch",
       "name": "Flatradar Switzerland",
       "category": "aggregator",
-      "status": "research_required",
       "ownerSignal": "Claims 15-minute scans, 10k+ listings; Flatfox and Weegee named; landing-page counters showed zero in current research session.",
       "manualReview": {
         "status": "not_started",
@@ -247,7 +241,6 @@
       "id": "aptari",
       "name": "aptari",
       "category": "aggregator",
-      "status": "discovery_only",
       "ownerSignal": "Open feed aggregates Homegate, ImmoScout24, Flatfox and about 800 cooperative websites; valuable for finding original sources.",
       "manualReview": {
         "status": "not_started",
@@ -276,7 +269,6 @@
       "id": "flatli",
       "name": "Flatli",
       "category": "aggregator",
-      "status": "research_required",
       "ownerSignal": "Claims nationwide rental aggregation, six-hour sweeps and free private-landlord posting.",
       "manualReview": {
         "status": "not_started",
@@ -291,7 +283,6 @@
       "id": "urbanhome",
       "name": "UrbanHome",
       "category": "first_hand_marketplace",
-      "status": "research_required",
       "ownerSignal": "Current help/portal survey describes private free listings and replacement-tenant offers; first-hand inventory claimed.",
       "manualReview": {
         "status": "not_started",
@@ -306,7 +297,6 @@
       "id": "apartmentszurich",
       "name": "Apartments Zurich",
       "category": "first_hand_marketplace",
-      "status": "research_required",
       "ownerSignal": "About page says private landlords and replacement tenants can post free; public detailed listing search.",
       "manualReview": {
         "status": "not_started",
@@ -321,7 +311,6 @@
       "id": "realadvisor",
       "name": "RealAdvisor",
       "category": "aggregator",
-      "status": "research_required",
       "ownerSignal": "Rental search claims portal aggregation plus direct agency/landlord listings and publisher/contact display.",
       "manualReview": {
         "status": "not_started",
@@ -336,7 +325,6 @@
       "id": "homematch",
       "name": "Homematch",
       "category": "discovery_feed",
-      "status": "research_required",
       "ownerSignal": "Current portal guide describes nationwide personal feed and direct messaging to private landlords/agencies.",
       "manualReview": {
         "status": "not_started",
@@ -351,7 +339,6 @@
       "id": "wgzimmer",
       "name": "WGzimmer.ch",
       "category": "niche_marketplace",
-      "status": "research_required",
       "ownerSignal": "Niche room and flatshare inventory.",
       "manualReview": {
         "status": "not_started",
@@ -366,7 +353,6 @@
       "id": "students",
       "name": "students.ch",
       "category": "niche_marketplace",
-      "status": "research_required",
       "ownerSignal": "Student-oriented rooms and apartment marketplace.",
       "manualReview": {
         "status": "not_started",
@@ -381,7 +367,6 @@
       "id": "nachmieter",
       "name": "Nachmieter.ch",
       "category": "replacement_tenant_marketplace",
-      "status": "research_required",
       "ownerSignal": "Replacement-tenant listings can surface early termination opportunities.",
       "manualReview": {
         "status": "not_started",
@@ -396,7 +381,6 @@
       "id": "graubuenden_tourism",
       "name": "Graubünden Tourism / regional destination listings",
       "category": "tourism_provider_directory",
-      "status": "research_required",
       "ownerSignal": "Some provider pages explicitly state family ownership and expose a property-level contact route; page ownership and contact attribution must be checked per listing",
       "manualReview": {
         "status": "not_started",
@@ -411,7 +395,6 @@
       "id": "apartments_switzerland",
       "name": "Apartments Switzerland",
       "category": "mixed_classifieds_aggregator",
-      "status": "discovery_only",
       "ownerSignal": "Listings may be posted by owners, agencies or tenants and may be republished from public sources; original advertiser must be verified",
       "manualReview": {
         "status": "not_started",
