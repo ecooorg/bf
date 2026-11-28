@@ -1,5 +1,7 @@
-# ImmoGR — Source Registry and Research
+# ImmoGR — Source Inventory
 
-This registry is retained as a factual inventory of candidate sources and observed product characteristics. The previous consolidated access-policy classifications and probe instructions have been retired during stage 1. They must not be treated as current decisions. Stage 2 will re-review all registered sources individually and publish one concise, verified source instruction.
+This document describes the source inventory as technical input to the search engine. The structured inventory is maintained in `config/immogr/sources.json`.
 
-The structured source inventory remains in `config/immogr/sources.json`; this file is not an authorization to access any source. No source tests or network requests were performed as part of stage 1.
+Each entry identifies a source, its category, canonical homepage and known product characteristics. The inventory is extensible: new sources can be added without creating a permission-status record. Source usefulness is determined by repeatable technical retrieval and extraction tests, with results recorded as observations rather than access-policy decisions.
+
+The source inventory is not the search engine itself. It supplies source identity and technical metadata to the discovery, retrieval, parsing and evaluation stages.
