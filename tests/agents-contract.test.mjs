@@ -61,7 +61,7 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
   assert.match(read('src/ProjectMode.tsx'), /CommitBadge/);
 });
 
-test('ImmoGR is the only active property-search entry and its live search is explicitly gated', () => {
+test('ImmoGR is the only active property-search entry and its live search uses the acquisition pipeline', () => {
   const app = read('src/App.tsx');
   const main = read('src/main.tsx');
   const page = read('src/ImmoGR.tsx');
@@ -74,11 +74,11 @@ test('ImmoGR is the only active property-search entry and its live search is exp
   assert.match(server, /registerImmoGRRoutes\(app,/);
   assert.match(server, /registerImmoGRRoutes\(app, \{ searchClient: pooledGeminiClient\(\)/);
   assert.doesNotMatch(server, /registerImmoGRRoutes\(app, \{ searchClient: ai as any/);
-  assert.match(engine, /liveSearchEnabled: false/);
+  assert.match(engine, /liveSearchEnabled: liveDiscoveryEnabled/);
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
   assert.match(engine, /status: 'discovery_only'/);
-  assert.doesNotMatch(engine, /fetchPageText|fetchSerperDigest\(|immofinder/i);
+  assert.match(engine, /\/api\/immogr\/search/);\n  assert.match(engine, /fetchImmoGRPage/);\n  assert.match(engine, /parseImmoGRHtml/);\n  assert.match(engine, /INSERT INTO immogr_listings/);\n  assert.doesNotMatch(engine, /immofinder/i);
   assert.match(engine, /fetchSerperDigestMulti/);
   assert.match(engine, /fetchPages: false/);
   assert.match(page, /data-testid="immogr-search"/);
