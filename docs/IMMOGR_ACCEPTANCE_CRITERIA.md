@@ -44,7 +44,6 @@ Deploy only after WP1 and the real-page acceptance gate pass. First release is m
 
 The manual-review UX may use an external tab plus an in-app capture panel. An iframe/webview is not an acceptance requirement because third-party framing and cross-origin policies may prevent it.
 
-
 ## Personal manual notebook acceptance (Owner-approved 2026-11-27)
 - Every registered source is available for user-initiated manual research regardless of automated acquisition status.
 - The user can open the original source homepage where available, open an original listing URL, and save structured observations with source, locality and timestamp provenance.
@@ -52,24 +51,6 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - Local personal processing is not conflated with remote crawling; no proxy, credential capture, access-control bypass or automatic outreach is introduced.
 - Personal notes are not automatically promoted to verified Direct Rentals or Private Owner Prospects.
 - The source registry and manual-review read/write endpoints require authenticated application access and fail closed when authentication is disabled.
-## WP3 authorized acquisition foundation acceptance
-- Automated acquisition fails closed unless a source has explicit `authorized_api` or `authorized_feed` status, matching authorization mode, dated authorization reference, explicit terms and robots approval, and an exact HTTPS host allowlist.
-- Non-HTTPS URLs, embedded URL credentials, unapproved hosts, missing/invalid authorization evidence and research-only/manual-only sources are rejected.
-- Acquired-page representation keeps metadata, JSON-LD, primary listing, related listing, navigation, footer and other blocks separate.
-- A source adapter cannot run before the authorization gate passes; manual notebook capture and search-provider snippets never count as acquisition authorization.
-- Before any network transport is enabled, tests must cover DNS/IP SSRF protection, redirect revalidation, robots decisions, per-host rate limits, response size/time limits, content-type checks, cancellation and audit logging.
-- At least one real source must have written or contractually documented permission and an owner-approved API/feed scope before its adapter can be activated.
-
-## WP3 bounded research-probe acceptance
-
-- A source can be probed by the local ImmoGR agent only with a source-specific documented permission for limited research-purpose automated requests and a positive robots/access review.
-- The probe gate rejects sources with explicit scripted-probe prohibitions, missing permission evidence, unapproved hosts/methods, non-HTTPS URLs, pagination, and plans exceeding the source's two- or three-request ceiling.
-- Probes are owner-triggered, single-host, GET/HEAD-only diagnostics. They do not enable scheduled collection, listing harvesting, automatic retries, or dataset persistence.
-- Any API key or personal credential is read only from the Owner's local secret store; never commit or log it.
-- Record probe availability/schema/quality outcomes separately from full acquisition authorization. Passing a probe does not authorize regular acquisition.
-- No probe is performed by ChatGPT on behalf of the local agent; source tests are run from the Owner's environment using their own accounts and keys.
-
-
 ### Local page inspector
 
 - [x] Owner can import one local HTML/HTM snapshot and inspect title, readable text, metadata, JSON-LD, links and image URLs.
@@ -88,7 +69,6 @@ The manual-review UX may use an external tab plus an in-app capture panel. An if
 - [x] Local probe CLI reads limited-probe authorization only from the ImmoGR source registry and cannot self-authorize through a local JSON plan.
 - [x] Batch research runner produces a status row for all 29 sources, skips prohibited/unreviewed sources without sending requests, and runs only sources with documented limited-probe authorization.
 - [x] The ImmoGR UI can export a one- or two-page local probe plan for the selected source without embedding authorization or credentials.
-
 
 ## Category-aware research cards (owner-approved 2026-11-27)
 
