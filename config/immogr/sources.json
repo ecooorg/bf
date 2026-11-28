@@ -437,46 +437,6 @@
       "homepageUrl": "https://alpinemarket.ch/developers"
     }
   ],
-  "monitoring": {
-    "policy": "continuous_source_intelligence",
-    "reviewCadence": {
-      "active": "authorized health/schema checks; weekly yield review; monthly discovery scan",
-      "research_required": "monthly public research refresh; no automated acquisition",
-      "permission_required": "monthly contract/API status review",
-      "immediateTriggers": [
-        "terms change",
-        "robots change",
-        "operator/domain change",
-        "API/feed change",
-        "repeated 403/429/401",
-        "schema regression",
-        "source stops publishing"
-      ]
-    },
-    "requiredFields": [
-      "canonicalDomain",
-      "operator",
-      "lineage",
-      "termsUrl",
-      "termsReviewedAt",
-      "termsVersionOrHash",
-      "robotsReviewedAt",
-      "authorizedMethod",
-      "pilotSampleCount",
-      "pilotQuality",
-      "lastHealthCheckAt",
-      "lastInventoryReviewAt",
-      "nextReviewAt",
-      "decisionReason"
-    ],
-    "activationRequires": [
-      "documented permitted access method",
-      "terms and robots review",
-      "at least five real detail pages",
-      "owner/contact attribution review",
-      "duplicate and freshness measurements"
-    ]
-  },
   "manualResearch": {
     "scope": "all_registered_sources",
     "sourceCount": 29,
@@ -501,7 +461,6 @@
       "observedFacts",
       "evidenceNotes"
     ],
-    "automationStatusFieldRemains": "sources[].status",
     "personalNotebookCapture": "enabled",
     "localFileProcessing": [
       "html",
