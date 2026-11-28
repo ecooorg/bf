@@ -1,89 +1,37 @@
-> ImmoFinder was permanently retired on 2026-11-27. ImmoGR is the sole active property-search product. This document is part of the current ImmoGR authority set.
+# ImmoGR — Roadmap
 
-# ImmoGR — Active Roadmap
+## Objective
+Build a complete, reliable search engine for rental properties and private-owner prospects in the selected Graubünden localities. The engine must be technically capable of discovering, retrieving, parsing, deduplicating and evaluating information from the configured source inventory.
 
-**Only active property-search roadmap.** ImmoFinder is retired; its old roadmap and reports are archive-only.
+## Phase 1 — Complete the search engine
+- Implement a unified discovery and retrieval pipeline.
+- Support generic HTML retrieval, structured data, JavaScript-rendered pages where technically appropriate, and source-specific adapters where they add measurable value.
+- Preserve page snapshots or bounded evidence extracts, response metadata and provenance.
+- Normalize locality, property type, rooms, area, price and period, availability, advertiser class and contact route.
+- Deduplicate results across sources and keep source lineage.
+- Provide diagnostics for each stage, provider, request and parser.
+- Keep transport security, SSRF prevention, secret handling, timeouts, response-size limits and bounded concurrency.
 
-## WP0 — Decommission and documentation reset
-- Add binding retirement and replacement decision to AGENTS and every maintained Markdown document.
-- Preserve legacy source/data as read-only; disable old UI, API, workers, schedules, diagnostics and live CI automation.
-- Establish ImmoGR as the only active product and current documentation authority.
+## Phase 2 — Short technical and usefulness test of every source
+- Run the same small test set against every registered source.
+- Determine whether each source responds, what page formats it returns, and whether it contains useful property information.
+- Measure concrete listing yield, locality coverage, completeness of key fields, freshness, duplicate rate and extraction quality.
+- Separate transport failures, empty inventories, irrelevant pages and successful useful extraction.
+- Produce a comparable source scorecard based on observed usefulness and technical reliability.
 
-## WP1 — Knowledge extraction, product definition, source research, isolated foundation
-- Review early and late ImmoFinder history and extract abstract successful/failed patterns.
-- Define result categories, evidence model, owner classification, source permission protocol, and quality gates.
-- Maintain a living source inventory with monthly discovery and status review; assess retain/add/downgrade/retire decisions by unique verified yield.
-- Pilot Flatradar, aptari, Lookmove, Flatli, UrbanHome, Apartments Zurich, RealAdvisor, Homematch and niche sources under their individual access rules; no source activated without terms/access review and a five-page pilot.
-- Establish independent UI/API/config/data/test namespaces and verify no legacy imports or database reads.
-- Provide live Gemini-grounded URL discovery as a manual-review lead queue; never treat search snippets as listings.
-- [x] Add independent evidence-first PostgreSQL foundation (`immogr_*`) with commune FK, source pages, listing, owner, contact, evidence, run, event and review records; add CI isolation tests.
-- Deploy the foundation and verify exact main/production commit identity; live search remains disabled.
+## Phase 3 — Select useful sources
+- Compare measured source yield and unique contribution.
+- Retain the sources that provide useful information for the target search.
+- Deprioritize sources that repeatedly return irrelevant or duplicate material.
+- Confirm the selected source set before expanding test volume or operating frequency.
 
-## WP2 — Source intelligence, manual research and real-page validation (IMPLEMENTATION COMPLETE; OWNER VALIDATION OPEN)
-**Owner decision 2026-11-27:** test every registered source for actual research value, regardless of whether automated acquisition is permitted. An automation restriction changes the acquisition mode; it does not remove a source from manual research.
+## Phase 4 — Formal source relationships
+- After the useful source set is established, assess formal interaction options for those sources.
+- Consider APIs, feeds, subscriptions, contracts and other arrangements only for sources that demonstrate practical value.
+- Record the resulting decisions separately from the engine's technical capability and source-quality measurements.
 
-- [x] Replace municipality targeting with the exact owner-defined 44-locality catalogue (22 group 1, 22 group 2); expose independent group toggles and seed `immogr_localities`.
-- [ ] Add only verified official postcodes to the existing 44 locality records. The Owner confirms the current official locality names are sufficient; no alias or historical-name expansion is wanted.
-- [ ] Inventory and manually test **all 29 registered source candidates**. No source is skipped solely because automated scraping, scripts, reuse or API access is restricted. All 29 are present in the UI, but their actual manual-review states remain `not_started`; do not mark this complete until page visits are recorded.
-- [ ] For every source, record operator, business model, first-party/aggregator status, actual source lineage, coverage of the 44 localities, private-owner signals, page types, price semantics, contact routes, freshness, duplicate behavior, manual access outcome, and applicable terms/access constraints. Desk research is not a substitute for user-operated page review.
-- [ ] Perform an initial human-operated access check for every source. For sources with relevant live inventory, inspect at least five representative property/detail pages where available; record zero-yield, unavailable, blocked, login-only, irrelevant or stale outcomes instead of inventing samples.
-- [ ] Distinguish **manual research eligibility** from **automated acquisition eligibility**. Existing `status` values in `config/immogr/sources.json` continue to govern automation only; every source has a separate manual-research state.
-- [x] Add a user-initiated manual research panel for all 29 sources, original-page opening, structured personal-note capture, and browser-side local HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON import (up to 5 MB; source file is not uploaded).
-- [x] Render discovery URLs as category-aware unverified candidate cards; preview and persist local-copy observations as separate human-observed research cards.
-- [x] Additive migration 034 and API persist manual observations with source ID, canonical URL, locality, review timestamp, reviewer action, observed facts, notes, access outcome and provenance. Manual observations remain distinct from server-fetched pages.
-- [ ] Keep the original source URL and attribution. The Owner may keep and process local page/screenshot copies for the private notebook as approved in D-IMMOGR-012. Do not bypass authentication, paywalls, CAPTCHAs, rate limits or technical access controls.
-- [ ] Score source value by unique, relevant, evidence-backed private-owner leads and eligible Direct Rentals—not raw URL or listing counts. Track owner attribution, target-locality coverage, rent/period quality, direct contact, freshness, duplicates and research effort.
-- [ ] Research licensed API/feed candidates (including Lookmove API, discover.swiss, STnet OpenBooking and e-domizil) in parallel, but do not purchase, sign or commit spend without explicit Owner approval.
-- [ ] After the initial all-source review, recommend retain / prioritize / discovery-only / pause / exclude separately for manual research and automated acquisition. Any automated source activation still requires a documented permitted method and its own approval gate.
-
-**WP2 deliverables:** completed 29-source manual research matrix; representative page sample and zero-yield records; official postcode evidence for the 44 existing localities; manual-review UX/data contract; source-value ranking; and an Owner decision on which sources merit licensed access or later automation.
-
-## WP4 — Evidence extraction and owner intelligence
-- Write clean source adapters and typed extraction contracts.
-- Preserve fact-level quotes, structured-data paths, extraction methods, conflicts, timestamps and confidence.
-- Classify advertiser/owner entity; keep unknown distinct from private owner.
-
-## WP5 — Qualification, deduplication, persistence and review
-- Separate Direct Rental and Private Owner Prospect admission.
-- Implement independent immogr_* schema, provenance, deduplication, human review, and retention controls.
-
-## WP6 — Real-page evaluation and manual live pilot
-- Label at least 30 real pages independently; measure precision and recall.
-- Run three consecutive full runs; inspect provider usage, failure rates, duplicates and source yield.
-- Obtain owner review of actual unique results and practical usefulness.
-
-## WP7 — Production release and later scheduling decision
-- Release manual search only after all acceptance gates pass.
-- Consider scheduling only after observed stable value and explicit owner approval.
-- Never relax quality gates merely to increase result count.
-
-**Owner clarification 2026-11-27:** manual research is a private personal-notebook workflow. The Owner may save pages/screenshots locally and process those copies manually or with local automation. WP2's capture UX must support user-selected local HTML/HTM/TXT import with browser-side extraction and explicit save; this does not enable remote crawling or proxying.
-
-**WP2 implementation update 2026-11-27:** the first manual-notebook slice is implemented in UI/API and migration 034. The 29-source page-by-page research, five-page samples, scanned-image OCR, and real database/browser verification remain open.
-
-**WP2 local-import extension (branch implementation):** source homepage links are surfaced for verified registry entries; browser-side extraction reuses the shared workspace extractor for PDF and Office/structured text formats. Scanned-image OCR remains an explicit follow-up.
-
-**WP2 structured local import:** HTML JSON-LD suggestions are parsed client-side into editable candidate fields; the Owner must verify them before save. No source page is fetched by ImmoGR.
-
-**WP2 structured-import refinement (2026-11-27):** local JSON-LD extraction now recognizes German, French and Italian rental-period labels, preserves schema.org availability values as unverified suggestions, and normalizes locality spelling/diacritics only for exact label matching. It deliberately does not infer geographic aliases such as “St.” → “Sankt”; those require owner-reviewed locality evidence.
-
-### WP2 / WP3 transition — 2026-11-27
-
-The WP2 software deliverables are in place: exact 44-locality selector, 29-source registry/UI, authenticated personal notebook, additive persistence contract, local document import and local structured-data suggestions. WP2 is **not operationally accepted**: all 29 source records still show `manualReview.status=not_started`, no five-page source samples have been entered, and official postcodes have not yet been verified against authoritative evidence; locality aliases are not in scope per D-IMMOGR-014. Those are real research activities, not tasks that can be truthfully completed by changing code or relabelling records.
-
-WP3 has started with a fail-closed authorization and page-representation contract. It intentionally activates no source: the current registry contains no source with a complete documented API/feed authorization, terms/robots approval and exact host allowlist. This permits implementation to proceed without silently treating manual browsing, public visibility, or the private notebook as remote acquisition permission.
-
-**WP3 owner clarification — bounded probes (2026-11-27):** the Owner authorizes the local ImmoGR agent to perform source-specific technical research probes, normally two or three requests, solely to establish reachability, response format/schema and information quality. This is not a request for bulk collection or recurring automation. Because the requests are sent by software, they are still automated access; therefore only sources whose current rules explicitly permit this limited research method may be probed. Sources that expressly prohibit scripted requests remain excluded until written operator permission is obtained. Probe permission is separate from full acquisition authorization. The agent must use the Owner's own local credentials where contractually permitted, keep secrets local, and record diagnostic outcomes without turning probes into a listing dataset.
-
-## WP4 first implementation — evidence-backed local-page listing analysis (2026-11-27)
-
-- [x] Gemini JSON extraction contract classifies a page as detail, catalogue, non-listing or unknown and can return multiple listings.
-- [x] Validate facts against exact quotations; validate detail URLs against original URL or observed same-source links.
-- [x] Enforce exact target-locality matching and independent Direct Rental / Private Owner Prospect gates.
-- [x] Render AI listing cards with confidence, reason codes and evidence; allow owner-reviewed transfer into the notebook.
-- [x] Keep acquisition unchanged: analysis consumes user-selected local copies only and never fetches the supplied URL.
-- [ ] Build labelled real-page evaluation corpus and measure listing-level precision/recall.
-- [ ] Add immutable source snapshots, listing/evidence persistence, canonical deduplication and status history.
-- [ ] Implement Gemini URL Context only for sources with explicit reviewed acquisition authorization.
-- [ ] Add Playwright fallback only for authorized public pages requiring JavaScript rendering.
-- [ ] Review official feeds and portal alerts as separate discovery channels.
+## Quality gates
+- Every extracted fact must retain its source URL and supporting evidence.
+- Search results remain distinguishable from verified listings until the evidence and qualification stages pass.
+- Source failures must be observable and must not silently disable unrelated sources.
+- The engine must pass deterministic tests and a real-page evaluation set before production use.
