@@ -1,11 +1,6 @@
 -- Remove legacy source permission metadata and normalize stored retrieval outcomes.
 ALTER TABLE immogr_sources DROP CONSTRAINT IF EXISTS immogr_sources_status_check;
-UPDATE immogr_sources
-SET status = 'research_required'
-WHERE status IN ('permission_required', 'excluded_pending_written_permission', 'prohibited', 'not_reviewed');
-ALTER TABLE immogr_sources
-  ADD CONSTRAINT immogr_sources_status_check
-  CHECK (status IN ('active','discovery_only','research_required','degraded','retired','not_a_feasible_source','low_priority'));
+ALTER TABLE immogr_sources DROP COLUMN IF EXISTS status;
 
 ALTER TABLE immogr_sources DROP COLUMN IF EXISTS terms_url;
 ALTER TABLE immogr_sources DROP COLUMN IF EXISTS terms_reviewed_at;
