@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { evaluateResearchProbe } from '../server/immogr/probe-validation.ts';
+import { validateResearchProbe } from '../server/immogr/probe-validation.ts';
 
 const USER_AGENT = 'ImmoGR-LocalResearch/1.0';
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
@@ -99,8 +99,8 @@ export function buildProbePlan(planInput, sourceRegistry) {
   if (planInput.urls.length < 1 || planInput.urls.length > 20) throw new Error('Provide between one and twenty page URLs.');
   const urls = planInput.urls;
   const requests = urls.map((url) => ({ url, method: 'GET' }));
-  const decision = evaluateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
-  if (!decision.allowed) throw new Error('Invalid technical request plan: ' + decision.reasons.join(', '));
+  const decision = validateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
+  if (!decision.valid) throw new Error('Invalid technical request plan: ' + decision.reasons.join(', '));
   return { source, urls, requests, decision };
 }
 
