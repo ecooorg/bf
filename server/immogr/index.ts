@@ -368,13 +368,13 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const leads = acceptedCandidates.slice(0, 100).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
-      return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'manual_review_required' };
+      return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'not_assessed' };
     });
     return res.json({
       success: true, status: 'discovery_only', category, localities: localityNames, localityIds,
       generatedAt: new Date().toISOString(), requestId, diagnostics: { ...diagnosticDetails, returnedLeadCount: leads.length }, leads, queries: result.queries,
       listingAdmissionEnabled: false, pageAcquisitionPerformed: false,
-      disclaimer: 'Broad search-engine candidate URLs only, capped at 100. Results are unverified and are restricted to the selected source domains. No source listing pages were fetched or parsed; review each result manually and check source access terms before any automated access.',
+      disclaimer: 'Broad search-engine candidate URLs only, capped at 100. Results are unverified and are restricted to the selected source domains. No source listing pages were fetched or parsed; review candidate relevance and evidence before treating it as a listing.',
     });
   };
   app.post('/api/immogr/discovery', discoveryHandler);
@@ -393,9 +393,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'One or more localities are outside the owner-defined ImmoGR list.' });
       }
       const scope = resolveDiscoverySourceScope(sourceIds, sourceRegistry.sources);
-      const selectedRegistrySources = sourceIds.map((id: unknown) => sourceRegistry.sources.find((source) => source.id === id));
-      if ('error' in scope || scope.sources.length !== 4 || selectedRegistrySources.some((source) => !source || source.probePolicy?.status === 'prohibited')) {
-        return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'Selected sources are invalid or marked prohibited in the source registry.' });
+      if ('error' in scope || scope.sources.length !== 4) {
+        return res.status(400).json({ success: false, code: 'INVALID_PILOT_SCOPE', error: 'Selected sources are invalid.' });
       }
       const results: any[] = [];
       for (const locality of localities as NonNullable<typeof localities[number]>[]) {
