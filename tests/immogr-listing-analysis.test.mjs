@@ -89,17 +89,15 @@ test('contact details are excluded from evidence and catalog pages cannot qualif
  assert.equal(catalogResult.candidates[0].qualification, 'needs_review');
 });
 
-test('remote URL Context is source-authorization gated and every extracted candidate remains review-only', () => {
+test('remote URL Context is available without source permission metadata and candidates remain review-only', () => {
  const server = readFileSync(new URL('../server/immogr/index.ts', import.meta.url), 'utf8');
  const start = server.indexOf("app.post('/api/immogr/analyze-url'");
  const end = server.indexOf("// AI analysis of a user-selected local page copy", start);
  assert.ok(start >= 0 && end > start);
  const route = server.slice(start, end);
  assert.match(route, /requireOwner\(req, res\)/);
- assert.match(route, /IMMOGR_URL_CONTEXT_ENABLED/);
- assert.match(route, /probePolicy\?\.status === 'authorized'/);
- assert.match(route, /authorizationReference/);
- assert.match(route, /authorizedHosts\.includes\(host\)/);
+ assert.doesNotMatch(route, /IMMOGR_URL_CONTEXT_ENABLED|probePolicy|authorizationReference|authorizedHosts/);
+ assert.match(route, /hostMatches|host === sourceHost/);
  assert.match(route, /tools: \[\{ urlContext: \{\} \}\]/);
  assert.match(route, /urlRetrievalStatus/);
  assert.match(route, /qualification: 'needs_review'/);
@@ -107,9 +105,9 @@ test('remote URL Context is source-authorization gated and every extracted candi
  assert.doesNotMatch(route, /fetchPageText|fetchSerperDigestMulti|fetch\(/);
 });
 
-test('remote URL Context UI is shown only for source-authorized sources and keeps results review-only', () => {
+test('remote URL Context UI is available without a source authorization flag and keeps results review-only', () => {
  const ui = readFileSync(new URL('../src/ImmoGR.tsx', import.meta.url), 'utf8');
- assert.match(ui, /remoteAnalysisEnabled/);
+ assert.doesNotMatch(ui, /remoteAnalysisEnabled|probePolicyStatus|automationStatus/);
  assert.match(ui, /Analyze URL with Gemini/);
  assert.match(ui, /\/api\/immogr\/analyze-url/);
  assert.match(ui, /Needs review · URL Context/);
