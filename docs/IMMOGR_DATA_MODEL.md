@@ -14,8 +14,8 @@
 |---|---|
 | immogr_communes | Historical administrative reference only; not the ImmoGR search geography. |
 | immogr_localities | Exact owner-selected Graubünden localities keyed by stable locality ID and assigned to group 1 or 2. |
-| immogr_sources | Source registry, source context, automated-acquisition state, manual-research state, activation state, rate policy, source adapter version. |
-| immogr_source_pages | Fetched page observations: requested/final URL, HTTP status, content type, fetch time, content fingerprint, access decision, parser version. |
+| immogr_sources | Source identity, canonical domain, category, technical health, source adapter version and measured yield. |
+| immogr_source_pages | Fetched page observations: requested/final URL, HTTP status, content type, fetch time, content fingerprint, retrieval outcome, parser version. |
 | immogr_listings | Canonical property record, result category, locality ID, property type, normalized price/period, owner class, quality state. |
 | immogr_owners | Evidence-backed owner or advertiser identity and entity class; unknown remains valid. |
 | immogr_contacts | Direct contact route and entity attribution, source URL, verification status, retention metadata. |
@@ -39,7 +39,7 @@ Add a dedicated `immogr_manual_reviews` table (additive migration) rather than t
 Suggested fields:
 - `id`, `source_id`, `canonical_url`, optional `locality_id`;
 - `capture_method` fixed to `manual_user_review`;
-- `reviewer_id`, `reviewed_at`, `manual_access_outcome`;
+- `reviewer_id`, `reviewed_at`, `research_outcome`;
 - structured observed fields for page type, property type, price amount/currency/period, rental mode, owner/advertiser class and signal, contact-route type, freshness and relevance;
 - concise reviewer notes and links to `immogr_evidence` records;
 - `created_at`, `updated_at`, and review-state history.
@@ -49,4 +49,4 @@ The Owner may retain local full-page or screenshot copies outside the server and
 
 ### Owner-approved local personal notebook clarification (2026-11-27)
 
-The Owner may keep local page or screenshot copies and process them with local tools or automation. The ImmoGR browser import currently reads selected HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files locally (maximum 5 MB), extracts text into an editable notes field, and does not upload the source file itself. Only the Owner-approved structured fields and edited notes are persisted. This is private notebook data, not a public listing feed. Remote crawling and server-side proxying remain separate and are not enabled by this workflow.
+The Owner may keep local page or screenshot copies and process them with local tools or automation. The ImmoGR browser import currently reads selected HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON files locally (maximum 5 MB), extracts text into an editable notes field, and does not upload the source file itself. Only the Owner-approved structured fields and edited notes are persisted. This is private notebook data, not a public listing feed. Remote retrieval is implemented as a separate technical pipeline.
