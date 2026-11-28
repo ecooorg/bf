@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { evaluateResearchProbe } from '../server/immogr/probe-policy.ts';
+import { evaluateResearchProbe } from '../server/immogr/probe-validation.ts';
 
 const USER_AGENT = 'ImmoGR-LocalResearch/1.0';
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
