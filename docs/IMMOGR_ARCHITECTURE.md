@@ -32,25 +32,17 @@ ImmoGR is a clean implementation. Its business logic, adapters, configuration, p
 - Use bounded concurrency, per-host delays, retries for transient errors only, and observable run cancellation.
 - Sources are represented by technical metadata and evaluated through the same acquisition and quality pipeline.
 
-## Live activation gate
-The WP1 status endpoint is informational only. A real search endpoint and scheduler must not be enabled until source research, page acquisition, evidence model, independent tests, and the first real-page acceptance gate are complete. The initial release is manual-only; scheduling is a later owner-approved decision.
+## Search pipeline
+The authenticated search endpoint runs a complete bounded pipeline: source-scoped URL discovery, public-page retrieval, redirect and DNS target validation, HTML/JSON-LD parsing, evidence-backed listing interpretation, deterministic qualification, deduplication and persistence. Each run records provider diagnostics, page outcomes, content fingerprints and listing evidence. The UI displays extracted facts and quotes for review; candidate qualification is not a claim of current availability.
+
+The first implementation is intentionally bounded to a small number of pages per run and low concurrency. Increase volume only after real-page tests establish extraction quality and service stability. A scheduler is a later stage.
 
 ### Legacy runtime and migration quarantine
 
 ImmoFinder server modules and the legacy `src/immoCard.ts` helper are excluded from the production server build. Historical migrations 020–030 remain in the repository but are excluded before the active migration runner reads migration contents or checks their versions. The existing legacy schema and rows are preserved unchanged.
 
-## User-initiated manual research path (Owner-approved 2026-11-27)
-
-Manual source research is a first-class path separate from automated page acquisition:
-
-1. Render every source-registry entry in the ImmoGR source/research UI, regardless of its automated-acquisition status.
-2. The “Manual review” action opens the original URL in a user-controlled browser tab/window. The app does not fetch the page server-side as a side effect of the click.
-3. The user explicitly submits a structured capture form. The API validates the source ID, URL, locality ID, allowed observation fields and authenticated reviewer.
-4. Persist the observation in `immogr_manual_reviews`, with `capture_method=manual_user_review`, canonical URL, observed timestamp, reviewer, access outcome and field-level evidence notes.
-5. Keep manual observations separate from `immogr_source_pages` records produced by automated source acquisition. Manual capture alone does not satisfy the fetched-page admission gate for an automated Direct Rental.
-6. Never use a server-side proxy, hidden browser automation, credential/cookie capture, or bypass of authentication, paywalls, CAPTCHAs, rate limits or technical restrictions to simulate manual viewing.
-
-A framed in-app viewer is optional and must not be assumed to work: source CSP/X-Frame-Options and browser cross-origin isolation commonly prevent embedding or reading arbitrary third-party pages. The safe baseline is an external tab plus an in-app capture panel.
+## Manual research observations
+Manual observations remain available as a separate owner-reviewed workflow. They preserve the source URL, locality, capture time and reviewer provenance, and remain distinct from automated page retrieval records.
 
 ### Private local-copy processing (Owner-approved 2026-11-27)
 
@@ -61,8 +53,5 @@ The source registry and personal review endpoints require application authentica
 ### Local structured metadata suggestions
 
 When a user imports local HTML/HTM, ImmoGR reads embedded `application/ld+json` in the browser and suggests only explicit title, property type, price, currency, price period, locality and availability fields. Suggestions are editable and remain user-unverified until reviewed; missing or ambiguous values stay unknown. Malformed JSON-LD is ignored. The original file remains on the user's device.
-## Local page inspector (WP3 first UI slice)
-
-The manual research form can inspect a user-selected local HTML/HTM snapshot in-browser. It extracts readable body text, page title, canonical/source URL, ordinary HTTP(S) links, image/source URLs (including lazy `data-src` and the first `srcset` candidate), basic meta tags, and JSON-LD blocks. It never executes page scripts, embeds the page, or automatically loads remote images. Unsafe schemes and credential-bearing URLs are omitted. The inspector displays text and URL lists, and offers explicit downloads of the original local HTML snapshot and a JSON extraction report. The extracted notes remain editable in the manual research form and are saved to ImmoGR only when the Owner submits that form. This is not a remote URL fetcher: browser CORS prevents arbitrary cross-origin reads, so a later local-agent transport must deliver a bounded HTML response to this same parser and must independently enforce host/redirect/IP/size/time controls.
-
-
+## Local page inspector
+The browser-based inspector remains available for owner-selected local snapshots and uses the same evidence-first domain model. Remote retrieval is handled by the server-side search pipeline described above.
