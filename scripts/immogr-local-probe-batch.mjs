@@ -19,7 +19,7 @@ async function main() {
   const inputPath = process.argv[2];
   if (!inputPath || process.argv.includes('--help')) {
     process.stdout.write('Usage: node --import tsx scripts/immogr-local-probe-batch.mjs <probe-batch.json>\n');
-    process.stdout.write('The script reads source authorization only from config/immogr/sources.json.\n');
+    process.stdout.write('The script reads source identifiers and homepage metadata from config/immogr/sources.json.\n');
     process.exitCode = inputPath ? 0 : 2;
     return;
   }
