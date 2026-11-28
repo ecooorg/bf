@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS immogr_manual_reviews (
   capture_method text NOT NULL DEFAULT 'manual_user_review' CHECK (capture_method = 'manual_user_review'),
   reviewer_id text NOT NULL DEFAULT 'owner',
   reviewed_at timestamptz NOT NULL DEFAULT now(),
-  manual_access_outcome text NOT NULL CHECK (manual_access_outcome IN ('reviewed','in_progress','blocked_by_source','no_relevant_inventory')),
+  manual_access_outcome text NOT NULL CHECK (manual_access_outcome IN ('reviewed','in_progress','request_failed','no_relevant_inventory')),
   page_title text,
   property_type text NOT NULL DEFAULT 'unknown' CHECK (property_type IN ('apartment','house','chalet','room','other','unknown')),
   price_amount numeric(12,2) CHECK (price_amount IS NULL OR price_amount >= 0),
