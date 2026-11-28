@@ -15,7 +15,15 @@ test('ImmoGR persistence is additive and isolated from retired ImmoFinder', () =
   assert.doesNotMatch(sql, /terms_url|terms_reviewed_at|robots_reviewed_at|authorized_method|access_decision|permission_required|excluded_pending_written_permission/i);
 });
 
-test('source schema migration removes legacy access metadata and stores technical retrieval outcomes', () => {\n  const migration = read('migrations/037_immogr_source_technical_metadata.sql').toLowerCase();\n  assert.match(migration, /drop column if exists terms_url/);\n  assert.match(migration, /drop column if exists robots_reviewed_at/);\n  assert.match(migration, /rename column access_decision to retrieval_status/);\n  assert.match(migration, /source_acquisition/);\n});\n\ntest('ImmoGR admission data model enforces evidence and explicit unknown owner state', () => {
+test('source schema migration removes legacy access metadata and stores technical retrieval outcomes', () => {
+  const migration = read('migrations/037_immogr_source_technical_metadata.sql').toLowerCase();
+  assert.match(migration, /drop column if exists terms_url/);
+  assert.match(migration, /drop column if exists robots_reviewed_at/);
+  assert.match(migration, /rename column access_decision to retrieval_status/);
+  assert.match(migration, /source_acquisition/);
+});
+
+test('ImmoGR admission data model enforces evidence and explicit unknown owner state', () => {
   const sql = read('migrations/031_immogr_core.sql').toLowerCase();
   assert.match(sql, /owner_class.*unknown/);
   assert.match(sql, /quote text not null/);
