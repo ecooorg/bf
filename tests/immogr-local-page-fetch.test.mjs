@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildProbePlan, isPublicAddress } from '../scripts/immogr-local-page-fetch.mjs';
 const registry = { sources: [{ id: 'example' }] };
-test('local page fetcher accepts registered sources without permission metadata', () => {
+test('local page fetcher accepts registered sources using technical validation', () => {
   const plan = buildProbePlan({ sourceId: 'example', urls: ['https://example.ch/a'] }, registry);
   assert.equal(plan.requests.length, 1);
 });
