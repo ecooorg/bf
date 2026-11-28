@@ -9,7 +9,7 @@ import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './local
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 import { buildImmoGRListingPrompt, normalizeImmoGRListingAnalysis, parseImmoGRModelJson } from './listing-analysis.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
-type ManualSource = { id: string; name: string; category: string; status: string; ownerSignal: string; permission: string; homepageUrl?: string; manualReview?: Record<string, unknown>; probePolicy?: { status?: string; allowedHosts?: string[]; maxRequests?: number | null; authorizationReference?: string | null } };
+type ManualSource = { id: string; name: string; category: string; ownerSignal?: string; homepageUrl?: string; manualReview?: Record<string, unknown> };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
 const validOwnerClasses = new Set(['private_owner', 'agency', 'management_company', 'tour_operator', 'intermediary', 'unknown']);
 const validPricePeriods = new Set(['month', 'week', 'night', 'season', 'unknown']);
@@ -42,7 +42,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   app.get('/api/immogr/sources', (req, res) => {
     if (!requireOwner(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview, probePolicy }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview, probePolicyStatus: probePolicy?.status ?? 'not_reviewed', remoteAnalysisEnabled: String(process.env.IMMOGR_URL_CONTEXT_ENABLED || '').toLowerCase() === 'true' && probePolicy?.status === 'authorized' && Boolean(probePolicy.authorizationReference) && Boolean(probePolicy.maxRequests) && Boolean(probePolicy.allowedHosts?.length) })) });
+    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, ownerSignal, homepageUrl, manualReview }) => ({ id, name, category, ownerSignal, homepageUrl, manualReview })) });
   });
 
   app.get('/api/immogr/manual-reviews', async (req, res) => {
@@ -94,7 +94,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
           (source_id, canonical_url, locality_id, capture_method, reviewer_id, manual_access_outcome, result_category, page_title, property_type, price_amount, currency, price_period, owner_class, availability, reviewer_notes, source_snapshot)
          VALUES ($1,$2,$3,'manual_user_review','owner',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb)
          RETURNING id, source_id, canonical_url, locality_id, reviewed_at, manual_access_outcome, result_category`,
-        [sourceId, canonicalUrl, localityId, accessOutcome, resultCategory, pageTitle || null, propertyType, priceRaw, currency, pricePeriod, ownerClass, availability || null, notes || null, JSON.stringify({ sourceName: source.name, automationStatus: source.status, capturedAt: new Date().toISOString(), evidenceClass: 'human_observed' })],
+        [sourceId, canonicalUrl, localityId, accessOutcome, resultCategory, pageTitle || null, propertyType, priceRaw, currency, pricePeriod, ownerClass, availability || null, notes || null, JSON.stringify({ sourceName: source.name, capturedAt: new Date().toISOString(), evidenceClass: 'human_observed' })],
       );
       return res.status(201).json({ success: true, review: result.rows[0] });
     } catch (error) {
@@ -107,21 +107,18 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     res.json({
       product: 'ImmoGR', stage: 'WP2_MANUAL_RESEARCH', liveDiscoveryEnabled,
       liveSearchEnabled: false, listingQualificationEnabled: false,
-      localPageAnalysisEnabled: Boolean(searchClient && searchModels.length), urlContextConfigured: Boolean(searchClient && searchModels.length), remotePageAcquisitionEnabled: String(process.env.IMMOGR_URL_CONTEXT_ENABLED || '').toLowerCase() === 'true' && sourceRegistry.sources.some((source) => source.probePolicy?.status === 'authorized' && Boolean(source.probePolicy.authorizationReference) && Boolean(source.probePolicy.maxRequests) && (source.probePolicy.allowedHosts || []).length > 0),
+      localPageAnalysisEnabled: Boolean(searchClient && searchModels.length), urlContextConfigured: Boolean(searchClient && searchModels.length), remotePageAcquisitionEnabled: Boolean(searchClient && searchModels.length),
       resultCategories: ['direct_rental', 'private_owner_prospect'],
       message: liveDiscoveryEnabled
         ? 'Live discovery returns URL leads only. The authenticated notebook can analyze owner-imported local page copies into evidence-backed listing cards; it does not fetch remote pages or save candidates automatically.'
-        : 'Manual research and local-page analysis are available when Gemini is configured. Discovery returns URL leads only; remote source-page acquisition remains disabled until each source has a reviewed authorization.',
+        : 'Manual research and local-page analysis are available when Gemini is configured. Discovery returns URL leads only; remote URL analysis is available when the configured search model supports URL Context.',
     });
   });
 
 
-  // Remote URL Context is opt-in per source. It is unavailable unless both the global flag and a source-specific authorization are present.
+  // Remote URL Context analysis for an owner-selected source page.
   app.post('/api/immogr/analyze-url', async (req, res) => {
     if (!requireOwner(req, res)) return;
-    if (String(process.env.IMMOGR_URL_CONTEXT_ENABLED || '').toLowerCase() !== 'true') {
-      return res.status(403).json({ success: false, code: 'URL_CONTEXT_DISABLED', error: 'Remote URL analysis is disabled by the global safety switch.' });
-    }
     if (!searchClient || !searchModels.length) return res.status(503).json({ success: false, code: 'LISTING_ANALYSIS_MODEL_UNAVAILABLE', error: 'Gemini listing analysis is not configured.' });
     const body = req.body || {};
     const sourceId = String(body.sourceId || '').trim();
@@ -129,13 +126,11 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     let pageUrl: URL | null = null;
     try { pageUrl = new URL(String(body.canonicalUrl || '').trim()); } catch { /* invalid URL */ }
     const host = pageUrl?.hostname.toLowerCase().replace(/^www\./, '') || '';
-    const authorizedHosts = (source?.probePolicy?.allowedHosts || []).map((value) => String(value).toLowerCase().replace(/^www\./, ''));
-    const sourceAuthorized = Boolean(source && source.probePolicy?.status === 'authorized' && source.probePolicy.authorizationReference && source.probePolicy.maxRequests && source.probePolicy.maxRequests > 0 && authorizedHosts.includes(host));
     const localityIds = Array.isArray(body.localityIds) ? [...new Set(body.localityIds.filter((id: unknown) => typeof id === 'string'))] : [];
     const localities = localityIds.map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)).filter((item): item is NonNullable<typeof item> => Boolean(item));
     const category = body.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
-    if (!source || !pageUrl || pageUrl.protocol !== 'https:' || pageUrl.username || pageUrl.password || !sourceAuthorized || !localities.length || localities.length !== localityIds.length) {
-      return res.status(403).json({ success: false, code: 'SOURCE_NOT_AUTHORIZED', error: 'This URL is not enabled for remote analysis. The source must have an explicit authorization reference, an authorized host allowlist, and a positive request limit.' });
+    if (!source || !pageUrl || pageUrl.protocol !== 'https:' || pageUrl.username || pageUrl.password || !localities.length || localities.length !== localityIds.length) {
+      return res.status(400).json({ success: false, code: 'INVALID_SOURCE_URL', error: 'Select a registered source and provide a credential-free HTTPS URL on that source domain and valid ImmoGR localities.' });
     }
     const prompt = [
       'Analyze the single public real-estate page URL supplied below for a private personal Graubünden rental research notebook.',
@@ -166,7 +161,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         const retrievalSucceeded = retrieved.some((item: any) => String(item?.urlRetrievalStatus || item?.url_retrieval_status || '').endsWith('SUCCESS'));
         if (!parsed) { lastError = 'Gemini returned invalid JSON'; continue; }
         if (!retrievalSucceeded || !retrievedUrls.some((value: string) => { try { const retrievedUrl = new URL(value); return retrievedUrl.hostname.toLowerCase().replace(/^www\./, '') === host; } catch { return false; } })) {
-          lastError = 'Gemini URL Context did not confirm a successful retrieval from the authorized host'; continue;
+          lastError = 'Gemini URL Context did not confirm a successful retrieval from the selected source host'; continue;
         }
         const candidates = (Array.isArray(parsed.candidates) ? parsed.candidates : []).slice(0, 10).map((item: any) => ({
           title: String(item?.title || '').slice(0, 240),
@@ -185,8 +180,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
           qualification: 'needs_review',
           evidence: (Array.isArray(item?.evidence) ? item.evidence : []).slice(0, 12).map((entry: any) => ({ field: String(entry?.field || '').slice(0, 60), quote: String(entry?.quote || '').slice(0, 220) }))
         }));
-        void recordApplicationLog({ level: 'info', component: 'immogr', event: 'remote_url_context_analysis', message: 'Gemini URL Context analyzed one source-authorized URL', details: { sourceId, host, candidateCount: candidates.length, model } }).catch(() => {});
-        return res.json({ success: true, mode: 'authorized_url_context', sourceId, url: pageUrl.toString(), model, retrievedUrls, candidates, pageType: String(parsed.pageType || 'unknown'), notes: Array.isArray(parsed.notes) ? parsed.notes.map((value: unknown) => String(value).slice(0, 200)).slice(0, 10) : [], allCandidatesRequireReview: true, disclaimer: 'URL Context suggestions are not verified listing cards. Validate exact quotations using a user-selected local page copy before saving.' });
+        void recordApplicationLog({ level: 'info', component: 'immogr', event: 'remote_url_context_analysis', message: 'Gemini URL Context analyzed one selected source URL', details: { sourceId, host, candidateCount: candidates.length, model } }).catch(() => {});
+        return res.json({ success: true, mode: 'url_context', sourceId, url: pageUrl.toString(), model, retrievedUrls, candidates, pageType: String(parsed.pageType || 'unknown'), notes: Array.isArray(parsed.notes) ? parsed.notes.map((value: unknown) => String(value).slice(0, 200)).slice(0, 10) : [], allCandidatesRequireReview: true, disclaimer: 'URL Context suggestions are not verified listing cards. Validate exact quotations using a user-selected local page copy before saving.' });
       } catch (error: any) {
         lastError = controller.signal.aborted ? 'url_context_timeout' : String(error?.message || error).slice(0, 160);
       } finally { clearTimeout(timer); }
