@@ -23,6 +23,12 @@ test('source schema migration removes legacy access metadata and stores technica
   assert.match(migration, /source_acquisition/);
 });
 
+test('manual research failures are stored as technical outcomes', () => {
+  const migration = read('migrations/038_immogr_manual_research_outcome.sql').toLowerCase();
+  assert.match(migration, /request_failed/);
+  assert.match(migration, /blocked_by_source/);
+});
+
 test('ImmoGR admission data model enforces evidence and explicit unknown owner state', () => {
   const sql = read('migrations/031_immogr_core.sql').toLowerCase();
   assert.match(sql, /owner_class.*unknown/);
