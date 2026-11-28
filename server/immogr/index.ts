@@ -157,6 +157,14 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     if (!requireOwner(req, res)) return;
     try {
       const pool = await getPool();
+      for (const source of sourceRegistry.sources) {
+        let domain = '';
+        try { domain = new URL(source.homepageUrl || '').hostname.toLowerCase().replace(/^www\./, ''); } catch {}
+        if (domain) await pool.query(
+          'INSERT INTO immogr_sources (id,canonical_domain,operator_name,metadata) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (id) DO UPDATE SET canonical_domain=EXCLUDED.canonical_domain,operator_name=EXCLUDED.operator_name',
+          [source.id, domain, source.name, JSON.stringify({ category: source.category })],
+        );
+      }
       const result = await pool.query(
         `SELECT s.id AS "sourceId", s.operator_name AS "sourceName", s.canonical_domain AS domain,
           count(sp.id) FILTER (WHERE sp.retrieval_status='retrieved')::int AS retrieved_pages,
