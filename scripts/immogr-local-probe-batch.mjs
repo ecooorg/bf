@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { evaluateResearchProbe } from '../server/immogr/probe-policy.ts';
+import { evaluateResearchProbe } from '../server/immogr/probe-validation.ts';
 
 /** Evaluate source URL plans using technical validation only. */
 export function assessBatchProbe(source, entry) {
