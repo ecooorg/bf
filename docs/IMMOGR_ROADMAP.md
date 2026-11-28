@@ -38,12 +38,6 @@
 
 **WP2 deliverables:** completed 29-source manual research matrix; representative page sample and zero-yield records; official postcode evidence for the 44 existing localities; manual-review UX/data contract; source-value ranking; and an Owner decision on which sources merit licensed access or later automation.
 
-## WP3 — Authorized acquisition and page representation
-- Implement source-specific automated acquisition only for sources with a documented permitted API/feed or explicit written authorization.
-- Keep user-initiated manual review/capture independent from automated page fetching.
-- Safe URL validation, robots/terms gates, redirects, rate limits, caching, structured metadata, JSON-LD, page segmentation and final-URL matching.
-- Record acquisition failures without inventing a listing.
-
 ## WP4 — Evidence extraction and owner intelligence
 - Write clean source adapters and typed extraction contracts.
 - Preserve fact-level quotes, structured-data paths, extraction methods, conflicts, timestamps and confidence.
@@ -63,20 +57,15 @@
 - Consider scheduling only after observed stable value and explicit owner approval.
 - Never relax quality gates merely to increase result count.
 
-
 **Owner clarification 2026-11-27:** manual research is a private personal-notebook workflow. The Owner may save pages/screenshots locally and process those copies manually or with local automation. WP2's capture UX must support user-selected local HTML/HTM/TXT import with browser-side extraction and explicit save; this does not enable remote crawling or proxying.
-
 
 **WP2 implementation update 2026-11-27:** the first manual-notebook slice is implemented in UI/API and migration 034. The 29-source page-by-page research, five-page samples, scanned-image OCR, and real database/browser verification remain open.
 
-
 **WP2 local-import extension (branch implementation):** source homepage links are surfaced for verified registry entries; browser-side extraction reuses the shared workspace extractor for PDF and Office/structured text formats. Scanned-image OCR remains an explicit follow-up.
-
 
 **WP2 structured local import:** HTML JSON-LD suggestions are parsed client-side into editable candidate fields; the Owner must verify them before save. No source page is fetched by ImmoGR.
 
 **WP2 structured-import refinement (2026-11-27):** local JSON-LD extraction now recognizes German, French and Italian rental-period labels, preserves schema.org availability values as unverified suggestions, and normalizes locality spelling/diacritics only for exact label matching. It deliberately does not infer geographic aliases such as “St.” → “Sankt”; those require owner-reviewed locality evidence.
-
 
 ### WP2 / WP3 transition — 2026-11-27
 
@@ -84,21 +73,7 @@ The WP2 software deliverables are in place: exact 44-locality selector, 29-sourc
 
 WP3 has started with a fail-closed authorization and page-representation contract. It intentionally activates no source: the current registry contains no source with a complete documented API/feed authorization, terms/robots approval and exact host allowlist. This permits implementation to proceed without silently treating manual browsing, public visibility, or the private notebook as remote acquisition permission.
 
-
 **WP3 owner clarification — bounded probes (2026-11-27):** the Owner authorizes the local ImmoGR agent to perform source-specific technical research probes, normally two or three requests, solely to establish reachability, response format/schema and information quality. This is not a request for bulk collection or recurring automation. Because the requests are sent by software, they are still automated access; therefore only sources whose current rules explicitly permit this limited research method may be probed. Sources that expressly prohibit scripted requests remain excluded until written operator permission is obtained. Probe permission is separate from full acquisition authorization. The agent must use the Owner's own local credentials where contractually permitted, keep secrets local, and record diagnostic outcomes without turning probes into a listing dataset.
-
-
-## WP2 / WP3 — Tablet viewer and bounded source-probe preparation (2026-11-27)
-
-- [x] Improve the local HTML inspector into a responsive Android-tablet page viewer with touch-sized controls, readable listing text, image URL inventory and explicit opt-in photo previews.
-- [x] Add browser-local owner selection of one or more discovery source domains; enforce the selected host scope in the discovery API response.
-- [x] Add a fail-closed limited-probe policy record for every source and require authorization to be recorded in the source registry.
-- [x] Add an owner-local sequential batch runner and 29-source probe template. It reports every source and sends no requests for prohibited or unreviewed sources.
-- [ ] Run the batch from the Owner's local ImmoGR environment after source-specific permissions are documented. The current 29-source readiness assessment is not a live probe result.
-- [ ] Import and assess the local batch report; only then decide which sources to retain for later research or authorized acquisition.
-
-**Research boundary:** variant B only. No manual page-by-page source review is performed by the Assistant. The Owner may perform manual review later if desired. Local probe execution is not performed by ChatGPT; it runs only in the Owner's local environment.
-
 
 ## WP4 first implementation — evidence-backed local-page listing analysis (2026-11-27)
 
@@ -112,10 +87,3 @@ WP3 has started with a fail-closed authorization and page-representation contrac
 - [ ] Implement Gemini URL Context only for sources with explicit reviewed acquisition authorization.
 - [ ] Add Playwright fallback only for authorized public pages requiring JavaScript rendering.
 - [ ] Review official feeds and portal alerts as separate discovery channels.
-
-
-## WP2 — Permission-gated URL Context
-- [x] Add Gemini URL Context single-URL analysis with source-specific authorization and global feature gates.
-- [x] Render remote suggestions only for sources whose registry explicitly enables remote analysis; keep every card in needs-review state and prohibit auto-save.
-- [ ] Obtain and record source-specific authorization before enabling any portal for remote URL Context. Current catalog has zero authorized remote sources.
-- [ ] Run a controlled end-to-end test on an explicitly authorized listing URL and compare extracted facts with a user-selected local page copy.
