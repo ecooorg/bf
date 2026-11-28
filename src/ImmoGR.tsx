@@ -329,6 +329,8 @@ export default function ImmoGR() {
       }
       setSearchDiagnostics({ httpStatus: response.status, runId: body.runId, status: body.status, discovered: body.discovered, fetched: body.fetched, failed: body.failed, candidateCount: body.candidateCount });
       setLeads(Array.isArray(body.candidates) ? body.candidates.map((item: any) => ({ ...item, host: (() => { try { return new URL(item.url).hostname; } catch { return ''; } })(), verification: item.qualification || 'needs_review' })) : []); setSearched(true);
+      fetch('/api/immogr/source-scorecard', { credentials: 'same-origin' }).then((r) => r.ok ? r.json() : null).then((data) => setSourceScorecard(Array.isArray(data?.sources) ? data.sources : [])).catch(() => {});
+      fetch('/api/immogr/runs', { credentials: 'same-origin' }).then((r) => r.ok ? r.json() : null).then((data) => setRecentRuns(Array.isArray(data?.runs) ? data.runs : [])).catch(() => {});
     } catch (reason) { setSearchError(reason instanceof Error ? reason.message : 'Discovery failed'); }
     finally { setSearching(false); }
   }
