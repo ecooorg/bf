@@ -3,7 +3,7 @@ export type AcquisitionDecision =
   | { allowed: true; sourceId: string; host: string }
   | { allowed: false; sourceId: string; reasons: string[] };
 
-/** Validates transport shape only. Commercial/legal source decisions are handled separately. */
+/** Validates transport shape only. */
 export function evaluateAcquisitionEligibility(source: AcquisitionSource, candidateUrl: string): AcquisitionDecision {
   let url: URL;
   try { url = new URL(candidateUrl); } catch { return { allowed: false, sourceId: source.id, reasons: ['invalid_url'] }; }
