@@ -33,7 +33,7 @@ const required = [
   ['docs/IMMOGR_DECISIONS.md', ['D-IMMOGR-001']],
   ['docs/IMMOGR_KNOWLEDGE_EXTRACTION.md', ['Pure domain core', 'No legacy code reuse']],
   ['docs/IMMOGR_ROADMAP.md', ['Phase 1 — Complete the search engine', 'Phase 2 — Short technical and usefulness test of every source']],
-  ['docs/IMMOGR_PROBE_READINESS.md', ['limited research probe readiness', 'Registered sources: **29**']],
+  ['docs/IMMOGR_PROBE_READINESS.md', ['technical diagnostic tool', 'Registered sources: **29**']],
 ];
 for (const [rel, needles] of required) {
   const p = join(root, rel);
