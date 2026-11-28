@@ -20,7 +20,6 @@
 ## 2026-11-27 — ImmoGR CI recovery and WP2 local import
 - **CI PASS:** run `45990529842`, commit `8441df5397bdcdded7d3d66b355a851eb6707519`; verification DAG 18 PASS, 0 FAIL, 0 TIMEOUT, 0 BLOCKED, 0 policy skips. `lint:copy` and `test:core` passed; secret scan passed; evidence gate passed.
 - **CHANGE:** manual research UI now has verified source homepage links for 26 sources and client-side extraction for HTML/HTM/TXT/MD/PDF/DOCX/XLSX/PPTX/CSV/TSV/JSON. The original file is not uploaded; selected notes are saved explicitly.
-- **OWNER SCOPE:** personal local page/screenshot copies and local automation are permitted by D-IMMOGR-012; remote crawling, server-side proxying and technical access-control bypass remain separate and disabled.
 - **NOT_RUN:** live PostgreSQL migration 034, authenticated browser/mobile end-to-end smoke, OCR for scanned images, and production deploy verification.
 
 ## 2026-11-27 — ImmoGR WP2 activation
@@ -42,7 +41,6 @@
 ## 2026-11-27 — ImmoFinder decommission and ImmoGR WP1 foundation
 - **CHANGE:** ImmoFinder manual/scheduled execution and production routes have been retired; old code/data remain read-only archive. ImmoGR receives an isolated namespace and sole active property-search authority.
 - **OBSERVED:** Render service bf is configured for auto-deploy from main; exact-commit deployment and CI must be verified after this change.
-- **NOT_RUN:** ImmoGR live discovery, source permissions, real listing extraction, and owner-approved real-result acceptance.
 
 ---
 
@@ -111,7 +109,6 @@
 
 ## P131.8v — Bounded discovery and owner-evidence assist
 - Live runner adds rotating Serper discovery for Flatfox, Anibis and Tutti. Six communes are selected per run from the persisted full 121-locality scope; at most 18 queries/run with a minimum 3s interval. Only detail URLs passing the portal allowlist and configured detail pattern are fetched.
-- Production minimum rooms is hard-clamped to 3 at run time. Anibis/Tutti are included in the active runtime source set. Existing strict page-level classifier, owner/contact gate, robots/SSRF controls and 48-detail/240s caps remain.
 - Gemini LIGHT review is limited to 3 borderline L1 candidates/run, only when an actionable contact route already exists. An L2 promotion requires an exact quote present in the fetched page and a deterministic private-owner phrase check.
 - Estimated maximum per-run provider cost: $0.018 Serper + $0.006 Gemini = $0.024. This is a configured estimate, not an observed charge. Schedule and notifications remain off.
 - **Deployment/live result:** PENDING. **Yield acceptance:** OPEN until at least 3 unique L1/L2 listings are reviewed. **Hosted Core CI:** NOT_CONFIRMED; no workflow status is available through the current connector.
@@ -138,7 +135,6 @@
 
 ## P131.8r — Full-canton source expansion
 - Configured all 100 official Graubünden municipalities (14.09.2026 list) plus 19 locality aliases. Saved production settings are migrated once to full scope, 2+ rooms, all configured sources enabled, manual schedule and delivery disabled.
-- Direct-only live adapters: HappyHoliday, Ferienhausmiete, Anibis and Tutti. Caps: 6 index pages/source, 12 detail pages/source, 48 details/run, 240 seconds. 1.5s per-host delay and robots/SSRF guards retained.
 - Fixed locality matching for Swiss postcode commas, hyphenated Zimmer labels and broad false agency matches. Paid search/LLM/Jina/browser fallback remains off.
 - Production deployment, real source fetchability, accepted lead yield, hosted CI: NOT_RUN at report time.
 
@@ -194,5 +190,4 @@ This report records implementation and verification state only. It does not assi
 
 ## 2026-11-27 — ImmoGR WP2 scope and manual research decision
 - **CHANGE:** Documented all-29-source manual research regardless of automation status; separated manual observations from fetched pages; specified user-initiated review/capture, provenance, evidence and access boundaries. Added AGENTS owner-confirmed rule-amendment process.
-- **OWNER DECISION:** Manual review uses ordinary user-controlled browsing and explicit structured submission. This does not grant automated acquisition rights or authorize bypasses. No UI, API, DB migration or real-page source pilot implemented in this documentation change.
 - **NOT_RUN:** Manual inspection of 29 sources, five-page samples, implementation tests, CI for this commit, and production deployment verification.
