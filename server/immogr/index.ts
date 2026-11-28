@@ -107,7 +107,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     res.json({
       product: 'ImmoGR', stage: 'WP2_MANUAL_RESEARCH', liveDiscoveryEnabled,
       liveSearchEnabled: false, listingQualificationEnabled: false,
-      localPageAnalysisEnabled: Boolean(searchClient && searchModels.length), remotePageAcquisitionEnabled: false,
+      localPageAnalysisEnabled: Boolean(searchClient && searchModels.length), urlContextConfigured: Boolean(searchClient && searchModels.length), remotePageAcquisitionEnabled: String(process.env.IMMOGR_URL_CONTEXT_ENABLED || '').toLowerCase() === 'true' && sourceRegistry.sources.some((source) => source.probePolicy?.status === 'authorized' && Boolean(source.probePolicy.authorizationReference) && Boolean(source.probePolicy.maxRequests) && (source.probePolicy.allowedHosts || []).length > 0),
       resultCategories: ['direct_rental', 'private_owner_prospect'],
       message: liveDiscoveryEnabled
         ? 'Live discovery returns URL leads only. The authenticated notebook can analyze owner-imported local page copies into evidence-backed listing cards; it does not fetch remote pages or save candidates automatically.'
@@ -163,24 +163,25 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         const metadata = response?.candidates?.[0]?.urlContextMetadata || null;
         const retrieved = Array.isArray(metadata?.urlMetadata) ? metadata.urlMetadata : Array.isArray(metadata?.url_metadata) ? metadata.url_metadata : [];
         const retrievedUrls = retrieved.map((item: any) => String(item?.retrievedUrl || item?.retrieved_url || item?.url || '')).filter(Boolean);
+        const retrievalSucceeded = retrieved.some((item: any) => String(item?.urlRetrievalStatus || item?.url_retrieval_status || '').endsWith('SUCCESS'));
         if (!parsed) { lastError = 'Gemini returned invalid JSON'; continue; }
-        if (retrievedUrls.length && !retrievedUrls.some((value: string) => { try { return new URL(value).hostname.toLowerCase().replace(/^www\\./, '') === host; } catch { return false; } })) {
-          lastError = 'Gemini URL Context did not confirm retrieval from the authorized host'; continue;
+        if (!retrievalSucceeded || !retrievedUrls.some((value: string) => { try { const retrievedUrl = new URL(value); return retrievedUrl.hostname.toLowerCase().replace(/^www\\./, '') === host; } catch { return false; } })) {
+          lastError = 'Gemini URL Context did not confirm a successful retrieval from the authorized host'; continue;
         }
         const candidates = (Array.isArray(parsed.candidates) ? parsed.candidates : []).slice(0, 10).map((item: any) => ({
           title: String(item?.title || '').slice(0, 240),
           url: pageUrl!.toString(),
           locality: String(item?.locality || '').slice(0, 100),
           propertyType: String(item?.propertyType || 'unknown').slice(0, 40),
-          priceAmount: Number.isFinite(Number(item?.priceAmount)) ? Number(item.priceAmount) : null,
+          priceAmount: item?.priceAmount != null && item.priceAmount !== '' && Number.isFinite(Number(item.priceAmount)) ? Number(item.priceAmount) : null,
           currency: ['CHF', 'EUR'].includes(String(item?.currency)) ? String(item.currency) : null,
           pricePeriod: String(item?.pricePeriod || 'unknown').slice(0, 20),
-          rooms: Number.isFinite(Number(item?.rooms)) ? Number(item.rooms) : null,
-          areaSqm: Number.isFinite(Number(item?.areaSqm)) ? Number(item.areaSqm) : null,
+          rooms: item?.rooms != null && item.rooms !== '' && Number.isFinite(Number(item.rooms)) ? Number(item.rooms) : null,
+          areaSqm: item?.areaSqm != null && item.areaSqm !== '' && Number.isFinite(Number(item.areaSqm)) ? Number(item.areaSqm) : null,
           availability: String(item?.availability || '').slice(0, 160),
           ownerClass: String(item?.ownerClass || 'unknown').slice(0, 40),
           directContact: String(item?.directContact || 'unknown').slice(0, 40),
-          minTermYears: Number.isFinite(Number(item?.minTermYears)) ? Number(item.minTermYears) : null,
+          minTermYears: item?.minTermYears != null && item.minTermYears !== '' && Number.isFinite(Number(item.minTermYears)) ? Number(item.minTermYears) : null,
           qualification: 'needs_review',
           evidence: (Array.isArray(item?.evidence) ? item.evidence : []).slice(0, 12).map((entry: any) => ({ field: String(entry?.field || '').slice(0, 60), quote: String(entry?.quote || '').slice(0, 220) }))
         }));
