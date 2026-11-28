@@ -35,6 +35,8 @@ export default function ImmoGR() {
   const [diagnosticsDownloading, setDiagnosticsDownloading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [sources, setSources] = useState<ManualSource[]>([]);
+  const [sourceScorecard, setSourceScorecard] = useState<Array<{ sourceId: string; sourceName: string; domain: string; retrieved_pages: number; failed_pages: number; extracted_listings: number; lastObservedAt: string | null }>>([]);
+  const [recentRuns, setRecentRuns] = useState<Array<{ id: string; mode: string; category: string | null; status: string; counters: Record<string, number>; started_at: string; finished_at: string | null }>>([]);
   const [selectedSourceId, setSelectedSourceId] = useState('');
   const [manualDraft, setManualDraft] = useState<ManualDraft>(emptyManualDraft);
   const [manualSaving, setManualSaving] = useState(false);
@@ -88,6 +90,16 @@ export default function ImmoGR() {
       .then((body) => setManualReviews(Array.isArray(body.reviews) ? body.reviews : []))
       .catch(() => setManualReviews([]));
   }, [selectedSourceId]);
+  useEffect(() => {
+    fetch('/api/immogr/source-scorecard', { credentials: 'same-origin' })
+      .then(async (response) => response.ok ? response.json().catch(() => null) : null)
+      .then((body) => setSourceScorecard(Array.isArray(body?.sources) ? body.sources : []))
+      .catch(() => setSourceScorecard([]));
+    fetch('/api/immogr/runs', { credentials: 'same-origin' })
+      .then(async (response) => response.ok ? response.json().catch(() => null) : null)
+      .then((body) => setRecentRuns(Array.isArray(body?.runs) ? body.runs : []))
+      .catch(() => setRecentRuns([]));
+  }, []);
   useEffect(() => {
     fetch('/api/immogr/status', { credentials: 'same-origin' })
       .then(async (response) => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || ('Status unavailable (' + response.status + ')')); return body as ImmoGRStatus; })
@@ -411,6 +423,8 @@ export default function ImmoGR() {
     <section className="immogr-panel" style={{ ...panel, marginBottom: 18 }} data-testid="immogr-manual-research">
       <h2 style={{ marginTop: 0 }}>Personal manual research notebook · {sources.length || 29} sources</h2>
       <p style={{ color: '#9aadc5' }}>Select a source, open its page, and save your observations. Choose a source to inspect or include in search.</p>
+      {sourceScorecard.length > 0 && <details style={{ margin: '12px 0' }}><summary>Source performance · {sourceScorecard.length} sources</summary><div style={{ overflowX: 'auto', marginTop: 10 }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}><thead><tr><th align="left">Source</th><th align="right">Pages</th><th align="right">Failures</th><th align="right">Listings</th></tr></thead><tbody>{sourceScorecard.map((item) => <tr key={item.sourceId}><td>{item.sourceName || item.domain}</td><td align="right">{item.retrieved_pages}</td><td align="right">{item.failed_pages}</td><td align="right">{item.extracted_listings}</td></tr>)}</tbody></table></div></details>}
+      {recentRuns.length > 0 && <details style={{ margin: '12px 0' }}><summary>Recent search runs · {recentRuns.length}</summary><div style={{ display: 'grid', gap: 6, marginTop: 8 }}>{recentRuns.slice(0,10).map((run) => <div key={run.id} className="immogr-card-meta">{new Date(run.started_at).toLocaleString()} · {run.status} · {run.counters?.discovered || 0} discovered · {run.counters?.fetched || 0} fetched · {run.counters?.candidates || 0} candidates</div>)}</div></details>}
       <label>Source<select value={selectedSourceId} onChange={(e) => selectManualSource(e.target.value)} style={field}><option value="">Select a source</option>{sources.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
       {selectedSourceId && <><p style={{ color: '#9aadc5', fontSize: 13 }}>Source selected for technical evaluation.</p>{sources.find((source) => source.id === selectedSourceId)?.homepageUrl && <button type="button" onClick={openSourceHomepage} style={{ padding: '9px 13px', borderRadius: 8, border: '1px solid #52708f', background: '#152b43', color: '#eef4ff' }}>Open source website ↗</button>}</>}
       {selectedSourceId && <form onSubmit={saveManualReview} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, alignItems: 'end' }}>
