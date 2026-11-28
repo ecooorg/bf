@@ -99,7 +99,7 @@ test('remote URL Context is source-authorization gated and every extracted candi
  assert.match(route, /IMMOGR_URL_CONTEXT_ENABLED/);
  assert.match(route, /probePolicy\?\.status === 'authorized'/);
  assert.match(route, /authorizationReference/);
- assert.match(route, /authorizedHosts\\.includes\\(host\\)/);
+ assert.match(route, /authorizedHosts\.includes\(host\)/);
  assert.match(route, /tools: \[\{ urlContext: \{\} \}\]/);
  assert.match(route, /urlRetrievalStatus/);
  assert.match(route, /qualification: 'needs_review'/);
