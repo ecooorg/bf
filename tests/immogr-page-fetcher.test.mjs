@@ -35,6 +35,20 @@ test('page fetcher follows only bounded redirects and revalidates the destinatio
   assert.deepEqual(hosts, ['example.com', 'example.com']);
   if (result.ok) assert.equal(result.page.redirectCount, 1);
 });
+test('page fetcher rejects cross-domain redirects before requesting the destination', async () => {
+  const requested = [];
+  const result = await fetchImmoGRPage('https://example.com/start', {
+    allowedHosts: ['example.com'],
+    lookupImpl: publicLookup,
+    fetchImpl: async (url) => {
+      requested.push(String(url));
+      return new Response('', { status: 302, headers: { location: 'https://other.example/detail' } });
+    },
+  });
+  assert.equal(result.ok, false);
+  assert.deepEqual(requested, ['https://example.com/start']);
+});
+
 test('page fetcher rejects oversized and non-HTML responses', async () => {
   const big = await fetchImmoGRPage('https://example.com/', {
     lookupImpl: publicLookup, maxBytes: 16384,
