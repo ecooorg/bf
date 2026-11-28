@@ -7,12 +7,12 @@ import { validateResearchProbe } from '../server/immogr/probe-validation.ts';
 
 /** Evaluate source URL plans using technical validation only. */
 export function assessBatchProbe(source, entry) {
-  if (!entry) return { allowed: false, status: 'not_planned', reason: 'No probe entry was supplied.' };
-  if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 20) return { allowed: false, status: 'invalid_plan', reason: 'Provide between one and twenty URLs.' };
+  if (!entry) return { valid: false, status: 'not_planned', reason: 'No probe entry was supplied.' };
+  if (!Array.isArray(entry.urls) || entry.urls.length < 1 || entry.urls.length > 20) return { valid: false, status: 'invalid_plan', reason: 'Provide between one and twenty URLs.' };
   const requests = entry.urls.map((url) => ({ url, method: 'GET' }));
   const decision = validateResearchProbe({ id: source.id }, { sourceId: source.id, requests });
-  if (!decision.valid) return { allowed: false, status: 'invalid_plan', reason: decision.reasons.join(', ') };
-  return { allowed: true, status: 'ready' };
+  if (!decision.valid) return { valid: false, status: 'invalid_plan', reason: decision.reasons.join(', ') };
+  return { valid: true, status: 'ready' };
 }
 
 async function main() {
@@ -39,7 +39,7 @@ async function main() {
   for (const source of registry.sources) {
     const entry = entries.get(source.id);
     const assessment = assessBatchProbe(source, entry);
-    if (!assessment.allowed) {
+    if (!assessment.valid) {
       results.push({ sourceId: source.id, sourceName: source.name, ...assessment, requestCount: 0 });
       continue;
     }
