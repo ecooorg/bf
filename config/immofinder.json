@@ -205,7 +205,6 @@
   "fetch": {
     "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
     "perHostDelayMs": 1500,
-    "respectRobotsTxt": true,
     "browserRenderHosts": [
       "happyholiday.ch",
       "flatfox.ch",
