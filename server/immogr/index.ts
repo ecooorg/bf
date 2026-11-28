@@ -442,7 +442,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         hostLastStarted.set(requestedHost, Date.now());
         const fetched = await fetchImmoGRPage(lead.url, { allowedHosts: [new URL(source.homepageUrl || '').hostname] });
         releaseHost();
-        if (!fetched.ok) {
+        if (fetched.ok === false) {
           await pool.query(
             "INSERT INTO immogr_source_pages (source_id,run_id,requested_url,http_status,content_type,retrieval_status,metadata) VALUES ($1,$2,$3,$4,'', 'failed',$5::jsonb)",
             [source.id, runId, lead.url, fetched.statusCode || null, JSON.stringify({ code: fetched.code, detail: fetched.detail || null })],
