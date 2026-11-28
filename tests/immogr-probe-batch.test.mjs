@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { assessBatchProbe } from '../scripts/immogr-local-probe-batch.mjs';
 test('batch assessment validates only the technical request plan', () => {
-  assert.equal(assessBatchProbe({ id: 'sample' }, { sourceId: 'sample', urls: ['https://sample.example/listing/1'] }).allowed, true);
+  assert.equal(assessBatchProbe({ id: 'sample' }, { sourceId: 'sample', urls: ['https://sample.example/listing/1'] }).valid, true);
 });
 test('batch assessment validates URL plan shape', () => {
-  assert.equal(assessBatchProbe({ id: 'sample' }, { sourceId: 'sample', urls: ['http://sample.example/'] }).allowed, false);
+  assert.equal(assessBatchProbe({ id: 'sample' }, { sourceId: 'sample', urls: ['http://sample.example/'] }).valid, false);
 });
 test('batch template covers all registered sources', () => {
   const registry = JSON.parse(readFileSync(new URL('../config/immogr/sources.json', import.meta.url), 'utf8'));
