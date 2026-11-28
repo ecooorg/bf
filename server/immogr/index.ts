@@ -8,6 +8,8 @@ import { fetchSerperDigestMulti, fetchWebSearchDigest, type SearchClientLike } f
 import { IMMOGR_LOCALITIES, isImmoGRGroupMode, localitiesForMode } from './localities.ts';
 import { isDiscoveryUrlInScope, resolveDiscoverySourceScope } from './discovery-scope.ts';
 import { buildImmoGRListingPrompt, normalizeImmoGRListingAnalysis, parseImmoGRModelJson } from './listing-analysis.ts';
+import { fetchImmoGRPage } from './page-fetcher.ts';
+import { parseImmoGRHtml } from './page-parser.ts';
 type ImmoGRDependencies = { searchClient?: SearchClientLike | null; searchModels?: string[]; appAuthEnabled?: boolean; authenticated?: (req: any) => boolean; pilotEnabled?: boolean };
 type ManualSource = { id: string; name: string; category: string; ownerSignal?: string; homepageUrl?: string; manualReview?: Record<string, unknown> };
 const sourceRegistry = JSON.parse(readFileSync(path.resolve(process.cwd(), 'config/immogr/sources.json'), 'utf8')) as { sources: ManualSource[] };
@@ -382,6 +384,123 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     });
   };
   app.post('/api/immogr/discovery', discoveryHandler);
+
+  app.post('/api/immogr/search', async (req, res) => {
+    if (!requireOwner(req, res)) return;
+    if ((!searchClient || !searchModels.length) && !serperEnabled) {
+      return res.status(503).json({ success: false, code: 'SEARCH_PROVIDER_UNAVAILABLE', error: 'Configure Gemini Google Search or Serper to start ImmoGR search.' });
+    }
+    const maxPages = Math.max(1, Math.min(20, Number.isFinite(Number(req.body?.maxPages)) ? Math.floor(Number(req.body.maxPages)) : 10));
+    const mockResponse: any = {
+      statusCode: 200, payload: null, headers: {},
+      setHeader(name: string, value: string) { this.headers[name] = value; return this; },
+      status(code: number) { this.statusCode = code; return this; },
+      json(payload: unknown) { this.payload = payload; return this; },
+    };
+    await discoveryHandler({ body: req.body || {} }, mockResponse);
+    if (mockResponse.statusCode >= 400 || !mockResponse.payload?.success) {
+      return res.status(mockResponse.statusCode || 502).json(mockResponse.payload || { success: false, code: 'DISCOVERY_FAILED' });
+    }
+    const leads = (mockResponse.payload.leads || []).slice(0, maxPages);
+    const runId = randomUUID();
+    const startedAt = new Date();
+    const pool = await getPool();
+    const category = req.body?.category === 'private_owner_prospect' ? 'private_owner_prospect' : 'direct_rental';
+    const localityIds = Array.isArray(req.body?.localityIds) ? req.body.localityIds.map(String) : [];
+    const selectedSources = sourceRegistry.sources.filter((source) => (req.body?.sourceIds || []).includes(source.id));
+    await pool.query(
+      "INSERT INTO immogr_runs (id,mode,category,status,config_snapshot,counters) VALUES ($1,'source_acquisition',$2,'running',$3::jsonb,$4::jsonb)",
+      [runId, category, JSON.stringify({ localityIds, sourceIds: selectedSources.map((source) => source.id), maxPages }), JSON.stringify({ discovered: leads.length })],
+    );
+    for (const source of selectedSources) {
+      let domain = '';
+      try { domain = new URL(source.homepageUrl || '').hostname.toLowerCase().replace(/^www\./, ''); } catch {}
+      if (domain) await pool.query(
+        'INSERT INTO immogr_sources (id,canonical_domain,operator_name,metadata) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (id) DO UPDATE SET canonical_domain=EXCLUDED.canonical_domain,operator_name=EXCLUDED.operator_name,metadata=immogr_sources.metadata || EXCLUDED.metadata',
+        [source.id, domain, source.name, JSON.stringify({ category: source.category, inventoryVersion: 1 })],
+      );
+    }
+    const candidates: any[] = [];
+    const pageResults: any[] = [];
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < leads.length) {
+        const lead = leads[cursor++];
+        const source = selectedSources.find((item) => { try { const host = new URL(lead.url).hostname.toLowerCase().replace(/^www\./,''); const base = new URL(item.homepageUrl || '').hostname.toLowerCase().replace(/^www\./,''); return host === base || host.endsWith('.' + base); } catch { return false; } });
+        if (!source) { pageResults.push({ url: lead.url, status: 'skipped', reason: 'source_not_found' }); continue; }
+        const fetched = await fetchImmoGRPage(lead.url);
+        if (!fetched.ok) {
+          await pool.query(
+            "INSERT INTO immogr_source_pages (source_id,run_id,requested_url,http_status,content_type,retrieval_status,metadata) VALUES ($1,$2,$3,$4,'', 'failed',$5::jsonb)",
+            [source.id, runId, lead.url, fetched.statusCode || null, JSON.stringify({ code: fetched.code, detail: fetched.detail || null })],
+          );
+          pageResults.push({ url: lead.url, status: 'failed', reason: fetched.code });
+          continue;
+        }
+        const page = fetched.page;
+        const parsedPage = parseImmoGRHtml(page.html, page.finalUrl);
+        const sourceHost = new URL(page.finalUrl).hostname.toLowerCase().replace(/^www\./,'');
+        const sourcePage = await pool.query(
+          "INSERT INTO immogr_source_pages (source_id,run_id,requested_url,final_url,http_status,content_type,content_fingerprint,retrieval_status,parser_version,metadata) VALUES ($1,$2,$3,$4,$5,$6,$7,'retrieved','immogr-html-v1',$8::jsonb) RETURNING id",
+          [source.id, runId, page.requestedUrl, page.finalUrl, page.statusCode, page.contentType, page.contentFingerprint, JSON.stringify({ bytes: page.bytes, redirectCount: page.redirectCount, title: parsedPage.title, description: parsedPage.description, linkCount: parsedPage.links.length, jsonLdCount: parsedPage.jsonLd.length })],
+        );
+        const pageText = [parsedPage.text, 'STRUCTURED DATA JSON-LD:', JSON.stringify(parsedPage.jsonLd).slice(0,12000)].join('\n').slice(0,30000);
+        const prompt = buildImmoGRListingPrompt({
+          pageUrl: page.finalUrl, pageTitle: parsedPage.title, category,
+          localityNames: (req.body?.localityIds || []).map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)?.name).filter(Boolean),
+          pageText, links: parsedPage.links,
+        });
+        let analysis: any = null, modelUsed = '';
+        for (const model of searchModels.slice(0, 2)) {
+          try {
+            const response = await searchClient!.models.generateContent({ model, contents: prompt, config: { responseMimeType: 'application/json', temperature: 0.1 } });
+            let output = '';
+            try { if (typeof response?.text === 'string') output = response.text; } catch {}
+            if (!output) output = (response?.candidates?.[0]?.content?.parts || []).map((part: any) => typeof part?.text === 'string' ? part.text : '').join('');
+            const raw = parseImmoGRModelJson(output);
+            if (!raw) continue;
+            analysis = normalizeImmoGRListingAnalysis(raw, {
+              pageUrl: page.finalUrl, sourceHost, pageText, category,
+              localities: IMMOGR_LOCALITIES.filter((item) => localityIds.includes(item.id)).map((item) => ({ id: item.id, name: item.name })),
+              allowedLinks: parsedPage.links.map((item) => item.url),
+            });
+            modelUsed = model;
+            break;
+          } catch (error) { console.warn('[ImmoGR] page interpretation failed', source.id, String((error as Error)?.message || error).slice(0,120)); }
+        }
+        if (!analysis) {
+          pageResults.push({ url: lead.url, status: 'retrieved_unparsed', title: parsedPage.title, sourcePageId: sourcePage.rows[0].id });
+          continue;
+        }
+        for (const candidate of analysis.candidates) {
+          const monthlyRent = candidate.pricePeriod === 'month' && candidate.currency === 'CHF' ? candidate.priceAmount : null;
+          const qualification = candidate.qualification === 'qualified_candidate' ? 'qualified' : candidate.qualification === 'rejected' ? 'rejected' : 'needs_review';
+          const saved = await pool.query(
+            "INSERT INTO immogr_listings (canonical_url,category,locality_id,property_type,owner_class,monthly_rent_chf,price_period,qualification_state,first_seen_at,last_seen_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,now(),now()) ON CONFLICT (canonical_url) DO UPDATE SET last_seen_at=now(),category=EXCLUDED.category,locality_id=COALESCE(EXCLUDED.locality_id,immogr_listings.locality_id),property_type=EXCLUDED.property_type,owner_class=EXCLUDED.owner_class,monthly_rent_chf=EXCLUDED.monthly_rent_chf,price_period=EXCLUDED.price_period,qualification_state=EXCLUDED.qualification_state,updated_at=now() RETURNING id",
+            [candidate.url, category, candidate.localityId, candidate.propertyType, candidate.ownerClass, monthlyRent, candidate.pricePeriod, qualification],
+          );
+          for (const evidence of candidate.evidence) {
+            const value = (candidate as any)[evidence.field];
+            if (value === null || value === undefined || value === '') continue;
+            await pool.query(
+              "INSERT INTO immogr_evidence (listing_id,source_page_id,field_name,field_value,quote,source_url,page_block,extraction_method,confidence) VALUES ($1,$2,$3,$4,$5,$6,'primary_listing','llm_interpretation',$7)",
+              [saved.rows[0].id, sourcePage.rows[0].id, evidence.field, String(value).slice(0,500), evidence.quote, page.finalUrl, candidate.confidence === 'high' ? 0.9 : candidate.confidence === 'medium' ? 0.65 : 0.4],
+            );
+          }
+          candidates.push({ ...candidate, sourceId: source.id, sourceName: source.name, sourcePageId: sourcePage.rows[0].id, listingId: saved.rows[0].id, model: modelUsed });
+        }
+        pageResults.push({ url: lead.url, finalUrl: page.finalUrl, status: 'analyzed', title: parsedPage.title, pageType: analysis.pageType, candidateCount: analysis.candidates.length, rejectedCandidateCount: analysis.rejectedCandidateCount });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(3, Math.max(1, leads.length)) }, () => worker()));
+    const fetchedCount = pageResults.filter((item) => ['analyzed','retrieved_unparsed'].includes(item.status)).length;
+    const failedCount = pageResults.filter((item) => item.status === 'failed').length;
+    const finalStatus = failedCount === 0 && fetchedCount > 0 ? 'succeeded' : fetchedCount > 0 ? 'partial' : 'failed';
+    await pool.query("UPDATE immogr_runs SET status=$2,finished_at=now(),counters=$3::jsonb WHERE id=$1", [runId, finalStatus, JSON.stringify({ discovered: leads.length, fetched: fetchedCount, failed: failedCount, analyzed: pageResults.filter((item) => item.status === 'analyzed').length, candidates: candidates.length })]);
+    void recordApplicationLog({ level: finalStatus === 'failed' ? 'error' : 'info', component: 'immogr', event: 'search_pipeline_completed', message: 'ImmoGR discovery, acquisition and extraction pipeline completed', details: { runId, status: finalStatus, discovered: leads.length, fetched: fetchedCount, failed: failedCount, candidates: candidates.length, durationMs: Date.now() - startedAt.getTime() } }).catch(() => {});
+    return res.json({ success: finalStatus !== 'failed', runId, status: finalStatus, discovered: mockResponse.payload.leads.length, fetched: fetchedCount, failed: failedCount, candidateCount: candidates.length, candidates, pages: pageResults, generatedAt: new Date().toISOString() });
+  });
+
 
   // Temporary owner-token pilot: four localities × four selected sources, sequentially.
   // It uses search-engine grounding only; it never fetches source listing pages.
