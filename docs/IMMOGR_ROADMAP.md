@@ -3,7 +3,7 @@
 ## Objective
 Build a complete, reliable search engine for rental properties and private-owner prospects in the selected Graubünden localities. The engine must be technically capable of discovering, retrieving, parsing, deduplicating and evaluating information from the configured source inventory.
 
-## Phase 1 — Complete the search engine
+## WP0 / Phase 1 — Complete the search engine
 - Implement a unified discovery and retrieval pipeline.
 - Support generic HTML retrieval, structured data, JavaScript-rendered pages where technically appropriate, and source-specific adapters where they add measurable value.
 - Preserve page snapshots or bounded evidence extracts, response metadata and provenance.
@@ -12,7 +12,7 @@ Build a complete, reliable search engine for rental properties and private-owner
 - Provide diagnostics for each stage, provider, request and parser.
 - Keep transport security, SSRF prevention, secret handling, timeouts, response-size limits and bounded concurrency.
 
-## Phase 2 — Short technical and usefulness test of every source
+## WP1 / Phase 2 — Short technical and usefulness test of every source
 - Run the same small test set against every registered source.
 - Determine whether each source responds, what page formats it returns, and whether it contains useful property information.
 - Measure concrete listing yield, locality coverage, completeness of key fields, freshness, duplicate rate and extraction quality.
