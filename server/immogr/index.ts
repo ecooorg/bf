@@ -42,7 +42,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
   app.get('/api/immogr/sources', (req, res) => {
     if (!requireOwner(req, res)) return;
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview, probePolicy }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview, probePolicyStatus: probePolicy?.status ?? 'not_reviewed' })) });
+    res.json({ sources: sourceRegistry.sources.map(({ id, name, category, status, ownerSignal, permission, homepageUrl, manualReview, probePolicy }) => ({ id, name, category, automationStatus: status, ownerSignal, accessNote: permission, homepageUrl, manualReview, probePolicyStatus: probePolicy?.status ?? 'not_reviewed', remoteAnalysisEnabled: String(process.env.IMMOGR_URL_CONTEXT_ENABLED || '').toLowerCase() === 'true' && probePolicy?.status === 'authorized' && Boolean(probePolicy.authorizationReference) && Boolean(probePolicy.maxRequests) && Boolean(probePolicy.allowedHosts?.length) })) });
   });
 
   app.get('/api/immogr/manual-reviews', async (req, res) => {
