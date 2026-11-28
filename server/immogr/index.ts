@@ -128,8 +128,8 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const source = sourceRegistry.sources.find((item) => item.id === sourceId);
     let pageUrl: URL | null = null;
     try { pageUrl = new URL(String(body.canonicalUrl || '').trim()); } catch { /* invalid URL */ }
-    const host = pageUrl?.hostname.toLowerCase().replace(/^www\\./, '') || '';
-    const authorizedHosts = (source?.probePolicy?.allowedHosts || []).map((value) => String(value).toLowerCase().replace(/^www\\./, ''));
+    const host = pageUrl?.hostname.toLowerCase().replace(/^www\./, '') || '';
+    const authorizedHosts = (source?.probePolicy?.allowedHosts || []).map((value) => String(value).toLowerCase().replace(/^www\./, ''));
     const sourceAuthorized = Boolean(source && source.probePolicy?.status === 'authorized' && source.probePolicy.authorizationReference && source.probePolicy.maxRequests && source.probePolicy.maxRequests > 0 && authorizedHosts.includes(host));
     const localityIds = Array.isArray(body.localityIds) ? [...new Set(body.localityIds.filter((id: unknown) => typeof id === 'string'))] : [];
     const localities = localityIds.map((id: string) => IMMOGR_LOCALITIES.find((item) => item.id === id)).filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -147,7 +147,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
       'All candidates from URL Context are unverified suggestions and must remain needs_review pending local-copy evidence validation.',
       'URL: ' + pageUrl.toString(),
       'Return at most 10 candidates.'
-    ].join('\\n\\n');
+    ].join('\n\n');
     let lastError = 'No supported model returned structured data';
     for (const model of searchModels.slice(0, 2)) {
       const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 45000);
@@ -165,7 +165,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         const retrievedUrls = retrieved.map((item: any) => String(item?.retrievedUrl || item?.retrieved_url || item?.url || '')).filter(Boolean);
         const retrievalSucceeded = retrieved.some((item: any) => String(item?.urlRetrievalStatus || item?.url_retrieval_status || '').endsWith('SUCCESS'));
         if (!parsed) { lastError = 'Gemini returned invalid JSON'; continue; }
-        if (!retrievalSucceeded || !retrievedUrls.some((value: string) => { try { const retrievedUrl = new URL(value); return retrievedUrl.hostname.toLowerCase().replace(/^www\\./, '') === host; } catch { return false; } })) {
+        if (!retrievalSucceeded || !retrievedUrls.some((value: string) => { try { const retrievedUrl = new URL(value); return retrievedUrl.hostname.toLowerCase().replace(/^www\./, '') === host; } catch { return false; } })) {
           lastError = 'Gemini URL Context did not confirm a successful retrieval from the authorized host'; continue;
         }
         const candidates = (Array.isArray(parsed.candidates) ? parsed.candidates : []).slice(0, 10).map((item: any) => ({
