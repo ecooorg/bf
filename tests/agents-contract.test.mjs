@@ -78,7 +78,10 @@ test('ImmoGR is the only active property-search entry and its live search uses t
   assert.match(engine, /\/api\/immogr\/discovery/);
   assert.match(engine, /fetchWebSearchDigest/);
   assert.match(engine, /status: 'discovery_only'/);
-  assert.match(engine, /\/api\/immogr\/search/);\n  assert.match(engine, /fetchImmoGRPage/);\n  assert.match(engine, /parseImmoGRHtml/);\n  assert.match(engine, /INSERT INTO immogr_listings/);\n  assert.doesNotMatch(engine, /immofinder/i);
+  assert.match(engine, /\/api\/immogr\/search/);
+  assert.match(engine, /fetchImmoGRPage/);
+  assert.match(engine, /parseImmoGRHtml/);
+  assert.match(engine, /INSERT INTO immogr_listings/);\n  assert.doesNotMatch(engine, /immofinder/i);
   assert.match(engine, /fetchSerperDigestMulti/);
   assert.match(engine, /fetchPages: false/);
   assert.match(page, /data-testid="immogr-search"/);
