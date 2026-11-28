@@ -1,7 +1,3 @@
-## ImmoGR / ImmoFinder data boundary (2026-11-27)
-ImmoFinder is retired. Preserve its historical encrypted snapshot and diagnostics; do not publish or decrypt personal data into the repository. ImmoGR must collect only evidence necessary for the requested rental/owner qualification, respect source terms and access controls, and store contact data with provenance and retention rules. No bypass of authentication, robots, rate limits, paywalls, or site access restrictions.
-
-> **Property-search status — owner decision 2026-11-27:** ImmoFinder is permanently retired and must not be run, developed, or used. Any ImmoFinder material below is historical archive only: it is not a current requirement, roadmap, technical instruction, or source of decisions. ImmoGR is the sole active property-search project; its current authority is the docs/IMMOGR_*.md document set.
 
 # Security and Privacy
 
@@ -81,9 +77,7 @@ The global Express middleware applies `X-Content-Type-Options: nosniff`, `Referr
 
 ## ImmoFinder GR (P128)
 
-Owner accepted: polite scraping of niche catalogues (honest User-Agent, per-host delay, moderate frequency, robots.txt respected), cold outreach by the owner only, Apify/Airbnb and Facebook deferred. The module never sends messages. Stored personal data is limited to what is needed for contact (name, phone, email, site) from open sources, with evidence URL; it is not published and not logged in full (redact). Run endpoint requires auth or a secret from env (never committed). Anything beyond Swiss law/ToS "in reasonable bounds" is raised to the Navigator before implementation. Model output is untrusted data: structured JSON only, verified against fetched text (REQ-IMMO-003); fetched page text is treated as untrusted input to prompts.
 
-ImmoFinder discovery (128.3): web search through Serper (`SERPER_API_KEY`, already used by the search carousel). Social, booking and classified portals (`discovery.snippetOnlyHosts`) are never fetched; only the public search snippet is used, so no login, no scraping of those services. All other hosts go through the polite fetcher (robots.txt, delay). Personal data from search snippets is limited to contact values copied verbatim from the snippet or page.
 
 ImmoFinder email (128.5): sent through Resend with `RESEND_API_KEY` from the environment; the recipient is a single address saved in settings (validated, no lists). Settings endpoints return channel readiness as booleans only. Error strings from providers are truncated and the key is redacted.
 
