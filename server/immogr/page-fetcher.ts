@@ -85,8 +85,8 @@ export async function fetchImmoGRPage(value: string, options: FetcherOptions = {
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       if (options.allowedHosts?.length) {
-        const host = current.hostname.toLowerCase().replace(/^www\\./, '');
-        const allowed = options.allowedHosts.some((value) => { const base = value.toLowerCase().replace(/^www\\./, ''); return host === base || host.endsWith('.' + base); });
+        const host = current.hostname.toLowerCase().replace(/^www\./, '');
+        const allowed = options.allowedHosts.some((value) => { const base = value.toLowerCase().replace(/^www\./, ''); return host === base || host.endsWith('.' + base); });
         if (!allowed) return { ok: false, requestedUrl, code: 'redirect_outside_selected_source' };
       }
       await assertPublicTarget(current, resolver);
