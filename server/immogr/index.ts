@@ -431,7 +431,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
         const lead = leads[cursor++];
         const source = selectedSources.find((item) => { try { const host = new URL(lead.url).hostname.toLowerCase().replace(/^www\./,''); const base = new URL(item.homepageUrl || '').hostname.toLowerCase().replace(/^www\./,''); return host === base || host.endsWith('.' + base); } catch { return false; } });
         if (!source) { pageResults.push({ url: lead.url, status: 'skipped', reason: 'source_not_found' }); continue; }
-        const requestedHost = new URL(lead.url).hostname.toLowerCase().replace(/^www\\./,'');
+        const requestedHost = new URL(lead.url).hostname.toLowerCase().replace(/^www\./,'');
         const previous = hostQueues.get(requestedHost) || Promise.resolve();
         let releaseHost!: () => void;
         const currentSlot = new Promise<void>((resolve) => { releaseHost = resolve; });
@@ -451,10 +451,10 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
           continue;
         }
         const page = fetched.page;
-        const finalHost = new URL(page.finalUrl).hostname.toLowerCase().replace(/^www\\./,'');
-        const sourceHomepageHost = new URL(source.homepageUrl || '').hostname.toLowerCase().replace(/^www\\./,'');
+        const finalHost = new URL(page.finalUrl).hostname.toLowerCase().replace(/^www\./,'');
+        const sourceHomepageHost = new URL(source.homepageUrl || '').hostname.toLowerCase().replace(/^www\./,'');
         if (!(finalHost === sourceHomepageHost || finalHost.endsWith('.' + sourceHomepageHost))) {
-          await pool.query(\"INSERT INTO immogr_source_pages (source_id,run_id,requested_url,final_url,http_status,content_type,retrieval_status,metadata) VALUES ($1,$2,$3,$4,$5,$6,'failed',$7::jsonb)\", [source.id, runId, page.requestedUrl, page.finalUrl, page.statusCode, page.contentType, JSON.stringify({ code: 'redirected_outside_source_domain' })]);
+          await pool.query("INSERT INTO immogr_source_pages (source_id,run_id,requested_url,final_url,http_status,content_type,retrieval_status,metadata) VALUES ($1,$2,$3,$4,$5,$6,'failed',$7::jsonb)", [source.id, runId, page.requestedUrl, page.finalUrl, page.statusCode, page.contentType, JSON.stringify({ code: 'redirected_outside_source_domain' })]);
           pageResults.push({ url: lead.url, status: 'failed', reason: 'redirected_outside_source_domain' });
           continue;
         }
