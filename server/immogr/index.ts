@@ -368,7 +368,7 @@ export function registerImmoGRRoutes(app: Express, dependencies: ImmoGRDependenc
     const leads = acceptedCandidates.slice(0, 100).map((source) => {
       let host = '';
       try { host = new URL(source.url).hostname; } catch { /* grounding parser already validates URLs */ }
-      return { title: source.title, url: source.url, host, verification: 'unverified', accessReview: 'not_assessed' };
+      return { title: source.title, url: source.url, host, verification: 'unverified' };
     });
     return res.json({
       success: true, status: 'discovery_only', category, localities: localityNames, localityIds,
